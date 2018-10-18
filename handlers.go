@@ -112,77 +112,69 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 }
 
 func Insert(tab table, valuePairs ...[2]string) error {
-	tabName, dbName := tab.Tab(), tab.DB()
-	db := dbMap[dbName]
-	switch obj := tab.(type) {
-	case modelList:
-		info := getTableCache(obj.Index(0))
-		for i := 0; i < obj.Len(); i++ {
-			fields := obj.Index(i).Fields()
-			incField := fields[info.inc]
-			fields = append(fields[:info.inc], fields[info.inc+1:]...)
-			pairs := make([][2]string, 0, len(fields))
-			for _, field := range fields {
-				if field.IsValid() {
-					pairs = append(pairs, field.InsertValuePair())
+	db := dbMap[tab.DB()]
+	if len(valuePairs) != 0 {
+		colList := make([]string, len(valuePairs))
+		valList := make([]string, len(valuePairs))
+		for i, p := range valuePairs {
+			colList[i] = p[0]
+			valList[i] = p[1]
+		}
+		stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tab.DB(), tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+		_, err := db.Exec(stmtStr)
+		if err != nil {
+			return err
+		}
+	} else {
+		switch obj := tab.(type) {
+		case modelList:
+			for i := 0; i < obj.Len(); i++ {
+				m := obj.Index(i)
+				inc, others := getInc(m)
+				others = filterValid(others)
+				colList := make([]string, len(others))
+				valList := make([]string, len(others))
+				for i, f := range others {
+					p := f.InsertValuePair()
+					colList[i] = p[0]
+					valList[i] = p[1]
 				}
+				stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tab.DB(), tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+				res, err := db.Exec(stmtStr)
+				if err != nil {
+					return err
+				}
+				lastInsertId, err := res.LastInsertId()
+				if err != nil {
+					return err
+				}
+				inc.(*IntField).Set(lastInsertId, false)
 			}
-			colList, valList := make([]string, len(pairs)), make([]string, len(pairs))
-			for j, p := range pairs {
-				colList[j] = p[0]
-				valList[j] = p[1]
+		case Model:
+			inc, others := getInc(obj)
+			others = filterValid(others)
+			colList := make([]string, len(others))
+			valList := make([]string, len(others))
+			for i, f := range others {
+				p := f.InsertValuePair()
+				colList[i] = p[0]
+				valList[i] = p[1]
 			}
-			stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabName, strings.Join(colList, ", "), strings.Join(valList, ", "))
+			stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tab.DB(), tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
 			res, err := db.Exec(stmtStr)
 			if err != nil {
 				return err
 			}
-			id, err := res.LastInsertId()
+			lastInsertId, err := res.LastInsertId()
 			if err != nil {
 				return err
 			}
-			incField.(*IntField).Set(id, false)
+			inc.(*IntField).Set(lastInsertId, false)
+		default:
+			panic("nborm.Insert() error: unsupported type")
 		}
-		return nil
-	case Model:
-		info := getTableCache(obj)
-		fields := obj.Fields()
-		incField := fields[info.inc]
-		fields = append(fields[:info.inc], fields[info.inc+1:]...)
-		pairs := make([][2]string, 0, len(fields))
-		for _, f := range fields {
-			if f.IsValid() {
-				pairs = append(pairs, f.InsertValuePair())
-			}
-		}
-		colList := make([]string, len(pairs))
-		valList := make([]string, len(pairs))
-		for i, p := range pairs {
-			colList[i] = p[0]
-			valList[i] = p[1]
-		}
-		stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabName, strings.Join(colList, ", "), strings.Join(valList, ", "))
-		res, err := db.Exec(stmtStr)
-		if err != nil {
-			return err
-		}
-		id, err := res.LastInsertId()
-		if err != nil {
-			return err
-		}
-		incField.(*IntField).Set(id, false)
-		return nil
-	default:
-		colList := make([]string, len(valuePairs))
-		valList := make([]string, len(valuePairs))
-		for index, p := range valuePairs {
-			colList[index] = p[0]
-			valList[index] = p[1]
-		}
-		stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabName, strings.Join(colList, ", "), strings.Join(valList, ", "))
-		_, err := db.Exec(stmtStr)
-		return err
 	}
+	return nil
 }
 
 func Update(tab table, where *Where, values ...*UpdateValue) error {

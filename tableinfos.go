@@ -378,42 +378,41 @@ import (
 			}
 		}
 
-		type {{ tab.ModelName }}List []*{{ tab.ModelName }}
-
-		func (l *{{ tab.ModelName }}List) DB() string {
-			return "{{ dbName }}"
+		type {{ tab.ModelName }}List struct {
+			*{{ tab.ModelName }}
+			List []*{{ tab.ModelName }}
 		}
 
-		func (l *{{ tab.ModelName }}List) Tab() string {
-			return "{{ tabName }}"
+		func New{{ tab.ModelName }}List() *{{ tab.ModelName }}List {
+			return &{{ tab.ModelName }}List{New{{ tab.ModelName }}(), make([]*{{ tab.ModelName }}, 0, 128)}
 		}
 
 		func (l *{{ tab.ModelName }}List) New() nborm.Model {
 			m := New{{ tab.ModelName }}()
-			*l = append(*l, m)
+			l.List = append(l.List, m)
 			return m
 		}
 
 		func (l *{{ tab.ModelName }}List) Len() int {
-			return len(*l)
+			return len(l.List)
 		}
 
 		func (l *{{ tab.ModelName }}List) Swap(i, j int) {
-			(*l)[i], (*l)[j] = (*l)[j], (*l)[i]
+			l.List[i], l.List[j] = l.List[j], l.List[i]
 		}
 
 		func (l *{{ tab.ModelName }}List) Index(i int) nborm.Model {
-			return (*l)[i]
+			return l.List[i]
 		}
 
 		func (l *{{ tab.ModelName }}List) Delete(i int) {
 			switch i {
 			case 0:
-				*l = (*l)[1:]
+				l.List = l.List[1:]
 			case l.Len()-1:
-				*l = (*l)[:l.Len()-1]
+				l.List = l.List[:l.Len()-1]
 			default:
-				*l = append((*l)[:i], (*l)[i+1:]...)
+				l.List = append(l.List[:i], l.List[i+1:]...)
 			}
 		}
 	{{ endfor }}

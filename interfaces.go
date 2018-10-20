@@ -40,6 +40,8 @@ type Field interface {
 	LessFunc() func(Model, Model) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
+	Super() Model
+	SortOrder(reverse bool) string
 }
 
 type relation interface {

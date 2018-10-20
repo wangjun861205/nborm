@@ -2,7 +2,54 @@ package nborm
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 )
+
+type Pager [2]int
+
+func NewPager(numPerPage, pageNum int) *Pager {
+	p := Pager([2]int{numPerPage, pageNum})
+	return &p
+}
+
+func (p *Pager) toSQL() string {
+	if p == nil {
+		return ""
+	}
+	offset := (*p)[0] * ((*p)[1] - 1)
+	return fmt.Sprintf("LIMIT %d, %d", offset, p[0])
+}
+
+func (p *Pager) NextPage() {
+	(*p)[1]++
+}
+
+func (p *Pager) PrevPage() (ok bool) {
+	if (*p)[1] != 0 {
+		(*p)[1]--
+		return true
+	}
+	return false
+}
+
+func (p *Pager) Index(i int) {
+	(*p)[1] = i
+}
+
+type Sorter string
+
+func NewSorter(infos ...string) *Sorter {
+	s := Sorter(fmt.Sprintf("ORDER BY %s", strings.Join(infos, ", ")))
+	return &s
+}
+
+func (s *Sorter) toSQL() string {
+	if s == nil {
+		return ""
+	}
+	return string(*s)
+}
 
 func scanRows(l modelList, rows *sql.Rows) error {
 	defer rows.Close()

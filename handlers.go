@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/go-sql-driver/mysql"
 )
 
-func All(l modelList) error {
-	stmtStr := fmt.Sprintf("SELECT * FROM %s", l.Tab())
+func All(l modelList, sorter *Sorter, pager *Pager) error {
+	stmtStr := fmt.Sprintf("SELECT * FROM %s %s %s", l.Tab(), sorter.toSQL(), pager.toSQL())
 	rows, err := dbMap[l.DB()].Query(stmtStr)
 	if err != nil {
 		return err
@@ -17,7 +18,7 @@ func All(l modelList) error {
 	return scanRows(l, rows)
 }
 
-func Query(tab table, where *Where) error {
+func Query(tab table, where *Where, sorter *Sorter, pager *Pager) error {
 	db := dbMap[tab.DB()]
 	if where == nil {
 		switch obj := tab.(type) {
@@ -27,19 +28,38 @@ func Query(tab table, where *Where) error {
 			row := db.QueryRow(stmtStr)
 			return scanRow(obj, row)
 		case modelList:
+			wg := sync.WaitGroup{}
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
 			for i := 0; i < obj.Len(); i++ {
-				where = genWhere(obj.Index(i))
-				stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), where.String())
-				row := db.QueryRow(stmtStr)
-				err := scanRow(obj.Index(i), row)
-				if err != nil {
-					return err
-				}
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					w := genWhere(obj.Index(index))
+					stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), w.String())
+					row := db.QueryRow(stmtStr)
+					if err := scanRow(obj.Index(index), row); err != nil {
+						errChan <- err
+					}
+				}(i)
 			}
-			return nil
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return err
+			case <-doneChan:
+				return nil
+			}
 		}
 	}
-	stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), where.String())
+	stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s %s %s", tab.Tab(), where.String(), sorter.toSQL(), pager.toSQL())
 	switch obj := tab.(type) {
 	case Model:
 		row := db.QueryRow(stmtStr)
@@ -79,15 +99,34 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 			row := db.QueryRow(stmtStr)
 			return scanRow(obj, row)
 		case modelList:
+			wg := sync.WaitGroup{}
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
 			for i := 0; i < obj.Len(); i++ {
-				m := obj.Index(i)
-				where = genWhere(m)
-				stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "), where.String())
-				row := db.QueryRow(stmtStr)
-				err := scanRow(m, row)
-				if err != nil {
-					return err
-				}
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					m := obj.Index(index)
+					w := genWhere(m)
+					stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "), w.String())
+					row := db.QueryRow(stmtStr)
+					err := scanRow(m, row)
+					if err != nil {
+						errChan <- err
+					}
+				}(i)
+			}
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return err
 			}
 			return nil
 		default:
@@ -128,27 +167,49 @@ func Insert(tab table, valuePairs ...[2]string) error {
 	} else {
 		switch obj := tab.(type) {
 		case modelList:
+			var wg sync.WaitGroup
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
 			for i := 0; i < obj.Len(); i++ {
-				m := obj.Index(i)
-				inc, others := getInc(m)
-				others = filterValid(others)
-				colList := make([]string, len(others))
-				valList := make([]string, len(others))
-				for i, f := range others {
-					p := f.InsertValuePair()
-					colList[i] = p[0]
-					valList[i] = p[1]
-				}
-				stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tab.DB(), tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
-				res, err := db.Exec(stmtStr)
-				if err != nil {
-					return err
-				}
-				lastInsertId, err := res.LastInsertId()
-				if err != nil {
-					return err
-				}
-				inc.(*IntField).Set(lastInsertId, false)
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					m := obj.Index(index)
+					inc, others := getInc(m)
+					others = filterValid(others)
+					colList := make([]string, len(others))
+					valList := make([]string, len(others))
+					for i, f := range others {
+						p := f.InsertValuePair()
+						colList[i] = p[0]
+						valList[i] = p[1]
+					}
+					stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tab.DB(), tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+					res, err := db.Exec(stmtStr)
+					if err != nil {
+						errChan <- err
+					}
+					lastInsertId, err := res.LastInsertId()
+					if err != nil {
+						errChan <- err
+						return
+					}
+					inc.(*IntField).Set(lastInsertId, false)
+				}(i)
+			}
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return err
+			case <-doneChan:
+				return nil
 			}
 		case Model:
 			inc, others := getInc(obj)
@@ -200,37 +261,63 @@ func Update(tab table, where *Where, values ...*UpdateValue) error {
 			_, err := db.Exec(stmtStr)
 			return err
 		case modelList:
-			info := getTableCache(obj.Index(0))
+			var wg sync.WaitGroup
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
 			if len(values) > 0 {
 				valStrs := make([]string, len(values))
 				for i, val := range values {
 					valStrs[i] = val.String()
 				}
 				for i := 0; i < obj.Len(); i++ {
-					stmtStr := fmt.Sprintf("UPDATE %s SET %s WHERE %s", obj.Tab(), strings.Join(valStrs, ", "), obj.Index(i).Fields()[info.inc].Where())
-					_, err := db.Exec(stmtStr)
-					if err != nil {
-						return err
-					}
-					updateModel(obj.Index(i), values...)
+					wg.Add(1)
+					go func(index int) {
+						defer func() {
+							recover()
+							wg.Done()
+						}()
+						stmtStr := fmt.Sprintf("UPDATE %s SET %s WHERE %s", obj.Tab(), strings.Join(valStrs, ", "), genWhere(obj.Index(index)))
+						_, err := db.Exec(stmtStr)
+						if err != nil {
+							errChan <- err
+							return
+						}
+						updateModel(obj.Index(index), values...)
+					}(i)
 				}
 			} else {
 				for i := 0; i < obj.Len(); i++ {
-					fields := obj.Index(i).Fields()
-					setValues := make([]string, 0, len(fields))
-					for _, f := range fields {
-						if !f.IsInc() && f.IsValid() {
-							setValues = append(setValues, f.UpdateValue().String())
+					wg.Add(1)
+					go func(index int) {
+						defer func() {
+							recover()
+							wg.Done()
+						}()
+						_, others := getInc(obj.Index(index))
+						others = filterValid(others)
+						setValues := make([]string, len(others))
+						for j, f := range others {
+							setValues[j] = f.UpdateValue().String()
 						}
-					}
-					stmtStr := fmt.Sprintf("UPDATE %s SET %s WHERE %s", obj.Tab(), strings.Join(setValues, ", "), fields[info.inc].Where())
-					_, err := db.Exec(stmtStr)
-					if err != nil {
-						return err
-					}
+						stmtStr := fmt.Sprintf("UPDATE %s SET %s WHERE %s", obj.Tab(), strings.Join(setValues, ", "), genWhere(obj.Index(index)))
+						_, err := db.Exec(stmtStr)
+						if err != nil {
+							errChan <- err
+						}
+					}(i)
 				}
 			}
-			return nil
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return err
+			case <-doneChan:
+				return nil
+			}
 		default:
 			panic("nborm.Update() error: unsupported type")
 		}
@@ -278,27 +365,51 @@ func InsertOrUpdate(tab table, valuePairs ...[2]string) error {
 			}
 			inc.(*IntField).Set(lastInsertId, false)
 		case modelList:
+			var wg sync.WaitGroup
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
 			for i := 0; i < obj.Len(); i++ {
-				inc, fs := getInc(obj.Index(i))
-				validFields := filterValid(fs)
-				colList := make([]string, len(validFields))
-				valList := make([]string, len(validFields))
-				updateList := make([]string, len(validFields))
-				for i, f := range validFields {
-					valuePair := f.InsertValuePair()
-					colList[i], valList[i], updateList[i] = valuePair[0], valuePair[1], valuePair[0]+"="+valuePair[1]
-				}
-				stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s",
-					obj.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
-				res, err := db.Exec(stmtStr)
-				if err != nil {
-					return err
-				}
-				lastInsertId, err := res.LastInsertId()
-				if err != nil {
-					return err
-				}
-				inc.(*IntField).Set(lastInsertId, false)
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					m := obj.Index(index)
+					inc, others := getInc(m)
+					others = filterValid(others)
+					colList := make([]string, len(others))
+					valList := make([]string, len(others))
+					updateList := make([]string, len(others))
+					for j, f := range others {
+						valuePair := f.InsertValuePair()
+						colList[j], valList[j], updateList[j] = valuePair[0], valuePair[1], valuePair[0]+"="+valuePair[1]
+					}
+					stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s",
+						obj.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
+					res, err := db.Exec(stmtStr)
+					if err != nil {
+						errChan <- err
+						return
+					}
+					lastInsertId, err := res.LastInsertId()
+					if err != nil {
+						errChan <- err
+						return
+					}
+					inc.(*IntField).Set(lastInsertId, false)
+				}(i)
+			}
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return err
+			case <-doneChan:
+				return nil
 			}
 		default:
 			panic("nborm.InsertOrUpdate() error: unsupported type")
@@ -323,7 +434,7 @@ func InsertOrGet(tab table) error {
 		res, err := db.Exec(stmtStr)
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-				return Query(obj, nil)
+				return Query(obj, nil, nil, nil)
 			} else {
 				return err
 			}
@@ -334,33 +445,56 @@ func InsertOrGet(tab table) error {
 		}
 		inc.(*IntField).Set(lastInsertId, false)
 	case modelList:
+		var wg sync.WaitGroup
+		doneChan := make(chan interface{})
+		errChan := make(chan error)
 		for i := 0; i < obj.Len(); i++ {
-			inc, fs := getInc(obj.Index(i))
-			validFields := filterValid(fs)
-			colList := make([]string, len(validFields))
-			valList := make([]string, len(validFields))
-			for i, f := range validFields {
-				valuePair := f.InsertValuePair()
-				colList[i], valList[i] = valuePair[0], valuePair[1]
-			}
-			stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
-			res, err := db.Exec(stmtStr)
-			if err != nil {
-				if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-					err := Query(obj.Index(i), nil)
-					if err != nil {
-						return err
-					}
-					continue
-				} else {
-					return err
+			wg.Add(1)
+			go func(index int) {
+				defer func() {
+					recover()
+					wg.Done()
+				}()
+				m := obj.Index(index)
+				inc, others := getInc(m)
+				others = filterValid(others)
+				colList := make([]string, len(others))
+				valList := make([]string, len(others))
+				for j, f := range others {
+					valuePair := f.InsertValuePair()
+					colList[j], valList[j] = valuePair[0], valuePair[1]
 				}
-			}
-			lastInsertId, err := res.LastInsertId()
-			if err != nil {
+				stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tab.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+				res, err := db.Exec(stmtStr)
+				if err != nil {
+					if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+						if err := Query(m, nil, nil, nil); err != nil {
+							errChan <- err
+						}
+						return
+					} else {
+						errChan <- err
+						return
+					}
+				}
+				lastInsertId, err := res.LastInsertId()
+				if err != nil {
+					errChan <- err
+					return
+				}
+				inc.(*IntField).Set(lastInsertId, false)
+			}(i)
+			func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
 				return err
+			case <-doneChan:
+				return nil
 			}
-			inc.(*IntField).Set(lastInsertId, false)
 		}
 	default:
 		panic("nborm.InsertOrUpdate() error: unsupported type")

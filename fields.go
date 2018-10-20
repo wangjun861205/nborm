@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 type UpdateValue struct {
@@ -30,6 +32,10 @@ type StringField struct {
 
 func NewStringField(model Model, column string, pk bool, inc bool, uni bool) *StringField {
 	return &StringField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *StringField) Super() Model {
+	return f.super
 }
 
 func (f *StringField) Column() string {
@@ -172,6 +178,16 @@ func (f *StringField) LessFunc() func(Model, Model) int {
 	}
 }
 
+func (f *StringField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+}
+
 type IntField struct {
 	super  Model
 	val    int64
@@ -185,6 +201,10 @@ type IntField struct {
 
 func NewIntField(model Model, column string, pk bool, inc bool, uni bool) *IntField {
 	return &IntField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *IntField) Super() Model {
+	return f.super
 }
 
 func (f *IntField) Column() string {
@@ -343,6 +363,16 @@ func (f *IntField) LessFunc() func(Model, Model) int {
 	}
 }
 
+func (f *IntField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+}
+
 func (f *IntField) SumFunc() func(modelList) float64 {
 	return func(l modelList) float64 {
 		var sum int
@@ -408,6 +438,10 @@ type FloatField struct {
 
 func NewFloatField(model Model, column string, pk bool, inc bool, uni bool) *FloatField {
 	return &FloatField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *FloatField) Super() Model {
+	return f.super
 }
 
 func (f *FloatField) Column() string {
@@ -566,6 +600,16 @@ func (f *FloatField) LessFunc() func(Model, Model) int {
 	}
 }
 
+func (f *FloatField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+}
+
 type BoolField struct {
 	super  Model
 	val    bool
@@ -579,6 +623,10 @@ type BoolField struct {
 
 func NewBoolField(model Model, column string, pk bool, inc bool, uni bool) *BoolField {
 	return &BoolField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *BoolField) Super() Model {
+	return f.super
 }
 
 func (f *BoolField) Column() string {
@@ -725,6 +773,16 @@ func (f *BoolField) LessFunc() func(Model, Model) int {
 	}
 }
 
+func (f *BoolField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+}
+
 type DateField struct {
 	super  Model
 	val    time.Time
@@ -738,6 +796,10 @@ type DateField struct {
 
 func NewDateField(model Model, column string, pk bool, inc bool, uni bool) *DateField {
 	return &DateField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *DateField) Super() Model {
+	return f.super
 }
 
 func (f *DateField) Column() string {
@@ -896,6 +958,16 @@ func (f *DateField) LessFunc() func(Model, Model) int {
 	}
 }
 
+func (f *DateField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+}
+
 type DatetimeField struct {
 	super  Model
 	val    time.Time
@@ -909,6 +981,10 @@ type DatetimeField struct {
 
 func NewDatetimeField(model Model, column string, pk bool, inc bool, uni bool) *DatetimeField {
 	return &DatetimeField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *DatetimeField) Super() Model {
+	return f.super
 }
 
 func (f *DatetimeField) Column() string {
@@ -1065,6 +1141,16 @@ func (f *DatetimeField) LessFunc() func(Model, Model) int {
 			return 0
 		}
 	}
+}
+
+func (f *DatetimeField) SortOrder(reverse bool) string {
+	var o string
+	if reverse {
+		o = "DESC"
+	} else {
+		o = "ASC"
+	}
+	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
 }
 
 type BinaryField struct {
@@ -1490,6 +1576,9 @@ func (mtm *ManyToMany) Add(m Model) error {
 		dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
+		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+			return nil
+		}
 		return err
 	}
 	return nil

@@ -1264,182 +1264,226 @@ func (f *BinaryField) NotNull() *Where {
 }
 
 // type OneToOne struct {
-// 	dstTab table
-// 	dstCol Field
+// 	dstDB  string
+// 	dstTab string
+// 	dstCol string
 // 	srcCol Field
+// 	result Model
 // }
 
-// func NewOneToOne(dstTab table, dstCol, srcCol Field) *OneToOne {
-// 	return &OneToOne{dstTab, dstCol, srcCol}
+type OneToOne struct {
+	srcField Field
+	dstField Field
+	result   Model
+}
+
+// func NewOneToOne(dstDB, dstTab, dstCol string, srcCol Field, model Model) *OneToOne {
+// 	return &OneToOne{dstDB, dstTab, dstCol, srcCol, model}
 // }
+
+func NewOneToOne(srcField, dstField Field, model Model) *OneToOne {
+	return &OneToOne{srcField, dstField, model}
+}
 
 // func (oto *OneToOne) DstDB() string {
-// 	return oto.dstTab.DB()
+// 	return oto.dstDB
 // }
+
+func (oto *OneToOne) DstDB() string {
+	return oto.dstField.Super().DB()
+}
 
 // func (oto *OneToOne) DstTab() string {
-// 	return oto.dstTab.Tab()
+// 	return oto.dstTab
 // }
 
+func (oto *OneToOne) DstTab() string {
+	return oto.dstField.Super().Tab()
+}
+
 // func (oto *OneToOne) DstCol() string {
-// 	return oto.dstCol.Column()
+// 	return oto.dstCol
 // }
+
+func (oto *OneToOne) DstCol() string {
+	return oto.dstField.Column()
+}
 
 // func (oto *OneToOne) SrcCol() string {
 // 	return oto.srcCol.Column()
 // }
 
+func (oto *OneToOne) SrcCol() string {
+	return oto.srcField.Column()
+}
+
 // func (oto *OneToOne) Query(m Model) error {
-// 	dbName := oto.dstTab.DB()
-// 	db := dbMap[dbName]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", dbName, oto.dstTab.Tab(), oto.dstCol.Column(), oto.srcCol.SQLVal())
+// 	db := dbMap[oto.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.dstDB, oto.dstTab, oto.dstCol, oto.srcCol.SQLVal())
 // 	row := db.QueryRow(stmtStr)
 // 	return scanRow(m, row)
 // }
 
-type OneToOne struct {
-	dstDB  string
-	dstTab string
-	dstCol string
-	srcCol Field
-}
-
-func NewOneToOne(dstDB, dstTab, dstCol string, srcCol Field) *OneToOne {
-	return &OneToOne{dstDB, dstTab, dstCol, srcCol}
-}
-
-func (oto *OneToOne) DstDB() string {
-	return oto.dstDB
-}
-
-func (oto *OneToOne) DstTab() string {
-	return oto.dstTab
-}
-
-func (oto *OneToOne) DstCol() string {
-	return oto.dstCol
-}
-
-func (oto *OneToOne) SrcCol() string {
-	return oto.srcCol.Column()
-}
-
-func (oto *OneToOne) Query(m Model) error {
-	db := dbMap[oto.dstDB]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.dstDB, oto.dstTab, oto.dstCol, oto.srcCol.SQLVal())
+func (oto *OneToOne) Query() error {
+	db := dbMap[oto.DstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.DstDB(), oto.DstTab(), oto.DstCol(), oto.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	return scanRow(m, row)
+	return scanRow(oto.result, row)
+}
+
+func (oto *OneToOne) Result() Model {
+	return oto.result
 }
 
 // type ForeignKey struct {
-// 	dstTab table
-// 	dstCol Field
+// 	dstDB  string
+// 	dstTab string
+// 	dstCol string
 // 	srcCol Field
+// 	result Model
 // }
 
-// func NewForeignKey(dstTab table, dstCol Field, srcCol Field) *ForeignKey {
-// 	return &ForeignKey{dstTab, dstCol, srcCol}
+type ForeignKey struct {
+	srcField Field
+	dstField Field
+	result   Model
+}
+
+// func NewForeignKey(dstDB, dstTab, dstCol string, srcCol Field, model Model) *ForeignKey {
+// 	return &ForeignKey{dstDB, dstTab, dstCol, srcCol, model}
 // }
+
+func NewForeignKey(srcField, dstField Field, model Model) *ForeignKey {
+	return &ForeignKey{srcField, dstField, model}
+}
 
 // func (fk *ForeignKey) DstDB() string {
-// 	return fk.dstTab.DB()
+// 	return fk.dstTab
 // }
+
+func (fk *ForeignKey) DstDB() string {
+	return fk.dstField.Super().DB()
+}
 
 // func (fk *ForeignKey) DstTab() string {
-// 	return fk.dstTab.Tab()
+// 	return fk.dstTab
 // }
 
+func (fk *ForeignKey) DstTab() string {
+	return fk.dstField.Super().Tab()
+}
+
 // func (fk *ForeignKey) DstCol() string {
-// 	return fk.dstCol.Column()
+// 	return fk.dstCol
 // }
+
+func (fk *ForeignKey) DstCol() string {
+	return fk.dstField.Column()
+}
 
 // func (fk *ForeignKey) SrcCol() string {
 // 	return fk.srcCol.Column()
 // }
 
+func (fk *ForeignKey) SrcCol() string {
+	return fk.srcField.Column()
+}
+
 // func (fk *ForeignKey) Query(m Model) error {
-// 	dbName, tabName := fk.dstTab.DB(), fk.dstTab.Tab()
-// 	db := dbMap[dbName]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s = %s", tabName, fk.dstCol.Column(), fk.srcCol.SQLVal())
+// 	db := dbMap[fk.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.dstDB, fk.dstTab, fk.dstCol, fk.srcCol.SQLVal())
 // 	row := db.QueryRow(stmtStr)
 // 	return scanRow(m, row)
 // }
 
-type ForeignKey struct {
-	dstDB  string
-	dstTab string
-	dstCol string
-	srcCol Field
-}
-
-func NewForeignKey(dstDB, dstTab, dstCol string, srcCol Field) *ForeignKey {
-	return &ForeignKey{dstDB, dstTab, dstCol, srcCol}
-}
-
-func (fk *ForeignKey) DstDB() string {
-	return fk.dstTab
-}
-
-func (fk *ForeignKey) DstTab() string {
-	return fk.dstTab
-}
-
-func (fk *ForeignKey) DstCol() string {
-	return fk.dstCol
-}
-
-func (fk *ForeignKey) SrcCol() string {
-	return fk.srcCol.Column()
-}
-
-func (fk *ForeignKey) Query(m Model) error {
-	db := dbMap[fk.dstDB]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.dstDB, fk.dstTab, fk.dstCol, fk.srcCol.SQLVal())
+func (fk *ForeignKey) Query() error {
+	db := dbMap[fk.DstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.DstDB(), fk.DstTab(), fk.DstCol(), fk.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	return scanRow(m, row)
+	return scanRow(fk.result, row)
+}
+
+func (fk *ForeignKey) Result() Model {
+	return fk.result
 }
 
 // type ReverseForeignKey struct {
-// 	dstTab table
-// 	dstCol Field
+// 	dstDB  string
+// 	dstTab string
+// 	dstCol string
 // 	srcCol Field
+// 	result modelList
 // }
 
-// func NewReverseForeignKey(dstTab table, dstCol Field, srcCol Field) *ReverseForeignKey {
-// 	return &ReverseForeignKey{dstTab, dstCol, srcCol}
+type ReverseForeignKey struct {
+	srcField Field
+	dstField Field
+	result   modelList
+}
+
+// func NewReverseForeignKey(dstDB, dstTab, dstCol string, srcCol Field, modelList modelList) *ReverseForeignKey {
+// 	return &ReverseForeignKey{dstDB, dstTab, dstCol, srcCol, modelList}
 // }
+
+func NewReverseForeignKey(srcField, dstField Field, modelList modelList) *ReverseForeignKey {
+	return &ReverseForeignKey{srcField, dstField, modelList}
+}
 
 // func (rfk *ReverseForeignKey) DstDB() string {
-// 	return rfk.dstTab.DB()
+// 	return rfk.dstTab
 // }
+
+func (rfk *ReverseForeignKey) DstDB() string {
+	return rfk.dstField.Super().DB()
+}
 
 // func (rfk *ReverseForeignKey) DstTab() string {
-// 	return rfk.dstTab.Tab()
+// 	return rfk.dstTab
 // }
 
+func (rfk *ReverseForeignKey) DstTab() string {
+	return rfk.dstField.Super().DB()
+}
+
 // func (rfk *ReverseForeignKey) DstCol() string {
-// 	return rfk.dstCol.Column()
+// 	return rfk.dstCol
 // }
+
+func (rfk *ReverseForeignKey) DstCol() string {
+	return rfk.dstField.Column()
+}
 
 // func (rfk *ReverseForeignKey) SrcCol() string {
 // 	return rfk.srcCol.Column()
 // }
 
+func (rfk *ReverseForeignKey) SrcCol() string {
+	return rfk.srcField.Column()
+}
+
 // func (rfk *ReverseForeignKey) All(l modelList) error {
-// 	dbName, tabName := rfk.dstTab.DB(), rfk.dstTab.Tab()
-// 	db := dbMap[dbName]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s = %s", tabName, rfk.dstCol.Column(), rfk.srcCol.SQLVal())
+// 	db := dbMap[rfk.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal())
 // 	rows, err := db.Query(stmtStr)
 // 	if err != nil {
 // 		return err
 // 	}
 // 	return scanRows(l, rows)
 // }
+
+func (rfk *ReverseForeignKey) All() error {
+	db := dbMap[rfk.DstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", rfk.DstDB(), rfk.DstTab(), rfk.DstCol(), rfk.srcField.SQLVal())
+	rows, err := db.Query(stmtStr)
+	if err != nil {
+		return err
+	}
+	return scanRows(rfk.result, rows)
+}
 
 // func (rfk *ReverseForeignKey) Query(l modelList, where *Where) error {
-// 	dbName, tabName := rfk.dstTab.DB(), rfk.dstTab.Tab()
-// 	db := dbMap[dbName]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s = %s AND %s", tabName, rfk.dstCol.Column(), rfk.srcCol.SQLVal(), where.String())
+// 	db := dbMap[rfk.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal(), where.String())
 // 	rows, err := db.Query(stmtStr)
 // 	if err != nil {
 // 		return err
@@ -1447,133 +1491,150 @@ func (fk *ForeignKey) Query(m Model) error {
 // 	return scanRows(l, rows)
 // }
 
-type ReverseForeignKey struct {
-	dstDB  string
-	dstTab string
-	dstCol string
-	srcCol Field
-}
-
-func NewReverseForeignKey(dstDB, dstTab, dstCol string, srcCol Field) *ReverseForeignKey {
-	return &ReverseForeignKey{dstDB, dstTab, dstCol, srcCol}
-}
-
-func (rfk *ReverseForeignKey) DstDB() string {
-	return rfk.dstTab
-}
-
-func (rfk *ReverseForeignKey) DstTab() string {
-	return rfk.dstTab
-}
-
-func (rfk *ReverseForeignKey) DstCol() string {
-	return rfk.dstCol
-}
-
-func (rfk *ReverseForeignKey) SrcCol() string {
-	return rfk.srcCol.Column()
-}
-
-func (rfk *ReverseForeignKey) All(l modelList) error {
-	db := dbMap[rfk.dstDB]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal())
+func (rfk *ReverseForeignKey) Query(where *Where) error {
+	db := dbMap[rfk.DstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", rfk.DstDB(), rfk.DstTab(), rfk.DstCol(), rfk.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	return scanRows(l, rows)
+	return scanRows(rfk.result, rows)
 }
 
-func (rfk *ReverseForeignKey) Query(l modelList, where *Where) error {
-	db := dbMap[rfk.dstDB]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal(), where.String())
-	rows, err := db.Query(stmtStr)
-	if err != nil {
-		return err
-	}
-	return scanRows(l, rows)
+func (rfk *ReverseForeignKey) Result() modelList {
+	return rfk.result
 }
+
+// type ManyToMany struct {
+// 	srcDB       string
+// 	srcTab      string
+// 	srcCol      Field
+// 	midDB       string
+// 	midTab      string
+// 	midLeftCol  string
+// 	midRightCol string
+// 	dstDB       string
+// 	dstTab      string
+// 	dstCol      string
+// 	result      modelList
+// }
 
 type ManyToMany struct {
-	srcDB       string
-	srcTab      string
-	srcCol      Field
-	midDB       string
-	midTab      string
-	midLeftCol  string
-	midRightCol string
-	dstDB       string
-	dstTab      string
-	dstCol      string
+	srcField      Field
+	midLeftField  Field
+	midRightField Field
+	dstField      Field
+	result        modelList
 }
 
-func NewManyToMany(srcDB, srcTab, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol string, srcCol Field) *ManyToMany {
-	return &ManyToMany{srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol}
+// func NewManyToMany(srcDB, srcTab, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol string, srcCol Field, modelList modelList) *ManyToMany {
+// 	return &ManyToMany{srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol, modelList}
+// }
+
+func NewManyToMany(srcField, midLeftField, midRightField, dstField Field, modelList modelList) *ManyToMany {
+	if midLeftField.Super() != midRightField.Super() {
+		panic("nborm.NewManyToMany() error: require the same middle tab")
+	}
+	return &ManyToMany{srcField, midLeftField, midRightField, dstField, modelList}
 }
 
 func (mtm *ManyToMany) DstDB() string {
-	return mtm.dstTab
+	return mtm.dstField.Super().DB()
 }
 
 func (mtm *ManyToMany) DstTab() string {
-	return mtm.dstTab
+	return mtm.dstField.Super().DB()
 }
 
 func (mtm *ManyToMany) DstCol() string {
-	return mtm.dstCol
+	return mtm.dstField.Column()
+}
+
+func (mtm *ManyToMany) SrcDB() string {
+	return mtm.srcField.Super().DB()
+}
+
+func (mtm *ManyToMany) SrcTab() string {
+	return mtm.srcField.Super().Tab()
 }
 
 func (mtm *ManyToMany) SrcCol() string {
-	return mtm.srcCol.Column()
+	return mtm.srcField.Column()
 }
 
 func (mtm *ManyToMany) MidDB() string {
-	return mtm.midTab
+	return mtm.midLeftField.Super().DB()
 }
 
 func (mtm *ManyToMany) MidTab() string {
-	return mtm.midTab
+	return mtm.midLeftField.Super().Tab()
 }
 
 func (mtm *ManyToMany) MidLeftCol() string {
-	return mtm.midLeftCol
+	return mtm.midLeftField.Column()
 }
 
 func (mtm *ManyToMany) MidRightCol() string {
-	return mtm.midRightCol
+	return mtm.midRightField.Column()
 }
 
-func (mtm *ManyToMany) All(l modelList) error {
-	db := dbMap[mtm.dstDB]
+// func (mtm *ManyToMany) All(l modelList) error {
+// 	db := dbMap[mtm.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
+// 		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
+// 		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
+// 		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.srcCol.SQLVal())
+// 	rows, err := db.Query(stmtStr)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return scanRows(l, rows)
+// }
+
+func (mtm *ManyToMany) All() error {
+	db := dbMap[mtm.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
-		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
-		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
-		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.srcCol.SQLVal())
+		mtm.DstDB(), mtm.DstTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.MidDB(), mtm.MidTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.MidDB(),
+		mtm.MidTab(), mtm.MidLeftCol(), mtm.DstDB(), mtm.DstTab(), mtm.MidDB(), mtm.MidTab(), mtm.MidRightCol(), mtm.DstDB(), mtm.DstTab(),
+		mtm.DstCol(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.srcField.SQLVal())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	return scanRows(l, rows)
+	return scanRows(mtm.result, rows)
 }
 
-func (mtm *ManyToMany) Query(l modelList, where *Where) error {
-	db := dbMap[mtm.dstDB]
+// func (mtm *ManyToMany) Query(l modelList, where *Where) error {
+// 	db := dbMap[mtm.dstDB]
+// 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
+// 		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
+// 		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
+// 		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column, mtm.srcCol.SQLVal(), where.String())
+// 	rows, err := db.Query(stmtStr)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return scanRows(l, rows)
+// }
+
+func (mtm *ManyToMany) Query(where *Where) error {
+	db := dbMap[mtm.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
-		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
-		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
-		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column, mtm.srcCol.SQLVal(), where.String())
+		mtm.DstDB(), mtm.DstTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.MidDB(), mtm.MidTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.MidDB(),
+		mtm.MidTab(), mtm.MidLeftCol(), mtm.DstDB(), mtm.DstTab(), mtm.MidDB(), mtm.MidTab(), mtm.MidRightCol(), mtm.DstDB(), mtm.DstTab(),
+		mtm.DstCol(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	return scanRows(l, rows)
+	return scanRows(mtm.result, rows)
 }
 
 func (mtm *ManyToMany) Add(m Model) error {
-	dstField := getByName(m, mtm.dstCol)
-	db := dbMap[mtm.midDB]
-	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (%s, %s)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol, mtm.srcCol.SQLVal(),
-		dstField.SQLVal())
+	dstField := getByName(m, mtm.DstCol())
+	db := dbMap[mtm.MidDB()]
+	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (%s, %s)", mtm.MidDB(), mtm.MidTab(), mtm.MidLeftCol(), mtm.MidRightCol(),
+		mtm.srcField.SQLVal(), dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
@@ -1585,13 +1646,17 @@ func (mtm *ManyToMany) Add(m Model) error {
 }
 
 func (mtm *ManyToMany) Remove(m Model) error {
-	db := dbMap[mtm.midDB]
-	dstField := getByName(m, mtm.dstCol)
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", mtm.dstDB, mtm.dstTab, mtm.midLeftCol, mtm.srcCol.SQLVal(), mtm.midRightCol,
-		dstField.SQLVal())
+	db := dbMap[mtm.MidDB()]
+	dstField := getByName(m, mtm.DstCol())
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", mtm.DstDB(), mtm.DstTab(), mtm.MidLeftCol(), mtm.srcField.SQLVal(),
+		mtm.MidRightCol(), dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (mtm *ManyToMany) Result() modelList {
+	return mtm.result
 }

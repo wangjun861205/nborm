@@ -293,21 +293,21 @@ import (
 			{{ for _, col in tab.Columns }}
 				{{ switch col.Type }}
 					{{ case "varchar", "char", "text" }}
-						{{ col.FieldName }} *nborm.StringField
+						{{ col.FieldName }} *nborm.StringField` + " `json:\"{{ col.Name }}\"`" + `
 					{{ case "int" }}
-						{{ col.FieldName }} *nborm.IntField
+						{{ col.FieldName }} *nborm.IntField` + " `json:\"{{ col.Name }}\"`" + `
 					{{ case "decimal", "float" }}
-						{{ col.FieldName }} *nborm.FloatField
+						{{ col.FieldName }} *nborm.FloatField` + " `json:\"{{ col.Name }}\"`" + `
 					{{ case "tinyint" }}
 						{{ if col.TypeWithLength == "tinyint(1)" }}
-							{{ col.FieldName }} *nborm.BoolField
+							{{ col.FieldName }} *nborm.BoolField` + " `json:\"{{ col.Name }}\"`" + `
 						{{ else }}
-							{{ col.FieldName }} *nborm.IntField
+							{{ col.FieldName }} *nborm.IntField` + " `json:\"{{ col.Name }}\"`" + `
 						{{ endif }}
 					{{ case "date" }}
-						{{ col.FieldName }} *nborm.DateField
+						{{ col.FieldName }} *nborm.DateField` + " `json:\"{{ col.Name }}\"`" + `
 					{{ case "datetime", "timestamp" }}
-						{{ col.FieldName }} *nborm.DatetimeField
+						{{ col.FieldName }} *nborm.DatetimeField` + " `json:\"{{ col.Name }}\"`" + `
 				{{ endswitch }}
 			{{ endfor }}
 			{{ for _, oto in tab.OneToOnes }}
@@ -346,18 +346,23 @@ import (
 						m.{{ col.FieldName }} = nborm.NewDatetimeField(m, "{{ col.Name }}", {{ col.Pk }}, {{ col.Inc }}, {{ col.Uni }})
 				{{ endswitch }}
 			{{ endfor }}
-			{{ for _, oto in tab.OneToOnes }}
-				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne("{{ dbName }}", "{{ oto.DstTab.Name }}", "{{ oto.DstCol.Name }}", m.{{ oto.SrcCol.FieldName }})
+			{{ for i, oto in tab.OneToOnes }}
+				otoDstMod{{ i }} := New{{ oto.DstTab.ModelName }}()
+				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne(m.{{ oto.SrcCol.FieldName }}, otoDstMod{{ i }}.{{ oto.DstCol.FieldName }}, otoDstMod{{ i }})
 			{{ endfor }}
-			{{ for _, fk in tab.ForeignKeys }}
-				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey( "{{ dbName }}", "{{ fk.DstTab.Name }}", "{{ fk.DstCol.Name }}", m.{{ fk.SrcCol.FieldName }})
+			{{ for i, fk in tab.ForeignKeys }}
+				fkDstMod{{ i }} := New{{ fk.DstTab.ModelName }}()
+				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, fkDstMod{{ i }}.{{ fk.DstCol.FieldName }}, fkDstMod{{ i }})
 			{{ endfor }}
-			{{ for _, rfk in tab.ReverseForeignKeys }}
-				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey("{{ dbName }}", "{{ rfk.DstTab.Name }}", "{{ rfk.DstCol.Name }}", m.{{ rfk.SrcCol.FieldName }})
+			{{ for i, rfk in tab.ReverseForeignKeys }}
+				rfkDstMod{{ i }} := New{{ rfk.DstTab.ModelName }}()
+				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, rfkDstMod{{ i }}.{{ rfk.DstCol.FieldName }}, rfkDstMod{{ i }})
 			{{ endfor }}
-			{{ for _, mtm in tab.ManyToManys }}
-				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany("{{ dbName }}", "{{ mtm.SrcTab.Name }}", "{{ mtm.MidDB }}", "{{ mtm.MidTab.Name }}", "{{ mtm.MidLeftCol.Name }}",
-				 "{{ mtm.MidRightCol.Name }}", "{{ mtm.DstDB }}", "{{ mtm.DstTab.Name }}", "{{ mtm.DstCol.Name }}", m.{{ mtm.SrcCol.FieldName }})
+			{{ for i, mtm in tab.ManyToManys }}
+				mtmDstMod{{ i }} := New{{ mtm.DstTab.ModelName }}()
+				mtmMidMod{{ i }} := New{{ mtm.MidTab.ModelName }}()
+				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidLeftCol.FieldName }}, 
+					mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, mtmDstMod{{ i }}.{{ mtm.DstCol.FieldName }})
 			{{ endfor }}	
 			return m
 		}

@@ -15,7 +15,7 @@ type Model interface {
 	Fields() []Field
 }
 
-type modelList interface {
+type ModelList interface {
 	table
 	New() Model
 	Len() int
@@ -25,9 +25,9 @@ type modelList interface {
 	json.Marshaler
 }
 
-type where interface {
-	String() string
-}
+// type where interface {
+// 	String() string
+// }
 
 type Field interface {
 	SQLVal() string

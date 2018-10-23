@@ -51,7 +51,7 @@ func (s *Sorter) toSQL() string {
 	return string(*s)
 }
 
-func scanRows(l modelList, rows *sql.Rows) error {
+func scanRows(l ModelList, rows *sql.Rows) error {
 	defer rows.Close()
 	for rows.Next() {
 		m := l.New()
@@ -128,12 +128,12 @@ func getByName(m Model, name string) Field {
 }
 
 type sortObj struct {
-	modelList
+	ModelList
 	funcs []func(Model, Model) int
 }
 
 func (o *sortObj) Less(i, j int) bool {
-	iMod, jMod := o.modelList.Index(i), o.modelList.Index(j)
+	iMod, jMod := o.ModelList.Index(i), o.ModelList.Index(j)
 	for _, f := range o.funcs {
 		v := f(iMod, jMod)
 		switch {
@@ -148,7 +148,7 @@ func (o *sortObj) Less(i, j int) bool {
 	return false
 }
 
-func filterList(l modelList, f func(Model) bool) {
+func filterList(l ModelList, f func(Model) bool) {
 	var i int
 	for i < l.Len() {
 		if f(l.Index(i)) {

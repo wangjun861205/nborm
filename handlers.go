@@ -9,7 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-func All(l modelList, sorter *Sorter, pager *Pager) error {
+func All(l ModelList, sorter *Sorter, pager *Pager) error {
 	stmtStr := fmt.Sprintf("SELECT * FROM %s %s %s", l.Tab(), sorter.toSQL(), pager.toSQL())
 	rows, err := dbMap[l.DB()].Query(stmtStr)
 	if err != nil {
@@ -27,7 +27,7 @@ func Query(tab table, where *Where, sorter *Sorter, pager *Pager) error {
 			stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), where.String())
 			row := db.QueryRow(stmtStr)
 			return scanRow(obj, row)
-		case modelList:
+		case ModelList:
 			wg := sync.WaitGroup{}
 			doneChan := make(chan interface{})
 			errChan := make(chan error)
@@ -64,7 +64,7 @@ func Query(tab table, where *Where, sorter *Sorter, pager *Pager) error {
 	case Model:
 		row := db.QueryRow(stmtStr)
 		return scanRow(obj, row)
-	case modelList:
+	case ModelList:
 		rows, err := db.Query(stmtStr)
 		if err != nil {
 			return err
@@ -98,7 +98,7 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 			stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "), where.String())
 			row := db.QueryRow(stmtStr)
 			return scanRow(obj, row)
-		case modelList:
+		case ModelList:
 			wg := sync.WaitGroup{}
 			doneChan := make(chan interface{})
 			errChan := make(chan error)
@@ -138,7 +138,7 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 		case Model:
 			row := db.QueryRow(stmtStr)
 			return scanRow(obj, row)
-		case modelList:
+		case ModelList:
 			rows, err := db.Query(stmtStr)
 			if err != nil {
 				return err
@@ -166,7 +166,7 @@ func Insert(tab table, valuePairs ...[2]string) error {
 		}
 	} else {
 		switch obj := tab.(type) {
-		case modelList:
+		case ModelList:
 			var wg sync.WaitGroup
 			doneChan := make(chan interface{})
 			errChan := make(chan error)
@@ -260,7 +260,7 @@ func Update(tab table, where *Where, values ...*UpdateValue) error {
 			stmtStr := fmt.Sprintf("UPDATE %s SET %s WHERE %s", obj.Tab(), strings.Join(setValues, ", "), genWhere(obj).String())
 			_, err := db.Exec(stmtStr)
 			return err
-		case modelList:
+		case ModelList:
 			var wg sync.WaitGroup
 			doneChan := make(chan interface{})
 			errChan := make(chan error)
@@ -364,7 +364,7 @@ func InsertOrUpdate(tab table, valuePairs ...[2]string) error {
 				return err
 			}
 			inc.(*IntField).Set(lastInsertId, false)
-		case modelList:
+		case ModelList:
 			var wg sync.WaitGroup
 			doneChan := make(chan interface{})
 			errChan := make(chan error)
@@ -444,7 +444,7 @@ func InsertOrGet(tab table) error {
 			return err
 		}
 		inc.(*IntField).Set(lastInsertId, false)
-	case modelList:
+	case ModelList:
 		var wg sync.WaitGroup
 		doneChan := make(chan interface{})
 		errChan := make(chan error)
@@ -520,7 +520,7 @@ func Delete(tab table, where *Where) error {
 				return err
 			}
 			invalidateModel(obj)
-		case modelList:
+		case ModelList:
 			for i := 0; i < obj.Len(); i++ {
 				pk, _ := getPk(obj.Index(i))
 				stmtStr := fmt.Sprintf("DELETE FROM %s WHERE %s", obj.Tab(), pk.Where().String())
@@ -543,7 +543,7 @@ func DeleteAll(tab table) error {
 	return err
 }
 
-func Sort(l modelList, reverse bool, fields ...Field) {
+func Sort(l ModelList, reverse bool, fields ...Field) {
 	funcs := make([]func(Model, Model) int, len(fields))
 	for i, f := range fields {
 		funcs[i] = f.LessFunc()
@@ -556,7 +556,7 @@ func Sort(l modelList, reverse bool, fields ...Field) {
 	}
 }
 
-func Distinct(l modelList, fields ...Field) {
+func Distinct(l ModelList, fields ...Field) {
 	distMap := make(map[string]bool)
 	f := func(m Model) bool {
 		builder := strings.Builder{}

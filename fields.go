@@ -374,8 +374,8 @@ func (f *IntField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
 }
 
-func (f *IntField) SumFunc() func(modelList) float64 {
-	return func(l modelList) float64 {
+func (f *IntField) SumFunc() func(ModelList) float64 {
+	return func(l ModelList) float64 {
 		var sum int
 		for i := 0; i < l.Len(); i++ {
 			m := l.Index(i)
@@ -389,9 +389,9 @@ func (f *IntField) SumFunc() func(modelList) float64 {
 	}
 }
 
-func (f *IntField) AvgFunc(ignoreNull bool) func(modelList) float64 {
+func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
 	if ignoreNull {
-		return func(l modelList) float64 {
+		return func(l ModelList) float64 {
 			var num, sum int
 			for i := 0; i < l.Len(); i++ {
 				m := l.Index(i)
@@ -408,7 +408,7 @@ func (f *IntField) AvgFunc(ignoreNull bool) func(modelList) float64 {
 			return float64(sum) / float64(num)
 		}
 	}
-	return func(l modelList) float64 {
+	return func(l ModelList) float64 {
 		var num, sum int
 		for i := 0; i < l.Len(); i++ {
 			m := l.Index(i)
@@ -1367,11 +1367,11 @@ func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 type ReverseForeignKey struct {
 	srcField   Field
 	dstField   Field
-	result     modelList
+	result     ModelList
 	isResultOk bool
 }
 
-func NewReverseForeignKey(srcField, dstField Field, modelList modelList) *ReverseForeignKey {
+func NewReverseForeignKey(srcField, dstField Field, modelList ModelList) *ReverseForeignKey {
 	return &ReverseForeignKey{srcField, dstField, modelList, false}
 }
 
@@ -1416,7 +1416,7 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 	return scanRows(rfk.result, rows)
 }
 
-func (rfk *ReverseForeignKey) Result() modelList {
+func (rfk *ReverseForeignKey) Result() ModelList {
 	if rfk.isResultOk {
 		return rfk.result
 	}
@@ -1432,11 +1432,11 @@ type ManyToMany struct {
 	midLeftField  Field
 	midRightField Field
 	dstField      Field
-	result        modelList
+	result        ModelList
 	isResultOk    bool
 }
 
-func NewManyToMany(srcField, midLeftField, midRightField, dstField Field, modelList modelList) *ManyToMany {
+func NewManyToMany(srcField, midLeftField, midRightField, dstField Field, modelList ModelList) *ManyToMany {
 	if midLeftField.Super() != midRightField.Super() {
 		panic("nborm.NewManyToMany() error: require the same middle tab")
 	}
@@ -1548,7 +1548,7 @@ func (mtm *ManyToMany) Remove(m Model) error {
 	return nil
 }
 
-func (mtm *ManyToMany) Result() modelList {
+func (mtm *ManyToMany) Result() ModelList {
 	if mtm.isResultOk {
 		return mtm.result
 	}

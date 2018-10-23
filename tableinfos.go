@@ -355,14 +355,14 @@ import (
 				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, fkDstMod{{ i }}.{{ fk.DstCol.FieldName }}, fkDstMod{{ i }})
 			{{ endfor }}
 			{{ for i, rfk in tab.ReverseForeignKeys }}
-				rfkDstMod{{ i }} := New{{ rfk.DstTab.ModelName }}()
-				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, rfkDstMod{{ i }}.{{ rfk.DstCol.FieldName }}, rfkDstMod{{ i }})
+				rfkDstModList{{ i }} := New{{ rfk.DstTab.ModelName }}List()
+				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, rfkDstModList{{ i }}.{{ rfk.DstCol.FieldName }}, rfkDstModList{{ i }})
 			{{ endfor }}
 			{{ for i, mtm in tab.ManyToManys }}
-				mtmDstMod{{ i }} := New{{ mtm.DstTab.ModelName }}()
+				mtmDstModList{{ i }} := New{{ mtm.DstTab.ModelName }}List()
 				mtmMidMod{{ i }} := New{{ mtm.MidTab.ModelName }}()
 				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidLeftCol.FieldName }}, 
-					mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, mtmDstMod{{ i }}.{{ mtm.DstCol.FieldName }})
+					mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, mtmDstModList{{ i }}.{{ mtm.DstCol.FieldName }}, mtmDstModList{{ i }})
 			{{ endfor }}	
 			return m
 		}

@@ -1,5 +1,7 @@
 package nborm
 
+import "encoding/json"
+
 var ColumnExample = NewColumn()
 
 type Column struct {
@@ -273,6 +275,10 @@ func (cl *ColumnList) Swap(i, j int) {
 	(*cl)[i], (*cl)[j] = (*cl)[j], (*cl)[i]
 }
 
+func (cl *ColumnList) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(cl, "\t", "\t")
+}
+
 type KeyColumnUsageList []*KeyColumnUsage
 
 func (ul *KeyColumnUsageList) DB() string {
@@ -312,6 +318,10 @@ func (ul *KeyColumnUsageList) Swap(i, j int) {
 	(*ul)[i], (*ul)[j] = (*ul)[j], (*ul)[i]
 }
 
+func (ul *KeyColumnUsageList) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(ul, "\t", "\t")
+}
+
 type TableList []*Table
 
 func (l *TableList) DB() string {
@@ -349,4 +359,8 @@ func (l *TableList) Delete(i int) {
 
 func (l *TableList) Swap(i, j int) {
 	(*l)[i], (*l)[j] = (*l)[j], (*l)[i]
+}
+
+func (l *TableList) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(l, "\t", "\t")
 }

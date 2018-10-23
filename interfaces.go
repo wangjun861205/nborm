@@ -1,6 +1,9 @@
 package nborm
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 type table interface {
 	DB() string
@@ -19,6 +22,7 @@ type modelList interface {
 	Index(int) Model
 	Delete(int)
 	Swap(i, j int)
+	json.Marshaler
 }
 
 type where interface {

@@ -420,6 +420,11 @@ import (
 				l.List = append(l.List[:i], l.List[i+1:]...)
 			}
 		}
+
+		func (l *{{ tab.ModelName }}List) MarshalJSON() ([]byte, error) {
+			return json.MarshalIndent(l.List, "\t", "\t")
+		}
+
 	{{ endfor }}
 {{ endfor }}
 

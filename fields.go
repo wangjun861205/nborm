@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -1263,213 +1264,132 @@ func (f *BinaryField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s IS NOT NULL", f.column)}
 }
 
-// type OneToOne struct {
-// 	dstDB  string
-// 	dstTab string
-// 	dstCol string
-// 	srcCol Field
-// 	result Model
-// }
-
 type OneToOne struct {
-	srcField Field
-	dstField Field
-	result   Model
+	srcField   Field
+	dstField   Field
+	result     Model
+	isResultOk bool
 }
-
-// func NewOneToOne(dstDB, dstTab, dstCol string, srcCol Field, model Model) *OneToOne {
-// 	return &OneToOne{dstDB, dstTab, dstCol, srcCol, model}
-// }
 
 func NewOneToOne(srcField, dstField Field, model Model) *OneToOne {
-	return &OneToOne{srcField, dstField, model}
+	return &OneToOne{srcField, dstField, model, false}
 }
-
-// func (oto *OneToOne) DstDB() string {
-// 	return oto.dstDB
-// }
 
 func (oto *OneToOne) DstDB() string {
 	return oto.dstField.Super().DB()
 }
 
-// func (oto *OneToOne) DstTab() string {
-// 	return oto.dstTab
-// }
-
 func (oto *OneToOne) DstTab() string {
 	return oto.dstField.Super().Tab()
 }
-
-// func (oto *OneToOne) DstCol() string {
-// 	return oto.dstCol
-// }
 
 func (oto *OneToOne) DstCol() string {
 	return oto.dstField.Column()
 }
 
-// func (oto *OneToOne) SrcCol() string {
-// 	return oto.srcCol.Column()
-// }
-
 func (oto *OneToOne) SrcCol() string {
 	return oto.srcField.Column()
 }
-
-// func (oto *OneToOne) Query(m Model) error {
-// 	db := dbMap[oto.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.dstDB, oto.dstTab, oto.dstCol, oto.srcCol.SQLVal())
-// 	row := db.QueryRow(stmtStr)
-// 	return scanRow(m, row)
-// }
 
 func (oto *OneToOne) Query() error {
 	db := dbMap[oto.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.DstDB(), oto.DstTab(), oto.DstCol(), oto.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	return scanRow(oto.result, row)
+	err := scanRow(oto.result, row)
+	if err != nil {
+		return err
+	}
+	oto.isResultOk = true
+	return nil
 }
 
 func (oto *OneToOne) Result() Model {
-	return oto.result
+	if oto.isResultOk {
+		return oto.result
+	}
+	return nil
 }
 
-// type ForeignKey struct {
-// 	dstDB  string
-// 	dstTab string
-// 	dstCol string
-// 	srcCol Field
-// 	result Model
-// }
+func (oto *OneToOne) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(oto.Result(), "\t", "\t")
+}
 
 type ForeignKey struct {
-	srcField Field
-	dstField Field
-	result   Model
+	srcField   Field
+	dstField   Field
+	result     Model
+	isResultOk bool
 }
-
-// func NewForeignKey(dstDB, dstTab, dstCol string, srcCol Field, model Model) *ForeignKey {
-// 	return &ForeignKey{dstDB, dstTab, dstCol, srcCol, model}
-// }
 
 func NewForeignKey(srcField, dstField Field, model Model) *ForeignKey {
-	return &ForeignKey{srcField, dstField, model}
+	return &ForeignKey{srcField, dstField, model, false}
 }
-
-// func (fk *ForeignKey) DstDB() string {
-// 	return fk.dstTab
-// }
 
 func (fk *ForeignKey) DstDB() string {
 	return fk.dstField.Super().DB()
 }
 
-// func (fk *ForeignKey) DstTab() string {
-// 	return fk.dstTab
-// }
-
 func (fk *ForeignKey) DstTab() string {
 	return fk.dstField.Super().Tab()
 }
-
-// func (fk *ForeignKey) DstCol() string {
-// 	return fk.dstCol
-// }
 
 func (fk *ForeignKey) DstCol() string {
 	return fk.dstField.Column()
 }
 
-// func (fk *ForeignKey) SrcCol() string {
-// 	return fk.srcCol.Column()
-// }
-
 func (fk *ForeignKey) SrcCol() string {
 	return fk.srcField.Column()
 }
-
-// func (fk *ForeignKey) Query(m Model) error {
-// 	db := dbMap[fk.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.dstDB, fk.dstTab, fk.dstCol, fk.srcCol.SQLVal())
-// 	row := db.QueryRow(stmtStr)
-// 	return scanRow(m, row)
-// }
 
 func (fk *ForeignKey) Query() error {
 	db := dbMap[fk.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.DstDB(), fk.DstTab(), fk.DstCol(), fk.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	return scanRow(fk.result, row)
+	err := scanRow(fk.result, row)
+	if err != nil {
+		return err
+	}
+	fk.isResultOk = true
+	return nil
 }
 
 func (fk *ForeignKey) Result() Model {
-	return fk.result
+	if fk.isResultOk {
+		return fk.result
+	}
+	return nil
 }
 
-// type ReverseForeignKey struct {
-// 	dstDB  string
-// 	dstTab string
-// 	dstCol string
-// 	srcCol Field
-// 	result modelList
-// }
+func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(fk.Result(), "\t", "\t")
+}
 
 type ReverseForeignKey struct {
-	srcField Field
-	dstField Field
-	result   modelList
+	srcField   Field
+	dstField   Field
+	result     modelList
+	isResultOk bool
 }
-
-// func NewReverseForeignKey(dstDB, dstTab, dstCol string, srcCol Field, modelList modelList) *ReverseForeignKey {
-// 	return &ReverseForeignKey{dstDB, dstTab, dstCol, srcCol, modelList}
-// }
 
 func NewReverseForeignKey(srcField, dstField Field, modelList modelList) *ReverseForeignKey {
-	return &ReverseForeignKey{srcField, dstField, modelList}
+	return &ReverseForeignKey{srcField, dstField, modelList, false}
 }
-
-// func (rfk *ReverseForeignKey) DstDB() string {
-// 	return rfk.dstTab
-// }
 
 func (rfk *ReverseForeignKey) DstDB() string {
 	return rfk.dstField.Super().DB()
 }
 
-// func (rfk *ReverseForeignKey) DstTab() string {
-// 	return rfk.dstTab
-// }
-
 func (rfk *ReverseForeignKey) DstTab() string {
 	return rfk.dstField.Super().DB()
 }
-
-// func (rfk *ReverseForeignKey) DstCol() string {
-// 	return rfk.dstCol
-// }
 
 func (rfk *ReverseForeignKey) DstCol() string {
 	return rfk.dstField.Column()
 }
 
-// func (rfk *ReverseForeignKey) SrcCol() string {
-// 	return rfk.srcCol.Column()
-// }
-
 func (rfk *ReverseForeignKey) SrcCol() string {
 	return rfk.srcField.Column()
 }
-
-// func (rfk *ReverseForeignKey) All(l modelList) error {
-// 	db := dbMap[rfk.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal())
-// 	rows, err := db.Query(stmtStr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return scanRows(l, rows)
-// }
 
 func (rfk *ReverseForeignKey) All() error {
 	db := dbMap[rfk.DstDB()]
@@ -1478,18 +1398,13 @@ func (rfk *ReverseForeignKey) All() error {
 	if err != nil {
 		return err
 	}
-	return scanRows(rfk.result, rows)
+	err = scanRows(rfk.result, rows)
+	if err != nil {
+		return err
+	}
+	rfk.isResultOk = true
+	return nil
 }
-
-// func (rfk *ReverseForeignKey) Query(l modelList, where *Where) error {
-// 	db := dbMap[rfk.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", rfk.dstDB, rfk.dstTab, rfk.dstCol, rfk.srcCol.SQLVal(), where.String())
-// 	rows, err := db.Query(stmtStr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return scanRows(l, rows)
-// }
 
 func (rfk *ReverseForeignKey) Query(where *Where) error {
 	db := dbMap[rfk.DstDB()]
@@ -1502,22 +1417,15 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 }
 
 func (rfk *ReverseForeignKey) Result() modelList {
+	if rfk.isResultOk {
+		return rfk.result
+	}
 	return rfk.result
 }
 
-// type ManyToMany struct {
-// 	srcDB       string
-// 	srcTab      string
-// 	srcCol      Field
-// 	midDB       string
-// 	midTab      string
-// 	midLeftCol  string
-// 	midRightCol string
-// 	dstDB       string
-// 	dstTab      string
-// 	dstCol      string
-// 	result      modelList
-// }
+func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(rfk.Result(), "\t", "\t")
+}
 
 type ManyToMany struct {
 	srcField      Field
@@ -1525,17 +1433,14 @@ type ManyToMany struct {
 	midRightField Field
 	dstField      Field
 	result        modelList
+	isResultOk    bool
 }
-
-// func NewManyToMany(srcDB, srcTab, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol string, srcCol Field, modelList modelList) *ManyToMany {
-// 	return &ManyToMany{srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol, modelList}
-// }
 
 func NewManyToMany(srcField, midLeftField, midRightField, dstField Field, modelList modelList) *ManyToMany {
 	if midLeftField.Super() != midRightField.Super() {
 		panic("nborm.NewManyToMany() error: require the same middle tab")
 	}
-	return &ManyToMany{srcField, midLeftField, midRightField, dstField, modelList}
+	return &ManyToMany{srcField, midLeftField, midRightField, dstField, modelList, false}
 }
 
 func (mtm *ManyToMany) DstDB() string {
@@ -1578,19 +1483,6 @@ func (mtm *ManyToMany) MidRightCol() string {
 	return mtm.midRightField.Column()
 }
 
-// func (mtm *ManyToMany) All(l modelList) error {
-// 	db := dbMap[mtm.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
-// 		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
-// 		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
-// 		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.srcCol.SQLVal())
-// 	rows, err := db.Query(stmtStr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return scanRows(l, rows)
-// }
-
 func (mtm *ManyToMany) All() error {
 	db := dbMap[mtm.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
@@ -1601,21 +1493,13 @@ func (mtm *ManyToMany) All() error {
 	if err != nil {
 		return err
 	}
-	return scanRows(mtm.result, rows)
+	err = scanRows(mtm.result, rows)
+	if err != nil {
+		return err
+	}
+	mtm.isResultOk = true
+	return nil
 }
-
-// func (mtm *ManyToMany) Query(l modelList, where *Where) error {
-// 	db := dbMap[mtm.dstDB]
-// 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
-// 		mtm.dstDB, mtm.dstTab, mtm.srcDB, mtm.srcTab, mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.srcCol.Column(), mtm.midDB, mtm.midTab,
-// 		mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol,
-// 		mtm.srcDB, mtm.srcTab, mtm.srcCol.Column, mtm.srcCol.SQLVal(), where.String())
-// 	rows, err := db.Query(stmtStr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return scanRows(l, rows)
-// }
 
 func (mtm *ManyToMany) Query(where *Where) error {
 	db := dbMap[mtm.DstDB()]
@@ -1627,7 +1511,12 @@ func (mtm *ManyToMany) Query(where *Where) error {
 	if err != nil {
 		return err
 	}
-	return scanRows(mtm.result, rows)
+	err = scanRows(mtm.result, rows)
+	if err != nil {
+		return err
+	}
+	mtm.isResultOk = true
+	return nil
 }
 
 func (mtm *ManyToMany) Add(m Model) error {
@@ -1642,6 +1531,7 @@ func (mtm *ManyToMany) Add(m Model) error {
 		}
 		return err
 	}
+	mtm.isResultOk = false
 	return nil
 }
 
@@ -1654,9 +1544,17 @@ func (mtm *ManyToMany) Remove(m Model) error {
 	if err != nil {
 		return err
 	}
+	mtm.isResultOk = false
 	return nil
 }
 
 func (mtm *ManyToMany) Result() modelList {
-	return mtm.result
+	if mtm.isResultOk {
+		return mtm.result
+	}
+	return nil
+}
+
+func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
+	return json.MarshalIndent(mtm.Result(), "\t", "\t")
 }

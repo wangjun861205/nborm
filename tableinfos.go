@@ -311,16 +311,16 @@ import (
 				{{ endswitch }}
 			{{ endfor }}
 			{{ for _, oto in tab.OneToOnes }}
-				{{ oto.DstTab.ModelName }} *nborm.OneToOne
+				{{ oto.DstTab.ModelName }} *nborm.OneToOne` + " `json:\"{{ oto.DstTab.Name }}\"`" + `
 			{{ endfor }}
 			{{ for _, fk in tab.ForeignKeys }}
-				{{ fk.DstTab.ModelName }} *nborm.ForeignKey
+				{{ fk.DstTab.ModelName }} *nborm.ForeignKey` + " `json:\"{{ fk.DstTab.Name }}\"`" + `
 			{{ endfor }}
 			{{ for _, rfk in tab.ReverseForeignKeys }}
-				{{ rfk.DstTab.ModelName }} *nborm.ReverseForeignKey
+				{{ rfk.DstTab.ModelName }} *nborm.ReverseForeignKey` + " `json:\"{{ rfk.DstTab.Name }}\"`" + `
 			{{ endfor }}
 			{{ for _, mtm in tab.ManyToManys }}
-				{{ mtm.DstTab.ModelName }} *nborm.ManyToMany
+				{{ mtm.DstTab.ModelName }} *nborm.ManyToMany` + " `json:\"{{ mtm.DstTab.Name }}\"`" + `
 			{{ endfor }}
 		}
 

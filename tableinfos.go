@@ -285,6 +285,7 @@ package {{ pkgName }}
 
 import (
 	"github.com/wangjun861205/nborm"
+	"encoding/json"
 	)
 
 {{ for dbName, db in infos }}

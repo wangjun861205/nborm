@@ -233,6 +233,101 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 	}
 }
 
+func JoinQueryWithFoundRows(tab table, where *Where, sorter *Sorter, pager *Pager, relations ...relation) (int, error) {
+	db := dbMap[tab.DB()]
+	joinList := make([]string, len(relations))
+	for i, rel := range relations {
+		switch r := rel.(type) {
+		case *OneToOne, *ForeignKey, *ReverseForeignKey:
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.DstDB(), r.DstTab(), tab.DB(), tab.Tab(), r.SrcCol(),
+				r.DstDB(), r.DstTab(), r.DstCol())
+		case *ManyToMany:
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.MidDB(), r.MidTab(), tab.DB(), tab.Tab(),
+				r.SrcCol(), r.MidDB(), r.MidTab(), r.MidLeftCol(), r.DstDB(), r.DstTab(), r.MidDB(), r.MidTab(), r.MidRightCol(), r.DstDB(), r.DstTab(),
+				r.DstCol())
+		default:
+			panic("nborm.JoinQuery() error: unsupported relation")
+		}
+	}
+	if where == nil {
+		switch obj := tab.(type) {
+		case Model:
+			where = genWhere(obj)
+			stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s %s %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "),
+				where.String())
+			row := db.QueryRow(stmtStr)
+			err := scanRow(obj, row)
+			if err != nil {
+				return 0, err
+			}
+			return 1, nil
+		case ModelList:
+			wg := sync.WaitGroup{}
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
+			for i := 0; i < obj.Len(); i++ {
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					m := obj.Index(index)
+					w := genWhere(m)
+					stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "), w.String())
+					row := db.QueryRow(stmtStr)
+					err := scanRow(m, row)
+					if err != nil {
+						errChan <- err
+					}
+				}(i)
+			}
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return 0, err
+			case <-doneChan:
+				return obj.Len(), nil
+			}
+		default:
+			panic("nborm.JoinQuery() error: unsupported type")
+		}
+	} else {
+		switch obj := tab.(type) {
+		case Model:
+			stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(), strings.Join(joinList, " "),
+				where.String())
+			row := db.QueryRow(stmtStr)
+			if err := scanRow(obj, row); err != nil {
+				return 0, err
+			}
+			return 1, nil
+		case ModelList:
+			stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s WHERE %s %s %s", tab.DB(), tab.Tab(), tab.DB(), tab.Tab(),
+				strings.Join(joinList, " "), where.String(), sorter.toSQL(), pager.toSQL())
+			rows, err := db.Query(stmtStr)
+			if err != nil {
+				return 0, err
+			}
+			if err = scanRows(obj, rows); err != nil {
+				return 0, err
+			}
+			var num int
+			numRow := db.QueryRow("SELECT FOUND_ROWS()")
+			if err := numRow.Scan(&num); err != nil {
+				return 0, err
+			}
+			return num, nil
+		default:
+			panic("nborm.JoinQuery() error: unsupported type")
+		}
+	}
+}
+
 func Insert(tab table, valuePairs ...[2]string) error {
 	db := dbMap[tab.DB()]
 	if len(valuePairs) != 0 {

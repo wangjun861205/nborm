@@ -384,6 +384,10 @@ import (
 			}
 		}
 
+		func (m *{{ tab.ModelName }}) NewList() nborm.ModelList {
+			return New{{ tab.ModelName }}List()
+		}
+
 		type {{ tab.ModelName }}List struct {
 			*{{ tab.ModelName }}
 			List []*{{ tab.ModelName }}

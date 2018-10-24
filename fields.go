@@ -1265,14 +1265,13 @@ func (f *BinaryField) NotNull() *Where {
 }
 
 type OneToOne struct {
-	srcField   Field
-	dstField   Field
-	result     Model
-	isResultOk bool
+	srcField Field
+	dstField Field
+	result   Model
 }
 
 func NewOneToOne(srcField, dstField Field, model Model) *OneToOne {
-	return &OneToOne{srcField, dstField, model, false}
+	return &OneToOne{srcField: srcField, dstField: dstField}
 }
 
 func (oto *OneToOne) DstDB() string {
@@ -1295,19 +1294,16 @@ func (oto *OneToOne) Query() error {
 	db := dbMap[oto.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.DstDB(), oto.DstTab(), oto.DstCol(), oto.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	err := scanRow(oto.result, row)
+	err := scanRow(oto.dstField.Super(), row)
 	if err != nil {
 		return err
 	}
-	oto.isResultOk = true
+	oto.result = oto.dstField.Super()
 	return nil
 }
 
 func (oto *OneToOne) Result() Model {
-	if oto.isResultOk {
-		return oto.result
-	}
-	return nil
+	return oto.result
 }
 
 func (oto *OneToOne) MarshalJSON() ([]byte, error) {
@@ -1315,14 +1311,13 @@ func (oto *OneToOne) MarshalJSON() ([]byte, error) {
 }
 
 type ForeignKey struct {
-	srcField   Field
-	dstField   Field
-	result     Model
-	isResultOk bool
+	srcField Field
+	dstField Field
+	result   Model
 }
 
-func NewForeignKey(srcField, dstField Field, model Model) *ForeignKey {
-	return &ForeignKey{srcField, dstField, model, false}
+func NewForeignKey(srcField, dstField Field) *ForeignKey {
+	return &ForeignKey{srcField: srcField, dstField: dstField}
 }
 
 func (fk *ForeignKey) DstDB() string {
@@ -1345,19 +1340,15 @@ func (fk *ForeignKey) Query() error {
 	db := dbMap[fk.DstDB()]
 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.DstDB(), fk.DstTab(), fk.DstCol(), fk.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	err := scanRow(fk.result, row)
-	if err != nil {
+	if err := scanRow(fk.dstField.Super(), row); err != nil {
 		return err
 	}
-	fk.isResultOk = true
+	fk.result = fk.dstField.Super()
 	return nil
 }
 
 func (fk *ForeignKey) Result() Model {
-	if fk.isResultOk {
-		return fk.result
-	}
-	return nil
+	return fk.result
 }
 
 func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
@@ -1365,14 +1356,13 @@ func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 }
 
 type ReverseForeignKey struct {
-	srcField   Field
-	dstField   Field
-	result     ModelList
-	isResultOk bool
+	srcField Field
+	dstField Field
+	result   ModelList
 }
 
-func NewReverseForeignKey(srcField, dstField Field, modelList ModelList) *ReverseForeignKey {
-	return &ReverseForeignKey{srcField, dstField, modelList, false}
+func NewReverseForeignKey(srcField, dstField Field) *ReverseForeignKey {
+	return &ReverseForeignKey{srcField: srcField, dstField: dstField}
 }
 
 func (rfk *ReverseForeignKey) DstDB() string {
@@ -1398,11 +1388,11 @@ func (rfk *ReverseForeignKey) All() error {
 	if err != nil {
 		return err
 	}
-	err = scanRows(rfk.result, rows)
-	if err != nil {
+	l := rfk.dstField.Super().NewList()
+	if err = scanRows(l, rows); err != nil {
 		return err
 	}
-	rfk.isResultOk = true
+	rfk.result = l
 	return nil
 }
 
@@ -1417,9 +1407,6 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 }
 
 func (rfk *ReverseForeignKey) Result() ModelList {
-	if rfk.isResultOk {
-		return rfk.result
-	}
 	return rfk.result
 }
 
@@ -1433,14 +1420,13 @@ type ManyToMany struct {
 	midRightField Field
 	dstField      Field
 	result        ModelList
-	isResultOk    bool
 }
 
-func NewManyToMany(srcField, midLeftField, midRightField, dstField Field, modelList ModelList) *ManyToMany {
+func NewManyToMany(srcField, midLeftField, midRightField, dstField Field) *ManyToMany {
 	if midLeftField.Super() != midRightField.Super() {
 		panic("nborm.NewManyToMany() error: require the same middle tab")
 	}
-	return &ManyToMany{srcField, midLeftField, midRightField, dstField, modelList, false}
+	return &ManyToMany{srcField: srcField, midLeftField: midLeftField, midRightField: midRightField, dstField: dstField}
 }
 
 func (mtm *ManyToMany) DstDB() string {
@@ -1493,11 +1479,11 @@ func (mtm *ManyToMany) All() error {
 	if err != nil {
 		return err
 	}
-	err = scanRows(mtm.result, rows)
-	if err != nil {
+	l := mtm.dstField.Super().NewList()
+	if err = scanRows(l, rows); err != nil {
 		return err
 	}
-	mtm.isResultOk = true
+	mtm.result = l
 	return nil
 }
 
@@ -1511,11 +1497,11 @@ func (mtm *ManyToMany) Query(where *Where) error {
 	if err != nil {
 		return err
 	}
-	err = scanRows(mtm.result, rows)
-	if err != nil {
+	l := mtm.dstField.Super().NewList()
+	if err = scanRows(mtm.result, rows); err != nil {
 		return err
 	}
-	mtm.isResultOk = true
+	mtm.result = l
 	return nil
 }
 
@@ -1531,7 +1517,7 @@ func (mtm *ManyToMany) Add(m Model) error {
 		}
 		return err
 	}
-	mtm.isResultOk = false
+	mtm.result = nil
 	return nil
 }
 
@@ -1544,15 +1530,12 @@ func (mtm *ManyToMany) Remove(m Model) error {
 	if err != nil {
 		return err
 	}
-	mtm.isResultOk = false
+	mtm.result = nil
 	return nil
 }
 
 func (mtm *ManyToMany) Result() ModelList {
-	if mtm.isResultOk {
-		return mtm.result
-	}
-	return nil
+	return mtm.result
 }
 
 func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {

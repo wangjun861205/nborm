@@ -91,6 +91,11 @@ func (c *Column) Fields() []Field {
 	}
 }
 
+func (c *Column) NewList() ModelList {
+	l := make(ColumnList, 0, 128)
+	return &l
+}
+
 var KeyColumnUsageExample = NewKeyColumnUsage()
 
 type KeyColumnUsage struct {
@@ -148,6 +153,11 @@ func (u *KeyColumnUsage) Fields() []Field {
 		u.REFERENCED_TABLE_NAME,
 		u.REFERENCED_COLUMN_NAME,
 	}
+}
+
+func (u *KeyColumnUsage) NewList() ModelList {
+	l := make(KeyColumnUsageList, 0, 128)
+	return &l
 }
 
 var TableExample = NewTable()
@@ -234,6 +244,11 @@ func (t *Table) Fields() []Field {
 		t.CREATE_OPTIONS,
 		t.TABLE_COMMENT,
 	}
+}
+
+func (t *Table) NewList() ModelList {
+	l := make(TableList, 0, 128)
+	return &l
 }
 
 type ColumnList []*Column

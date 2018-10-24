@@ -1310,6 +1310,10 @@ func (oto *OneToOne) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(oto.Result(), "\t", "\t")
 }
 
+func (oto *OneToOne) DstModel() Model {
+	return oto.dstField.Super()
+}
+
 type ForeignKey struct {
 	srcField Field
 	dstField Field
@@ -1353,6 +1357,10 @@ func (fk *ForeignKey) Result() Model {
 
 func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(fk.Result(), "\t", "\t")
+}
+
+func (fk *ForeignKey) DstModel() Model {
+	return fk.dstField.Super()
 }
 
 type ReverseForeignKey struct {
@@ -1412,6 +1420,10 @@ func (rfk *ReverseForeignKey) Result() ModelList {
 
 func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(rfk.Result(), "\t", "\t")
+}
+
+func (rfk *ReverseForeignKey) DstModel() Model {
+	return rfk.dstField.Super()
 }
 
 type ManyToMany struct {
@@ -1540,4 +1552,8 @@ func (mtm *ManyToMany) Result() ModelList {
 
 func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(mtm.Result(), "\t", "\t")
+}
+
+func (mtm *ManyToMany) DstModel() Model {
+	return mtm.dstField.Super()
 }

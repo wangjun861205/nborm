@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"database/sql"
 	"fmt"
 	"sort"
 	"strings"
@@ -70,6 +71,88 @@ func Query(tab table, where *Where, sorter *Sorter, pager *Pager) error {
 			return err
 		}
 		return scanRows(obj, rows)
+	default:
+		panic("nborm.Query() error: unsupported type")
+	}
+}
+
+func QueryWithFoundRows(tab table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	db := dbMap[tab.DB()]
+	if where == nil {
+		switch obj := tab.(type) {
+		case Model:
+			where = genWhere(obj)
+			stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), where.String())
+			row := db.QueryRow(stmtStr)
+			err := scanRow(obj, row)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					return 0, nil
+				}
+				return 0, err
+			}
+			return 1, nil
+		case ModelList:
+			wg := sync.WaitGroup{}
+			doneChan := make(chan interface{})
+			errChan := make(chan error)
+			for i := 0; i < obj.Len(); i++ {
+				wg.Add(1)
+				go func(index int) {
+					defer func() {
+						recover()
+						wg.Done()
+					}()
+					w := genWhere(obj.Index(index))
+					stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s", tab.Tab(), w.String())
+					row := db.QueryRow(stmtStr)
+					if err := scanRow(obj.Index(index), row); err != nil {
+						errChan <- err
+					}
+				}(i)
+			}
+			go func() {
+				wg.Wait()
+				close(doneChan)
+			}()
+			select {
+			case err := <-errChan:
+				close(errChan)
+				return 0, err
+			case <-doneChan:
+				return obj.Len(), nil
+			}
+		}
+	}
+	switch obj := tab.(type) {
+	case Model:
+		stmtStr := fmt.Sprintf("SELECT * FROM %s WHERE %s %s %s", tab.Tab(), where.String(), sorter.toSQL(), pager.toSQL())
+		row := db.QueryRow(stmtStr)
+		err := scanRow(obj, row)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return 0, nil
+			}
+			return 0, err
+		}
+		return 1, nil
+	case ModelList:
+		stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s WHERE %s %s %s", tab.Tab(), where.String(), sorter.toSQL(), pager.toSQL())
+		rows, err := db.Query(stmtStr)
+		if err != nil {
+			return 0, err
+		}
+		err = scanRows(obj, rows)
+		if err != nil {
+			return 0, err
+		}
+		var num int
+		numRow := db.QueryRow("SELECT FOUND_ROWS()")
+		err = numRow.Scan(&num)
+		if err != nil {
+			return 0, err
+		}
+		return num, nil
 	default:
 		panic("nborm.Query() error: unsupported type")
 	}

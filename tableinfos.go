@@ -349,21 +349,20 @@ import (
 			{{ endfor }}
 			{{ for i, oto in tab.OneToOnes }}
 				otoDstMod{{ i }} := New{{ oto.DstTab.ModelName }}()
-				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne(m.{{ oto.SrcCol.FieldName }}, otoDstMod{{ i }}.{{ oto.DstCol.FieldName }}, otoDstMod{{ i }})
+				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne(m.{{ oto.SrcCol.FieldName }}, otoDstMod{{ i }}.{{ oto.DstCol.FieldName }})
 			{{ endfor }}
 			{{ for i, fk in tab.ForeignKeys }}
 				fkDstMod{{ i }} := New{{ fk.DstTab.ModelName }}()
-				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, fkDstMod{{ i }}.{{ fk.DstCol.FieldName }}, fkDstMod{{ i }})
+				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, fkDstMod{{ i }}.{{ fk.DstCol.FieldName }})
 			{{ endfor }}
 			{{ for i, rfk in tab.ReverseForeignKeys }}
 				rfkDstModList{{ i }} := New{{ rfk.DstTab.ModelName }}List()
-				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, rfkDstModList{{ i }}.{{ rfk.DstCol.FieldName }}, rfkDstModList{{ i }})
+				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, rfkDstModList{{ i }}.{{ rfk.DstCol.FieldName }})
 			{{ endfor }}
 			{{ for i, mtm in tab.ManyToManys }}
 				mtmDstModList{{ i }} := New{{ mtm.DstTab.ModelName }}List()
 				mtmMidMod{{ i }} := New{{ mtm.MidTab.ModelName }}()
-				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidLeftCol.FieldName }}, 
-					mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, mtmDstModList{{ i }}.{{ mtm.DstCol.FieldName }}, mtmDstModList{{ i }})
+				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidLeftCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, mtmDstModList{{ i }}.{{ mtm.DstCol.FieldName }})
 			{{ endfor }}	
 			return m
 		}

@@ -1322,7 +1322,10 @@ func (oto *OneToOne) Query() error {
 }
 
 func (oto *OneToOne) Model() Model {
-	return oto.new()
+	if oto.cache == nil {
+		oto.cache = oto.new()
+	}
+	return oto.cache
 }
 
 func (oto *OneToOne) MarshalJSON() ([]byte, error) {
@@ -1392,7 +1395,10 @@ func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 }
 
 func (fk *ForeignKey) Model() Model {
-	return fk.new()
+	if fk.cache == nil {
+		fk.cache = fk.new()
+	}
+	return fk.cache
 }
 
 type ReverseForeignKey struct {
@@ -1476,7 +1482,10 @@ func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
 }
 
 func (rfk *ReverseForeignKey) Model() ModelList {
-	return rfk.new()
+	if rfk.cache == nil {
+		rfk.cache = rfk.new()
+	}
+	return rfk.cache
 }
 
 type ManyToMany struct {
@@ -1617,5 +1626,8 @@ func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
 }
 
 func (mtm *ManyToMany) Model() ModelList {
-	return mtm.new()
+	if mtm.cache == nil {
+		mtm.cache = mtm.new()
+	}
+	return mtm.cache
 }

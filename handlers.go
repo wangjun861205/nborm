@@ -164,12 +164,12 @@ func JoinQuery(tab table, where *Where, relations ...relation) error {
 	for i, rel := range relations {
 		switch r := rel.(type) {
 		case *OneToOne, *ForeignKey, *ReverseForeignKey:
-			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.DstDB(), r.DstTab(), tab.DB(), tab.Tab(), r.SrcCol(),
-				r.DstDB(), r.DstTab(), r.DstCol())
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.dstDB(), r.dstTab(), tab.DB(), tab.Tab(), r.srcCol(),
+				r.dstDB(), r.dstTab(), r.dstCol())
 		case *ManyToMany:
-			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.MidDB(), r.MidTab(), tab.DB(), tab.Tab(),
-				r.SrcCol(), r.MidDB(), r.MidTab(), r.MidLeftCol(), r.DstDB(), r.DstTab(), r.MidDB(), r.MidTab(), r.MidRightCol(), r.DstDB(), r.DstTab(),
-				r.DstCol())
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.midDB(), r.midTab(), tab.DB(), tab.Tab(),
+				r.srcCol(), r.midDB(), r.midTab(), r.midLeftCol(), r.dstDB(), r.dstTab(), r.midDB(), r.midTab(), r.midRightCol(), r.dstDB(), r.dstTab(),
+				r.dstCol())
 		default:
 			panic("nborm.JoinQuery() error: unsupported relation")
 		}
@@ -239,12 +239,12 @@ func JoinQueryWithFoundRows(tab table, where *Where, sorter *Sorter, pager *Page
 	for i, rel := range relations {
 		switch r := rel.(type) {
 		case *OneToOne, *ForeignKey, *ReverseForeignKey:
-			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.DstDB(), r.DstTab(), tab.DB(), tab.Tab(), r.SrcCol(),
-				r.DstDB(), r.DstTab(), r.DstCol())
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.dstDB(), r.dstTab(), tab.DB(), tab.Tab(), r.srcCol(),
+				r.dstDB(), r.dstTab(), r.dstCol())
 		case *ManyToMany:
-			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.MidDB(), r.MidTab(), tab.DB(), tab.Tab(),
-				r.SrcCol(), r.MidDB(), r.MidTab(), r.MidLeftCol(), r.DstDB(), r.DstTab(), r.MidDB(), r.MidTab(), r.MidRightCol(), r.DstDB(), r.DstTab(),
-				r.DstCol())
+			joinList[i] = fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.midDB(), r.midTab(), tab.DB(), tab.Tab(),
+				r.srcCol(), r.midDB(), r.midTab(), r.midLeftCol(), r.dstDB(), r.dstTab(), r.midDB(), r.midTab(), r.midRightCol(), r.dstDB(), r.dstTab(),
+				r.dstCol())
 		default:
 			panic("nborm.JoinQuery() error: unsupported relation")
 		}

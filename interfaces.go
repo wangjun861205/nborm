@@ -50,8 +50,11 @@ type Field interface {
 }
 
 type relation interface {
-	DstDB() string
-	DstTab() string
-	DstCol() string
-	SrcCol() string
+	json.Marshaler
+	srcDB() string
+	srcTab() string
+	srcCol() string
+	dstDB() string
+	dstTab() string
+	dstCol() string
 }

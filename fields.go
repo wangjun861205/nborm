@@ -1265,89 +1265,121 @@ func (f *BinaryField) NotNull() *Where {
 }
 
 type OneToOne struct {
-	srcField Field
-	dstField Field
-	result   Model
+	srcField   Field
+	dstColName string
+	new        func() Model
+	cache      Model
+	result     Model
 }
 
-func NewOneToOne(srcField, dstField Field, model Model) *OneToOne {
-	return &OneToOne{srcField: srcField, dstField: dstField}
+func NewOneToOne(srcField Field, dstColName string, f func() Model) *OneToOne {
+	return &OneToOne{srcField: srcField, dstColName: dstColName, new: f}
 }
 
-func (oto *OneToOne) DstDB() string {
-	return oto.dstField.Super().DB()
+func (oto *OneToOne) srcDB() string {
+	return oto.srcField.Super().DB()
 }
 
-func (oto *OneToOne) DstTab() string {
-	return oto.dstField.Super().Tab()
+func (oto *OneToOne) srcTab() string {
+	return oto.srcField.Super().Tab()
 }
 
-func (oto *OneToOne) DstCol() string {
-	return oto.dstField.Column()
-}
-
-func (oto *OneToOne) SrcCol() string {
+func (oto *OneToOne) srcCol() string {
 	return oto.srcField.Column()
 }
 
+func (oto *OneToOne) dstDB() string {
+	if oto.cache == nil {
+		oto.cache = oto.new()
+	}
+	return oto.cache.DB()
+}
+
+func (oto *OneToOne) dstTab() string {
+	if oto.cache == nil {
+		oto.cache = oto.new()
+	}
+	return oto.cache.Tab()
+}
+
+func (oto *OneToOne) dstCol() string {
+	return oto.dstColName
+}
+
 func (oto *OneToOne) Query() error {
-	db := dbMap[oto.DstDB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", oto.DstDB(), oto.DstTab(), oto.DstCol(), oto.srcField.SQLVal())
+	m := oto.new()
+	if oto.cache == nil {
+		oto.cache = m
+	}
+	db := dbMap[m.DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", m.DB(), m.Tab(), oto.dstColName, oto.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	err := scanRow(oto.dstField.Super(), row)
-	if err != nil {
+	if err := scanRow(m, row); err != nil {
 		return err
 	}
-	oto.result = oto.dstField.Super()
+	oto.result = m
 	return nil
 }
 
-func (oto *OneToOne) Result() Model {
-	return oto.result
+func (oto *OneToOne) Model() Model {
+	return oto.new()
 }
 
 func (oto *OneToOne) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(oto.Result(), "\t", "\t")
-}
-
-func (oto *OneToOne) DstModel() Model {
-	return oto.dstField.Super()
+	return json.MarshalIndent(oto.result, "\t", "\t")
 }
 
 type ForeignKey struct {
-	srcField Field
-	dstField Field
-	result   Model
+	srcField   Field
+	dstColName string
+	new        func() Model
+	cache      Model
+	result     Model
 }
 
-func NewForeignKey(srcField, dstField Field) *ForeignKey {
-	return &ForeignKey{srcField: srcField, dstField: dstField}
+func NewForeignKey(srcField Field, dstColName string, f func() Model) *ForeignKey {
+	return &ForeignKey{srcField: srcField, dstColName: dstColName, new: f}
 }
 
-func (fk *ForeignKey) DstDB() string {
-	return fk.dstField.Super().DB()
+func (fk *ForeignKey) srcDB() string {
+	return fk.srcField.Super().DB()
 }
 
-func (fk *ForeignKey) DstTab() string {
-	return fk.dstField.Super().Tab()
+func (fk *ForeignKey) srcTab() string {
+	return fk.srcField.Super().Tab()
 }
 
-func (fk *ForeignKey) DstCol() string {
-	return fk.dstField.Column()
-}
-
-func (fk *ForeignKey) SrcCol() string {
+func (fk *ForeignKey) srcCol() string {
 	return fk.srcField.Column()
 }
 
+func (fk *ForeignKey) dstDB() string {
+	if fk.cache == nil {
+		fk.cache = fk.new()
+	}
+	return fk.cache.DB()
+}
+
+func (fk *ForeignKey) dstTab() string {
+	if fk.cache == nil {
+		fk.cache = fk.new()
+	}
+	return fk.cache.Tab()
+}
+
+func (fk *ForeignKey) dstCol() string {
+	return fk.dstColName
+}
+
 func (fk *ForeignKey) Query() error {
-	db := dbMap[fk.DstDB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", fk.DstDB(), fk.DstTab(), fk.DstCol(), fk.srcField.SQLVal())
+	m := fk.new()
+	db := dbMap[m.DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", m.DB(), m.Tab(), fk.dstColName, fk.srcField.SQLVal())
 	row := db.QueryRow(stmtStr)
-	if err := scanRow(fk.dstField.Super(), row); err != nil {
+	if err := scanRow(m, row); err != nil {
 		return err
 	}
-	fk.result = fk.dstField.Super()
+	fk.result = m
 	return nil
 }
 
@@ -1359,44 +1391,60 @@ func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(fk.Result(), "\t", "\t")
 }
 
-func (fk *ForeignKey) DstModel() Model {
-	return fk.dstField.Super()
+func (fk *ForeignKey) Model() Model {
+	return fk.new()
 }
 
 type ReverseForeignKey struct {
-	srcField Field
-	dstField Field
-	result   ModelList
+	srcField   Field
+	dstColName string
+	new        func() ModelList
+	cache      ModelList
+	result     ModelList
 }
 
-func NewReverseForeignKey(srcField, dstField Field) *ReverseForeignKey {
-	return &ReverseForeignKey{srcField: srcField, dstField: dstField}
+func NewReverseForeignKey(srcField Field, dstColName string, f func() ModelList) *ReverseForeignKey {
+	return &ReverseForeignKey{srcField: srcField, dstColName: dstColName, new: f}
 }
 
-func (rfk *ReverseForeignKey) DstDB() string {
-	return rfk.dstField.Super().DB()
+func (rfk *ReverseForeignKey) srcDB() string {
+	return rfk.srcField.Super().DB()
 }
 
-func (rfk *ReverseForeignKey) DstTab() string {
-	return rfk.dstField.Super().DB()
+func (rfk *ReverseForeignKey) srcTab() string {
+	return rfk.srcField.Super().DB()
 }
 
-func (rfk *ReverseForeignKey) DstCol() string {
-	return rfk.dstField.Column()
-}
-
-func (rfk *ReverseForeignKey) SrcCol() string {
+func (rfk *ReverseForeignKey) srcCol() string {
 	return rfk.srcField.Column()
 }
 
+func (rfk *ReverseForeignKey) dstDB() string {
+	if rfk.cache == nil {
+		rfk.cache = rfk.new()
+	}
+	return rfk.cache.DB()
+}
+
+func (rfk *ReverseForeignKey) dstTab() string {
+	if rfk.cache == nil {
+		rfk.cache = rfk.new()
+	}
+	return rfk.cache.Tab()
+}
+
+func (rfk *ReverseForeignKey) dstCol() string {
+	return rfk.dstColName
+}
+
 func (rfk *ReverseForeignKey) All() error {
-	db := dbMap[rfk.DstDB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", rfk.DstDB(), rfk.DstTab(), rfk.DstCol(), rfk.srcField.SQLVal())
+	l := rfk.new()
+	db := dbMap[l.DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", l.DB(), l.Tab(), rfk.dstColName, rfk.srcField.SQLVal())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	l := rfk.dstField.Super().NewList()
 	if err = scanRows(l, rows); err != nil {
 		return err
 	}
@@ -1405,13 +1453,18 @@ func (rfk *ReverseForeignKey) All() error {
 }
 
 func (rfk *ReverseForeignKey) Query(where *Where) error {
-	db := dbMap[rfk.DstDB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", rfk.DstDB(), rfk.DstTab(), rfk.DstCol(), rfk.srcField.SQLVal(), where.String())
+	l := rfk.new()
+	db := dbMap[l.DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", l.DB(), l.Tab(), rfk.dstColName, rfk.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	return scanRows(rfk.result, rows)
+	if err := scanRows(l, rows); err != nil {
+		return err
+	}
+	rfk.result = l
+	return nil
 }
 
 func (rfk *ReverseForeignKey) Result() ModelList {
@@ -1422,76 +1475,84 @@ func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(rfk.Result(), "\t", "\t")
 }
 
-func (rfk *ReverseForeignKey) DstModel() Model {
-	return rfk.dstField.Super()
+func (rfk *ReverseForeignKey) Model() ModelList {
+	return rfk.new()
 }
 
 type ManyToMany struct {
 	srcField      Field
 	midLeftField  Field
 	midRightField Field
-	dstField      Field
+	dstColName    string
+	new           func() ModelList
+	cache         ModelList
 	result        ModelList
 }
 
-func NewManyToMany(srcField, midLeftField, midRightField, dstField Field) *ManyToMany {
+func NewManyToMany(srcField, midLeftField, midRightField Field, dstColName string, f func() ModelList) *ManyToMany {
 	if midLeftField.Super() != midRightField.Super() {
 		panic("nborm.NewManyToMany() error: require the same middle tab")
 	}
-	return &ManyToMany{srcField: srcField, midLeftField: midLeftField, midRightField: midRightField, dstField: dstField}
+	return &ManyToMany{srcField: srcField, midLeftField: midLeftField, midRightField: midRightField, dstColName: dstColName, new: f}
 }
 
-func (mtm *ManyToMany) DstDB() string {
-	return mtm.dstField.Super().DB()
-}
-
-func (mtm *ManyToMany) DstTab() string {
-	return mtm.dstField.Super().DB()
-}
-
-func (mtm *ManyToMany) DstCol() string {
-	return mtm.dstField.Column()
-}
-
-func (mtm *ManyToMany) SrcDB() string {
+func (mtm *ManyToMany) srcDB() string {
 	return mtm.srcField.Super().DB()
 }
 
-func (mtm *ManyToMany) SrcTab() string {
+func (mtm *ManyToMany) srcTab() string {
 	return mtm.srcField.Super().Tab()
 }
 
-func (mtm *ManyToMany) SrcCol() string {
+func (mtm *ManyToMany) srcCol() string {
 	return mtm.srcField.Column()
 }
 
-func (mtm *ManyToMany) MidDB() string {
+func (mtm *ManyToMany) midDB() string {
 	return mtm.midLeftField.Super().DB()
 }
 
-func (mtm *ManyToMany) MidTab() string {
+func (mtm *ManyToMany) midTab() string {
 	return mtm.midLeftField.Super().Tab()
 }
 
-func (mtm *ManyToMany) MidLeftCol() string {
+func (mtm *ManyToMany) midLeftCol() string {
 	return mtm.midLeftField.Column()
 }
 
-func (mtm *ManyToMany) MidRightCol() string {
+func (mtm *ManyToMany) midRightCol() string {
 	return mtm.midRightField.Column()
 }
 
+func (mtm *ManyToMany) dstDB() string {
+	if mtm.cache == nil {
+		mtm.cache = mtm.new()
+	}
+	return mtm.cache.DB()
+}
+
+func (mtm *ManyToMany) dstTab() string {
+	if mtm.cache == nil {
+		mtm.cache = mtm.new()
+	}
+	return mtm.cache.Tab()
+}
+
+func (mtm *ManyToMany) dstCol() string {
+	return mtm.dstColName
+}
+
 func (mtm *ManyToMany) All() error {
-	db := dbMap[mtm.DstDB()]
+	l := mtm.new()
+	db := dbMap[l.DB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
-		mtm.DstDB(), mtm.DstTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.MidDB(), mtm.MidTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.MidDB(),
-		mtm.MidTab(), mtm.MidLeftCol(), mtm.DstDB(), mtm.DstTab(), mtm.MidDB(), mtm.MidTab(), mtm.MidRightCol(), mtm.DstDB(), mtm.DstTab(),
-		mtm.DstCol(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.srcField.SQLVal())
+		l.DB(), l.Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.DB(), l.Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.DB(), l.Tab(),
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	l := mtm.dstField.Super().NewList()
 	if err = scanRows(l, rows); err != nil {
 		return err
 	}
@@ -1500,16 +1561,16 @@ func (mtm *ManyToMany) All() error {
 }
 
 func (mtm *ManyToMany) Query(where *Where) error {
-	db := dbMap[mtm.DstDB()]
+	l := mtm.new()
+	db := dbMap[l.DB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
-		mtm.DstDB(), mtm.DstTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.MidDB(), mtm.MidTab(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.MidDB(),
-		mtm.MidTab(), mtm.MidLeftCol(), mtm.DstDB(), mtm.DstTab(), mtm.MidDB(), mtm.MidTab(), mtm.MidRightCol(), mtm.DstDB(), mtm.DstTab(),
-		mtm.DstCol(), mtm.SrcDB(), mtm.SrcTab(), mtm.SrcCol(), mtm.srcField.SQLVal(), where.String())
+		l.DB(), l.Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.DB(), l.Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.DB(), l.Tab(),
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
 	}
-	l := mtm.dstField.Super().NewList()
 	if err = scanRows(mtm.result, rows); err != nil {
 		return err
 	}
@@ -1518,9 +1579,9 @@ func (mtm *ManyToMany) Query(where *Where) error {
 }
 
 func (mtm *ManyToMany) Add(m Model) error {
-	dstField := getByName(m, mtm.DstCol())
-	db := dbMap[mtm.MidDB()]
-	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (%s, %s)", mtm.MidDB(), mtm.MidTab(), mtm.MidLeftCol(), mtm.MidRightCol(),
+	dstField := getByName(m, mtm.dstColName)
+	db := dbMap[mtm.midDB()]
+	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (%s, %s)", mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.midRightCol(),
 		mtm.srcField.SQLVal(), dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
@@ -1534,10 +1595,11 @@ func (mtm *ManyToMany) Add(m Model) error {
 }
 
 func (mtm *ManyToMany) Remove(m Model) error {
-	db := dbMap[mtm.MidDB()]
-	dstField := getByName(m, mtm.DstCol())
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", mtm.DstDB(), mtm.DstTab(), mtm.MidLeftCol(), mtm.srcField.SQLVal(),
-		mtm.MidRightCol(), dstField.SQLVal())
+	l := mtm.new()
+	db := dbMap[mtm.midDB()]
+	dstField := getByName(m, mtm.dstColName)
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", l.DB(), l.Tab(), mtm.midLeftCol(), mtm.srcField.SQLVal(),
+		mtm.midRightCol(), dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
 		return err
@@ -1554,6 +1616,6 @@ func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(mtm.Result(), "\t", "\t")
 }
 
-func (mtm *ManyToMany) DstModel() Model {
-	return mtm.dstField.Super()
+func (mtm *ManyToMany) Model() ModelList {
+	return mtm.new()
 }

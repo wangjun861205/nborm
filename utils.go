@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type Pager [2]int
@@ -37,12 +38,27 @@ func (p *Pager) Index(i int) {
 	(*p)[1] = i
 }
 
-type Sorter string
+type Order struct {
+	Field   Field
+	Reverse bool
+}
 
-func NewSorter(infos ...string) *Sorter {
-	s := Sorter(fmt.Sprintf("ORDER BY %s", strings.Join(infos, ", ")))
+func OrderBy(orders ...Order) *Sorter {
+	l := make([]string, len(orders))
+	for i, order := range orders {
+		var o string
+		if order.Reverse {
+			o = "DESC"
+		} else {
+			o = "ASC"
+		}
+		l[i] = fmt.Sprintf("%s.%s.%s %s", order.Field.Super().DB(), order.Field.Super().Tab(), order.Field.Column(), o)
+	}
+	s := Sorter(fmt.Sprintf("ORDER BY %s", strings.Join(l, ", ")))
 	return &s
 }
+
+type Sorter string
 
 func (s *Sorter) toSQL() string {
 	if s == nil {
@@ -82,6 +98,51 @@ func scanRow(m Model, row *sql.Row) error {
 		return err
 	}
 	return nil
+}
+
+func queryAndScan(tab interface{}, stmtStr string) error {
+	switch obj := tab.(type) {
+	case Model:
+		db := dbMap[obj.DB()]
+		row := db.QueryRow(stmtStr)
+		return scanRow(obj, row)
+	case ModelList:
+		db := dbMap[obj.Model().DB()]
+		rows, err := db.Query(stmtStr)
+		if err != nil {
+			return err
+		}
+		return scanRows(obj, rows)
+	default:
+		return fmt.Errorf("nborm error: unsupported type (%T)", tab)
+	}
+}
+
+func queryAndScanWithNum(tab interface{}, stmtStr string) (int, error) {
+	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
+		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
+	}
+	switch obj := tab.(type) {
+	case Model:
+		db := dbMap[obj.DB()]
+		row := db.QueryRow(stmtStr)
+		if err := scanRow(obj, row); err != nil {
+			return -1, err
+		}
+		return getFoundRows(db)
+	case ModelList:
+		db := dbMap[obj.Model().DB()]
+		rows, err := db.Query(stmtStr)
+		if err != nil {
+			return -1, err
+		}
+		if err := scanRows(obj, rows); err != nil {
+			return -1, err
+		}
+		return getFoundRows(db)
+	default:
+		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
+	}
 }
 
 func getPk(m Model) (pk Field, others []Field) {
@@ -201,5 +262,158 @@ func genWhere(m Model) *Where {
 			panic("nborm.genWhere() error: empty where")
 		}
 		return w
+	}
+}
+
+func getFoundRows(db *sql.DB) (int, error) {
+	var num int
+	row := db.QueryRow("SELECT FOUND_ROWS()")
+	err := row.Scan(&num)
+	if err != nil {
+		return -1, err
+	}
+	return num, nil
+}
+
+func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, withFoundRows bool, relations ...relation) string {
+	var dbName, tabName string
+	switch obj := tab.(type) {
+	case Model:
+		dbName, tabName = obj.DB(), obj.Tab()
+	case ModelList:
+		dbName, tabName = obj.Model().DB(), obj.Model().Tab()
+	default:
+		panic(fmt.Errorf("nborm error: unsupported type (%T)", tab))
+	}
+	if where == nil {
+		if withFoundRows {
+			if len(relations) == 0 {
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL())
+			} else {
+				joinList := make([]string, len(relations))
+				for i, rel := range relations {
+					joinList[i] = rel.joinClause()
+				}
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s", dbName, tabName, dbName, tabName,
+					strings.Join(joinList, " "), sorter.toSQL(), pager.toSQL())
+			}
+		} else {
+			if len(relations) == 0 {
+				return fmt.Sprintf("SELECT * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL())
+			} else {
+				joinList := make([]string, len(relations))
+				for i, rel := range relations {
+					joinList[i] = rel.joinClause()
+				}
+				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
+					sorter.toSQL(), pager.toSQL())
+			}
+		}
+	} else {
+		if withFoundRows {
+			if len(relations) == 0 {
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s %s %s", dbName, tabName, where.String(), sorter.toSQL(),
+					pager.toSQL())
+			} else {
+				joinList := make([]string, len(relations))
+				for i, rel := range relations {
+					joinList[i] = rel.joinClause()
+				}
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s WHERE %s %s %s", dbName, tabName, dbName, tabName,
+					strings.Join(joinList, " "), where.String(), sorter.toSQL(), pager.toSQL())
+			}
+		} else {
+			if len(relations) == 0 {
+				return fmt.Sprintf("SELECT * FROM %s.%s WHERE %s %s %s", dbName, tabName, where.String(), sorter.toSQL(), pager.toSQL())
+			} else {
+				joinList := make([]string, len(relations))
+				for i, rel := range relations {
+					joinList[i] = rel.joinClause()
+				}
+				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
+					where.String(), sorter.toSQL(), pager.toSQL())
+			}
+		}
+	}
+}
+
+func genInsert(m Model, update bool) string {
+	inc, others := getInc(m)
+	others = filterValid(others)
+	colList := make([]string, len(others))
+	valList := make([]string, len(others))
+	updateList := make([]string, len(others))
+	for i, f := range others {
+		p := f.InsertValuePair()
+		colList[i] = p[0]
+		valList[i] = p[1]
+		updateList[i] = p[0] + " = " + p[1]
+	}
+	if update {
+		return fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
+			strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
+	}
+	return fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+}
+
+func insertAndGetInc(m Model, update bool) error {
+	db := dbMap[m.DB()]
+	inc, others := getInc(m)
+	others = filterValid(others)
+	colList := make([]string, len(others))
+	valList := make([]string, len(others))
+	updateList := make([]string, len(others))
+	for i, f := range others {
+		p := f.InsertValuePair()
+		colList[i] = p[0]
+		valList[i] = p[1]
+		updateList[i] = p[0] + " = " + p[1]
+	}
+	var stmtStr string
+	if update {
+		stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
+			strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
+	} else {
+		stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+	}
+	res, err := db.Exec(stmtStr)
+	if err != nil {
+		return err
+	}
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	inc.(*IntField).Set(lastInsertId, false)
+	return nil
+}
+
+func iterList(l ModelList, f func(Model) error) error {
+	doneChan := make(chan interface{})
+	errChan := make(chan error)
+	var wg sync.WaitGroup
+	for i := 0; i < l.Len(); i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer func() {
+				recover()
+				wg.Done()
+			}()
+			err := f(l.Index(index))
+			if err != nil {
+				errChan <- err
+			}
+		}(i)
+	}
+	go func() {
+		wg.Wait()
+		close(doneChan)
+	}()
+	select {
+	case err := <-errChan:
+		close(errChan)
+		return err
+	case <-doneChan:
+		return nil
 	}
 }

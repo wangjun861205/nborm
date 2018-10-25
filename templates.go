@@ -99,12 +99,8 @@ import (
 			}
 		}
 
-		func (m *{{ tab.ModelName }}) NewList() nborm.ModelList {
-			return New{{ tab.ModelName }}List()
-		}
-
 		type {{ tab.ModelName }}List struct {
-			*{{ tab.ModelName }}
+			M *{{ tab.ModelName }}
 			List []*{{ tab.ModelName }}
 		}
 
@@ -143,6 +139,10 @@ import (
 
 		func (l *{{ tab.ModelName }}List) MarshalJSON() ([]byte, error) {
 			return json.MarshalIndent(l.List, "\t", "\t")
+		}
+
+		func (l *{{ tab.ModelName }}List) Model() nborm.Model {
+			return l.M
 		}
 
 	{{ endfor }}

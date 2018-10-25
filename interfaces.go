@@ -13,22 +13,17 @@ type table interface {
 type Model interface {
 	table
 	Fields() []Field
-	NewList() ModelList
 }
 
 type ModelList interface {
-	table
 	New() Model
 	Len() int
 	Index(int) Model
 	Delete(int)
 	Swap(i, j int)
 	json.Marshaler
+	Model() Model
 }
-
-// type where interface {
-// 	String() string
-// }
 
 type Field interface {
 	SQLVal() string
@@ -57,4 +52,5 @@ type relation interface {
 	dstDB() string
 	dstTab() string
 	dstCol() string
+	joinClause() string
 }

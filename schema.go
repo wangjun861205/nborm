@@ -91,11 +91,6 @@ func (c *Column) Fields() []Field {
 	}
 }
 
-func (c *Column) NewList() ModelList {
-	l := make(ColumnList, 0, 128)
-	return &l
-}
-
 var KeyColumnUsageExample = NewKeyColumnUsage()
 
 type KeyColumnUsage struct {
@@ -153,11 +148,6 @@ func (u *KeyColumnUsage) Fields() []Field {
 		u.REFERENCED_TABLE_NAME,
 		u.REFERENCED_COLUMN_NAME,
 	}
-}
-
-func (u *KeyColumnUsage) NewList() ModelList {
-	l := make(KeyColumnUsageList, 0, 128)
-	return &l
 }
 
 var TableExample = NewTable()
@@ -246,11 +236,6 @@ func (t *Table) Fields() []Field {
 	}
 }
 
-func (t *Table) NewList() ModelList {
-	l := make(TableList, 0, 128)
-	return &l
-}
-
 type ColumnList []*Column
 
 func (cl *ColumnList) DB() string {
@@ -292,6 +277,10 @@ func (cl *ColumnList) Swap(i, j int) {
 
 func (cl *ColumnList) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(cl, "\t", "\t")
+}
+
+func (cl *ColumnList) Model() Model {
+	return ColumnExample
 }
 
 type KeyColumnUsageList []*KeyColumnUsage
@@ -337,6 +326,10 @@ func (ul *KeyColumnUsageList) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(ul, "\t", "\t")
 }
 
+func (ul *KeyColumnUsageList) Model() Model {
+	return KeyColumnUsageExample
+}
+
 type TableList []*Table
 
 func (l *TableList) DB() string {
@@ -378,4 +371,8 @@ func (l *TableList) Swap(i, j int) {
 
 func (l *TableList) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(l, "\t", "\t")
+}
+
+func (l *TableList) Model() Model {
+	return TableExample
 }

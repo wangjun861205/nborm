@@ -1076,36 +1076,36 @@ func (f *DatetimeField) Where() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
 }
 
-func (c *DatetimeField) Eq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s = %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Eq(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s = %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Neq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s <> %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Neq(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s <> %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Lt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s < %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Lt(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s < %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Gt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s > %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Gt(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s > %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Lte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s <= %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Lte(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s <= %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Gte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s > %q", c.column, val.Format("2006-01-02 15:04:05"))}
+func (f *DatetimeField) Gte(val time.Time) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s > %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
 }
 
-func (c *DatetimeField) Null() *Where {
-	return &Where{fmt.Sprintf("%s IS NULL", c.column)}
+func (f *DatetimeField) Null() *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
 func (f *DatetimeField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s IS NOT NULL", f.column)}
+	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
 func (f *DatetimeField) IsUni() bool {
@@ -1332,6 +1332,11 @@ func (oto *OneToOne) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(oto.result, "\t", "\t")
 }
 
+func (oto *OneToOne) joinClause() string {
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", oto.dstDB(), oto.dstTab(), oto.srcDB(), oto.srcTab(), oto.srcCol(), oto.dstDB(),
+		oto.dstTab(), oto.dstCol())
+}
+
 type ForeignKey struct {
 	srcField   Field
 	dstColName string
@@ -1401,6 +1406,11 @@ func (fk *ForeignKey) Model() Model {
 	return fk.cache
 }
 
+func (fk *ForeignKey) joinClause() string {
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", fk.dstDB(), fk.dstTab(), fk.srcDB(), fk.srcTab(), fk.srcCol(), fk.dstDB(),
+		fk.dstTab(), fk.dstCol())
+}
+
 type ReverseForeignKey struct {
 	srcField   Field
 	dstColName string
@@ -1429,14 +1439,14 @@ func (rfk *ReverseForeignKey) dstDB() string {
 	if rfk.cache == nil {
 		rfk.cache = rfk.new()
 	}
-	return rfk.cache.DB()
+	return rfk.cache.Model().DB()
 }
 
 func (rfk *ReverseForeignKey) dstTab() string {
 	if rfk.cache == nil {
 		rfk.cache = rfk.new()
 	}
-	return rfk.cache.Tab()
+	return rfk.cache.Model().Tab()
 }
 
 func (rfk *ReverseForeignKey) dstCol() string {
@@ -1445,8 +1455,8 @@ func (rfk *ReverseForeignKey) dstCol() string {
 
 func (rfk *ReverseForeignKey) All() error {
 	l := rfk.new()
-	db := dbMap[l.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", l.DB(), l.Tab(), rfk.dstColName, rfk.srcField.SQLVal())
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
@@ -1458,10 +1468,26 @@ func (rfk *ReverseForeignKey) All() error {
 	return nil
 }
 
+func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
+	l := rfk.new()
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s %s %s", l.Model().DB(), l.Model().Tab(),
+		rfk.dstColName, rfk.srcField.SQLVal(), sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr)
+	if err != nil {
+		return -1, err
+	}
+	if err = scanRows(l, rows); err != nil {
+		return -1, err
+	}
+	rfk.result = l
+	return getFoundRows(db)
+}
+
 func (rfk *ReverseForeignKey) Query(where *Where) error {
 	l := rfk.new()
-	db := dbMap[l.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", l.DB(), l.Tab(), rfk.dstColName, rfk.srcField.SQLVal(), where.String())
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
@@ -1473,6 +1499,22 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 	return nil
 }
 
+func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	l := rfk.new()
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s AND %s %s %s", l.Model().DB(), l.Model().Tab(),
+		rfk.dstColName, rfk.srcField.SQLVal(), where.String(), sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr)
+	if err != nil {
+		return -1, err
+	}
+	if err := scanRows(l, rows); err != nil {
+		return -1, err
+	}
+	rfk.result = l
+	return getFoundRows(db)
+}
+
 func (rfk *ReverseForeignKey) Result() ModelList {
 	return rfk.result
 }
@@ -1481,11 +1523,16 @@ func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(rfk.Result(), "\t", "\t")
 }
 
-func (rfk *ReverseForeignKey) Model() ModelList {
+func (rfk *ReverseForeignKey) Model() Model {
 	if rfk.cache == nil {
 		rfk.cache = rfk.new()
 	}
-	return rfk.cache
+	return rfk.cache.Model()
+}
+
+func (rfk *ReverseForeignKey) joinClause() string {
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB(), rfk.dstTab(), rfk.srcDB(), rfk.srcTab(), rfk.srcCol(), rfk.dstDB(),
+		rfk.dstTab(), rfk.dstCol())
 }
 
 type ManyToMany struct {
@@ -1537,14 +1584,14 @@ func (mtm *ManyToMany) dstDB() string {
 	if mtm.cache == nil {
 		mtm.cache = mtm.new()
 	}
-	return mtm.cache.DB()
+	return mtm.cache.Model().DB()
 }
 
 func (mtm *ManyToMany) dstTab() string {
 	if mtm.cache == nil {
 		mtm.cache = mtm.new()
 	}
-	return mtm.cache.Tab()
+	return mtm.cache.Model().Tab()
 }
 
 func (mtm *ManyToMany) dstCol() string {
@@ -1553,10 +1600,10 @@ func (mtm *ManyToMany) dstCol() string {
 
 func (mtm *ManyToMany) All() error {
 	l := mtm.new()
-	db := dbMap[l.DB()]
+	db := dbMap[l.Model().DB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
-		l.DB(), l.Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
-		mtm.midTab(), mtm.midLeftCol(), l.DB(), l.Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.DB(), l.Tab(),
+		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
 		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
@@ -1569,12 +1616,30 @@ func (mtm *ManyToMany) All() error {
 	return nil
 }
 
+func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
+	l := mtm.new()
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s %s",
+		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr)
+	if err != nil {
+		return -1, err
+	}
+	if err = scanRows(l, rows); err != nil {
+		return -1, err
+	}
+	mtm.result = l
+	return getFoundRows(db)
+}
+
 func (mtm *ManyToMany) Query(where *Where) error {
 	l := mtm.new()
-	db := dbMap[l.DB()]
+	db := dbMap[l.Model().DB()]
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
-		l.DB(), l.Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
-		mtm.midTab(), mtm.midLeftCol(), l.DB(), l.Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.DB(), l.Tab(),
+		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
 		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.String())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
@@ -1585,6 +1650,24 @@ func (mtm *ManyToMany) Query(where *Where) error {
 	}
 	mtm.result = l
 	return nil
+}
+
+func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	l := mtm.new()
+	db := dbMap[l.Model().DB()]
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s %s %s",
+		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
+		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.String(), sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr)
+	if err != nil {
+		return -1, err
+	}
+	if err = scanRows(mtm.result, rows); err != nil {
+		return -1, err
+	}
+	mtm.result = l
+	return getFoundRows(db)
 }
 
 func (mtm *ManyToMany) Add(m Model) error {
@@ -1607,7 +1690,7 @@ func (mtm *ManyToMany) Remove(m Model) error {
 	l := mtm.new()
 	db := dbMap[mtm.midDB()]
 	dstField := getByName(m, mtm.dstColName)
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", l.DB(), l.Tab(), mtm.midLeftCol(), mtm.srcField.SQLVal(),
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", l.Model().DB(), l.Model().Tab(), mtm.midLeftCol(), mtm.srcField.SQLVal(),
 		mtm.midRightCol(), dstField.SQLVal())
 	_, err := db.Exec(stmtStr)
 	if err != nil {
@@ -1625,9 +1708,15 @@ func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
 	return json.MarshalIndent(mtm.Result(), "\t", "\t")
 }
 
-func (mtm *ManyToMany) Model() ModelList {
+func (mtm *ManyToMany) Model() Model {
 	if mtm.cache == nil {
 		mtm.cache = mtm.new()
 	}
-	return mtm.cache
+	return mtm.cache.Model()
+}
+
+func (mtm *ManyToMany) joinClause() string {
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(),
+		mtm.srcCol(), mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.dstDB(), mtm.dstTab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), mtm.dstDB(),
+		mtm.dstTab(), mtm.dstCol())
 }

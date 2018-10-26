@@ -43,6 +43,7 @@ import (
 			{{ for _, mtm in tab.ManyToManys }}
 				{{ mtm.DstTab.ModelName }} *nborm.ManyToMany` + " `json:\"{{ mtm.DstTab.Name }}\"`" + `
 			{{ endfor }}
+			_isSync bool
 		}
 
 		func New{{ tab.ModelName }}() *{{ tab.ModelName }} {
@@ -97,6 +98,10 @@ import (
 					m.{{ col.FieldName }},
 				{{ endfor }}
 			}
+		}
+
+		func (m *{{ tab.ModelName }}) SetSync(b bool) {
+			m._isSync = b
 		}
 
 		type {{ tab.ModelName }}List struct {

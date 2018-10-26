@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -27,8 +28,8 @@ func GetOne(m Model) (exists bool, err error) {
 }
 
 func GetMul(l ModelList) error {
-	return iterList(l, func(m Model) error {
-		return queryAndScan(m, genSelect(m, genWhere(m), nil, nil, false))
+	return iterList(l, func(ctx context.Context, m Model) error {
+		return queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
 	})
 }
 
@@ -53,17 +54,28 @@ func AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
 	return queryAndScanWithNum(l, genSelect(l, nil, sorter, pager, true))
 }
 
-func QueryOne(m Model, where *Where) (exists bool, err error) {
-	err = queryAndScan(m, genSelect(m, where, nil, nil, false))
+func QueryOne(m Model, where *Where) error {
+	err := queryAndScan(m, genSelect(m, where, nil, nil, false))
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = nil
-			return
+			return nil
 		}
-		return
+		return err
 	}
-	exists = true
-	return
+	return nil
+}
+
+func QueryMul(l ModelList) error {
+	return iterList(l, func(ctx context.Context, m Model) error {
+		err := queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil
+			}
+			return err
+		}
+		return nil
+	})
 }
 
 func Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
@@ -395,11 +407,11 @@ func InsertOrUpdateOne(m Model) error {
 }
 
 func InsertMul(l ModelList) error {
-	return iterList(l, func(m Model) error { return insertAndGetInc(m, false) })
+	return iterList(l, func(ctx context.Context, m Model) error { return insertAndGetIncContext(ctx, m, false) })
 }
 
 func InsertOrUpdateMul(l ModelList) error {
-	return iterList(l, func(m Model) error { return insertAndGetInc(m, true) })
+	return iterList(l, func(ctx context.Context, m Model) error { return insertAndGetIncContext(ctx, m, true) })
 }
 
 func InsertOrGetOne(m Model) error {
@@ -414,7 +426,16 @@ func InsertOrGetOne(m Model) error {
 }
 
 func InsertOrGetMul(l ModelList) error {
-	return iterList(l, InsertOrGetOne)
+	return iterList(l, func(ctx context.Context, m Model) error {
+		err := insertAndGetIncContext(ctx, m, false)
+		if err != nil {
+			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+				return queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
+			}
+			return err
+		}
+		return nil
+	})
 }
 
 // func Insert(tab interface{}, valuePairs ...[2]string) error {
@@ -531,7 +552,23 @@ func UpdateOne(m Model) error {
 }
 
 func UpdateMul(l ModelList) error {
-	return iterList(l, UpdateOne)
+	return iterList(l, func(ctx context.Context, m Model) error {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			_, fs := getInc(m)
+			fs = filterValid(fs)
+			setValues := make([]string, 0, len(fs))
+			for _, f := range fs {
+				setValues = append(setValues, f.UpdateValue().String())
+			}
+			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s WHERE %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).String())
+			db := dbMap[m.DB()]
+			_, err := db.ExecContext(ctx, stmtStr)
+			return err
+		}
+	})
 }
 
 func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
@@ -842,7 +879,12 @@ func DeleteOne(m Model) error {
 }
 
 func DeleteMul(l ModelList) error {
-	return iterList(l, DeleteOne)
+	return iterList(l, func(ctx context.Context, m Model) error {
+		db := dbMap[m.DB()]
+		stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s", m.DB(), m.Tab(), genWhere(m).String())
+		_, err := db.ExecContext(ctx, stmtStr)
+		return err
+	})
 }
 
 func BulkDelete(m Model, where *Where) error {

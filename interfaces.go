@@ -13,6 +13,7 @@ type table interface {
 type Model interface {
 	table
 	Fields() []Field
+	SetSync(bool)
 }
 
 type ModelList interface {

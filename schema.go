@@ -27,6 +27,7 @@ type Column struct {
 	COLUMN_COMMENT           *StringField
 	GENERATION_EXPRESSION    *StringField
 	SRS_ID                   *IntField
+	_isSync                  bool
 }
 
 func NewColumn() *Column {
@@ -91,6 +92,10 @@ func (c *Column) Fields() []Field {
 	}
 }
 
+func (c *Column) SetSync(b bool) {
+	c._isSync = b
+}
+
 var KeyColumnUsageExample = NewKeyColumnUsage()
 
 type KeyColumnUsage struct {
@@ -106,6 +111,7 @@ type KeyColumnUsage struct {
 	REFERENCED_TABLE_SCHEMA       *StringField
 	REFERENCED_TABLE_NAME         *StringField
 	REFERENCED_COLUMN_NAME        *StringField
+	_isSync                       bool
 }
 
 func NewKeyColumnUsage() *KeyColumnUsage {
@@ -150,6 +156,10 @@ func (u *KeyColumnUsage) Fields() []Field {
 	}
 }
 
+func (u *KeyColumnUsage) SetSync(b bool) {
+	u._isSync = b
+}
+
 var TableExample = NewTable()
 
 type Table struct {
@@ -174,6 +184,7 @@ type Table struct {
 	CHECKSUM        *IntField
 	CREATE_OPTIONS  *StringField
 	TABLE_COMMENT   *StringField
+	_isSync         bool
 }
 
 func NewTable() *Table {
@@ -234,6 +245,10 @@ func (t *Table) Fields() []Field {
 		t.CREATE_OPTIONS,
 		t.TABLE_COMMENT,
 	}
+}
+
+func (t *Table) SetSync(b bool) {
+	t._isSync = b
 }
 
 type ColumnList []*Column

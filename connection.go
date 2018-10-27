@@ -14,6 +14,7 @@ import (
 var dbMap = map[string]*sql.DB{}
 var dbLock sync.Mutex
 
+//RegisterDB register a DSN(database source name)
 func RegisterDB(username, password, address, db string) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, address, db)
 	conn, err := sql.Open("mysql", dsn)
@@ -52,6 +53,7 @@ func RegisterDB(username, password, address, db string) {
 	}
 }
 
+//CloseConns close all connections which is stored in dbMap
 func CloseConns() error {
 	dbLock.Lock()
 	defer dbLock.Unlock()

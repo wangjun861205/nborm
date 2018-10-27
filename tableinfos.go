@@ -12,6 +12,7 @@ import (
 
 var dbInfo = make(map[string]map[string]*tableInfo)
 
+//OneToOneInfo OneToOne relation information in database
 type OneToOneInfo struct {
 	SrcDB  string     `json:"srcDB"`
 	SrcTab tableInfo  `json:"srcTab"`
@@ -21,6 +22,7 @@ type OneToOneInfo struct {
 	DstCol ColumnInfo `json:"dstCol"`
 }
 
+//ForeignKeyInfo ForeignKey relation information in database
 type ForeignKeyInfo struct {
 	SrcDB  string     `json:"srcDB"`
 	SrcTab tableInfo  `json:"srcTab"`
@@ -30,6 +32,7 @@ type ForeignKeyInfo struct {
 	DstCol ColumnInfo `json:"dstCol"`
 }
 
+//ReverseForeignKeyInfo ReverseForeignKey relation information in database
 type ReverseForeignKeyInfo struct {
 	SrcDB  string     `json:"srcDB"`
 	SrcTab tableInfo  `json:"srcTab"`
@@ -39,6 +42,7 @@ type ReverseForeignKeyInfo struct {
 	DstCol ColumnInfo `json:"dstCol"`
 }
 
+//ManyToManyInfo ManyToMany relation information in database
 type ManyToManyInfo struct {
 	SrcDB       string     `json:"srcDB"`
 	SrcTab      tableInfo  `json:"srcTab"`
@@ -46,12 +50,13 @@ type ManyToManyInfo struct {
 	MidDB       string     `json:"midDB"`
 	MidTab      tableInfo  `json:"midTab"`
 	MidLeftCol  ColumnInfo `json:"midLeftCol"`
-	MidRightCol ColumnInfo `json:"midRightCol`
+	MidRightCol ColumnInfo `json:"midRightCol"`
 	DstDB       string     `json:"dstDB"`
 	DstTab      tableInfo  `json:"dstTab"`
 	DstCol      ColumnInfo `json:"dstCol"`
 }
 
+//ColumnInfo column information in database
 type ColumnInfo struct {
 	Name           string `json:"name"`
 	FieldName      string `json:"fieldName"`
@@ -65,16 +70,20 @@ type ColumnInfo struct {
 	Uni            bool   `json:"uni"`
 }
 
+//ColumnInfoList column information list
 type ColumnInfoList []*ColumnInfo
 
+//Len implement sort.sorter interface
 func (l *ColumnInfoList) Len() int {
 	return len(*l)
 }
 
+//Swap implement sort.sorter interface
 func (l *ColumnInfoList) Swap(i, j int) {
 	(*l)[i], (*l)[j] = (*l)[j], (*l)[i]
 }
 
+//Less implement sort.sorter interface
 func (l *ColumnInfoList) Less(i, j int) bool {
 	return (*l)[i].Position < (*l)[j].Position
 }
@@ -91,12 +100,12 @@ type tableInfo struct {
 }
 
 func _getTableNames(dbName string) (names []string) {
-	tables := make(TableList, 0, 16)
-	err := Query(&tables, TableExample.TABLE_SCHEMA.Eq(dbName), nil, nil)
+	tables := NewTableList()
+	err := Query(tables, tables.M.TABLE_SCHEMA.Eq(dbName), nil, nil)
 	if err != nil {
 		panic(err)
 	}
-	for _, table := range tables {
+	for _, table := range tables.List {
 		name, _, _ := table.TABLE_NAME.Get()
 		if dbInfo[dbName] == nil {
 			dbInfo[dbName] = make(map[string]*tableInfo)
@@ -108,13 +117,13 @@ func _getTableNames(dbName string) (names []string) {
 }
 
 func _getColumnInfos(dbName string, tableName string) {
-	columns := make(ColumnList, 0, 16)
+	columns := NewColumnList()
 	columnInfos := make(ColumnInfoList, 0, 16)
-	err := Query(&columns, ColumnExample.TABLE_SCHEMA.Eq(dbName).And(ColumnExample.TABLE_NAME.Eq(tableName)), nil, nil)
+	err := Query(columns, columns.M.TABLE_SCHEMA.Eq(dbName).And(columns.M.TABLE_NAME.Eq(tableName)), nil, nil)
 	if err != nil {
 		panic(err)
 	}
-	for _, column := range columns {
+	for _, column := range columns.List {
 		columnName, _, _ := column.COLUMN_NAME.Get()
 		columnType, _, _ := column.DATA_TYPE.Get()
 		columnTypeWithLength, _, _ := column.COLUMN_TYPE.Get()
@@ -153,6 +162,7 @@ func _getColumnInfos(dbName string, tableName string) {
 	dbInfo[dbName][tableName].ColumnMap = colMap
 }
 
+//GetDBInfo get database information
 func GetDBInfo(dbNames ...string) {
 	for _, dbName := range dbNames {
 		tableNames := _getTableNames(dbName)
@@ -161,17 +171,17 @@ func GetDBInfo(dbNames ...string) {
 		}
 	}
 	for dbName, tabMap := range dbInfo {
-		for tabName, _ := range tabMap {
+		for tabName := range tabMap {
 			_getRelations(dbName, tabName)
 		}
 	}
 }
 
 func _getRelations(dbName, tableName string) {
-	keys := make(KeyColumnUsageList, 0, 16)
-	err := Query(&keys, KeyColumnUsageExample.TABLE_SCHEMA.Eq(dbName).And(
-		KeyColumnUsageExample.TABLE_NAME.Eq(tableName)).And(
-		KeyColumnUsageExample.REFERENCED_TABLE_SCHEMA.NotNull()), nil, nil)
+	keys := NewKeyColumnUsageList()
+	err := Query(keys, keys.M.TABLE_SCHEMA.Eq(dbName).And(
+		keys.M.TABLE_NAME.Eq(tableName)).And(
+		keys.M.REFERENCED_TABLE_SCHEMA.NotNull()), nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -179,16 +189,16 @@ func _getRelations(dbName, tableName string) {
 		if keys.Len() != 2 {
 			panic("nborm._getRelations() the middle table must contain 2 foreign key constained")
 		}
-		srcDB, _, _ := keys[0].REFERENCED_TABLE_SCHEMA.Get()
-		srcTab, _, _ := keys[0].REFERENCED_TABLE_NAME.Get()
-		srcCol, _, _ := keys[0].REFERENCED_COLUMN_NAME.Get()
+		srcDB, _, _ := keys.List[0].REFERENCED_TABLE_SCHEMA.Get()
+		srcTab, _, _ := keys.List[0].REFERENCED_TABLE_NAME.Get()
+		srcCol, _, _ := keys.List[0].REFERENCED_COLUMN_NAME.Get()
 		midDB := dbName
 		midTab := tableName
-		midLeftCol, _, _ := keys[0].COLUMN_NAME.Get()
-		midRightCol, _, _ := keys[1].COLUMN_NAME.Get()
-		dstDB, _, _ := keys[1].REFERENCED_TABLE_SCHEMA.Get()
-		dstTab, _, _ := keys[1].REFERENCED_TABLE_NAME.Get()
-		dstCol, _, _ := keys[1].REFERENCED_COLUMN_NAME.Get()
+		midLeftCol, _, _ := keys.List[0].COLUMN_NAME.Get()
+		midRightCol, _, _ := keys.List[1].COLUMN_NAME.Get()
+		dstDB, _, _ := keys.List[1].REFERENCED_TABLE_SCHEMA.Get()
+		dstTab, _, _ := keys.List[1].REFERENCED_TABLE_NAME.Get()
+		dstCol, _, _ := keys.List[1].REFERENCED_COLUMN_NAME.Get()
 		dbInfo[srcDB][srcTab].ManyToManys = append(dbInfo[srcDB][srcTab].ManyToManys,
 			&ManyToManyInfo{
 				srcDB,
@@ -214,7 +224,7 @@ func _getRelations(dbName, tableName string) {
 				*dbInfo[srcDB][srcTab],
 				*dbInfo[srcDB][srcTab].ColumnMap[srcCol]})
 	} else {
-		for _, key := range keys {
+		for _, key := range keys.List {
 			dstDB, _, _ := key.REFERENCED_TABLE_SCHEMA.Get()
 			dstTab, _, _ := key.REFERENCED_TABLE_NAME.Get()
 			dstCol, _, _ := key.REFERENCED_COLUMN_NAME.Get()
@@ -260,6 +270,7 @@ func _getRelations(dbName, tableName string) {
 	}
 }
 
+//MarshalDBInfo write database information to json file
 func MarshalDBInfo() {
 	f, err := os.OpenFile("dbinfo.json", os.O_CREATE|os.O_WRONLY, 0664)
 	if err != nil {
@@ -280,6 +291,7 @@ func MarshalDBInfo() {
 	}
 }
 
+//GenDef generate definitions.go
 func GenDef(pkg, username, password, address string) {
 	f, err := os.OpenFile("definitions.go", os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {

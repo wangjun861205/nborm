@@ -8,8 +8,10 @@ import (
 	"sync"
 )
 
+//Pager is for pagerate
 type Pager [2]int
 
+//NewPager create Pager
 func NewPager(numPerPage, pageNum int) *Pager {
 	p := Pager([2]int{numPerPage, pageNum})
 	return &p
@@ -23,10 +25,12 @@ func (p *Pager) toSQL() string {
 	return fmt.Sprintf("LIMIT %d, %d", offset, p[0])
 }
 
+//NextPage set to next page
 func (p *Pager) NextPage() {
 	(*p)[1]++
 }
 
+//PrevPage set to previous page
 func (p *Pager) PrevPage() (ok bool) {
 	if (*p)[1] != 0 {
 		(*p)[1]--
@@ -35,15 +39,18 @@ func (p *Pager) PrevPage() (ok bool) {
 	return false
 }
 
+//Index index to one page
 func (p *Pager) Index(i int) {
 	(*p)[1] = i
 }
 
+//Order sort order
 type Order struct {
 	Field   Field
 	Reverse bool
 }
 
+//OrderBy create Sorter
 func OrderBy(orders ...Order) *Sorter {
 	l := make([]string, len(orders))
 	for i, order := range orders {
@@ -59,6 +66,7 @@ func OrderBy(orders ...Order) *Sorter {
 	return &s
 }
 
+//Sorter information for sql order by operation
 type Sorter string
 
 func (s *Sorter) toSQL() string {
@@ -286,6 +294,7 @@ type sortObj struct {
 	funcs []func(Model, Model) int
 }
 
+//Less implement sort.Sorter interface
 func (o *sortObj) Less(i, j int) bool {
 	iMod, jMod := o.ModelList.Index(i), o.ModelList.Index(j)
 	for _, f := range o.funcs {

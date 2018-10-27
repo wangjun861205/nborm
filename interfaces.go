@@ -10,12 +10,14 @@ type table interface {
 	Tab() string
 }
 
+//Model declare a Model interface
 type Model interface {
 	table
 	Fields() []Field
 	SetSync(bool)
 }
 
+//ModelList declare a ModelList interface
 type ModelList interface {
 	New() Model
 	Len() int
@@ -26,6 +28,7 @@ type ModelList interface {
 	Model() Model
 }
 
+//Field declare a Field interface
 type Field interface {
 	SQLVal() string
 	IsValid() bool

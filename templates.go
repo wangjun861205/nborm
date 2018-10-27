@@ -104,6 +104,10 @@ import (
 			m._isSync = b
 		}
 
+		func (m *{{ tab.ModelName }}) GetSync() bool {
+			return m._isSync
+		}
+
 		type {{ tab.ModelName }}List struct {
 			M *{{ tab.ModelName }}
 			List []*{{ tab.ModelName }}

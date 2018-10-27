@@ -2,8 +2,7 @@ package nborm
 
 import "encoding/json"
 
-var ColumnExample = NewColumn()
-
+//Column information_schema.columns
 type Column struct {
 	TABLE_CATALOG            *StringField
 	TABLE_SCHEMA             *StringField
@@ -30,6 +29,7 @@ type Column struct {
 	_isSync                  bool
 }
 
+//NewColumn create Column
 func NewColumn() *Column {
 	col := &Column{}
 	col.TABLE_CATALOG = NewStringField(col, "TABLE_CATALOG", false, false, false)
@@ -57,14 +57,17 @@ func NewColumn() *Column {
 	return col
 }
 
+//DB database name
 func (c *Column) DB() string {
 	return "information_schema"
 }
 
+//Tab table name
 func (c *Column) Tab() string {
 	return "columns"
 }
 
+//Fields all data Field
 func (c *Column) Fields() []Field {
 	return []Field{
 		c.TABLE_CATALOG,
@@ -92,12 +95,17 @@ func (c *Column) Fields() []Field {
 	}
 }
 
+//SetSync set synchronized status
 func (c *Column) SetSync(b bool) {
 	c._isSync = b
 }
 
-var KeyColumnUsageExample = NewKeyColumnUsage()
+//GetSync get synchronized status
+func (c *Column) GetSync() bool {
+	return c._isSync
+}
 
+//KeyColumnUsage information_schema.key_column_usage
 type KeyColumnUsage struct {
 	CONSTRAINT_CATALOG            *StringField
 	CONSTRAINT_SCHEMA             *StringField
@@ -114,6 +122,7 @@ type KeyColumnUsage struct {
 	_isSync                       bool
 }
 
+//NewKeyColumnUsage create KeyColumnUsage
 func NewKeyColumnUsage() *KeyColumnUsage {
 	keyColUsg := &KeyColumnUsage{}
 	keyColUsg.CONSTRAINT_CATALOG = NewStringField(keyColUsg, "CONSTRAINT_CATALOG", false, false, false)
@@ -131,14 +140,17 @@ func NewKeyColumnUsage() *KeyColumnUsage {
 	return keyColUsg
 }
 
+//DB database name
 func (u *KeyColumnUsage) DB() string {
 	return "information_schema"
 }
 
+//Tab table name
 func (u *KeyColumnUsage) Tab() string {
 	return "key_column_usage"
 }
 
+//Fields all data Fields
 func (u *KeyColumnUsage) Fields() []Field {
 	return []Field{
 		u.CONSTRAINT_CATALOG,
@@ -156,12 +168,17 @@ func (u *KeyColumnUsage) Fields() []Field {
 	}
 }
 
+//SetSync set synchronized status
 func (u *KeyColumnUsage) SetSync(b bool) {
 	u._isSync = b
 }
 
-var TableExample = NewTable()
+//GetSync get synchronized status
+func (u *KeyColumnUsage) GetSync() bool {
+	return u._isSync
+}
 
+//Table information_schema.tables
 type Table struct {
 	TABLE_CATALOG   *StringField
 	TABLE_SCHEMA    *StringField
@@ -187,6 +204,7 @@ type Table struct {
 	_isSync         bool
 }
 
+//NewTable create Table
 func NewTable() *Table {
 	tab := &Table{}
 	tab.TABLE_CATALOG = NewStringField(tab, "TABLE_CATALOG", false, false, false)
@@ -213,14 +231,17 @@ func NewTable() *Table {
 	return tab
 }
 
+//DB database name
 func (t *Table) DB() string {
 	return "information_schema"
 }
 
+//Tab table name
 func (t *Table) Tab() string {
 	return "tables"
 }
 
+//Fields all data Fields
 func (t *Table) Fields() []Field {
 	return []Field{
 		t.TABLE_CATALOG,
@@ -247,147 +268,186 @@ func (t *Table) Fields() []Field {
 	}
 }
 
+//SetSync set synchronized status
 func (t *Table) SetSync(b bool) {
 	t._isSync = b
 }
 
-type ColumnList []*Column
-
-func (cl *ColumnList) DB() string {
-	return "information_schema"
+//GetSync get synchronized status
+func (t *Table) GetSync() bool {
+	return t._isSync
 }
 
-func (cl *ColumnList) Tab() string {
-	return "columns"
+//ColumnList Column list
+type ColumnList struct {
+	M    *Column
+	List []*Column
 }
 
+//NewColumnList create ColumnList
+func NewColumnList() *ColumnList {
+	return &ColumnList{
+		NewColumn(),
+		make([]*Column, 0, 128),
+	}
+}
+
+//New create Column and append it to list
 func (cl *ColumnList) New() Model {
 	c := NewColumn()
-	*cl = append(*cl, c)
+	cl.List = append(cl.List, c)
 	return c
 }
 
+//Len length of list
 func (cl *ColumnList) Len() int {
-	return len(*cl)
+	return len(cl.List)
 }
 
+//Index index operation
 func (cl *ColumnList) Index(i int) Model {
-	return (*cl)[i]
+	return (cl.List)[i]
 }
 
+//Delete delete operation
 func (cl *ColumnList) Delete(i int) {
 	switch i {
 	case 0:
-		*cl = (*cl)[1:]
+		cl.List = (cl.List)[1:]
 	case cl.Len() - 1:
-		*cl = (*cl)[:cl.Len()-1]
+		cl.List = (cl.List)[:cl.Len()-1]
 	default:
-		*cl = append((*cl)[:i], (*cl)[i+1:]...)
+		cl.List = append((cl.List)[:i], (cl.List)[i+1:]...)
 	}
 }
 
+//Swap swap element
 func (cl *ColumnList) Swap(i, j int) {
-	(*cl)[i], (*cl)[j] = (*cl)[j], (*cl)[i]
+	(cl.List)[i], (cl.List)[j] = (cl.List)[j], (cl.List)[i]
 }
 
+//MarshalJSON implement json.Marshaler interface
 func (cl *ColumnList) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(cl, "\t", "\t")
+	return json.MarshalIndent(cl.List, "\t", "\t")
 }
 
+//Model return example Model
 func (cl *ColumnList) Model() Model {
-	return ColumnExample
+	return cl.M
 }
 
-type KeyColumnUsageList []*KeyColumnUsage
-
-func (ul *KeyColumnUsageList) DB() string {
-	return "information_schema"
+//KeyColumnUsageList KeyColumnUsage list
+type KeyColumnUsageList struct {
+	M    *KeyColumnUsage
+	List []*KeyColumnUsage
 }
 
-func (ul *KeyColumnUsageList) Tab() string {
-	return "key_column_usage"
+//NewKeyColumnUsageList create KeyColumnUsageList
+func NewKeyColumnUsageList() *KeyColumnUsageList {
+	return &KeyColumnUsageList{
+		NewKeyColumnUsage(),
+		make([]*KeyColumnUsage, 0, 128),
+	}
 }
 
+//New create a Model and append it to list
 func (ul *KeyColumnUsageList) New() Model {
 	u := NewKeyColumnUsage()
-	*ul = append(*ul, u)
+	ul.List = append(ul.List, u)
 	return u
 }
 
+//Len length of list
 func (ul *KeyColumnUsageList) Len() int {
-	return len(*ul)
+	return len(ul.List)
 }
 
+//Index index operation
 func (ul *KeyColumnUsageList) Index(i int) Model {
-	return (*ul)[i]
+	return (ul.List)[i]
 }
 
+//Delete delete element
 func (ul *KeyColumnUsageList) Delete(i int) {
 	switch i {
 	case 0:
-		*ul = (*ul)[1:]
+		ul.List = (ul.List)[1:]
 	case ul.Len() - 1:
-		*ul = (*ul)[:ul.Len()-1]
+		ul.List = (ul.List)[:ul.Len()-1]
 	default:
-		*ul = append((*ul)[:i], (*ul)[i+1:]...)
+		ul.List = append((ul.List)[:i], (ul.List)[i+1:]...)
 	}
 }
 
+//Swap swap elements
 func (ul *KeyColumnUsageList) Swap(i, j int) {
-	(*ul)[i], (*ul)[j] = (*ul)[j], (*ul)[i]
+	(ul.List)[i], (ul.List)[j] = (ul.List)[j], (ul.List)[i]
 }
 
+//MarshalJSON implement json.Marshaler interface
 func (ul *KeyColumnUsageList) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(ul, "\t", "\t")
+	return json.MarshalIndent(ul.List, "\t", "\t")
 }
 
+//Model return example Model
 func (ul *KeyColumnUsageList) Model() Model {
-	return KeyColumnUsageExample
+	return ul.M
 }
 
-type TableList []*Table
-
-func (l *TableList) DB() string {
-	return "information_schema"
+//TableList Table list
+type TableList struct {
+	M    *Table
+	List []*Table
 }
 
-func (l *TableList) Tab() string {
-	return "tables"
+//NewTableList create TableList
+func NewTableList() *TableList {
+	return &TableList{
+		NewTable(),
+		make([]*Table, 0, 128),
+	}
 }
 
+//Len length of list
 func (l *TableList) Len() int {
-	return len(*l)
+	return len(l.List)
 }
 
+//New create Model and append it to list
 func (l *TableList) New() Model {
 	m := NewTable()
-	*l = append(*l, m)
+	l.List = append(l.List, m)
 	return m
 }
 
+//Index index operation
 func (l *TableList) Index(i int) Model {
-	return (*l)[i]
+	return (l.List)[i]
 }
 
+//Delete delete element
 func (l *TableList) Delete(i int) {
 	switch i {
 	case 0:
-		*l = (*l)[1:]
+		l.List = (l.List)[1:]
 	case l.Len() - 1:
-		*l = (*l)[:l.Len()-1]
+		l.List = (l.List)[:l.Len()-1]
 	default:
-		*l = append((*l)[:i], (*l)[i+1:]...)
+		l.List = append((l.List)[:i], (l.List)[i+1:]...)
 	}
 }
 
+//Swap swap elements
 func (l *TableList) Swap(i, j int) {
-	(*l)[i], (*l)[j] = (*l)[j], (*l)[i]
+	(l.List)[i], (l.List)[j] = (l.List)[j], (l.List)[i]
 }
 
+//MarshalJSON implement json.Marshaler interface
 func (l *TableList) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(l, "\t", "\t")
+	return json.MarshalIndent(l.List, "\t", "\t")
 }
 
+//Model return example Model
 func (l *TableList) Model() Model {
-	return TableExample
+	return l.M
 }

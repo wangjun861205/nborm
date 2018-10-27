@@ -6,8 +6,22 @@ type Where struct {
 }
 
 //String string represention of Where
-func (w *Where) String() string {
-	return w.str
+// func (w *Where) String() string {
+// 	return w.str
+// }
+
+func (w *Where) toSQL() string {
+	if w == nil {
+		return ""
+	}
+	return "WHERE " + w.str
+}
+
+func (w *Where) toAndSQL() string {
+	if w == nil {
+		return ""
+	}
+	return "WHERE " + w.str
 }
 
 //And and operation

@@ -144,7 +144,7 @@ func UpdateOne(m Model) error {
 	for _, f := range fs {
 		setValues = append(setValues, f.UpdateValue().String())
 	}
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s WHERE %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).String())
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).toSQL())
 	db := dbMap[m.DB()]
 	_, err := db.Exec(stmtStr)
 	return err
@@ -163,7 +163,7 @@ func UpdateMul(l ModelList) error {
 			for _, f := range fs {
 				setValues = append(setValues, f.UpdateValue().String())
 			}
-			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s WHERE %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).String())
+			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).toSQL())
 			db := dbMap[m.DB()]
 			_, err := db.ExecContext(ctx, stmtStr)
 			return err
@@ -178,7 +178,7 @@ func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
 	for i, val := range values {
 		setList[i] = val.String()
 	}
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s WHERE %s", m.DB(), m.Tab(), strings.Join(setList, ", "), where.String())
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setList, ", "), where.toSQL())
 	_, err := db.Exec(stmtStr)
 	return err
 }
@@ -186,7 +186,7 @@ func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
 //DeleteOne delete one record
 func DeleteOne(m Model) error {
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s", m.DB(), m.Tab(), genWhere(m).String())
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
 	_, err := db.Exec(stmtStr)
 	return err
 }
@@ -195,7 +195,7 @@ func DeleteOne(m Model) error {
 func DeleteMul(l ModelList) error {
 	return iterList(l, func(ctx context.Context, m Model) error {
 		db := dbMap[m.DB()]
-		stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s", m.DB(), m.Tab(), genWhere(m).String())
+		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
 		_, err := db.ExecContext(ctx, stmtStr)
 		return err
 	})
@@ -204,7 +204,7 @@ func DeleteMul(l ModelList) error {
 //BulkDelete delete by where
 func BulkDelete(m Model, where *Where) error {
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s", m.DB(), m.Tab(), where.String())
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), where.toSQL())
 	_, err := db.Exec(stmtStr)
 	return err
 }
@@ -221,11 +221,7 @@ func DeleteAll(m Model) error {
 func Count(m Model, where *Where) (int, error) {
 	db := dbMap[m.DB()]
 	var stmtStr string
-	if where == nil {
-		stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s", m.DB(), m.Tab())
-	} else {
-		stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s WHERE %s", m.DB(), m.Tab(), where.String())
-	}
+	stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", m.DB(), m.Tab(), where.toSQL())
 	var num int
 	row := db.QueryRow(stmtStr)
 	err := row.Scan(&num)

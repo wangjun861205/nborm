@@ -424,26 +424,26 @@ func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, with
 	} else {
 		if withFoundRows {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s %s %s", dbName, tabName, where.String(), sorter.toSQL(),
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", dbName, tabName, where.toSQL(), sorter.toSQL(),
 					pager.toSQL())
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
-				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s WHERE %s %s %s", dbName, tabName, dbName, tabName,
-					strings.Join(joinList, " "), where.String(), sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", dbName, tabName, dbName, tabName,
+					strings.Join(joinList, " "), where.toSQL(), sorter.toSQL(), pager.toSQL())
 			}
 		} else {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT * FROM %s.%s WHERE %s %s %s", dbName, tabName, where.String(), sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", dbName, tabName, where.toSQL(), sorter.toSQL(), pager.toSQL())
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
-				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s WHERE %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
-					where.String(), sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
+					where.toSQL(), sorter.toSQL(), pager.toSQL())
 			}
 		}
 	}

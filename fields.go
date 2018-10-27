@@ -1705,7 +1705,8 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (in
 func (rfk *ReverseForeignKey) Query(where *Where) error {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s AND %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal(), where.String())
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal(),
+		where.toAndSQL())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
@@ -1721,8 +1722,8 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s AND %s %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, rfk.srcField.SQLVal(), where.String(), sorter.toSQL(), pager.toSQL())
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s %s %s %s", l.Model().DB(), l.Model().Tab(),
+		rfk.dstColName, rfk.srcField.SQLVal(), where.toAndSQL(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return -1, err
@@ -1864,10 +1865,10 @@ func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, erro
 func (mtm *ManyToMany) Query(where *Where) error {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s",
+	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.String())
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.toAndSQL())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return err
@@ -1883,10 +1884,10 @@ func (mtm *ManyToMany) Query(where *Where) error {
 func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s AND %s %s %s",
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.String(), sorter.toSQL(), pager.toSQL())
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.toAndSQL(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr)
 	if err != nil {
 		return -1, err

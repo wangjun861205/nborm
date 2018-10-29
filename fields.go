@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -66,6 +67,11 @@ func (f *StringField) IsValid() bool {
 //IsNull return true if the value of this column is null
 func (f *StringField) IsNull() bool {
 	return f.null
+}
+
+//IsUni return true if this column is a unique key
+func (f *StringField) IsUni() bool {
+	return f.uni
 }
 
 //Set set a value for the field
@@ -168,9 +174,9 @@ func (f *StringField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
-//IsUni return true if this column is a unique key
-func (f *StringField) IsUni() bool {
-	return f.uni
+//In generate a in Where
+func (f *StringField) In(val []string) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(val, ", "))}
 }
 
 //LessFunc generate a function for sort a ModelList
@@ -262,6 +268,11 @@ func (f *IntField) IsValid() bool {
 //IsNull return true if this field value is null
 func (f *IntField) IsNull() bool {
 	return f.null
+}
+
+//IsUni return true if the column is a unique key
+func (f *IntField) IsUni() bool {
+	return f.uni
 }
 
 //Set set a value for this field
@@ -383,9 +394,9 @@ func (f *IntField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
-//IsUni return true if the column is a unique key
-func (f *IntField) IsUni() bool {
-	return f.uni
+//In generate a in Where
+func (f *IntField) In(val []int) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, toListStr(val))}
 }
 
 //LessFunc return a function for sort ModelList
@@ -533,6 +544,11 @@ func (f *FloatField) IsNull() bool {
 	return f.null
 }
 
+//IsUni return true if the column is a unique key
+func (f *FloatField) IsUni() bool {
+	return f.uni
+}
+
 //Set set a value
 func (f *FloatField) Set(val float64, isNull bool) {
 	f.valid, f.null, f.val = true, isNull, val
@@ -652,9 +668,9 @@ func (f *FloatField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
-//IsUni return true if the column is a unique key
-func (f *FloatField) IsUni() bool {
-	return f.uni
+//In generate in Where
+func (f *FloatField) In(val []float64) *Where {
+	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, toListStr(val))}
 }
 
 //LessFunc return a func for sort ModelList
@@ -945,6 +961,11 @@ func (f *DateField) IsNull() bool {
 	return f.null
 }
 
+//IsUni return true if the column is a unique key
+func (f *DateField) IsUni() bool {
+	return f.uni
+}
+
 //Set set a value
 func (f *DateField) Set(val time.Time, isNull bool) {
 	f.valid, f.null, f.val = true, isNull, val
@@ -1064,9 +1085,13 @@ func (f *DateField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
-//IsUni return true if the column is a unique key
-func (f *DateField) IsUni() bool {
-	return f.uni
+//In generate in Where
+func (f *DateField) In(val []time.Time) *Where {
+	l := make([]string, len(val))
+	for i := range val {
+		l[i] = val[i].Format("2006-01-02")
+	}
+	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(l, ", "))}
 }
 
 //LessFunc return a function for sort ModelList
@@ -1158,6 +1183,11 @@ func (f *DatetimeField) IsValid() bool {
 //IsNull return true if field value is null
 func (f *DatetimeField) IsNull() bool {
 	return f.null
+}
+
+//IsUni return true if column is a unique key
+func (f *DatetimeField) IsUni() bool {
+	return f.uni
 }
 
 //Set set value
@@ -1279,9 +1309,13 @@ func (f *DatetimeField) NotNull() *Where {
 	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
 }
 
-//IsUni return true if column is a unique key
-func (f *DatetimeField) IsUni() bool {
-	return f.uni
+//In generate in Where
+func (f *DatetimeField) In(val []time.Time) *Where {
+	l := make([]string, len(val))
+	for i := range val {
+		l[i] = val[i].Format("2006-01-02 15:04:05")
+	}
+	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(l, ", "))}
 }
 
 //LessFunc return a function for sorting ModelList

@@ -188,7 +188,11 @@ func DeleteOne(m Model) error {
 	db := dbMap[m.DB()]
 	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
 	_, err := db.Exec(stmtStr)
-	return err
+	if err != nil {
+		return err
+	}
+	m.SetSync(false)
+	return nil
 }
 
 //DeleteMul delete multiple records
@@ -197,7 +201,11 @@ func DeleteMul(l ModelList) error {
 		db := dbMap[m.DB()]
 		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
 		_, err := db.ExecContext(ctx, stmtStr)
-		return err
+		if err != nil {
+			return err
+		}
+		m.SetSync(false)
+		return nil
 	})
 }
 
@@ -212,7 +220,7 @@ func BulkDelete(m Model, where *Where) error {
 //DeleteAll delete all records from one table
 func DeleteAll(m Model) error {
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s", m.DB(), m.Tab())
+	stmtStr := fmt.Sprintf("TRUNCATE TABLE %s.%s", m.DB(), m.Tab())
 	_, err := db.Exec(stmtStr)
 	return err
 }

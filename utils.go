@@ -328,11 +328,11 @@ func updateModel(m Model, values ...*UpdateValue) {
 	}
 }
 
-func invalidateModel(m Model) {
-	for _, field := range m.Fields() {
-		field.Invalidate()
-	}
-}
+// func invalidateModel(m Model) {
+// 	for _, field := range m.Fields() {
+// 		field.Invalidate()
+// 	}
+// }
 
 func genWhere(m Model) *Where {
 	fields := m.Fields()
@@ -567,4 +567,8 @@ func iterList(l ModelList, f func(context.Context, Model) error) error {
 		close(errChan)
 		return nil
 	}
+}
+
+func toListStr(val interface{}) string {
+	return strings.Join(strings.Fields(strings.Trim(fmt.Sprint(val), "[]")), ", ")
 }

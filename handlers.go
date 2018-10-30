@@ -12,7 +12,8 @@ import (
 
 //First get the first record in database, no error return when no record in table, check Model synchronized status after query
 func First(m Model) error {
-	err := queryAndScan(m, genSelect(m, nil, nil, nil, false))
+	stmt, valList := genSelect(m, nil, nil, nil, false)
+	err := queryAndScan(m, stmt, valList)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -21,19 +22,22 @@ func First(m Model) error {
 
 //GetOne get one record by Model owned field value, if no record, it will return a sql.ErrNoRows error
 func GetOne(m Model) error {
-	return queryAndScan(m, genSelect(m, genWhere(m), nil, nil, false))
+	stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
+	return queryAndScan(m, stmt, valList)
 }
 
 //GetMul get multiple Models by Models's owned field value, if one of them not has conresponse record, it will return a sql.ErrNoRows error
 func GetMul(l ModelList) error {
 	return iterList(l, func(ctx context.Context, m Model) error {
-		return queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
+		stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
+		return queryAndScanContext(ctx, m, stmt, valList)
 	})
 }
 
 //JoinQueryOne query one record by join tables, no error return when no conresponse record, check Model synchronized status after query
 func JoinQueryOne(m Model, where *Where, relations ...relation) error {
-	err := queryAndScan(m, genSelect(m, where, nil, nil, false, relations...))
+	stmt, valList := genSelect(m, where, nil, nil, false, relations...)
+	err := queryAndScan(m, stmt, valList)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -42,17 +46,20 @@ func JoinQueryOne(m Model, where *Where, relations ...relation) error {
 
 //All get all records of one table
 func All(l ModelList, sorter *Sorter, pager *Pager) error {
-	return queryAndScan(l, genSelect(l, nil, sorter, pager, false))
+	stmt, valList := genSelect(l, nil, sorter, pager, false)
+	return queryAndScan(l, stmt, valList)
 }
 
 //AllWithFoundRows get all records of one table and the number of records
 func AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	return queryAndScanWithNum(l, genSelect(l, nil, sorter, pager, true))
+	stmt, valList := genSelect(l, nil, sorter, pager, true)
+	return queryAndScanWithNum(l, stmt, valList)
 }
 
 //QueryOne query one record, no error will return when no conresponse record, check the synchronized status of Model after query
 func QueryOne(m Model, where *Where) error {
-	err := queryAndScan(m, genSelect(m, where, nil, nil, false))
+	stmt, valList := genSelect(m, where, nil, nil, false)
+	err := queryAndScan(m, stmt, valList)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -62,7 +69,8 @@ func QueryOne(m Model, where *Where) error {
 //QueryMul query multiple Models, no error will be returned if no conresponse record, check synchronized status of Models after query
 func QueryMul(l ModelList) error {
 	return iterList(l, func(ctx context.Context, m Model) error {
-		err := queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
+		stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
+		err := queryAndScanContext(ctx, m, stmt, valList)
 		if err == sql.ErrNoRows {
 			return nil
 		}
@@ -72,22 +80,26 @@ func QueryMul(l ModelList) error {
 
 //Query query records by where
 func Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	return queryAndScan(l, genSelect(l, where, sorter, pager, false))
+	stmt, valList := genSelect(l, where, sorter, pager, false)
+	return queryAndScan(l, stmt, valList)
 }
 
 //QueryWithFoundRows query records by where and get the number of found rows
 func QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	return queryAndScanWithNum(l, genSelect(l, where, sorter, pager, true))
+	stmt, valList := genSelect(l, where, sorter, pager, true)
+	return queryAndScanWithNum(l, stmt, valList)
 }
 
 //JoinQuery join query records by where
 func JoinQuery(l ModelList, where *Where, sorter *Sorter, pager *Pager, relations ...relation) error {
-	return queryAndScan(l, genSelect(l, where, sorter, pager, false, relations...))
+	stmt, valList := genSelect(l, where, sorter, pager, false, relations...)
+	return queryAndScan(l, stmt, valList)
 }
 
 //JoinQueryWithFoundRows join query records and get the number of found rows
 func JoinQueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager, relations ...relation) (int, error) {
-	return queryAndScanWithNum(l, genSelect(l, where, sorter, pager, true, relations...))
+	stmt, valList := genSelect(l, where, sorter, pager, true, relations...)
+	return queryAndScanWithNum(l, stmt, valList)
 }
 
 //InsertOne insert one record
@@ -115,7 +127,8 @@ func InsertOrGetOne(m Model) error {
 	err := insertAndGetInc(m, false)
 	if err != nil {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-			return queryAndScan(m, genSelect(m, genWhere(m), nil, nil, false))
+			stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
+			return queryAndScan(m, stmt, valList)
 		}
 		return err
 	}
@@ -128,7 +141,8 @@ func InsertOrGetMul(l ModelList) error {
 		err := insertAndGetIncContext(ctx, m, false)
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-				return queryAndScanContext(ctx, m, genSelect(m, genWhere(m), nil, nil, false))
+				stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
+				return queryAndScanContext(ctx, m, stmt, valList)
 			}
 			return err
 		}
@@ -144,9 +158,10 @@ func UpdateOne(m Model) error {
 	for _, f := range fs {
 		setValues = append(setValues, f.UpdateValue().String())
 	}
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).toSQL())
+	colStr, valList := genWhere(m).toSQL()
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), colStr)
 	db := dbMap[m.DB()]
-	_, err := db.Exec(stmtStr)
+	_, err := db.Exec(stmtStr, valList)
 	return err
 }
 
@@ -163,9 +178,10 @@ func UpdateMul(l ModelList) error {
 			for _, f := range fs {
 				setValues = append(setValues, f.UpdateValue().String())
 			}
-			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), genWhere(m).toSQL())
+			colStr, valList := genWhere(m).toSQL()
+			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), colStr)
 			db := dbMap[m.DB()]
-			_, err := db.ExecContext(ctx, stmtStr)
+			_, err := db.ExecContext(ctx, stmtStr, valList)
 			return err
 		}
 	})
@@ -178,16 +194,18 @@ func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
 	for i, val := range values {
 		setList[i] = val.String()
 	}
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setList, ", "), where.toSQL())
-	_, err := db.Exec(stmtStr)
+	colStr, valList := where.toClause()
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setList, ", "), colStr)
+	_, err := db.Exec(stmtStr, valList)
 	return err
 }
 
 //DeleteOne delete one record
 func DeleteOne(m Model) error {
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
-	_, err := db.Exec(stmtStr)
+	colStr, valList := genWhere(m).toSQL()
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
+	_, err := db.Exec(stmtStr, valList)
 	if err != nil {
 		return err
 	}
@@ -199,8 +217,9 @@ func DeleteOne(m Model) error {
 func DeleteMul(l ModelList) error {
 	return iterList(l, func(ctx context.Context, m Model) error {
 		db := dbMap[m.DB()]
-		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), genWhere(m).toSQL())
-		_, err := db.ExecContext(ctx, stmtStr)
+		colStr, valList := genWhere(m).toSQL()
+		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
+		_, err := db.ExecContext(ctx, stmtStr, valList)
 		if err != nil {
 			return err
 		}
@@ -212,8 +231,9 @@ func DeleteMul(l ModelList) error {
 //BulkDelete delete by where
 func BulkDelete(m Model, where *Where) error {
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), where.toSQL())
-	_, err := db.Exec(stmtStr)
+	colStr, valList := where.toClause()
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
+	_, err := db.Exec(stmtStr, valList)
 	return err
 }
 
@@ -229,9 +249,10 @@ func DeleteAll(m Model) error {
 func Count(m Model, where *Where) (int, error) {
 	db := dbMap[m.DB()]
 	var stmtStr string
-	stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", m.DB(), m.Tab(), where.toSQL())
+	colStr, valList := where.toClause()
+	stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", m.DB(), m.Tab(), colStr)
 	var num int
-	row := db.QueryRow(stmtStr)
+	row := db.QueryRow(stmtStr, valList)
 	err := row.Scan(&num)
 	if err != nil {
 		return -1, err

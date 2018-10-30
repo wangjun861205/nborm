@@ -146,37 +146,38 @@ func (f *StringField) BulkUpdateValue(val string, isNull bool) *UpdateValue {
 
 //Where generate a Where by self value
 func (f *StringField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Eq generate a equal Where
 func (f *StringField) Eq(val string) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %q", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+
 }
 
 //Neq generate a not equal Where
 func (f *StringField) Neq(val string) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <> %q", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
 }
 
 //Contains generate a contains Where
 func (f *StringField) Contains(val string) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s LIKE \"%%%s%%\"", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "LIKE", "%"+val+"%")
 }
 
 //Null generate a Where which represent this column is null
 func (f *StringField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate a Where which represent this column is not null
 func (f *StringField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //In generate a in Where
 func (f *StringField) In(val []string) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(val, ", "))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(val, ", ")))
 }
 
 //LessFunc generate a function for sort a ModelList
@@ -351,52 +352,52 @@ func (f *IntField) BulkUpdateValue(val int64, isNull bool) *UpdateValue {
 
 //Where generate a Where by self value
 func (f *IntField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal)
 }
 
 //Eq generate a equal Where
 func (f *IntField) Eq(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
 }
 
 //Neq generate a not equal Where
 func (f *IntField) Neq(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <> %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
 }
 
 //Lt generate a less than Where
 func (f *IntField) Lt(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s < %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val)
 }
 
 //Gt generate a great than Where
 func (f *IntField) Gt(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s > %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val)
 }
 
 //Lte generate a less than equal Where
 func (f *IntField) Lte(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <= %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val)
 }
 
 //Gte generate a great than equal Where
 func (f *IntField) Gte(val int64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s >= %d", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val)
 }
 
 //Null generate null Where
 func (f *IntField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *IntField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //In generate a in Where
 func (f *IntField) In(val []int) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, toListStr(val))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", toListStr(val))
 }
 
 //LessFunc return a function for sort ModelList
@@ -625,52 +626,52 @@ func (f *FloatField) BulkUpdateValue(val float64, isNull bool) *UpdateValue {
 
 //Where generate a Where by self value
 func (f *FloatField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Eq generate a equal Where
 func (f *FloatField) Eq(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
 }
 
 //Neq generate a not equal Where
 func (f *FloatField) Neq(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <> %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
 }
 
 //Lt generate a less than Where
 func (f *FloatField) Lt(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s < %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val)
 }
 
 //Gt generate a great than Where
 func (f *FloatField) Gt(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s > %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val)
 }
 
 //Lte generate a less than equal Where
 func (f *FloatField) Lte(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <= %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val)
 }
 
 //Gte generate a great than equal Where
 func (f *FloatField) Gte(val float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s >= %f", f.super.DB(), f.super.Tab(), f.column, val)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val)
 }
 
 //Null generate a null Where
 func (f *FloatField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate a not null Where
 func (f *FloatField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", "NULL")
 }
 
 //In generate in Where
 func (f *FloatField) In(val []float64) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, toListStr(val))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", toListStr(val))
 }
 
 //LessFunc return a func for sort ModelList
@@ -840,33 +841,27 @@ func (f *BoolField) BulkUpdateValue(val bool, isNull bool) *UpdateValue {
 
 //Where generate a Where by self value
 func (f *BoolField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Eq generate euqal Where
 func (f *BoolField) Eq(val bool) *Where {
-	if val {
-		return &Where{fmt.Sprintf("%s.%s.%s = 1", f.super.DB(), f.super.Tab(), f.column)}
-	}
-	return &Where{fmt.Sprintf("%s.%s.%s = 0", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
 }
 
 //Neq generate not equal Where
 func (f *BoolField) Neq(val bool) *Where {
-	if val {
-		return &Where{fmt.Sprintf("%s.%s.%s <> 1", f.super.DB(), f.super.Tab(), f.column)}
-	}
-	return &Where{fmt.Sprintf("%s.%s.%s <> 0", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
 }
 
 //Null generate null Where
 func (f *BoolField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *BoolField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //IsUni return true if column is a unique key
@@ -1042,47 +1037,47 @@ func (f *DateField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
 
 //Where generate where by self value
 func (f *DateField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Eq generte euqal Where
 func (f *DateField) Eq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val.Format("2006-01-02"))
 }
 
 //Neq generate not euqal Where
 func (f *DateField) Neq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <> %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val.Format("2006-01-02"))
 }
 
 //Lt genereate less than Where
 func (f *DateField) Lt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s < %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val.Format("2006-01-02"))
 }
 
 //Gt generate great then Where
 func (f *DateField) Gt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s > %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val.Format("2006-01-02"))
 }
 
 //Lte generate less than equal Where
 func (f *DateField) Lte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <= %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val.Format("2006-01-02"))
 }
 
 //Gte generate great than equal Where
 func (f *DateField) Gte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s >= %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val.Format("2006-01-02"))
 }
 
 //Null generate null Where
 func (f *DateField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *DateField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //In generate in Where
@@ -1091,7 +1086,8 @@ func (f *DateField) In(val []time.Time) *Where {
 	for i := range val {
 		l[i] = val[i].Format("2006-01-02")
 	}
-	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(l, ", "))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+
 }
 
 //LessFunc return a function for sort ModelList
@@ -1266,47 +1262,47 @@ func (f *DatetimeField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue
 
 //Where generate Where by self value
 func (f *DatetimeField) Where() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %s", f.super.DB(), f.super.Tab(), f.column, f.SQLVal())}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Eq generate equal Where
 func (f *DatetimeField) Eq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s = %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Neq generate not euqal Where
 func (f *DatetimeField) Neq(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <> %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val.Format("2006-01-02 15:04:05"))
 }
 
 //Lt generate less than Where
 func (f *DatetimeField) Lt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s < %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val.Format("2006-01-02 15:04:05"))
 }
 
 //Gt generate great than Where
 func (f *DatetimeField) Gt(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s > %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val.Format("2006-01-02 15:04:05"))
 }
 
 //Lte generate less then equal Where
 func (f *DatetimeField) Lte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s <= %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Gte generate great than equal Where
 func (f *DatetimeField) Gte(val time.Time) *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s > %q", f.super.DB(), f.super.Tab(), f.column, val.Format("2006-01-02 15:04:05"))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Null generate null Where
 func (f *DatetimeField) Null() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *DatetimeField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s.%s.%s IS NOT NULL", f.super.DB(), f.super.Tab(), f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //In generate in Where
@@ -1315,7 +1311,7 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 	for i := range val {
 		l[i] = val[i].Format("2006-01-02 15:04:05")
 	}
-	return &Where{fmt.Sprintf("%s.%s.%s IN (%s)", f.super.DB(), f.super.Tab(), f.column, strings.Join(l, ", "))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 }
 
 //LessFunc return a function for sorting ModelList
@@ -1364,6 +1360,7 @@ func (f *DatetimeField) SortOrder(reverse bool) string {
 
 //BinaryField represent blob type in mysql
 type BinaryField struct {
+	super  Model
 	column string
 	val    []byte
 	valid  bool
@@ -1374,8 +1371,8 @@ type BinaryField struct {
 }
 
 //NewBinaryField create a BinaryField
-func NewBinaryField(column string, pk bool, inc bool, uni bool) *BinaryField {
-	return &BinaryField{column: column, pk: pk, inc: inc, uni: uni}
+func NewBinaryField(model Model, column string, pk bool, inc bool, uni bool) *BinaryField {
+	return &BinaryField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
 //Get get value
@@ -1448,9 +1445,11 @@ func (f *BinaryField) BulkUpdateValue(val []byte, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, fmt.Sprintf("X'%x'", val), val, isNull}
 }
 
-//Where generate Where by self value
-func (f *BinaryField) Where() *Where {
-	return &Where{fmt.Sprintf("%s = %s", f.column, f.SQLVal())}
+func (f *BinaryField) toSQL() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val
 }
 
 //LessFunc generate function for sorting ModelList (this will return a fake function)
@@ -1477,22 +1476,27 @@ func (f *BinaryField) Invalidate() {
 
 //Eq generate equal Where
 func (f *BinaryField) Eq(val []byte) *Where {
-	return &Where{fmt.Sprintf("%s = %s", f.column, fmt.Sprintf("X'%x'", val))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+}
+
+//Where generate Where by self value
+func (f *BinaryField) Where() *Where {
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
 }
 
 //Neq generate not equal Where
 func (f *BinaryField) Neq(val []byte) *Where {
-	return &Where{fmt.Sprintf("%s <> %s", f.column, fmt.Sprintf("X'%x'", val))}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
 }
 
 //Null generate null Where
 func (f *BinaryField) Null() *Where {
-	return &Where{fmt.Sprintf("%s IS NULL", f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *BinaryField) NotNull() *Where {
-	return &Where{fmt.Sprintf("%s IS NOT NULL", f.column)}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
 }
 
 //OneToOne represent a one point on relation
@@ -1739,9 +1743,10 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (in
 func (rfk *ReverseForeignKey) Query(where *Where) error {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
+	colStr, valList := where.toAndSQL()
 	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal(),
-		where.toAndSQL())
-	rows, err := db.Query(stmtStr)
+		colStr)
+	rows, err := db.Query(stmtStr, valList...)
 	if err != nil {
 		return err
 	}
@@ -1756,9 +1761,10 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
+	colStr, valList := where.toAndSQL()
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s %s %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, rfk.srcField.SQLVal(), where.toAndSQL(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr)
+		rfk.dstColName, rfk.srcField.SQLVal(), colStr, sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, valList...)
 	if err != nil {
 		return -1, err
 	}
@@ -1899,11 +1905,12 @@ func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, erro
 func (mtm *ManyToMany) Query(where *Where) error {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
+	colStr, valList := where.toAndSQL()
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.toAndSQL())
-	rows, err := db.Query(stmtStr)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), colStr)
+	rows, err := db.Query(stmtStr, valList...)
 	if err != nil {
 		return err
 	}
@@ -1918,11 +1925,12 @@ func (mtm *ManyToMany) Query(where *Where) error {
 func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
+	colStr, valList := where.toAndSQL()
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), where.toAndSQL(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), colStr, sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, valList...)
 	if err != nil {
 		return -1, err
 	}

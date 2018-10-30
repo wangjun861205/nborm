@@ -156,15 +156,15 @@ func scanRowContext(ctx context.Context, m Model, row *sql.Row) error {
 	}
 }
 
-func queryAndScan(tab interface{}, stmtStr string) error {
+func queryAndScan(tab interface{}, stmtStr string, valList []interface{}) error {
 	switch obj := tab.(type) {
 	case Model:
 		db := dbMap[obj.DB()]
-		row := db.QueryRow(stmtStr)
+		row := db.QueryRow(stmtStr, valList...)
 		return scanRow(obj, row)
 	case ModelList:
 		db := dbMap[obj.Model().DB()]
-		rows, err := db.Query(stmtStr)
+		rows, err := db.Query(stmtStr, valList...)
 		if err != nil {
 			return err
 		}
@@ -174,15 +174,15 @@ func queryAndScan(tab interface{}, stmtStr string) error {
 	}
 }
 
-func queryAndScanContext(ctx context.Context, tab interface{}, stmtStr string) error {
+func queryAndScanContext(ctx context.Context, tab interface{}, stmtStr string, valList []interface{}) error {
 	switch obj := tab.(type) {
 	case Model:
 		db := dbMap[obj.DB()]
-		row := db.QueryRowContext(ctx, stmtStr)
+		row := db.QueryRowContext(ctx, stmtStr, valList...)
 		return scanRowContext(ctx, obj, row)
 	case ModelList:
 		db := dbMap[obj.Model().DB()]
-		rows, err := db.QueryContext(ctx, stmtStr)
+		rows, err := db.QueryContext(ctx, stmtStr, valList...)
 		if err != nil {
 			return err
 		}
@@ -192,21 +192,21 @@ func queryAndScanContext(ctx context.Context, tab interface{}, stmtStr string) e
 	}
 }
 
-func queryAndScanWithNum(tab interface{}, stmtStr string) (int, error) {
+func queryAndScanWithNum(tab interface{}, stmtStr string, valList []interface{}) (int, error) {
 	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
 		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
 	}
 	switch obj := tab.(type) {
 	case Model:
 		db := dbMap[obj.DB()]
-		row := db.QueryRow(stmtStr)
+		row := db.QueryRow(stmtStr, valList...)
 		if err := scanRow(obj, row); err != nil {
 			return -1, err
 		}
 		return getFoundRows(db)
 	case ModelList:
 		db := dbMap[obj.Model().DB()]
-		rows, err := db.Query(stmtStr)
+		rows, err := db.Query(stmtStr, valList...)
 		if err != nil {
 			return -1, err
 		}
@@ -219,21 +219,21 @@ func queryAndScanWithNum(tab interface{}, stmtStr string) (int, error) {
 	}
 }
 
-func queryAndScanWithNumContext(ctx context.Context, tab interface{}, stmtStr string) (int, error) {
+func queryAndScanWithNumContext(ctx context.Context, tab interface{}, stmtStr string, valList []interface{}) (int, error) {
 	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
 		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
 	}
 	switch obj := tab.(type) {
 	case Model:
 		db := dbMap[obj.DB()]
-		row := db.QueryRowContext(ctx, stmtStr)
+		row := db.QueryRowContext(ctx, stmtStr, valList...)
 		if err := scanRowContext(ctx, obj, row); err != nil {
 			return -1, err
 		}
 		return getFoundRowsContext(ctx, db)
 	case ModelList:
 		db := dbMap[obj.Model().DB()]
-		rows, err := db.QueryContext(ctx, stmtStr)
+		rows, err := db.QueryContext(ctx, stmtStr, valList...)
 		if err != nil {
 			return -1, err
 		}
@@ -356,7 +356,7 @@ func genWhere(m Model) *Where {
 				if w == nil {
 					w = f.Where()
 				} else {
-					w = w.And(f.Where())
+					w.And(f.Where())
 				}
 			}
 		}
@@ -387,7 +387,7 @@ func getFoundRowsContext(ctx context.Context, db *sql.DB) (int, error) {
 	return num, nil
 }
 
-func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, withFoundRows bool, relations ...relation) string {
+func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, withFoundRows bool, relations ...relation) (string, []interface{}) {
 	var dbName, tabName string
 	switch obj := tab.(type) {
 	case Model:
@@ -400,50 +400,51 @@ func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, with
 	if where == nil {
 		if withFoundRows {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL()), nil
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
 				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s", dbName, tabName, dbName, tabName,
-					strings.Join(joinList, " "), sorter.toSQL(), pager.toSQL())
+					strings.Join(joinList, " "), sorter.toSQL(), pager.toSQL()), nil
 			}
 		} else {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT * FROM %s.%s %s %s", dbName, tabName, sorter.toSQL(), pager.toSQL()), nil
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
 				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
-					sorter.toSQL(), pager.toSQL())
+					sorter.toSQL(), pager.toSQL()), nil
 			}
 		}
 	} else {
+		colStr, valList := where.toClause()
 		if withFoundRows {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", dbName, tabName, where.toSQL(), sorter.toSQL(),
-					pager.toSQL())
+				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", dbName, tabName, colStr, sorter.toSQL(),
+					pager.toSQL()), valList
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
 				return fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", dbName, tabName, dbName, tabName,
-					strings.Join(joinList, " "), where.toSQL(), sorter.toSQL(), pager.toSQL())
+					strings.Join(joinList, " "), colStr, sorter.toSQL(), pager.toSQL()), valList
 			}
 		} else {
 			if len(relations) == 0 {
-				return fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", dbName, tabName, where.toSQL(), sorter.toSQL(), pager.toSQL())
+				return fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", dbName, tabName, colStr, sorter.toSQL(), pager.toSQL()), valList
 			} else {
 				joinList := make([]string, len(relations))
 				for i, rel := range relations {
 					joinList[i] = rel.joinClause()
 				}
 				return fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", dbName, tabName, dbName, tabName, strings.Join(joinList, " "),
-					where.toSQL(), sorter.toSQL(), pager.toSQL())
+					colStr, sorter.toSQL(), pager.toSQL()), valList
 			}
 		}
 	}

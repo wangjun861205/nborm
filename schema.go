@@ -115,7 +115,7 @@ type KeyColumnUsage struct {
 	TABLE_NAME                    *StringField
 	COLUMN_NAME                   *StringField
 	ORDINAL_POSITION              *IntField
-	POSITION_IN_UNIQUE_CONSTRAINT *StringField
+	POSITION_IN_UNIQUE_CONSTRAINT *IntField
 	REFERENCED_TABLE_SCHEMA       *StringField
 	REFERENCED_TABLE_NAME         *StringField
 	REFERENCED_COLUMN_NAME        *StringField
@@ -133,7 +133,7 @@ func NewKeyColumnUsage() *KeyColumnUsage {
 	keyColUsg.TABLE_NAME = NewStringField(keyColUsg, "TABLE_NAME", false, false, false)
 	keyColUsg.COLUMN_NAME = NewStringField(keyColUsg, "COLUMN_NAME", false, false, false)
 	keyColUsg.ORDINAL_POSITION = NewIntField(keyColUsg, "ORDINAL_POSITION", false, false, false)
-	keyColUsg.POSITION_IN_UNIQUE_CONSTRAINT = NewStringField(keyColUsg, "POSITION_IN_UNIQUE_CONSTRAINT", false, false, false)
+	keyColUsg.POSITION_IN_UNIQUE_CONSTRAINT = NewIntField(keyColUsg, "POSITION_IN_UNIQUE_CONSTRAINT", false, false, false)
 	keyColUsg.REFERENCED_TABLE_SCHEMA = NewStringField(keyColUsg, "REFERENCED_TABLE_SCHEMA", false, false, false)
 	keyColUsg.REFERENCED_TABLE_NAME = NewStringField(keyColUsg, "REFERENCED_TABLE_NAME", false, false, false)
 	keyColUsg.REFERENCED_COLUMN_NAME = NewStringField(keyColUsg, "REFERENCED_COLUMN_NAME", false, false, false)

@@ -13,13 +13,8 @@ import (
 //UpdateValue is used for bulk update
 type UpdateValue struct {
 	column string
-	sqlVal string
 	val    interface{}
 	null   bool
-}
-
-func (v *UpdateValue) String() string {
-	return fmt.Sprintf("%s = %s", v.column, v.sqlVal)
 }
 
 //StringField represent char, varchar, text type in mysql
@@ -37,6 +32,13 @@ type StringField struct {
 //NewStringField create a StringField
 func NewStringField(model Model, column string, pk bool, inc bool, uni bool) *StringField {
 	return &StringField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+}
+
+func (f *StringField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val
 }
 
 //Super get the Model which is the field stored in
@@ -108,11 +110,6 @@ func (f *StringField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal convert the value of the field to sql represention
-func (f *StringField) SQLVal() string {
-	return fmt.Sprintf("%q", f.val)
-}
-
 //Invalidate set the field invalid
 func (f *StringField) Invalidate() {
 	f.valid = false
@@ -129,24 +126,18 @@ func (f *StringField) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%q", f.val)), nil
 }
 
-//InsertValuePair generate a value pair for insert statement ([2]string{<columnName>, <value>})
-func (f *StringField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue generate a UpdateValue struct for update statement
-func (f *StringField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue generate a UpdateValue by value which is passed in, it is for bulk update
 func (f *StringField) BulkUpdateValue(val string, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, fmt.Sprintf("%q", val), val, isNull}
+	return &UpdateValue{f.column, val, isNull}
 }
 
 //Where generate a Where by self value
 func (f *StringField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	} else {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
+	}
 }
 
 //Eq generate a equal Where
@@ -241,6 +232,13 @@ func NewIntField(model Model, column string, pk bool, inc bool, uni bool) *IntFi
 	return &IntField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
+func (f *IntField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val
+}
+
 //Super return the model which the field is stored in
 func (f *IntField) Super() Model {
 	return f.super
@@ -314,11 +312,6 @@ func (f *IntField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal return the sql represention of value
-func (f *IntField) SQLVal() string {
-	return fmt.Sprintf("%d", f.val)
-}
-
 //Invalidate invalidate the field
 func (f *IntField) Invalidate() {
 	f.valid = false
@@ -335,24 +328,17 @@ func (f *IntField) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(f.val, 10)), nil
 }
 
-//InsertValuePair return a value pair for insert
-func (f *IntField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue return a UpdateValue struct for update
-func (f *IntField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue return a UpdateValue for bulk update
 func (f *IntField) BulkUpdateValue(val int64, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, fmt.Sprintf("%d", val), val, isNull}
+	return &UpdateValue{f.column, val, isNull}
 }
 
 //Where generate a Where by self value
 func (f *IntField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal)
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
 }
 
 //Eq generate a equal Where
@@ -515,6 +501,13 @@ func NewFloatField(model Model, column string, pk bool, inc bool, uni bool) *Flo
 	return &FloatField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
+func (f *FloatField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val
+}
+
 //Super return Model which the field stored in
 func (f *FloatField) Super() Model {
 	return f.super
@@ -588,11 +581,6 @@ func (f *FloatField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal return the mysql represention of value
-func (f *FloatField) SQLVal() string {
-	return fmt.Sprintf("%f", f.val)
-}
-
 //Invalidate invalidate field
 func (f *FloatField) Invalidate() {
 	f.valid = false
@@ -609,24 +597,17 @@ func (f *FloatField) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatFloat(f.val, 'f', -1, 64)), nil
 }
 
-//InsertValuePair generate a value pair for insert statement
-func (f *FloatField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue generate a UpdateValue for update statement
-func (f *FloatField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue generate a UpdateValue for bulk update
 func (f *FloatField) BulkUpdateValue(val float64, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, fmt.Sprintf("%f", val), val, isNull}
+	return &UpdateValue{f.column, val, isNull}
 }
 
 //Where generate a Where by self value
 func (f *FloatField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
 }
 
 //Eq generate a equal Where
@@ -735,6 +716,13 @@ func NewBoolField(model Model, column string, pk bool, inc bool, uni bool) *Bool
 	return &BoolField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
+func (f *BoolField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val
+}
+
 //Super return the Model which the field is stored in
 func (f *BoolField) Super() Model {
 	return f.super
@@ -803,11 +791,6 @@ func (f *BoolField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal return sql represention of value
-func (f *BoolField) SQLVal() string {
-	return fmt.Sprintf("%t", f.val)
-}
-
 //Invalidate invalidate field
 func (f *BoolField) Invalidate() {
 	f.valid = false
@@ -824,24 +807,17 @@ func (f *BoolField) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatBool(f.val)), nil
 }
 
-//InsertValuePair return a value pair for insert statement
-func (f *BoolField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue return a UpdateValue struct for update statement
-func (f *BoolField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue return a UpdateValue struct for bulk update
 func (f *BoolField) BulkUpdateValue(val bool, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, fmt.Sprintf("%t", val), val, isNull}
+	return &UpdateValue{f.column, val, isNull}
 }
 
 //Where generate a Where by self value
 func (f *BoolField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
 }
 
 //Eq generate euqal Where
@@ -926,6 +902,13 @@ func NewDateField(model Model, column string, pk bool, inc bool, uni bool) *Date
 	return &DateField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
+func (f *DateField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val.Format("2006-01-02")
+}
+
 //Super return Model which the Field is stored in
 func (f *DateField) Super() Model {
 	return f.super
@@ -999,11 +982,6 @@ func (f *DateField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal return the sql represention of value
-func (f *DateField) SQLVal() string {
-	return fmt.Sprintf("%q", f.val.Format("2006-01-02"))
-}
-
 //Invalidate invalidate field
 func (f *DateField) Invalidate() {
 	f.valid = false
@@ -1020,24 +998,17 @@ func (f *DateField) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02"))), nil
 }
 
-//InsertValuePair generate a value pair for insert
-func (f *DateField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue generate a UpdateValue for udpate
-func (f *DateField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue generate a UpdateValue for bulk update
 func (f *DateField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, val.Format("2006-01-02"), val, isNull}
+	return &UpdateValue{f.column, val.Format("2006-01-02"), isNull}
 }
 
 //Where generate where by self value
 func (f *DateField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val.Format("2006-01-02"))
 }
 
 //Eq generte euqal Where
@@ -1151,6 +1122,13 @@ func NewDatetimeField(model Model, column string, pk bool, inc bool, uni bool) *
 	return &DatetimeField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
+func (f *DatetimeField) value() interface{} {
+	if f.null {
+		return "NULL"
+	}
+	return f.val.Format("2006-01-02 15:04:05")
+}
+
 //Super return Model where the field is stored in
 func (f *DatetimeField) Super() Model {
 	return f.super
@@ -1224,11 +1202,6 @@ func (f *DatetimeField) Scan(v interface{}) error {
 	return nil
 }
 
-//SQLVal return mysql represention of value
-func (f *DatetimeField) SQLVal() string {
-	return fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))
-}
-
 //Invalidate invalidate field
 func (f *DatetimeField) Invalidate() {
 	f.valid = false
@@ -1245,24 +1218,17 @@ func (f *DatetimeField) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))), nil
 }
 
-//InsertValuePair return a value pair for insert
-func (f *DatetimeField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue return a UpdateValue for udpate
-func (f *DatetimeField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue return a UpdateValue for bulk update
 func (f *DatetimeField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, val.Format("2006-01-02 15:04:05"), val, isNull}
+	return &UpdateValue{f.column, val.Format("2006-01-02 15:04:05"), isNull}
 }
 
 //Where generate Where by self value
 func (f *DatetimeField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val.Format("2006-01-02 15:04:05"))
 }
 
 //Eq generate equal Where
@@ -1375,17 +1341,16 @@ func NewBinaryField(model Model, column string, pk bool, inc bool, uni bool) *Bi
 	return &BinaryField{super: model, column: column, pk: pk, inc: inc, uni: uni}
 }
 
-//Get get value
-func (f *BinaryField) Get() (val []byte, isValid, isNull bool) {
-	return f.val, f.valid, f.null
-}
-
-//SQLVal return mysql style represention of value
-func (f *BinaryField) SQLVal() string {
+func (f *BinaryField) value() interface{} {
 	if f.null {
 		return "NULL"
 	}
 	return fmt.Sprintf("X'%x'", f.val)
+}
+
+//Get get value
+func (f *BinaryField) Get() (val []byte, isValid, isNull bool) {
+	return f.val, f.valid, f.null
 }
 
 //IsValid return true if field has been set a value or has been scanned
@@ -1430,19 +1395,9 @@ func (f *BinaryField) IsUni() bool {
 	return f.uni
 }
 
-//InsertValuePair generate value pair for insert
-func (f *BinaryField) InsertValuePair() [2]string {
-	return [2]string{f.column, f.SQLVal()}
-}
-
-//UpdateValue generate UpdateValue for update
-func (f *BinaryField) UpdateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.SQLVal(), f.val, f.null}
-}
-
 //BulkUpdateValue generate UpdateValue for bulk update
 func (f *BinaryField) BulkUpdateValue(val []byte, isNull bool) *UpdateValue {
-	return &UpdateValue{f.column, fmt.Sprintf("X'%x'", val), val, isNull}
+	return &UpdateValue{f.column, fmt.Sprintf("X'%x'", val), isNull}
 }
 
 func (f *BinaryField) toSQL() interface{} {
@@ -1481,7 +1436,10 @@ func (f *BinaryField) Eq(val []byte) *Where {
 
 //Where generate Where by self value
 func (f *BinaryField) Where() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.SQLVal())
+	if f.null {
+		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	}
+	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", fmt.Sprintf("X'%x'", f.val))
 }
 
 //Neq generate not equal Where
@@ -1550,8 +1508,8 @@ func (oto *OneToOne) Query() error {
 		oto.cache = m
 	}
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", m.DB(), m.Tab(), oto.dstColName, oto.srcField.SQLVal())
-	row := db.QueryRow(stmtStr)
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), oto.dstColName)
+	row := db.QueryRow(stmtStr, oto.srcField.value())
 	if err := scanRow(m, row); err != nil {
 		return err
 	}
@@ -1630,8 +1588,8 @@ func (fk *ForeignKey) dstCol() string {
 func (fk *ForeignKey) Query() error {
 	m := fk.new()
 	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", m.DB(), m.Tab(), fk.dstColName, fk.srcField.SQLVal())
-	row := db.QueryRow(stmtStr)
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), fk.dstColName)
+	row := db.QueryRow(stmtStr, fk.srcField.value())
 	if err := scanRow(m, row); err != nil {
 		return err
 	}
@@ -1710,8 +1668,8 @@ func (rfk *ReverseForeignKey) dstCol() string {
 func (rfk *ReverseForeignKey) All() error {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal())
-	rows, err := db.Query(stmtStr)
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", l.Model().DB(), l.Model().Tab(), rfk.dstColName)
+	rows, err := db.Query(stmtStr, rfk.srcField.value())
 	if err != nil {
 		return err
 	}
@@ -1726,9 +1684,9 @@ func (rfk *ReverseForeignKey) All() error {
 func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, rfk.srcField.SQLVal(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr)
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s", l.Model().DB(), l.Model().Tab(),
+		rfk.dstColName, sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, rfk.srcField.value())
 	if err != nil {
 		return -1, err
 	}
@@ -1743,10 +1701,9 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (in
 func (rfk *ReverseForeignKey) Query(where *Where) error {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	colStr, valList := where.toAndSQL()
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = %s %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, rfk.srcField.SQLVal(),
-		colStr)
-	rows, err := db.Query(stmtStr, valList...)
+	whereStr, whereList := where.toAndClause()
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ? %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, whereStr)
+	rows, err := db.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...)...)
 	if err != nil {
 		return err
 	}
@@ -1761,10 +1718,10 @@ func (rfk *ReverseForeignKey) Query(where *Where) error {
 func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := rfk.new()
 	db := dbMap[l.Model().DB()]
-	colStr, valList := where.toAndSQL()
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = %s %s %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, rfk.srcField.SQLVal(), colStr, sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, valList...)
+	whereStr, whereList := where.toAndClause()
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s %s", l.Model().DB(), l.Model().Tab(),
+		rfk.dstColName, whereStr, sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...))
 	if err != nil {
 		return -1, err
 	}
@@ -1867,11 +1824,11 @@ func (mtm *ManyToMany) dstCol() string {
 func (mtm *ManyToMany) All() error {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s",
+	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ?",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal())
-	rows, err := db.Query(stmtStr)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol())
+	rows, err := db.Query(stmtStr, mtm.srcField.value())
 	if err != nil {
 		return err
 	}
@@ -1886,11 +1843,11 @@ func (mtm *ManyToMany) All() error {
 func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s %s",
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, mtm.srcField.value())
 	if err != nil {
 		return -1, err
 	}
@@ -1905,12 +1862,12 @@ func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, erro
 func (mtm *ManyToMany) Query(where *Where) error {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	colStr, valList := where.toAndSQL()
-	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s",
+	whereStr, whereList := where.toAndClause()
+	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), colStr)
-	rows, err := db.Query(stmtStr, valList...)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr)
+	rows, err := db.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...))
 	if err != nil {
 		return err
 	}
@@ -1925,12 +1882,12 @@ func (mtm *ManyToMany) Query(where *Where) error {
 func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	l := mtm.new()
 	db := dbMap[l.Model().DB()]
-	colStr, valList := where.toAndSQL()
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = %s %s %s %s",
+	whereStr, whereList := where.toAndClause()
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.srcField.SQLVal(), colStr, sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, valList...)
+		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr, sorter.toSQL(), pager.toSQL())
+	rows, err := db.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...)...)
 	if err != nil {
 		return -1, err
 	}
@@ -1945,9 +1902,8 @@ func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *P
 func (mtm *ManyToMany) Add(m Model) error {
 	dstField := getByName(m, mtm.dstColName)
 	db := dbMap[mtm.midDB()]
-	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (%s, %s)", mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.midRightCol(),
-		mtm.srcField.SQLVal(), dstField.SQLVal())
-	_, err := db.Exec(stmtStr)
+	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.midRightCol())
+	_, err := db.Exec(stmtStr, mtm.srcField.value(), dstField.value())
 	if err != nil {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
 			return nil
@@ -1963,9 +1919,8 @@ func (mtm *ManyToMany) Remove(m Model) error {
 	l := mtm.new()
 	db := dbMap[mtm.midDB()]
 	dstField := getByName(m, mtm.dstColName)
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = %s AND %s = %s", l.Model().DB(), l.Model().Tab(), mtm.midLeftCol(), mtm.srcField.SQLVal(),
-		mtm.midRightCol(), dstField.SQLVal())
-	_, err := db.Exec(stmtStr)
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", l.Model().DB(), l.Model().Tab(), mtm.midLeftCol(), mtm.midRightCol())
+	_, err := db.Exec(stmtStr, mtm.srcField.value(), dstField.value())
 	if err != nil {
 		return err
 	}

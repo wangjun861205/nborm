@@ -29,6 +29,14 @@ func (w *Where) toClause() (string, []interface{}) {
 	return "WHERE " + colStr, valList
 }
 
+func (w *Where) toAndClause() (string, []interface{}) {
+	if w == nil {
+		return "", nil
+	}
+	colStr, valList := w.toSQL()
+	return "AND " + colStr, valList
+}
+
 func (w *Where) toSQL() (string, []interface{}) {
 	builder := strings.Builder{}
 	valueList := make([]interface{}, 0, 8)
@@ -50,12 +58,6 @@ func (w *Where) toSQL() (string, []interface{}) {
 		valueList = append(valueList, l...)
 	}
 	return builder.String(), valueList
-}
-
-func (w *Where) toAndSQL() (string, []interface{}) {
-	s, l := w.toSQL()
-	return " AND " + s, l
-
 }
 
 //And and operation

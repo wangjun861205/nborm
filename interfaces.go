@@ -30,7 +30,6 @@ type ModelList interface {
 
 //Field declare a Field interface
 type Field interface {
-	SQLVal() string
 	IsValid() bool
 	IsNull() bool
 	sql.Scanner
@@ -38,14 +37,13 @@ type Field interface {
 	IsPk() bool
 	IsInc() bool
 	IsUni() bool
-	InsertValuePair() [2]string
-	UpdateValue() *UpdateValue
 	Where() *Where
 	LessFunc() func(Model, Model) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
 	Super() Model
 	SortOrder(reverse bool) string
+	value() interface{}
 }
 
 type relation interface {

@@ -322,15 +322,9 @@ func filterList(l ModelList, f func(Model) bool) {
 	}
 }
 
-func updateModel(m Model, values ...*UpdateValue) {
-	for _, val := range values {
-		getByName(m, val.column).SetByUpdateValue(val)
-	}
-}
-
-// func invalidateModel(m Model) {
-// 	for _, field := range m.Fields() {
-// 		field.Invalidate()
+// func updateModel(m Model, values ...*UpdateValue) {
+// 	for _, val := range values {
+// 		getByName(m, val.column).SetByUpdateValue(val)
 // 	}
 // }
 
@@ -450,46 +444,30 @@ func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, with
 	}
 }
 
-func genInsert(m Model, update bool) string {
-	inc, others := getInc(m)
-	others = filterValid(others)
-	colList := make([]string, len(others))
-	valList := make([]string, len(others))
-	updateList := make([]string, len(others))
-	for i, f := range others {
-		p := f.InsertValuePair()
-		colList[i] = p[0]
-		valList[i] = p[1]
-		updateList[i] = p[0] + " = " + p[1]
-	}
-	if update {
-		return fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
-			strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
-	}
-	return fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
-}
-
 func insertAndGetInc(m Model, update bool) error {
 	db := dbMap[m.DB()]
 	inc, others := getInc(m)
 	others = filterValid(others)
 	colList := make([]string, len(others))
-	valList := make([]string, len(others))
+	valList := make([]interface{}, len(others))
 	updateList := make([]string, len(others))
 	for i, f := range others {
-		p := f.InsertValuePair()
-		colList[i] = p[0]
-		valList[i] = p[1]
-		updateList[i] = p[0] + " = " + p[1]
+		colList[i] = f.Column()
+		valList[i] = f.value()
+		updateList[i] = f.Column() + " = ?"
 	}
-	var stmtStr string
+	var res sql.Result
+	var err error
 	if update {
-		stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
-			strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
+		stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
+			strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.Column(), inc.Column(),
+			strings.Join(updateList, ", "))
+		res, err = db.Exec(stmtStr, append(valList, valList...)...)
 	} else {
-		stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+		stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "),
+			strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "))
+		res, err = db.Exec(stmtStr, valList...)
 	}
-	res, err := db.Exec(stmtStr)
 	if err != nil {
 		return err
 	}
@@ -510,22 +488,25 @@ func insertAndGetIncContext(ctx context.Context, m Model, update bool) error {
 		inc, others := getInc(m)
 		others = filterValid(others)
 		colList := make([]string, len(others))
-		valList := make([]string, len(others))
+		valList := make([]interface{}, len(others))
 		updateList := make([]string, len(others))
 		for i, f := range others {
-			p := f.InsertValuePair()
-			colList[i] = p[0]
-			valList[i] = p[1]
-			updateList[i] = p[0] + " = " + p[1]
+			colList[i] = f.Column()
+			valList[i] = f.value()
+			updateList[i] = f.Column() + " = ?"
 		}
-		var stmtStr string
+		var res sql.Result
+		var err error
 		if update {
-			stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
-				strings.Join(colList, ", "), strings.Join(valList, ", "), inc.Column(), inc.Column(), strings.Join(updateList, ", "))
+			stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
+				strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.Column(), inc.Column(),
+				strings.Join(updateList, ", "))
+			res, err = db.ExecContext(ctx, stmtStr, append(valList, valList...)...)
 		} else {
-			stmtStr = fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "), strings.Join(valList, ", "))
+			stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", m.DB(), m.Tab(), strings.Join(colList, ", "),
+				strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "))
+			res, err = db.ExecContext(ctx, stmtStr, valList...)
 		}
-		res, err := db.ExecContext(ctx, stmtStr)
 		if err != nil {
 			return err
 		}

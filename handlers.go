@@ -154,14 +154,16 @@ func InsertOrGetMul(l ModelList) error {
 func UpdateOne(m Model) error {
 	_, fs := getInc(m)
 	fs = filterValid(fs)
-	setValues := make([]string, 0, len(fs))
-	for _, f := range fs {
-		setValues = append(setValues, f.UpdateValue().String())
+	colList := make([]string, 0, len(fs))
+	valList := make([]interface{}, 0, len(fs))
+	for i, f := range fs {
+		colList[i] = f.Column() + " = ?"
+		valList[i] = f.value()
 	}
-	colStr, valList := genWhere(m).toSQL()
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), colStr)
+	whereStr, whereList := genWhere(m).toClause()
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
 	db := dbMap[m.DB()]
-	_, err := db.Exec(stmtStr, valList)
+	_, err := db.Exec(stmtStr, append(valList, whereList)...)
 	return err
 }
 
@@ -174,14 +176,16 @@ func UpdateMul(l ModelList) error {
 		default:
 			_, fs := getInc(m)
 			fs = filterValid(fs)
-			setValues := make([]string, 0, len(fs))
-			for _, f := range fs {
-				setValues = append(setValues, f.UpdateValue().String())
+			colList := make([]string, len(fs))
+			valList := make([]interface{}, len(fs))
+			for i, f := range fs {
+				colList[i] = f.Column() + " = ?"
+				valList[i] = f.value()
 			}
-			colStr, valList := genWhere(m).toSQL()
-			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setValues, ", "), colStr)
+			whereStr, whereList := genWhere(m).toClause()
+			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
 			db := dbMap[m.DB()]
-			_, err := db.ExecContext(ctx, stmtStr, valList)
+			_, err := db.ExecContext(ctx, stmtStr, append(valList, whereList)...)
 			return err
 		}
 	})
@@ -190,20 +194,26 @@ func UpdateMul(l ModelList) error {
 //BulkUpdate update records by where
 func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
 	db := dbMap[m.DB()]
-	setList := make([]string, len(values))
+	colList := make([]string, len(values))
+	valList := make([]interface{}, len(values))
 	for i, val := range values {
-		setList[i] = val.String()
+		colList[i] = val.column + " = ?"
+		if val.null {
+			valList[i] = "NULL"
+		} else {
+			valList[i] = val.val
+		}
 	}
-	colStr, valList := where.toClause()
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(setList, ", "), colStr)
-	_, err := db.Exec(stmtStr, valList)
+	whereStr, whereList := where.toClause()
+	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
+	_, err := db.Exec(stmtStr, append(valList, whereList)...)
 	return err
 }
 
 //DeleteOne delete one record
 func DeleteOne(m Model) error {
 	db := dbMap[m.DB()]
-	colStr, valList := genWhere(m).toSQL()
+	colStr, valList := genWhere(m).toClause()
 	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
 	_, err := db.Exec(stmtStr, valList)
 	if err != nil {
@@ -217,7 +227,7 @@ func DeleteOne(m Model) error {
 func DeleteMul(l ModelList) error {
 	return iterList(l, func(ctx context.Context, m Model) error {
 		db := dbMap[m.DB()]
-		colStr, valList := genWhere(m).toSQL()
+		colStr, valList := genWhere(m).toClause()
 		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
 		_, err := db.ExecContext(ctx, stmtStr, valList)
 		if err != nil {
@@ -281,7 +291,7 @@ func Distinct(l ModelList, fields ...Field) {
 	f := func(m Model) bool {
 		builder := strings.Builder{}
 		for _, field := range fields {
-			builder.WriteString(getByName(m, field.Column()).SQLVal())
+			builder.WriteString(fmt.Sprintf("%v", getByName(m, field.Column()).value()))
 		}
 		id := builder.String()
 		if distMap[id] {

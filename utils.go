@@ -13,6 +13,9 @@ type Pager [2]int
 
 //NewPager create Pager
 func NewPager(numPerPage, pageNum int) *Pager {
+	if numPerPage <= 0 || pageNum <= 0 {
+		return nil
+	}
 	p := Pager([2]int{numPerPage, pageNum})
 	return &p
 }

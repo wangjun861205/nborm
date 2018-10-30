@@ -785,6 +785,10 @@ func (f *BoolField) Scan(v interface{}) error {
 		f.val = b
 	case bool:
 		f.val = val
+	case int64:
+		if val == 1 {
+			f.val = true
+		}
 	default:
 		return fmt.Errorf("not supported value type for BoolField: %T", val)
 	}

@@ -1,7 +1,6 @@
 package nborm
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -42,12 +41,12 @@ func (f *StringField) value() interface{} {
 }
 
 //Super get the Model which is the field stored in
-func (f *StringField) Super() Model {
+func (f *StringField) superModel() Model {
 	return f.super
 }
 
 //Column return the column name of the field
-func (f *StringField) Column() string {
+func (f *StringField) columnName() string {
 	return f.column
 }
 
@@ -174,7 +173,7 @@ func (f *StringField) In(val []string) *Where {
 //LessFunc generate a function for sort a ModelList
 func (f *StringField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*StringField), getByName(jm, f.Column()).(*StringField)
+		iField, jField := getByName(im, f.columnName()).(*StringField), getByName(jm, f.columnName()).(*StringField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -240,12 +239,12 @@ func (f *IntField) value() interface{} {
 }
 
 //Super return the model which the field is stored in
-func (f *IntField) Super() Model {
+func (f *IntField) superModel() Model {
 	return f.super
 }
 
 //Column return the column name of the field
-func (f *IntField) Column() string {
+func (f *IntField) columnName() string {
 	return f.column
 }
 
@@ -389,7 +388,7 @@ func (f *IntField) In(val []int) *Where {
 //LessFunc return a function for sort ModelList
 func (f *IntField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*IntField), getByName(jm, f.Column()).(*IntField)
+		iField, jField := getByName(im, f.columnName()).(*IntField), getByName(jm, f.columnName()).(*IntField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -509,12 +508,12 @@ func (f *FloatField) value() interface{} {
 }
 
 //Super return Model which the field stored in
-func (f *FloatField) Super() Model {
+func (f *FloatField) superModel() Model {
 	return f.super
 }
 
 //Column return column name
-func (f *FloatField) Column() string {
+func (f *FloatField) columnName() string {
 	return f.column
 }
 
@@ -658,7 +657,7 @@ func (f *FloatField) In(val []float64) *Where {
 //LessFunc return a func for sort ModelList
 func (f *FloatField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*FloatField), getByName(jm, f.Column()).(*FloatField)
+		iField, jField := getByName(im, f.columnName()).(*FloatField), getByName(jm, f.columnName()).(*FloatField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -724,12 +723,12 @@ func (f *BoolField) value() interface{} {
 }
 
 //Super return the Model which the field is stored in
-func (f *BoolField) Super() Model {
+func (f *BoolField) superModel() Model {
 	return f.super
 }
 
 //Column return column name
-func (f *BoolField) Column() string {
+func (f *BoolField) columnName() string {
 	return f.column
 }
 
@@ -852,7 +851,7 @@ func (f *BoolField) IsUni() bool {
 //LessFunc return a func for sort ModelList
 func (f *BoolField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*BoolField), getByName(jm, f.Column()).(*BoolField)
+		iField, jField := getByName(im, f.columnName()).(*BoolField), getByName(jm, f.columnName()).(*BoolField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -914,12 +913,12 @@ func (f *DateField) value() interface{} {
 }
 
 //Super return Model which the Field is stored in
-func (f *DateField) Super() Model {
+func (f *DateField) superModel() Model {
 	return f.super
 }
 
 //Column return column name
-func (f *DateField) Column() string {
+func (f *DateField) columnName() string {
 	return f.column
 }
 
@@ -1068,7 +1067,7 @@ func (f *DateField) In(val []time.Time) *Where {
 //LessFunc return a function for sort ModelList
 func (f *DateField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*DateField), getByName(jm, f.Column()).(*DateField)
+		iField, jField := getByName(im, f.columnName()).(*DateField), getByName(jm, f.columnName()).(*DateField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1134,12 +1133,12 @@ func (f *DatetimeField) value() interface{} {
 }
 
 //Super return Model where the field is stored in
-func (f *DatetimeField) Super() Model {
+func (f *DatetimeField) superModel() Model {
 	return f.super
 }
 
 //Column return column name
-func (f *DatetimeField) Column() string {
+func (f *DatetimeField) columnName() string {
 	return f.column
 }
 
@@ -1287,7 +1286,7 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 //LessFunc return a function for sorting ModelList
 func (f *DatetimeField) LessFunc() func(Model, Model) int {
 	return func(im, jm Model) int {
-		iField, jField := getByName(im, f.Column()).(*DatetimeField), getByName(jm, f.Column()).(*DatetimeField)
+		iField, jField := getByName(im, f.columnName()).(*DatetimeField), getByName(jm, f.columnName()).(*DatetimeField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1380,7 +1379,7 @@ func (f *BinaryField) Scan(val interface{}) error {
 }
 
 //Column return column name
-func (f *BinaryField) Column() string {
+func (f *BinaryField) columnName() string {
 	return f.column
 }
 
@@ -1463,80 +1462,61 @@ func (f *BinaryField) NotNull() *Where {
 
 //OneToOne represent a one point on relation
 type OneToOne struct {
-	srcField   Field
-	dstColName string
-	new        func() Model
-	cache      Model
-	result     Model
+	srcField     Field
+	dstField     Field
+	dstFieldFunc func() (dstField Field)
 }
 
 //NewOneToOne create a OneToOne
-func NewOneToOne(srcField Field, dstColName string, f func() Model) *OneToOne {
-	return &OneToOne{srcField: srcField, dstColName: dstColName, new: f}
+func NewOneToOne(srcField Field, dstFieldFunc func() (dstField Field)) *OneToOne {
+	return &OneToOne{srcField: srcField, dstFieldFunc: dstFieldFunc}
 }
 
 func (oto *OneToOne) srcDB() string {
-	return oto.srcField.Super().DB()
+	return oto.srcField.superModel().DB()
 }
 
 func (oto *OneToOne) srcTab() string {
-	return oto.srcField.Super().Tab()
+	return oto.srcField.superModel().Tab()
 }
 
 func (oto *OneToOne) srcCol() string {
-	return oto.srcField.Column()
+	return oto.srcField.columnName()
 }
 
 func (oto *OneToOne) dstDB() string {
-	if oto.cache == nil {
-		oto.cache = oto.new()
+	if oto.dstField == nil {
+		oto.dstField = oto.dstFieldFunc()
 	}
-	return oto.cache.DB()
+	return oto.dstField.superModel().DB()
 }
 
 func (oto *OneToOne) dstTab() string {
-	if oto.cache == nil {
-		oto.cache = oto.new()
+	if oto.dstField == nil {
+		oto.dstField = oto.dstFieldFunc()
 	}
-	return oto.cache.Tab()
+	return oto.dstField.superModel().Tab()
 }
 
 func (oto *OneToOne) dstCol() string {
-	return oto.dstColName
+	if oto.dstField == nil {
+		oto.dstField = oto.dstFieldFunc()
+	}
+	return oto.dstField.columnName()
 }
 
 //Query query related table by OneToOne relation
-func (oto *OneToOne) Query() error {
-	m := oto.new()
-	if oto.cache == nil {
-		oto.cache = m
+func (oto *OneToOne) Query(m Model) error {
+	if m.DB() != oto.dstDB() || m.Tab() != oto.dstTab() {
+		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB(), oto.dstTab(), m.DB(), m.Tab())
 	}
-	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), oto.dstColName)
+	db := dbMap[oto.dstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), oto.dstCol())
 	row := db.QueryRow(stmtStr, oto.srcField.value())
 	if err := scanRow(m, row); err != nil {
 		return err
 	}
-	oto.result = m
 	return nil
-}
-
-//Result get query result, if no rows return nil
-func (oto *OneToOne) Result() Model {
-	return oto.result
-}
-
-//Model return Model which the OneToOne is stored in
-func (oto *OneToOne) Model() Model {
-	if oto.cache == nil {
-		oto.cache = oto.new()
-	}
-	return oto.cache
-}
-
-//MarshalJSON implement json.Marshaler interface
-func (oto *OneToOne) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(oto.result, "\t", "\t")
 }
 
 func (oto *OneToOne) joinClause() string {
@@ -1546,77 +1526,61 @@ func (oto *OneToOne) joinClause() string {
 
 //ForeignKey represent a one point many relation
 type ForeignKey struct {
-	srcField   Field
-	dstColName string
-	new        func() Model
-	cache      Model
-	result     Model
+	srcField     Field
+	dstField     Field
+	dstFieldFunc func() (dstField Field)
 }
 
 //NewForeignKey create a ForeignKey
-func NewForeignKey(srcField Field, dstColName string, f func() Model) *ForeignKey {
-	return &ForeignKey{srcField: srcField, dstColName: dstColName, new: f}
+func NewForeignKey(srcField Field, dstFieldFunc func() (dstField Field)) *ForeignKey {
+	return &ForeignKey{srcField: srcField, dstFieldFunc: dstFieldFunc}
 }
 
 func (fk *ForeignKey) srcDB() string {
-	return fk.srcField.Super().DB()
+	return fk.srcField.superModel().DB()
 }
 
 func (fk *ForeignKey) srcTab() string {
-	return fk.srcField.Super().Tab()
+	return fk.srcField.superModel().Tab()
 }
 
 func (fk *ForeignKey) srcCol() string {
-	return fk.srcField.Column()
+	return fk.srcField.columnName()
 }
 
 func (fk *ForeignKey) dstDB() string {
-	if fk.cache == nil {
-		fk.cache = fk.new()
+	if fk.dstField == nil {
+		fk.dstField = fk.dstFieldFunc()
 	}
-	return fk.cache.DB()
+	return fk.dstField.superModel().DB()
 }
 
 func (fk *ForeignKey) dstTab() string {
-	if fk.cache == nil {
-		fk.cache = fk.new()
+	if fk.dstField == nil {
+		fk.dstField = fk.dstFieldFunc()
 	}
-	return fk.cache.Tab()
+	return fk.dstField.superModel().Tab()
 }
 
 func (fk *ForeignKey) dstCol() string {
-	return fk.dstColName
+	if fk.dstField == nil {
+		fk.dstField = fk.dstFieldFunc()
+	}
+	return fk.dstField.columnName()
 }
 
 //Query query related table by this relation
-func (fk *ForeignKey) Query() error {
-	m := fk.new()
-	db := dbMap[m.DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), fk.dstColName)
+func (fk *ForeignKey) Query(m Model) error {
+	if m.DB() != fk.dstDB() || m.Tab() != fk.dstTab() {
+		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB(), fk.dstTab(), m.DB(), m.Tab())
+	}
+	db := dbMap[fk.dstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", m.DB(), m.Tab(), fk.dstCol())
 	row := db.QueryRow(stmtStr, fk.srcField.value())
 	if err := scanRow(m, row); err != nil {
 		return err
 	}
-	fk.result = m
 	return nil
-}
-
-//Result get query result, if no rows return nil
-func (fk *ForeignKey) Result() Model {
-	return fk.result
-}
-
-//MarshalJSON implement json.Marshaler interface
-func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(fk.Result(), "\t", "\t")
-}
-
-//Model return the example Model
-func (fk *ForeignKey) Model() Model {
-	if fk.cache == nil {
-		fk.cache = fk.new()
-	}
-	return fk.cache
 }
 
 func (fk *ForeignKey) joinClause() string {
@@ -1626,70 +1590,72 @@ func (fk *ForeignKey) joinClause() string {
 
 //ReverseForeignKey represent many point one relation
 type ReverseForeignKey struct {
-	srcField   Field
-	dstColName string
-	new        func() ModelList
-	cache      ModelList
-	result     ModelList
+	srcField     Field
+	dstField     Field
+	dstFieldFunc func() (dstField Field)
 }
 
 //NewReverseForeignKey create ReverseForeignKey
-func NewReverseForeignKey(srcField Field, dstColName string, f func() ModelList) *ReverseForeignKey {
-	return &ReverseForeignKey{srcField: srcField, dstColName: dstColName, new: f}
+func NewReverseForeignKey(srcField Field, dstFieldFunc func() (dstField Field)) *ReverseForeignKey {
+	return &ReverseForeignKey{srcField: srcField, dstFieldFunc: dstFieldFunc}
 }
 
 func (rfk *ReverseForeignKey) srcDB() string {
-	return rfk.srcField.Super().DB()
+	return rfk.srcField.superModel().DB()
 }
 
 func (rfk *ReverseForeignKey) srcTab() string {
-	return rfk.srcField.Super().DB()
+	return rfk.srcField.superModel().DB()
 }
 
 func (rfk *ReverseForeignKey) srcCol() string {
-	return rfk.srcField.Column()
+	return rfk.srcField.columnName()
 }
 
 func (rfk *ReverseForeignKey) dstDB() string {
-	if rfk.cache == nil {
-		rfk.cache = rfk.new()
+	if rfk.dstField == nil {
+		rfk.dstField = rfk.dstFieldFunc()
 	}
-	return rfk.cache.Model().DB()
+	return rfk.dstField.superModel().DB()
 }
 
 func (rfk *ReverseForeignKey) dstTab() string {
-	if rfk.cache == nil {
-		rfk.cache = rfk.new()
+	if rfk.dstField == nil {
+		rfk.dstField = rfk.dstFieldFunc()
 	}
-	return rfk.cache.Model().Tab()
+	return rfk.dstField.superModel().Tab()
 }
 
 func (rfk *ReverseForeignKey) dstCol() string {
-	return rfk.dstColName
+	if rfk.dstField == nil {
+		rfk.dstField = rfk.dstFieldFunc()
+	}
+	return rfk.dstField.columnName()
 }
 
 //All query all records in related table by this relation
-func (rfk *ReverseForeignKey) All() error {
-	l := rfk.new()
-	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ?", l.Model().DB(), l.Model().Tab(), rfk.dstColName)
+func (rfk *ReverseForeignKey) All(l ModelList, sorter *Sorter, pager *Pager) error {
+	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
+		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(), l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[rfk.dstDB()]
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ? %s %s", rfk.dstDB(), rfk.dstTab(), rfk.dstCol(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, rfk.srcField.value())
 	if err != nil {
 		return err
 	}
-	if err = scanRows(l, rows); err != nil {
-		return err
-	}
-	rfk.result = l
-	return nil
+	return scanRows(l, rows)
 }
 
 //AllWithFoundRows query all records in related table by this relation and the number of found rows
-func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
-	l := rfk.new()
-	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, sorter.toSQL(), pager.toSQL())
+func (rfk *ReverseForeignKey) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
+	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
+		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+			l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[rfk.dstDB()]
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s", rfk.dstDB(), rfk.dstTab(),
+		rfk.dstCol(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, rfk.srcField.value())
 	if err != nil {
 		return -1, err
@@ -1697,34 +1663,36 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(sorter *Sorter, pager *Pager) (in
 	if err = scanRows(l, rows); err != nil {
 		return -1, err
 	}
-	rfk.result = l
 	return getFoundRows(db)
 }
 
 //Query query related table by this relation
-func (rfk *ReverseForeignKey) Query(where *Where) error {
-	l := rfk.new()
-	db := dbMap[l.Model().DB()]
+func (rfk *ReverseForeignKey) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
+	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
+		return fmt.Errorf("nborm.ReverseForeignKey.Query() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+			l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[rfk.dstDB()]
 	whereStr, whereList := where.toAndClause()
-	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ? %s", l.Model().DB(), l.Model().Tab(), rfk.dstColName, whereStr)
+	stmtStr := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = ? %s %s %s", l.Model().DB(), l.Model().Tab(), rfk.dstCol(), whereStr, sorter.toSQL(),
+		pager.toSQL())
 	rows, err := db.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...)...)
 	if err != nil {
 		return err
 	}
-	if err := scanRows(l, rows); err != nil {
-		return err
-	}
-	rfk.result = l
-	return nil
+	return scanRows(l, rows)
 }
 
 //QueryWithFoundRows query related table by this realtion and number of found rows
-func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	l := rfk.new()
-	db := dbMap[l.Model().DB()]
+func (rfk *ReverseForeignKey) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
+		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+			l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[rfk.dstDB()]
 	whereStr, whereList := where.toAndClause()
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s %s", l.Model().DB(), l.Model().Tab(),
-		rfk.dstColName, whereStr, sorter.toSQL(), pager.toSQL())
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s %s", rfk.dstDB(), rfk.dstTab(), rfk.dstCol(),
+		whereStr, sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...))
 	if err != nil {
 		return -1, err
@@ -1732,26 +1700,7 @@ func (rfk *ReverseForeignKey) QueryWithFoundRows(where *Where, sorter *Sorter, p
 	if err := scanRows(l, rows); err != nil {
 		return -1, err
 	}
-	rfk.result = l
 	return getFoundRows(db)
-}
-
-//Result return result of query, if no rows return nil
-func (rfk *ReverseForeignKey) Result() ModelList {
-	return rfk.result
-}
-
-//MarshalJSON implement json.Marshaler interface
-func (rfk *ReverseForeignKey) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(rfk.Result(), "\t", "\t")
-}
-
-//Model return example Model
-func (rfk *ReverseForeignKey) Model() Model {
-	if rfk.cache == nil {
-		rfk.cache = rfk.new()
-	}
-	return rfk.cache.Model()
 }
 
 func (rfk *ReverseForeignKey) joinClause() string {
@@ -1764,93 +1713,112 @@ type ManyToMany struct {
 	srcField      Field
 	midLeftField  Field
 	midRightField Field
-	dstColName    string
-	new           func() ModelList
-	cache         ModelList
-	result        ModelList
+	dstField      Field
+	midFieldsFunc func() (midLeftField, midRighField Field)
+	dstFieldFunc  func() (destField Field)
 }
 
 //NewManyToMany create ManyToMany
-func NewManyToMany(srcField, midLeftField, midRightField Field, dstColName string, f func() ModelList) *ManyToMany {
-	if midLeftField.Super() != midRightField.Super() {
-		panic("nborm.NewManyToMany() error: require the same middle tab")
-	}
-	return &ManyToMany{srcField: srcField, midLeftField: midLeftField, midRightField: midRightField, dstColName: dstColName, new: f}
+func NewManyToMany(srcField Field, midFieldsFunc func() (midLeftField, midRightField Field), dstFieldFunc func() (dstField Field)) *ManyToMany {
+	return &ManyToMany{srcField: srcField, midFieldsFunc: midFieldsFunc, dstFieldFunc: dstFieldFunc}
 }
 
 func (mtm *ManyToMany) srcDB() string {
-	return mtm.srcField.Super().DB()
+	return mtm.srcField.superModel().DB()
 }
 
 func (mtm *ManyToMany) srcTab() string {
-	return mtm.srcField.Super().Tab()
+	return mtm.srcField.superModel().Tab()
 }
 
 func (mtm *ManyToMany) srcCol() string {
-	return mtm.srcField.Column()
+	return mtm.srcField.columnName()
 }
 
 func (mtm *ManyToMany) midDB() string {
-	return mtm.midLeftField.Super().DB()
+	switch {
+	case mtm.midLeftField != nil:
+		return mtm.midLeftField.superModel().DB()
+	case mtm.midRightField != nil:
+		return mtm.midRightField.superModel().DB()
+	default:
+		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
+		return mtm.midLeftField.superModel().DB()
+	}
 }
 
 func (mtm *ManyToMany) midTab() string {
-	return mtm.midLeftField.Super().Tab()
+	switch {
+	case mtm.midLeftField != nil:
+		return mtm.midLeftField.superModel().Tab()
+	case mtm.midRightField != nil:
+		return mtm.midRightField.superModel().Tab()
+	default:
+		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
+		return mtm.midLeftField.superModel().Tab()
+	}
 }
 
 func (mtm *ManyToMany) midLeftCol() string {
-	return mtm.midLeftField.Column()
+	if mtm.midLeftField == nil {
+		mtm.midLeftField, _ = mtm.midFieldsFunc()
+	}
+	return mtm.midLeftField.columnName()
 }
 
 func (mtm *ManyToMany) midRightCol() string {
-	return mtm.midRightField.Column()
+	_, mrf := mtm.midFieldsFunc()
+	return mrf.columnName()
 }
 
 func (mtm *ManyToMany) dstDB() string {
-	if mtm.cache == nil {
-		mtm.cache = mtm.new()
+	if mtm.dstField == nil {
+		mtm.dstField = mtm.dstFieldFunc()
 	}
-	return mtm.cache.Model().DB()
+	return mtm.dstField.superModel().DB()
 }
 
 func (mtm *ManyToMany) dstTab() string {
-	if mtm.cache == nil {
-		mtm.cache = mtm.new()
+	if mtm.dstField == nil {
+		mtm.dstField = mtm.dstFieldFunc()
 	}
-	return mtm.cache.Model().Tab()
+	return mtm.dstField.superModel().Tab()
 }
 
 func (mtm *ManyToMany) dstCol() string {
-	return mtm.dstColName
+	if mtm.dstField == nil {
+		mtm.dstField = mtm.dstFieldFunc()
+	}
+	return mtm.dstField.columnName()
 }
 
 //All query all records in related table by this relation
-func (mtm *ManyToMany) All() error {
-	l := mtm.new()
-	db := dbMap[l.Model().DB()]
-	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ?",
+func (mtm *ManyToMany) All(l ModelList, sorter *Sorter, pager *Pager) error {
+	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
+		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[mtm.dstDB()]
+	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol())
+		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, mtm.srcField.value())
 	if err != nil {
 		return err
 	}
-	if err = scanRows(l, rows); err != nil {
-		return err
-	}
-	mtm.result = l
-	return nil
+	return scanRows(l, rows)
 }
 
 //AllWithFoundRows query all records in related table and number of found rows by this relation
-func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, error) {
-	l := mtm.new()
-	db := dbMap[l.Model().DB()]
+func (mtm *ManyToMany) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
+	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
+		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[mtm.dstDB()]
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), sorter.toSQL(), pager.toSQL())
+		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, mtm.srcField.value())
 	if err != nil {
 		return -1, err
@@ -1858,53 +1826,54 @@ func (mtm *ManyToMany) AllWithFoundRows(sorter *Sorter, pager *Pager) (int, erro
 	if err = scanRows(l, rows); err != nil {
 		return -1, err
 	}
-	mtm.result = l
 	return getFoundRows(db)
 }
 
 //Query query records in related table by this relation
-func (mtm *ManyToMany) Query(where *Where) error {
-	l := mtm.new()
-	db := dbMap[l.Model().DB()]
+func (mtm *ManyToMany) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
+	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
+		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[mtm.dstDB()]
 	whereStr, whereList := where.toAndClause()
 	stmtStr := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr)
+		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr)
 	rows, err := db.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...))
 	if err != nil {
 		return err
 	}
-	if err = scanRows(mtm.result, rows); err != nil {
-		return err
-	}
-	mtm.result = l
-	return nil
+	return scanRows(l, rows)
 }
 
 //QueryWithFoundRows query records in related table and number of found rows by this relation
-func (mtm *ManyToMany) QueryWithFoundRows(where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	l := mtm.new()
-	db := dbMap[l.Model().DB()]
+func (mtm *ManyToMany) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
+		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	}
+	db := dbMap[mtm.dstDB()]
 	whereStr, whereList := where.toAndClause()
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
-		mtm.dstColName, mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr, sorter.toSQL(), pager.toSQL())
+		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr, sorter.toSQL(), pager.toSQL())
 	rows, err := db.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...)...)
 	if err != nil {
 		return -1, err
 	}
-	if err = scanRows(mtm.result, rows); err != nil {
+	if err = scanRows(l, rows); err != nil {
 		return -1, err
 	}
-	mtm.result = l
 	return getFoundRows(db)
 }
 
 //Add add a relation record to middle table
 func (mtm *ManyToMany) Add(m Model) error {
-	dstField := getByName(m, mtm.dstColName)
+	if m.DB() != mtm.dstDB() || m.Tab() != mtm.dstTab() {
+		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), m.DB(), m.Tab())
+	}
+	dstField := getByName(m, mtm.dstCol())
 	db := dbMap[mtm.midDB()]
 	stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.midRightCol())
 	_, err := db.Exec(stmtStr, mtm.srcField.value(), dstField.value())
@@ -1914,40 +1883,22 @@ func (mtm *ManyToMany) Add(m Model) error {
 		}
 		return err
 	}
-	mtm.result = nil
 	return nil
 }
 
 //Remove remove a record from middle table
 func (mtm *ManyToMany) Remove(m Model) error {
-	l := mtm.new()
+	if m.DB() != mtm.dstDB() || m.Tab() != mtm.dstTab() {
+		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), m.DB(), m.Tab())
+	}
 	db := dbMap[mtm.midDB()]
-	dstField := getByName(m, mtm.dstColName)
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", l.Model().DB(), l.Model().Tab(), mtm.midLeftCol(), mtm.midRightCol())
+	dstField := getByName(m, mtm.dstField.columnName())
+	stmtStr := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.midRightCol())
 	_, err := db.Exec(stmtStr, mtm.srcField.value(), dstField.value())
 	if err != nil {
 		return err
 	}
-	mtm.result = nil
 	return nil
-}
-
-//Result return query result
-func (mtm *ManyToMany) Result() ModelList {
-	return mtm.result
-}
-
-//MarshalJSON implement json.Marshaler interface
-func (mtm *ManyToMany) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(mtm.Result(), "\t", "\t")
-}
-
-//Model return example Model
-func (mtm *ManyToMany) Model() Model {
-	if mtm.cache == nil {
-		mtm.cache = mtm.new()
-	}
-	return mtm.cache.Model()
 }
 
 func (mtm *ManyToMany) joinClause() string {

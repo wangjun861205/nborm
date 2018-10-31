@@ -33,7 +33,7 @@ type Field interface {
 	IsValid() bool
 	IsNull() bool
 	sql.Scanner
-	Column() string
+	columnName() string
 	IsPk() bool
 	IsInc() bool
 	IsUni() bool
@@ -41,13 +41,12 @@ type Field interface {
 	LessFunc() func(Model, Model) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
-	Super() Model
+	superModel() Model
 	SortOrder(reverse bool) string
 	value() interface{}
 }
 
 type relation interface {
-	json.Marshaler
 	srcDB() string
 	srcTab() string
 	srcCol() string

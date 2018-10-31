@@ -157,7 +157,7 @@ func UpdateOne(m Model) error {
 	colList := make([]string, 0, len(fs))
 	valList := make([]interface{}, 0, len(fs))
 	for i, f := range fs {
-		colList[i] = f.Column() + " = ?"
+		colList[i] = f.columnName() + " = ?"
 		valList[i] = f.value()
 	}
 	whereStr, whereList := genWhere(m).toClause()
@@ -179,7 +179,7 @@ func UpdateMul(l ModelList) error {
 			colList := make([]string, len(fs))
 			valList := make([]interface{}, len(fs))
 			for i, f := range fs {
-				colList[i] = f.Column() + " = ?"
+				colList[i] = f.columnName() + " = ?"
 				valList[i] = f.value()
 			}
 			whereStr, whereList := genWhere(m).toClause()
@@ -291,7 +291,7 @@ func Distinct(l ModelList, fields ...Field) {
 	f := func(m Model) bool {
 		builder := strings.Builder{}
 		for _, field := range fields {
-			builder.WriteString(fmt.Sprintf("%v", getByName(m, field.Column()).value()))
+			builder.WriteString(fmt.Sprintf("%v", getByName(m, field.columnName()).value()))
 		}
 		id := builder.String()
 		if distMap[id] {

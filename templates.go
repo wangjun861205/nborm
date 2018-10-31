@@ -69,17 +69,19 @@ import (
 				{{ endswitch }}
 			{{ endfor }}
 			{{ for _, oto in tab.OneToOnes }}
-				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne(m.{{ oto.SrcCol.FieldName }}, "{{ oto.DstCol.Name }}", func() nborm.Model { return New{{ oto.DstTab.ModelName }}() })
+				m.{{ oto.DstTab.ModelName }} = nborm.NewOneToOne(m.{{ oto.SrcCol.FieldName }}, func() nborm.Field { return New{{ oto.DstTab.ModelName }}().{{ oto.DstCol.FieldName }} })
 			{{ endfor }}
 			{{ for _, fk in tab.ForeignKeys }}
-				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, "{{ fk.DstCol.Name }}", func() nborm.Model { return New{{ fk.DstTab.ModelName }}() })
+				m.{{ fk.DstTab.ModelName }} = nborm.NewForeignKey(m.{{ fk.SrcCol.FieldName }}, func() nborm.Field { return New{{ fk.DstTab.ModelName }}().{{ fk.DstCol.FieldName }} })
 			{{ endfor }}
 			{{ for _, rfk in tab.ReverseForeignKeys }}
-				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, "{{ rfk.DstCol.Name }}", func() nborm.ModelList { return New{{ rfk.DstTab.ModelName }}List() })
+				m.{{ rfk.DstTab.ModelName }} = nborm.NewReverseForeignKey(m.{{ rfk.SrcCol.FieldName }}, func() nborm.Field { return New{{ rfk.DstTab.ModelName }}().{{ rfk.DstCol.FieldName }} })
 			{{ endfor }}
 			{{ for i, mtm in tab.ManyToManys }}
-				mtmMidMod{{ i }} := New{{ mtm.MidTab.ModelName }}()
-				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidLeftCol.FieldName }}, mtmMidMod{{ i }}.{{ mtm.MidRightCol.FieldName }}, "{{ mtm.DstCol.Name }}", func() nborm.ModelList { return New{{ mtm.DstTab.ModelName }}List() })
+				m.{{ mtm.DstTab.ModelName }} = nborm.NewManyToMany(m.{{ mtm.SrcCol.FieldName }}, func() (nborm.Field, nborm.Field) { 
+					m := New{{ mtm.MidTab.ModelName }}()
+					return m.{{ mtm.MidLeftCol.FieldName }}, m.{{ mtm.MidRightCol.FieldName }} }, 
+					func() nborm.Field { return New{{ mtm.DstTab.ModelName }}().{{ mtm.DstCol.FieldName }} })
 			{{ endfor }}	
 			return m
 		}

@@ -19,7 +19,7 @@ func getTableCache(m Model) *tableCache {
 		pk, inc := -1, -1
 		unis := make([]int, 0, len(fields))
 		for i, field := range fields {
-			fieldMap[field.Column()] = i
+			fieldMap[field.columnName()] = i
 			if field.IsPk() {
 				pk = i
 			}

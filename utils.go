@@ -53,8 +53,12 @@ type Order struct {
 	Reverse bool
 }
 
+func NewOrder(field Field, reverse bool) *Order {
+	return &Order{field, reverse}
+}
+
 //OrderBy create Sorter
-func OrderBy(orders ...Order) *Sorter {
+func NewSorter(orders ...*Order) *Sorter {
 	l := make([]string, len(orders))
 	for i, order := range orders {
 		var o string
@@ -63,7 +67,7 @@ func OrderBy(orders ...Order) *Sorter {
 		} else {
 			o = "ASC"
 		}
-		l[i] = fmt.Sprintf("%s.%s.%s %s", order.Field.Super().DB(), order.Field.Super().Tab(), order.Field.Column(), o)
+		l[i] = fmt.Sprintf("%s.%s.%s %s", order.Field.superModel().DB(), order.Field.superModel().Tab(), order.Field.columnName(), o)
 	}
 	s := Sorter(fmt.Sprintf("ORDER BY %s", strings.Join(l, ", ")))
 	return &s
@@ -455,15 +459,15 @@ func insertAndGetInc(m Model, update bool) error {
 	valList := make([]interface{}, len(others))
 	updateList := make([]string, len(others))
 	for i, f := range others {
-		colList[i] = f.Column()
+		colList[i] = f.columnName()
 		valList[i] = f.value()
-		updateList[i] = f.Column() + " = ?"
+		updateList[i] = f.columnName() + " = ?"
 	}
 	var res sql.Result
 	var err error
 	if update {
 		stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
-			strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.Column(), inc.Column(),
+			strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.columnName(), inc.columnName(),
 			strings.Join(updateList, ", "))
 		res, err = db.Exec(stmtStr, append(valList, valList...)...)
 	} else {
@@ -494,15 +498,15 @@ func insertAndGetIncContext(ctx context.Context, m Model, update bool) error {
 		valList := make([]interface{}, len(others))
 		updateList := make([]string, len(others))
 		for i, f := range others {
-			colList[i] = f.Column()
+			colList[i] = f.columnName()
 			valList[i] = f.value()
-			updateList[i] = f.Column() + " = ?"
+			updateList[i] = f.columnName() + " = ?"
 		}
 		var res sql.Result
 		var err error
 		if update {
 			stmtStr := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", m.DB(), m.Tab(),
-				strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.Column(), inc.Column(),
+				strings.Join(colList, ", "), strings.Join(strings.Fields(strings.Repeat("? ", len(colList))), ", "), inc.columnName(), inc.columnName(),
 				strings.Join(updateList, ", "))
 			res, err = db.ExecContext(ctx, stmtStr, append(valList, valList...)...)
 		} else {

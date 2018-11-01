@@ -1653,17 +1653,28 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(l ModelList, sorter *Sorter, page
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
 			l.Model().DB(), l.Model().Tab())
 	}
-	db := dbMap[rfk.dstDB()]
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s", rfk.dstDB(), rfk.dstTab(),
-		rfk.dstCol(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, rfk.srcField.value())
+	tx, err := dbMap[rfk.dstDB()].Begin()
 	if err != nil {
 		return -1, err
 	}
-	if err = scanRows(l, rows); err != nil {
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s", rfk.dstDB(), rfk.dstTab(),
+		rfk.dstCol(), sorter.toSQL(), pager.toSQL())
+	rows, err := tx.Query(stmtStr, rfk.srcField.value())
+	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return getFoundRows(db)
+	if err = scanRows(l, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return num, nil
 }
 
 //Query query related table by this relation
@@ -1689,18 +1700,29 @@ func (rfk *ReverseForeignKey) QueryWithFoundRows(l ModelList, where *Where, sort
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
 			l.Model().DB(), l.Model().Tab())
 	}
-	db := dbMap[rfk.dstDB()]
-	whereStr, whereList := where.toAndClause()
-	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s %s", rfk.dstDB(), rfk.dstTab(), rfk.dstCol(),
-		whereStr, sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...))
+	tx, err := dbMap[rfk.dstDB()].Begin()
 	if err != nil {
 		return -1, err
 	}
-	if err := scanRows(l, rows); err != nil {
+	whereStr, whereList := where.toAndClause()
+	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s WHERE %s = ? %s %s %s", rfk.dstDB(), rfk.dstTab(), rfk.dstCol(),
+		whereStr, sorter.toSQL(), pager.toSQL())
+	rows, err := tx.Query(stmtStr, append([]interface{}{rfk.srcField.value()}, whereList...))
+	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return getFoundRows(db)
+	if err := scanRows(l, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return num, nil
 }
 
 func (rfk *ReverseForeignKey) joinClause() string {
@@ -1814,19 +1836,30 @@ func (mtm *ManyToMany) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Page
 	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
 		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
 	}
-	db := dbMap[mtm.dstDB()]
+	tx, err := dbMap[mtm.dstDB()].Begin()
+	if err != nil {
+		return -1, err
+	}
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
 		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, mtm.srcField.value())
+	rows, err := tx.Query(stmtStr, mtm.srcField.value())
 	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
 	if err = scanRows(l, rows); err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return getFoundRows(db)
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return num, err
 }
 
 //Query query records in related table by this relation
@@ -1852,20 +1885,31 @@ func (mtm *ManyToMany) QueryWithFoundRows(l ModelList, where *Where, sorter *Sor
 	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
 		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
 	}
-	db := dbMap[mtm.dstDB()]
+	tx, err := dbMap[mtm.dstDB()].Begin()
+	if err != nil {
+		return -1, err
+	}
 	whereStr, whereList := where.toAndClause()
 	stmtStr := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s WHERE %s.%s.%s = ? %s %s %s",
 		l.Model().DB(), l.Model().Tab(), mtm.srcDB(), mtm.srcTab(), mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), mtm.midDB(),
 		mtm.midTab(), mtm.midLeftCol(), l.Model().DB(), l.Model().Tab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), l.Model().DB(), l.Model().Tab(),
 		mtm.dstCol(), mtm.srcDB(), mtm.srcTab(), mtm.srcCol(), whereStr, sorter.toSQL(), pager.toSQL())
-	rows, err := db.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...)...)
+	rows, err := tx.Query(stmtStr, append([]interface{}{mtm.srcField.value()}, whereList...)...)
 	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
 	if err = scanRows(l, rows); err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return getFoundRows(db)
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return num, nil
 }
 
 //Add add a relation record to middle table

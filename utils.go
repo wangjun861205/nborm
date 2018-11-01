@@ -205,22 +205,43 @@ func queryAndScanWithNum(tab interface{}, stmtStr string, valList []interface{})
 	}
 	switch obj := tab.(type) {
 	case Model:
-		db := dbMap[obj.DB()]
-		row := db.QueryRow(stmtStr, valList...)
-		if err := scanRow(obj, row); err != nil {
-			return -1, err
-		}
-		return getFoundRows(db)
-	case ModelList:
-		db := dbMap[obj.Model().DB()]
-		rows, err := db.Query(stmtStr, valList...)
+		tx, err := dbMap[obj.DB()].Begin()
 		if err != nil {
 			return -1, err
 		}
-		if err := scanRows(obj, rows); err != nil {
+		row := tx.QueryRow(stmtStr, valList...)
+		if err := scanRow(obj, row); err != nil {
+			tx.Rollback()
 			return -1, err
 		}
-		return getFoundRows(db)
+		num, err := getFoundRows(tx)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		tx.Commit()
+		return num, nil
+	case ModelList:
+		tx, err := dbMap[obj.Model().DB()].Begin()
+		if err != nil {
+			return -1, err
+		}
+		rows, err := tx.Query(stmtStr, valList...)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		if err := scanRows(obj, rows); err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		num, err := getFoundRows(tx)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		tx.Commit()
+		return num, nil
 	default:
 		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
 	}
@@ -232,22 +253,42 @@ func queryAndScanWithNumContext(ctx context.Context, tab interface{}, stmtStr st
 	}
 	switch obj := tab.(type) {
 	case Model:
-		db := dbMap[obj.DB()]
-		row := db.QueryRowContext(ctx, stmtStr, valList...)
-		if err := scanRowContext(ctx, obj, row); err != nil {
-			return -1, err
-		}
-		return getFoundRowsContext(ctx, db)
-	case ModelList:
-		db := dbMap[obj.Model().DB()]
-		rows, err := db.QueryContext(ctx, stmtStr, valList...)
+		tx, err := dbMap[obj.DB()].Begin()
 		if err != nil {
 			return -1, err
 		}
-		if err := scanRowsContext(ctx, obj, rows); err != nil {
+		row := tx.QueryRowContext(ctx, stmtStr, valList...)
+		if err := scanRowContext(ctx, obj, row); err != nil {
+			tx.Rollback()
 			return -1, err
 		}
-		return getFoundRowsContext(ctx, db)
+		num, err := getFoundRowsContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		tx.Commit()
+		return num, nil
+	case ModelList:
+		tx, err := dbMap[obj.Model().DB()].Begin()
+		if err != nil {
+			return -1, err
+		}
+		rows, err := tx.QueryContext(ctx, stmtStr, valList...)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		if err := scanRowsContext(ctx, obj, rows); err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		num, err := getFoundRowsContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		return num, nil
 	default:
 		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
 	}
@@ -368,9 +409,9 @@ func genWhere(m Model) *Where {
 	}
 }
 
-func getFoundRows(db *sql.DB) (int, error) {
+func getFoundRows(tx *sql.Tx) (int, error) {
 	var num int
-	row := db.QueryRow("SELECT FOUND_ROWS()")
+	row := tx.QueryRow("SELECT FOUND_ROWS()")
 	err := row.Scan(&num)
 	if err != nil {
 		return -1, err
@@ -378,9 +419,9 @@ func getFoundRows(db *sql.DB) (int, error) {
 	return num, nil
 }
 
-func getFoundRowsContext(ctx context.Context, db *sql.DB) (int, error) {
+func getFoundRowsContext(ctx context.Context, tx *sql.Tx) (int, error) {
 	var num int
-	row := db.QueryRowContext(ctx, "SELECT FOUND_ROWS()")
+	row := tx.QueryRowContext(ctx, "SELECT FOUND_ROWS()")
 	err := row.Scan(&num)
 	if err != nil {
 		return -1, err

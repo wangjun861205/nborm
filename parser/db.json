@@ -1,0 +1,26 @@
+{
+    "test": {
+            "test1": {
+                "columns": [
+                    {"name": "id", "type": "int", "null": false, "auto_increment": true, "default_value": null},
+                    {"name": "string_column", "type": "string", "null": false, "default_value": null},
+                    {"name": "float_column", "type": "float", "null": false, "default_value": null},
+                    {"name": "bool_column", "type": "bool", "null": false, "default_value": null},
+                    {"name": "bytes_column", "type": "bytes", "null": false, "default_value": null},
+                    {"name": "date_column", "type": "date", "null": false, "default_value": null},
+                    {"name": "datetime_column", "type": "datetime", "null": false, "default_value": "@@CURRENT_TIMESTAMP"},
+                    {"name": "fk", "type":"int", "null": false, "default_value": null, "foreign_key": "test.test2.id"}
+                ],
+                "primary_key": "id",
+                "unique_keys": []
+            },
+            "test2": {
+                "columns": [
+                    {"name": "id", "type": "int", "null": false, "auto_increment": true, "default_value": null},
+                    {"name": "fk_id", "type": "int", "null": false, "default_value": null}
+                ],
+                "primary_key": "id",
+                "unique_keys": []
+            }
+    }
+}

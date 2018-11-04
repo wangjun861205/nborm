@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 //Pager is for pagerate
@@ -163,69 +165,50 @@ func scanRowContext(ctx context.Context, m Model, row *sql.Row) error {
 	}
 }
 
-func queryAndScan(tab interface{}, stmtStr string, valList []interface{}) error {
+func queryAndScan(tab table, stmtStr string, valList []interface{}) error {
+	db := dbMap[tab.DB()]
 	switch obj := tab.(type) {
-	case Model:
-		db := dbMap[obj.DB()]
-		row := db.QueryRow(stmtStr, valList...)
-		return scanRow(obj, row)
 	case ModelList:
-		db := dbMap[obj.Model().DB()]
 		rows, err := db.Query(stmtStr, valList...)
 		if err != nil {
 			return err
 		}
 		return scanRows(obj, rows)
+	case Model:
+		row := db.QueryRow(stmtStr, valList...)
+		return scanRow(obj, row)
 	default:
 		return fmt.Errorf("nborm error: unsupported type (%T)", tab)
 	}
 }
 
-func queryAndScanContext(ctx context.Context, tab interface{}, stmtStr string, valList []interface{}) error {
+func queryAndScanContext(ctx context.Context, tab table, stmtStr string, valList []interface{}) error {
+	db := dbMap[tab.DB()]
 	switch obj := tab.(type) {
-	case Model:
-		db := dbMap[obj.DB()]
-		row := db.QueryRowContext(ctx, stmtStr, valList...)
-		return scanRowContext(ctx, obj, row)
 	case ModelList:
-		db := dbMap[obj.Model().DB()]
 		rows, err := db.QueryContext(ctx, stmtStr, valList...)
 		if err != nil {
 			return err
 		}
 		return scanRowsContext(ctx, obj, rows)
+	case Model:
+		row := db.QueryRowContext(ctx, stmtStr, valList...)
+		return scanRowContext(ctx, obj, row)
 	default:
 		return fmt.Errorf("nborm error: unsupported type (%T)", tab)
 	}
 }
 
-func queryAndScanWithNum(tab interface{}, stmtStr string, valList []interface{}) (int, error) {
+func queryAndScanWithNum(tab table, stmtStr string, valList []interface{}) (int, error) {
 	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
 		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
 	}
+	tx, err := dbMap[tab.DB()].Begin()
+	if err != nil {
+		return -1, err
+	}
 	switch obj := tab.(type) {
-	case Model:
-		tx, err := dbMap[obj.DB()].Begin()
-		if err != nil {
-			return -1, err
-		}
-		row := tx.QueryRow(stmtStr, valList...)
-		if err := scanRow(obj, row); err != nil {
-			tx.Rollback()
-			return -1, err
-		}
-		num, err := getFoundRows(tx)
-		if err != nil {
-			tx.Rollback()
-			return -1, err
-		}
-		tx.Commit()
-		return num, nil
 	case ModelList:
-		tx, err := dbMap[obj.Model().DB()].Begin()
-		if err != nil {
-			return -1, err
-		}
 		rows, err := tx.Query(stmtStr, valList...)
 		if err != nil {
 			tx.Rollback()
@@ -242,38 +225,34 @@ func queryAndScanWithNum(tab interface{}, stmtStr string, valList []interface{})
 		}
 		tx.Commit()
 		return num, nil
-	default:
-		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
-	}
-}
-
-func queryAndScanWithNumContext(ctx context.Context, tab interface{}, stmtStr string, valList []interface{}) (int, error) {
-	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
-		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
-	}
-	switch obj := tab.(type) {
 	case Model:
-		tx, err := dbMap[obj.DB()].Begin()
-		if err != nil {
-			return -1, err
-		}
-		row := tx.QueryRowContext(ctx, stmtStr, valList...)
-		if err := scanRowContext(ctx, obj, row); err != nil {
+		row := tx.QueryRow(stmtStr, valList...)
+		if err := scanRow(obj, row); err != nil {
 			tx.Rollback()
 			return -1, err
 		}
-		num, err := getFoundRowsContext(ctx, tx)
+		num, err := getFoundRows(tx)
 		if err != nil {
 			tx.Rollback()
 			return -1, err
 		}
 		tx.Commit()
 		return num, nil
+	default:
+		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
+	}
+}
+
+func queryAndScanWithNumContext(ctx context.Context, tab table, stmtStr string, valList []interface{}) (int, error) {
+	if !strings.Contains(stmtStr, "SQL_CALC_FOUND_ROWS") {
+		return -1, fmt.Errorf("the statement (%s) does not contains 'SQL_CALC_FOUND_ROWS'", stmtStr)
+	}
+	tx, err := dbMap[tab.DB()].Begin()
+	if err != nil {
+		return -1, err
+	}
+	switch obj := tab.(type) {
 	case ModelList:
-		tx, err := dbMap[obj.Model().DB()].Begin()
-		if err != nil {
-			return -1, err
-		}
 		rows, err := tx.QueryContext(ctx, stmtStr, valList...)
 		if err != nil {
 			tx.Rollback()
@@ -288,6 +267,19 @@ func queryAndScanWithNumContext(ctx context.Context, tab interface{}, stmtStr st
 			tx.Rollback()
 			return -1, err
 		}
+		return num, nil
+	case Model:
+		row := tx.QueryRowContext(ctx, stmtStr, valList...)
+		if err := scanRowContext(ctx, obj, row); err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		num, err := getFoundRowsContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			return -1, err
+		}
+		tx.Commit()
 		return num, nil
 	default:
 		return -1, fmt.Errorf("nborm error: unsupported type (%T)", tab)
@@ -601,4 +593,57 @@ func iterList(l ModelList, f func(context.Context, Model) error) error {
 
 func toListStr(val interface{}) string {
 	return strings.Join(strings.Fields(strings.Trim(fmt.Sprint(val), "[]")), ", ")
+}
+
+func relationQuery(tab table, relation relation, where *Where, sorter *Sorter, pager *Pager) error {
+	whereClause, whereValues := genWhere(relation.srcModel()).And(where).toClause()
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", tab.DB(), tab.Tab(), relation.srcDB(), relation.srcTab(), relation.joinClause(),
+		whereClause, sorter.toSQL(), pager.toSQL())
+	return queryAndScan(tab, stmt, whereValues)
+}
+
+func relationQueryWithFoundRows(l ModelList, relation relation, where *Where, sorter *Sorter, pager *Pager) (rowsNum int, err error) {
+	whereClause, whereValues := genWhere(relation.srcModel()).And(where).toClause()
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", l.Model().DB(), l.Model().Tab(), relation.srcDB(),
+		relation.srcTab(), relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
+	return queryAndScanWithNum(l, stmt, whereValues)
+}
+
+func relationAddOne(relation relation, m Model) error {
+	switch rel := relation.(type) {
+	case *ReverseForeignKey:
+		getByName(m, rel.dstCol()).setVal(rel.getSrcField().value(), false)
+		return insertAndGetInc(m, false)
+	case *ManyToMany:
+		err := insertAndGetInc(m, false)
+		if err != nil {
+			if e, ok := err.(*mysql.MySQLError); !ok || e.Number != 1062 {
+				return err
+			}
+		}
+		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
+		rel.getMidRightField().setVal(getByName(m, rel.dstCol()).value(), false)
+		err = insertAndGetInc(rel.getMidLeftField().superModel(), false)
+		if err != nil {
+			if e, ok := err.(*mysql.MySQLError); !ok || e.Number != 1062 {
+				return err
+			}
+		}
+		return nil
+	default:
+		return fmt.Errorf("nborm.relationAddOne() error: unsupported relation (%T)", relation)
+	}
+}
+
+func relationRemoveOne(relation relation, m Model) error {
+	switch rel := relation.(type) {
+	case *ReverseForeignKey:
+		return DeleteOne(m)
+	case *ManyToMany:
+		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
+		rel.getMidRightField().setVal(getByName(m, rel.dstCol()).value(), false)
+		return DeleteOne(rel.getMidLeftField().superModel())
+	default:
+		return fmt.Errorf("nborm.relationRemoveOne() error: unsupported relation (%T)", relation)
+	}
 }

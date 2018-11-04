@@ -280,7 +280,7 @@ func (t *Table) GetSync() bool {
 
 //ColumnList Column list
 type ColumnList struct {
-	M    *Column
+	*Column
 	List []*Column
 }
 
@@ -333,12 +333,12 @@ func (cl *ColumnList) MarshalJSON() ([]byte, error) {
 
 //Model return example Model
 func (cl *ColumnList) Model() Model {
-	return cl.M
+	return cl.Column
 }
 
 //KeyColumnUsageList KeyColumnUsage list
 type KeyColumnUsageList struct {
-	M    *KeyColumnUsage
+	*KeyColumnUsage
 	List []*KeyColumnUsage
 }
 
@@ -391,12 +391,12 @@ func (ul *KeyColumnUsageList) MarshalJSON() ([]byte, error) {
 
 //Model return example Model
 func (ul *KeyColumnUsageList) Model() Model {
-	return ul.M
+	return ul.KeyColumnUsage
 }
 
 //TableList Table list
 type TableList struct {
-	M    *Table
+	*Table
 	List []*Table
 }
 
@@ -449,5 +449,5 @@ func (l *TableList) MarshalJSON() ([]byte, error) {
 
 //Model return example Model
 func (l *TableList) Model() Model {
-	return l.M
+	return l.Table
 }

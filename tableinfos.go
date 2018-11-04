@@ -101,7 +101,7 @@ type tableInfo struct {
 
 func _getTableNames(dbName string) (names []string) {
 	tables := NewTableList()
-	err := Query(tables, tables.M.TABLE_SCHEMA.Eq(dbName), nil, nil)
+	err := Query(tables, tables.TABLE_SCHEMA.Eq(dbName), nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +119,7 @@ func _getTableNames(dbName string) (names []string) {
 func _getColumnInfos(dbName string, tableName string) {
 	columns := NewColumnList()
 	columnInfos := make(ColumnInfoList, 0, 16)
-	err := Query(columns, columns.M.TABLE_SCHEMA.Eq(dbName).And(columns.M.TABLE_NAME.Eq(tableName)), nil, nil)
+	err := Query(columns, columns.TABLE_SCHEMA.Eq(dbName).And(columns.TABLE_NAME.Eq(tableName)), nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -179,9 +179,9 @@ func GetDBInfo(dbNames ...string) {
 
 func _getRelations(dbName, tableName string) {
 	keys := NewKeyColumnUsageList()
-	err := Query(keys, keys.M.TABLE_SCHEMA.Eq(dbName).And(
-		keys.M.TABLE_NAME.Eq(tableName)).And(
-		keys.M.REFERENCED_TABLE_SCHEMA.NotNull()), nil, nil)
+	err := Query(keys, keys.TABLE_SCHEMA.Eq(dbName).And(
+		keys.TABLE_NAME.Eq(tableName)).And(
+		keys.REFERENCED_TABLE_SCHEMA.NotNull()), nil, nil)
 	if err != nil {
 		panic(err)
 	}

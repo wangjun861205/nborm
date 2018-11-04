@@ -19,6 +19,7 @@ type Model interface {
 
 //ModelList declare a ModelList interface
 type ModelList interface {
+	table
 	New() Model
 	Len() int
 	Index(int) Model
@@ -44,6 +45,7 @@ type Field interface {
 	superModel() Model
 	SortOrder(reverse bool) string
 	value() interface{}
+	setVal(interface{}, bool)
 }
 
 type relation interface {
@@ -54,4 +56,6 @@ type relation interface {
 	dstTab() string
 	dstCol() string
 	joinClause() string
+	srcModel() Model
+	getSrcField() Field
 }

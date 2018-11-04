@@ -111,7 +111,7 @@ import (
 		}
 
 		type {{ tab.ModelName }}List struct {
-			M *{{ tab.ModelName }}
+			*{{ tab.ModelName }}
 			List []*{{ tab.ModelName }}
 		}
 
@@ -153,7 +153,7 @@ import (
 		}
 
 		func (l *{{ tab.ModelName }}List) Model() nborm.Model {
-			return l.M
+			return l.{{ tab.ModelName }}
 		}
 
 	{{ endfor }}

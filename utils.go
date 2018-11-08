@@ -286,34 +286,6 @@ func queryAndScanWithNumContext(ctx context.Context, tab table, stmtStr string, 
 	}
 }
 
-func getPk(m Model) (pk Field, others []Field) {
-	info := getTableCache(m)
-	fields := m.Fields()
-	pk = fields[info.pk]
-	others = append(fields[:info.pk], fields[info.pk+1:]...)
-	return
-}
-
-func getInc(m Model) (inc Field, others []Field) {
-	info := getTableCache(m)
-	fields := m.Fields()
-	inc = fields[info.inc]
-	others = append(fields[:info.inc], fields[info.inc+1:]...)
-	return
-}
-
-func getUni(m Model) (unis []Field, others []Field) {
-	fields := m.Fields()
-	for _, f := range fields {
-		if f.IsPk() || f.IsInc() || f.IsUni() {
-			unis = append(unis, f)
-		} else {
-			others = append(others, f)
-		}
-	}
-	return
-}
-
 func filterValid(fields []Field) (validFields []Field) {
 	for _, f := range fields {
 		if f.IsValid() {
@@ -321,12 +293,6 @@ func filterValid(fields []Field) (validFields []Field) {
 		}
 	}
 	return
-}
-
-func getByName(m Model, name string) Field {
-	info := getTableCache(m)
-	fields := m.Fields()
-	return fields[info.fieldMap[name]]
 }
 
 type sortObj struct {
@@ -369,36 +335,38 @@ func filterList(l ModelList, f func(Model) bool) {
 // }
 
 func genWhere(m Model) *Where {
-	fields := m.Fields()
-	info := getTableCache(m)
-	switch {
-	case info.inc != -1 && fields[info.inc].IsValid():
-		return fields[info.inc].Where()
-	case info.pk != -1 && fields[info.pk].IsValid():
-		return fields[info.pk].Where()
-	case len(info.unis) > 0:
-		for _, index := range info.unis {
-			if fields[index].IsValid() {
-				return fields[index].Where()
-			}
-		}
-		fallthrough
-	default:
-		var w *Where
-		for _, f := range fields {
-			if f.IsValid() {
-				if w == nil {
-					w = f.Where()
-				} else {
-					w.And(f.Where())
-				}
-			}
-		}
-		if w == nil {
-			panic("nborm.genWhere() error: empty where")
-		}
-		return w
+	info := getTabInfo(m)
+	inc := getInc(m)
+	if inc != nil && inc.IsValid() {
+		return inc.Where()
 	}
+	pks := getPks(m)
+	var where *Where
+	for _, pk := range pks {
+		if !pk.IsValid() {
+			where = nil
+			break
+		}
+		where = where.And(pk.Where())
+	}
+	if where != nil {
+		return where
+	}
+	unis := getUnis(m)
+	if len(unis) > 0 {
+		for _, uni := range unis {
+			if uni.IsValid() {
+				return uni.Where()
+			}
+		}
+	}
+	for _, col := range info.columns {
+		field := getFieldByName(m, col.colName)
+		if field.IsValid() {
+			where = where.And(field.Where())
+		}
+	}
+	return where
 }
 
 func getFoundRows(tx *sql.Tx) (int, error) {
@@ -486,7 +454,7 @@ func genSelect(tab interface{}, where *Where, sorter *Sorter, pager *Pager, with
 
 func insertAndGetInc(m Model, update bool) error {
 	db := dbMap[m.DB()]
-	inc, others := getInc(m)
+	inc, others := getIncAndOthers(m)
 	others = filterValid(others)
 	colList := make([]string, len(others))
 	valList := make([]interface{}, len(others))
@@ -525,7 +493,7 @@ func insertAndGetIncContext(ctx context.Context, m Model, update bool) error {
 		return nil
 	default:
 		db := dbMap[m.DB()]
-		inc, others := getInc(m)
+		inc, others := getIncAndOthers(m)
 		others = filterValid(others)
 		colList := make([]string, len(others))
 		valList := make([]interface{}, len(others))
@@ -612,7 +580,7 @@ func relationQueryWithFoundRows(l ModelList, relation relation, where *Where, so
 func relationAddOne(relation relation, m Model) error {
 	switch rel := relation.(type) {
 	case *ReverseForeignKey:
-		getByName(m, rel.dstCol()).setVal(rel.getSrcField().value(), false)
+		getFieldByName(m, rel.dstCol()).setVal(rel.getSrcField().value(), false)
 		return insertAndGetInc(m, false)
 	case *ManyToMany:
 		err := insertAndGetInc(m, false)
@@ -622,7 +590,7 @@ func relationAddOne(relation relation, m Model) error {
 			}
 		}
 		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
-		rel.getMidRightField().setVal(getByName(m, rel.dstCol()).value(), false)
+		rel.getMidRightField().setVal(getFieldByName(m, rel.dstCol()).value(), false)
 		err = insertAndGetInc(rel.getMidLeftField().superModel(), false)
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); !ok || e.Number != 1062 {
@@ -641,7 +609,7 @@ func relationRemoveOne(relation relation, m Model) error {
 		return DeleteOne(m)
 	case *ManyToMany:
 		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
-		rel.getMidRightField().setVal(getByName(m, rel.dstCol()).value(), false)
+		rel.getMidRightField().setVal(getFieldByName(m, rel.dstCol()).value(), false)
 		return DeleteOne(rel.getMidLeftField().superModel())
 	default:
 		return fmt.Errorf("nborm.relationRemoveOne() error: unsupported relation (%T)", relation)

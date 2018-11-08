@@ -31,8 +31,8 @@ func RegisterDB(username, password, address, db string) {
 				panic(err)
 			}
 			dbMap["information_schema"] = infoConn
-			GetDBInfo(db)
-			MarshalDBInfo()
+			// GetDBInfo(db)
+			// MarshalDBInfo()
 		} else {
 			infoMap := make(map[string]map[string]*tableInfo)
 			f, err := os.Open("dbinfo.json")
@@ -49,7 +49,7 @@ func RegisterDB(username, password, address, db string) {
 			}
 			dbInfo = infoMap
 		}
-		initCacheByInfo()
+		// initCacheByInfo()
 	}
 }
 

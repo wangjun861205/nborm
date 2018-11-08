@@ -152,7 +152,7 @@ func InsertOrGetMul(l ModelList) error {
 
 //UpdateOne update one record
 func UpdateOne(m Model) error {
-	_, fs := getInc(m)
+	_, fs := getIncAndOthers(m)
 	fs = filterValid(fs)
 	colList := make([]string, 0, len(fs))
 	valList := make([]interface{}, 0, len(fs))
@@ -174,7 +174,7 @@ func UpdateMul(l ModelList) error {
 		case <-ctx.Done():
 			return nil
 		default:
-			_, fs := getInc(m)
+			_, fs := getIncAndOthers(m)
 			fs = filterValid(fs)
 			colList := make([]string, len(fs))
 			valList := make([]interface{}, len(fs))
@@ -291,7 +291,7 @@ func Distinct(l ModelList, fields ...Field) {
 	f := func(m Model) bool {
 		builder := strings.Builder{}
 		for _, field := range fields {
-			builder.WriteString(fmt.Sprintf("%v", getByName(m, field.columnName()).value()))
+			builder.WriteString(fmt.Sprintf("%v", getFieldByName(m, field.columnName()).value()))
 		}
 		id := builder.String()
 		if distMap[id] {

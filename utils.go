@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -614,4 +615,13 @@ func relationRemoveOne(relation relation, m Model) error {
 	default:
 		return fmt.Errorf("nborm.relationRemoveOne() error: unsupported relation (%T)", relation)
 	}
+}
+
+var snakeCaseRe = regexp.MustCompile(`[A-Z]+[0-9a-z]*`)
+
+func toSnakeCase(s string) string {
+	newStr := snakeCaseRe.ReplaceAllStringFunc(s, func(v string) string {
+		return "_" + strings.ToLower(v)
+	})
+	return strings.TrimLeft(strings.Replace(newStr, "___", "__", -1), "_")
 }

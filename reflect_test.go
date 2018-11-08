@@ -6,17 +6,17 @@ import (
 )
 
 type Auth struct {
-	Id            *IntField      `column:"id" auto_increment:"true"`
-	Username      *StringField   `column:"username"`
-	Password      *StringField   `column:"password"`
-	Phone         *StringField   `column:"phone" primary_key:"true"`
-	Status        *IntField      `column:"status"`
-	SessionId     *StringField   `column:"session_id"`
-	ExpireTime    *DatetimeField `column:"expire_time"`
-	Email         *StringField   `column:"email" unique:"true"`
-	CreateTime    *DatetimeField `column:"create_time"`
-	LastLoginTime *DatetimeField `column:"last_login_time"`
-	IsSuperUser   *BoolField     `column:"is_super_user"`
+	Id            *IntField `auto_increment:"true"`
+	Username      *StringField
+	Password      *StringField
+	Phone         *StringField `primary_key:"true"`
+	Status        *IntField
+	SessionId     *StringField
+	ExpireTime    *DatetimeField
+	Email         *StringField `unique:"true"`
+	CreateTime    *DatetimeField
+	LastLoginTime *DatetimeField
+	IsSuperUser   *BoolField
 	_isSync       bool
 }
 
@@ -40,6 +40,6 @@ func (l *AuthList) Tab() string {
 
 func TestReflect(t *testing.T) {
 	auths := make(AuthList, 0, 8)
-	InitSlice(&auths)
-	fmt.Println(len(auths))
+	tabInfo := getTabInfo(&auths)
+	fmt.Println(tabInfo.columnMap["session_id"])
 }

@@ -121,7 +121,7 @@ func parseColumn(field reflect.StructField) *columnInfo {
 		panic(fmt.Errorf("nborm.parseColumn() error: unsupported field type (%s)", field.Type.Name()))
 	}
 	if c.colName, ok = field.Tag.Lookup("column"); !ok {
-		panic(fmt.Errorf("nborm.parseColumn() error: no 'column' tag for field (%s)", field.Name))
+		c.colName = toSnakeCase(field.Name)
 	}
 	if nullable, ok := field.Tag.Lookup("nullable"); ok && nullable == "true" {
 		c.nullable = true

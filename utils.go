@@ -86,26 +86,26 @@ func (s *Sorter) toSQL() string {
 	return string(*s)
 }
 
-func scanRows(l ModelList, rows *sql.Rows) error {
-	defer rows.Close()
-	for rows.Next() {
-		m := l.New()
-		fields := m.Fields()
-		scanList := make([]interface{}, len(fields))
-		for i, f := range fields {
-			scanList[i] = f
-		}
-		err := rows.Scan(scanList...)
-		if err != nil {
-			return err
-		}
-		m.SetSync(true)
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	return nil
-}
+// func scanRows(l ModelList, rows *sql.Rows) error {
+// 	defer rows.Close()
+// 	for rows.Next() {
+// 		m := l.New()
+// 		fields := m.Fields()
+// 		scanList := make([]interface{}, len(fields))
+// 		for i, f := range fields {
+// 			scanList[i] = f
+// 		}
+// 		err := rows.Scan(scanList...)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		m.SetSync(true)
+// 	}
+// 	if err := rows.Err(); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func scanRowsContext(ctx context.Context, l ModelList, rows *sql.Rows) error {
 	defer rows.Close()
@@ -133,19 +133,19 @@ func scanRowsContext(ctx context.Context, l ModelList, rows *sql.Rows) error {
 	return nil
 }
 
-func scanRow(m Model, row *sql.Row) error {
-	fields := m.Fields()
-	scanList := make([]interface{}, len(fields))
-	for i, f := range fields {
-		scanList[i] = f
-	}
-	err := row.Scan(scanList...)
-	if err != nil {
-		return err
-	}
-	m.SetSync(true)
-	return nil
-}
+// func scanRow(m Model, row *sql.Row) error {
+// 	fields := m.Fields()
+// 	scanList := make([]interface{}, len(fields))
+// 	for i, f := range fields {
+// 		scanList[i] = f
+// 	}
+// 	err := row.Scan(scanList...)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	m.SetSync(true)
+// 	return nil
+// }
 
 func scanRowContext(ctx context.Context, m Model, row *sql.Row) error {
 	select {

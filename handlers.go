@@ -287,11 +287,12 @@ func Sort(l ModelList, reverse bool, fields ...Field) {
 
 //Distinct distinct Models in a ModelList by selected Fields
 func Distinct(l ModelList, fields ...Field) {
+	tabInfo := getTabInfoByName(l.DB(), l.Tab())
 	distMap := make(map[string]bool)
 	f := func(m Model) bool {
 		builder := strings.Builder{}
 		for _, field := range fields {
-			builder.WriteString(fmt.Sprintf("%v", getFieldByName(m, field.columnName()).value()))
+			builder.WriteString(fmt.Sprintf("%v", getFieldByName(m, field.columnName(), tabInfo).value()))
 		}
 		id := builder.String()
 		if distMap[id] {

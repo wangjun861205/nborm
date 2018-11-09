@@ -178,8 +178,9 @@ func (f *StringField) In(val []string) *Where {
 
 //LessFunc generate a function for sort a ModelList
 func (f *StringField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*StringField), getFieldByName(jm, f.columnName()).(*StringField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*StringField), getFieldByName(jm, f.columnName(), tabInfo).(*StringField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -402,8 +403,9 @@ func (f *IntField) In(val []int) *Where {
 
 //LessFunc return a function for sort ModelList
 func (f *IntField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*IntField), getFieldByName(jm, f.columnName()).(*IntField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*IntField), getFieldByName(jm, f.columnName(), tabInfo).(*IntField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -446,11 +448,12 @@ func (f *IntField) SortOrder(reverse bool) string {
 
 //SumFunc return a function for sum aggregate
 func (f *IntField) SumFunc() func(ModelList) float64 {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(l ModelList) float64 {
 		var sum int
 		for i := 0; i < l.Len(); i++ {
 			m := l.Index(i)
-			field := getFieldByName(m, f.column)
+			field := getFieldByName(m, f.column, tabInfo)
 			val, valid, null := field.(*IntField).Get()
 			if valid && !null {
 				sum += int(val)
@@ -462,12 +465,13 @@ func (f *IntField) SumFunc() func(ModelList) float64 {
 
 //AvgFunc return a funcion for average aggregate
 func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	if ignoreNull {
 		return func(l ModelList) float64 {
 			var num, sum int
 			for i := 0; i < l.Len(); i++ {
 				m := l.Index(i)
-				field := getFieldByName(m, f.column)
+				field := getFieldByName(m, f.column, tabInfo)
 				val, valid, null := field.(*IntField).Get()
 				if valid && !null {
 					num++
@@ -484,7 +488,7 @@ func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
 		var num, sum int
 		for i := 0; i < l.Len(); i++ {
 			m := l.Index(i)
-			field := getFieldByName(m, f.column)
+			field := getFieldByName(m, f.column, tabInfo)
 			val, valid, null := field.(*IntField).Get()
 			num++
 			if valid && !null {
@@ -679,8 +683,9 @@ func (f *FloatField) In(val []float64) *Where {
 
 //LessFunc return a func for sort ModelList
 func (f *FloatField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*FloatField), getFieldByName(jm, f.columnName()).(*FloatField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*FloatField), getFieldByName(jm, f.columnName(), tabInfo).(*FloatField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -881,8 +886,9 @@ func (f *BoolField) isUni() bool {
 
 //LessFunc return a func for sort ModelList
 func (f *BoolField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*BoolField), getFieldByName(jm, f.columnName()).(*BoolField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*BoolField), getFieldByName(jm, f.columnName(), tabInfo).(*BoolField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1105,8 +1111,9 @@ func (f *DateField) In(val []time.Time) *Where {
 
 //LessFunc return a function for sort ModelList
 func (f *DateField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*DateField), getFieldByName(jm, f.columnName()).(*DateField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*DateField), getFieldByName(jm, f.columnName(), tabInfo).(*DateField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1332,8 +1339,9 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 
 //LessFunc return a function for sorting ModelList
 func (f *DatetimeField) LessFunc() func(Model, Model) int {
+	tabInfo := getTabInfoByName(f.db, f.tab)
 	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName()).(*DatetimeField), getFieldByName(jm, f.columnName()).(*DatetimeField)
+		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*DatetimeField), getFieldByName(jm, f.columnName(), tabInfo).(*DatetimeField)
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int

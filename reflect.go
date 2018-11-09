@@ -349,6 +349,20 @@ func getTabInfo(table table) *tableInfo {
 	return tabInfo
 }
 
+func getTabInfoByName(db, tab string) *tableInfo {
+	schemaLock.RLock()
+	defer schemaLock.RUnlock()
+	if dbInfo, ok := schemaCache.databaseMap[db]; !ok {
+		panic(fmt.Errorf("nborm.getTabInfoByName() error: database not exists (%s)", db))
+	} else {
+		if tabInfo, ok := dbInfo.tableMap[tab]; !ok {
+			panic(fmt.Errorf("nborm.getTabInfoByName() error: table not exists (%s.%s)", db, tab))
+		} else {
+			return tabInfo
+		}
+	}
+}
+
 func initModelWithTableInfo(model Model, tabInfo *tableInfo) {
 	db, tab := model.DB(), model.Tab()
 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
@@ -378,20 +392,20 @@ func initModelWithTableInfo(model Model, tabInfo *tableInfo) {
 		}
 	}
 	for _, oto := range tabInfo.oneToOnes {
-		srcField := getFieldByName(model, oto.srcCol)
+		srcField := getFieldByName(model, oto.srcCol, tabInfo)
 		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = NewOneToOne(db, tab, oto.srcCol, oto.dstDB, oto.dstTab, oto.dstCol, srcField.value)
 	}
 	for _, fk := range tabInfo.foreignKeys {
-		srcField := getFieldByName(model, fk.srcCol)
+		srcField := getFieldByName(model, fk.srcCol, tabInfo)
 		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = NewForeignKey(db, tab, fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol, srcField.value)
 	}
 	for _, rfk := range tabInfo.reverseForeignKeys {
-		srcField := getFieldByName(model, rfk.srcCol)
+		srcField := getFieldByName(model, rfk.srcCol, tabInfo)
 		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = NewReverseForeignKey(db, tab, rfk.srcCol, rfk.dstDB, rfk.dstTab, rfk.dstCol,
 			srcField.value)
 	}
 	for _, mtm := range tabInfo.manyToManys {
-		srcField := getFieldByName(model, mtm.srcCol)
+		srcField := getFieldByName(model, mtm.srcCol, tabInfo)
 		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = NewManyToMany(db, tab, mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol,
 			mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol, srcField.value)
 	}
@@ -422,8 +436,7 @@ func InitSlice(table table) {
 	*(*uintptr)(unsafe.Pointer(underArrayAddr)) = newModelAddr(tabInfo)
 }
 
-func getFieldByName(model Model, colName string) Field {
-	tabInfo := getTabInfo(model)
+func getFieldByName(model Model, colName string, tabInfo *tableInfo) Field {
 	colInfo, ok := tabInfo.columnMap[colName]
 	if !ok {
 		panic(fmt.Errorf("nborm.getFieldByName() error: %T.%s column not exist", model, colName))
@@ -453,7 +466,7 @@ func getPks(model Model) []Field {
 	tabInfo := getTabInfo(model)
 	l := make([]Field, len(tabInfo.pks))
 	for i, pkCol := range tabInfo.pks {
-		l[i] = getFieldByName(model, pkCol.colName)
+		l[i] = getFieldByName(model, pkCol.colName, tabInfo)
 	}
 	return l
 }
@@ -462,9 +475,9 @@ func getPksAndOthers(model Model) (pks []Field, others []Field) {
 	tabInfo := getTabInfo(model)
 	for _, col := range tabInfo.columns {
 		if col.isPk {
-			pks = append(pks, getFieldByName(model, col.colName))
+			pks = append(pks, getFieldByName(model, col.colName, tabInfo))
 		} else {
-			others = append(others, getFieldByName(model, col.colName))
+			others = append(others, getFieldByName(model, col.colName, tabInfo))
 		}
 
 	}
@@ -476,16 +489,16 @@ func getInc(model Model) Field {
 	if tabInfo.inc == nil {
 		return nil
 	}
-	return getFieldByName(model, tabInfo.inc.colName)
+	return getFieldByName(model, tabInfo.inc.colName, tabInfo)
 }
 
 func getIncAndOthers(model Model) (inc Field, others []Field) {
 	tabInfo := getTabInfo(model)
 	for _, col := range tabInfo.columns {
 		if col.isInc {
-			inc = getFieldByName(model, col.colName)
+			inc = getFieldByName(model, col.colName, tabInfo)
 		} else {
-			others = append(others, getFieldByName(model, col.colName))
+			others = append(others, getFieldByName(model, col.colName, tabInfo))
 		}
 	}
 	return
@@ -498,7 +511,7 @@ func getUnis(model Model) []Field {
 	}
 	l := make([]Field, len(tabInfo.unis))
 	for i, uniCol := range tabInfo.unis {
-		l[i] = getFieldByName(model, uniCol.colName)
+		l[i] = getFieldByName(model, uniCol.colName, tabInfo)
 	}
 	return l
 }
@@ -507,9 +520,9 @@ func getUnisAndOthers(model Model) (unis []Field, others []Field) {
 	tabInfo := getTabInfo(model)
 	for _, col := range tabInfo.columns {
 		if col.isUni {
-			unis = append(unis, getFieldByName(model, col.colName))
+			unis = append(unis, getFieldByName(model, col.colName, tabInfo))
 		} else {
-			others = append(others, getFieldByName(model, col.colName))
+			others = append(others, getFieldByName(model, col.colName, tabInfo))
 		}
 
 	}

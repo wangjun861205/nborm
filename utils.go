@@ -362,7 +362,7 @@ func genWhere(m Model) *Where {
 		}
 	}
 	for _, col := range info.columns {
-		field := getFieldByName(m, col.colName)
+		field := getFieldByName(m, col.colName, info)
 		if field.IsValid() {
 			where = where.And(field.where())
 		}
@@ -579,9 +579,10 @@ func relationQueryWithFoundRows(l ModelList, relation relation, where *Where, so
 }
 
 func relationAddOne(relation relation, m Model) error {
+	tabInfo := getTabInfo(m)
 	switch rel := relation.(type) {
 	case *ReverseForeignKey:
-		getFieldByName(m, rel.dstCol).setVal(rel.srcValF(), false)
+		getFieldByName(m, rel.dstCol, tabInfo).setVal(rel.srcValF(), false)
 		return insertAndGetInc(m, false)
 	case *ManyToMany:
 		err := insertAndGetInc(m, false)
@@ -591,7 +592,7 @@ func relationAddOne(relation relation, m Model) error {
 			}
 		}
 		stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", rel.midDB, rel.midTab, rel.midLeftCol, rel.midRightCol)
-		_, err = dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol).value())
+		_, err = dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol, tabInfo).value())
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); !ok || e.Number != 1062 {
 				return err
@@ -604,12 +605,13 @@ func relationAddOne(relation relation, m Model) error {
 }
 
 func relationRemoveOne(relation relation, m Model) error {
+	tabInfo := getTabInfo(m)
 	switch rel := relation.(type) {
 	case *ReverseForeignKey:
 		return DeleteOne(m)
 	case *ManyToMany:
 		stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", rel.midDB, rel.midTab, rel.midLeftCol, rel.midRightCol)
-		_, err := dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol).value())
+		_, err := dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol, tabInfo).value())
 		return err
 	default:
 		return fmt.Errorf("nborm.relationRemoveOne() error: unsupported relation (%T)", relation)

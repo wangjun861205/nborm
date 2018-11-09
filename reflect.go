@@ -301,16 +301,16 @@ func parseTable(table table) *tableInfo {
 			if colInfo.isUni {
 				tabInfo.unis = append(tabInfo.unis, colInfo)
 			}
-		case "nborm.*OneToOne":
+		case "*nborm.OneToOne":
 			otoInfo := parseOneToOne(field)
 			tabInfo.oneToOnes = append(tabInfo.oneToOnes, otoInfo)
-		case "nborm.*ForeignKey":
+		case "*nborm.ForeignKey":
 			fkInfo := parseForeignKey(field)
 			tabInfo.foreignKeys = append(tabInfo.foreignKeys, fkInfo)
-		case "nborm.*ReverseForeignKey":
+		case "*nborm.ReverseForeignKey":
 			rfkInfo := parseReverseForeignKey(field)
 			tabInfo.reverseForeignKeys = append(tabInfo.reverseForeignKeys, rfkInfo)
-		case "nborm.*ManyToMany":
+		case "*nborm.ManyToMany":
 			mtmInfo := parseManyToMany(field)
 			tabInfo.manyToManys = append(tabInfo.manyToManys, mtmInfo)
 		}
@@ -349,110 +349,69 @@ func getTabInfo(table table) *tableInfo {
 	return tabInfo
 }
 
-func newModelAddr(tabInfo *tableInfo) uintptr {
-	baseAddr := reflect.New(tabInfo.modelType).Pointer()
+func initModelWithTableInfo(model Model, tabInfo *tableInfo) {
+	db, tab := model.DB(), model.Tab()
+	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
 	for _, col := range tabInfo.columns {
 		switch col.ormType {
 		case TypeStringField:
-			*(**StringField)(unsafe.Pointer(baseAddr + col.offset)) = &StringField{}
+			*(**StringField)(unsafe.Pointer(baseAddr + col.offset)) = NewStringField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		case TypeIntField:
-			*(**IntField)(unsafe.Pointer(baseAddr + col.offset)) = &IntField{}
+			*(**IntField)(unsafe.Pointer(baseAddr + col.offset)) = NewIntField(db, tab, col.colName, col.nullable, col.isPk, col.isInc, col.isUni,
+				col.defVal)
 		case TypeFloatField:
-			*(**FloatField)(unsafe.Pointer(baseAddr + col.offset)) = &FloatField{}
+			*(**FloatField)(unsafe.Pointer(baseAddr + col.offset)) = NewFloatField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		case TypeBoolField:
-			*(**BoolField)(unsafe.Pointer(baseAddr + col.offset)) = &BoolField{}
+			*(**BoolField)(unsafe.Pointer(baseAddr + col.offset)) = NewBoolField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		case TypeBinaryField:
-			*(**BinaryField)(unsafe.Pointer(baseAddr + col.offset)) = &BinaryField{}
+			*(**BinaryField)(unsafe.Pointer(baseAddr + col.offset)) = NewBinaryField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		case TypeDateField:
-			*(**DateField)(unsafe.Pointer(baseAddr + col.offset)) = &DateField{}
+			*(**DateField)(unsafe.Pointer(baseAddr + col.offset)) = NewDateField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		case TypeDatetimeField:
-			*(**DatetimeField)(unsafe.Pointer(baseAddr + col.offset)) = &DatetimeField{}
+			*(**DatetimeField)(unsafe.Pointer(baseAddr + col.offset)) = NewDatetimeField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
+				col.defVal)
 		}
 	}
 	for _, oto := range tabInfo.oneToOnes {
-		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = &OneToOne{}
+		srcField := getFieldByName(model, oto.srcCol)
+		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = NewOneToOne(db, tab, oto.srcCol, oto.dstDB, oto.dstTab, oto.dstCol, srcField.value)
 	}
 	for _, fk := range tabInfo.foreignKeys {
-		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = &ForeignKey{}
+		srcField := getFieldByName(model, fk.srcCol)
+		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = NewForeignKey(db, tab, fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol, srcField.value)
 	}
 	for _, rfk := range tabInfo.reverseForeignKeys {
-		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = &ReverseForeignKey{}
+		srcField := getFieldByName(model, rfk.srcCol)
+		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = NewReverseForeignKey(db, tab, rfk.srcCol, rfk.dstDB, rfk.dstTab, rfk.dstCol,
+			srcField.value)
 	}
 	for _, mtm := range tabInfo.manyToManys {
-		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = &ManyToMany{}
+		srcField := getFieldByName(model, mtm.srcCol)
+		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = NewManyToMany(db, tab, mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol,
+			mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol, srcField.value)
 	}
-	return baseAddr
+}
+
+func newModelAddr(tabInfo *tableInfo) uintptr {
+	model := reflect.New(tabInfo.modelType)
+	initModelWithTableInfo(model.Interface().(Model), tabInfo)
+	return model.Pointer()
 }
 
 func newModel(tabInfo *tableInfo) Model {
-	model := reflect.New(tabInfo.modelType)
-	baseAddr := model.Pointer()
-	for _, col := range tabInfo.columns {
-		switch col.ormType {
-		case TypeStringField:
-			*(**StringField)(unsafe.Pointer(baseAddr + col.offset)) = &StringField{}
-		case TypeIntField:
-			*(**IntField)(unsafe.Pointer(baseAddr + col.offset)) = &IntField{}
-		case TypeFloatField:
-			*(**FloatField)(unsafe.Pointer(baseAddr + col.offset)) = &FloatField{}
-		case TypeBoolField:
-			*(**BoolField)(unsafe.Pointer(baseAddr + col.offset)) = &BoolField{}
-		case TypeBinaryField:
-			*(**BinaryField)(unsafe.Pointer(baseAddr + col.offset)) = &BinaryField{}
-		case TypeDateField:
-			*(**DateField)(unsafe.Pointer(baseAddr + col.offset)) = &DateField{}
-		case TypeDatetimeField:
-			*(**DatetimeField)(unsafe.Pointer(baseAddr + col.offset)) = &DatetimeField{}
-		}
-	}
-	for _, oto := range tabInfo.oneToOnes {
-		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = &OneToOne{}
-	}
-	for _, fk := range tabInfo.foreignKeys {
-		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = &ForeignKey{}
-	}
-	for _, rfk := range tabInfo.reverseForeignKeys {
-		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = &ReverseForeignKey{}
-	}
-	for _, mtm := range tabInfo.manyToManys {
-		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = &ManyToMany{}
-	}
-	return model.Interface().(Model)
+	model := reflect.New(tabInfo.modelType).Interface().(Model)
+	initModelWithTableInfo(model, tabInfo)
+	return model
 }
 
-func InitModel(table table) {
-	tabInfo := getTabInfo(table)
-	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&table)) + uintptr(8)))
-	for _, col := range tabInfo.columns {
-		switch col.ormType {
-		case TypeStringField:
-			*(**StringField)(unsafe.Pointer(baseAddr + col.offset)) = &StringField{}
-		case TypeIntField:
-			*(**IntField)(unsafe.Pointer(baseAddr + col.offset)) = &IntField{}
-		case TypeFloatField:
-			*(**FloatField)(unsafe.Pointer(baseAddr + col.offset)) = &FloatField{}
-		case TypeBoolField:
-			*(**BoolField)(unsafe.Pointer(baseAddr + col.offset)) = &BoolField{}
-		case TypeBinaryField:
-			*(**BinaryField)(unsafe.Pointer(baseAddr + col.offset)) = &BinaryField{}
-		case TypeDateField:
-			*(**DateField)(unsafe.Pointer(baseAddr + col.offset)) = &DateField{}
-		case TypeDatetimeField:
-			*(**DatetimeField)(unsafe.Pointer(baseAddr + col.offset)) = &DatetimeField{}
-		}
-	}
-	for _, oto := range tabInfo.oneToOnes {
-		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = &OneToOne{}
-	}
-	for _, fk := range tabInfo.foreignKeys {
-		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = &ForeignKey{}
-	}
-	for _, rfk := range tabInfo.reverseForeignKeys {
-		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = &ReverseForeignKey{}
-	}
-	for _, mtm := range tabInfo.manyToManys {
-		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = &ManyToMany{}
-	}
+func InitModel(model Model) {
+	tabInfo := getTabInfo(model)
+	initModelWithTableInfo(model, tabInfo)
 }
 
 func InitSlice(table table) {

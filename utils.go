@@ -70,7 +70,7 @@ func NewSorter(orders ...*Order) *Sorter {
 		} else {
 			o = "ASC"
 		}
-		l[i] = fmt.Sprintf("%s.%s.%s %s", order.Field.superModel().DB(), order.Field.superModel().Tab(), order.Field.columnName(), o)
+		l[i] = fmt.Sprintf("%s.%s.%s %s", order.Field.dbName(), order.Field.tabName(), order.Field.columnName(), o)
 	}
 	s := Sorter(fmt.Sprintf("ORDER BY %s", strings.Join(l, ", ")))
 	return &s
@@ -339,7 +339,7 @@ func genWhere(m Model) *Where {
 	info := getTabInfo(m)
 	inc := getInc(m)
 	if inc != nil && inc.IsValid() {
-		return inc.Where()
+		return inc.where()
 	}
 	pks := getPks(m)
 	var where *Where
@@ -348,7 +348,7 @@ func genWhere(m Model) *Where {
 			where = nil
 			break
 		}
-		where = where.And(pk.Where())
+		where = where.And(pk.where())
 	}
 	if where != nil {
 		return where
@@ -357,14 +357,14 @@ func genWhere(m Model) *Where {
 	if len(unis) > 0 {
 		for _, uni := range unis {
 			if uni.IsValid() {
-				return uni.Where()
+				return uni.where()
 			}
 		}
 	}
 	for _, col := range info.columns {
 		field := getFieldByName(m, col.colName)
 		if field.IsValid() {
-			where = where.And(field.Where())
+			where = where.And(field.where())
 		}
 	}
 	return where
@@ -565,23 +565,23 @@ func toListStr(val interface{}) string {
 }
 
 func relationQuery(tab table, relation relation, where *Where, sorter *Sorter, pager *Pager) error {
-	whereClause, whereValues := genWhere(relation.srcModel()).And(where).toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", tab.DB(), tab.Tab(), relation.srcDB(), relation.srcTab(), relation.joinClause(),
+	whereClause, whereValues := where.toClause()
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", tab.DB(), tab.Tab(), relation.getSrcDB(), relation.getSrcTab(), relation.joinClause(),
 		whereClause, sorter.toSQL(), pager.toSQL())
 	return queryAndScan(tab, stmt, whereValues)
 }
 
 func relationQueryWithFoundRows(l ModelList, relation relation, where *Where, sorter *Sorter, pager *Pager) (rowsNum int, err error) {
-	whereClause, whereValues := genWhere(relation.srcModel()).And(where).toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", l.Model().DB(), l.Model().Tab(), relation.srcDB(),
-		relation.srcTab(), relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
+	whereClause, whereValues := where.toClause()
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", l.Model().DB(), l.Model().Tab(), relation.getSrcDB(),
+		relation.getSrcTab(), relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
 	return queryAndScanWithNum(l, stmt, whereValues)
 }
 
 func relationAddOne(relation relation, m Model) error {
 	switch rel := relation.(type) {
 	case *ReverseForeignKey:
-		getFieldByName(m, rel.dstCol()).setVal(rel.getSrcField().value(), false)
+		getFieldByName(m, rel.dstCol).setVal(rel.srcValF(), false)
 		return insertAndGetInc(m, false)
 	case *ManyToMany:
 		err := insertAndGetInc(m, false)
@@ -590,9 +590,8 @@ func relationAddOne(relation relation, m Model) error {
 				return err
 			}
 		}
-		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
-		rel.getMidRightField().setVal(getFieldByName(m, rel.dstCol()).value(), false)
-		err = insertAndGetInc(rel.getMidLeftField().superModel(), false)
+		stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", rel.midDB, rel.midTab, rel.midLeftCol, rel.midRightCol)
+		_, err = dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol).value())
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); !ok || e.Number != 1062 {
 				return err
@@ -609,9 +608,9 @@ func relationRemoveOne(relation relation, m Model) error {
 	case *ReverseForeignKey:
 		return DeleteOne(m)
 	case *ManyToMany:
-		rel.getMidLeftField().setVal(rel.getSrcField().value(), false)
-		rel.getMidRightField().setVal(getFieldByName(m, rel.dstCol()).value(), false)
-		return DeleteOne(rel.getMidLeftField().superModel())
+		stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", rel.midDB, rel.midTab, rel.midLeftCol, rel.midRightCol)
+		_, err := dbMap[rel.midDB].Exec(stmt, rel.srcValF(), getFieldByName(m, rel.dstCol).value())
+		return err
 	default:
 		return fmt.Errorf("nborm.relationRemoveOne() error: unsupported relation (%T)", relation)
 	}

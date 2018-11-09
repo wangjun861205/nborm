@@ -34,28 +34,24 @@ type Field interface {
 	IsValid() bool
 	IsNull() bool
 	sql.Scanner
+	dbName() string
+	tabName() string
 	columnName() string
-	IsPk() bool
-	IsInc() bool
-	IsUni() bool
-	Where() *Where
+	isPk() bool
+	isInc() bool
+	isUni() bool
+	where() *Where
 	LessFunc() func(Model, Model) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
-	superModel() Model
 	SortOrder(reverse bool) string
 	value() interface{}
 	setVal(interface{}, bool)
 }
 
 type relation interface {
-	srcDB() string
-	srcTab() string
-	srcCol() string
-	dstDB() string
-	dstTab() string
-	dstCol() string
 	joinClause() string
-	srcModel() Model
-	getSrcField() Field
+	where() *Where
+	getSrcDB() string
+	getSrcTab() string
 }

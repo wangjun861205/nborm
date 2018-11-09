@@ -16,19 +16,21 @@ type UpdateValue struct {
 
 //StringField represent char, varchar, text type in mysql
 type StringField struct {
-	super  Model
-	val    string
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      string
+	valid    bool
+	null     bool
 }
 
 //NewStringField create a StringField
-func NewStringField(model Model, column string, pk bool, inc bool, uni bool) *StringField {
-	return &StringField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewStringField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *StringField {
+	return &StringField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *StringField) value() interface{} {
@@ -38,24 +40,26 @@ func (f *StringField) value() interface{} {
 	return f.val
 }
 
-//Super get the Model which is the field stored in
-func (f *StringField) superModel() Model {
-	return f.super
+func (f *StringField) dbName() string {
+	return f.db
 }
 
-//Column return the column name of the field
+func (f *StringField) tabName() string {
+	return f.tab
+}
+
 func (f *StringField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if the column is a primary key
-func (f *StringField) IsPk() bool {
+func (f *StringField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if the column is a auto_increment column
-func (f *StringField) IsInc() bool {
-	return f.inc
+func (f *StringField) isInc() bool {
+	return false
 }
 
 //IsValid return true if the field has been set a value or been scaned
@@ -69,7 +73,7 @@ func (f *StringField) IsNull() bool {
 }
 
 //IsUni return true if this column is a unique key
-func (f *StringField) IsUni() bool {
+func (f *StringField) isUni() bool {
 	return f.uni
 }
 
@@ -133,43 +137,43 @@ func (f *StringField) BulkUpdateValue(val string, isNull bool) *UpdateValue {
 }
 
 //Where generate a Where by self value
-func (f *StringField) Where() *Where {
+func (f *StringField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	} else {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
+		return newWhere(f.db, f.tab, f.column, "=", f.val)
 	}
 }
 
 //Eq generate a equal Where
 func (f *StringField) Eq(val string) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+	return newWhere(f.db, f.tab, f.column, "=", val)
 
 }
 
 //Neq generate a not equal Where
 func (f *StringField) Neq(val string) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
+	return newWhere(f.db, f.tab, f.column, "<>", val)
 }
 
 //Contains generate a contains Where
 func (f *StringField) Contains(val string) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "LIKE", "%"+val+"%")
+	return newWhere(f.db, f.tab, f.column, "LIKE", "%"+val+"%")
 }
 
 //Null generate a Where which represent this column is null
 func (f *StringField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate a Where which represent this column is not null
 func (f *StringField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 //In generate a in Where
 func (f *StringField) In(val []string) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(val, ", ")))
+	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(val, ", ")))
 }
 
 //LessFunc generate a function for sort a ModelList
@@ -213,24 +217,27 @@ func (f *StringField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //IntField represent int, tinyint, midint, bigint types in mysql
 type IntField struct {
-	super  Model
-	val    int64
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	inc      bool
+	uni      bool
+	defVal   interface{}
+	val      int64
+	valid    bool
+	null     bool
 }
 
 //NewIntField return a IntField
-func NewIntField(model Model, column string, pk bool, inc bool, uni bool) *IntField {
-	return &IntField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewIntField(db, tab, column string, nullable, pk, inc, uni bool, defVal interface{}) *IntField {
+	return &IntField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, inc: inc, uni: uni, defVal: defVal}
 }
 
 func (f *IntField) value() interface{} {
@@ -240,23 +247,25 @@ func (f *IntField) value() interface{} {
 	return f.val
 }
 
-//Super return the model which the field is stored in
-func (f *IntField) superModel() Model {
-	return f.super
+func (f *IntField) dbName() string {
+	return f.db
 }
 
-//Column return the column name of the field
+func (f *IntField) tabName() string {
+	return f.tab
+}
+
 func (f *IntField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if this column is primary key
-func (f *IntField) IsPk() bool {
+func (f *IntField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if this column is auto_increment column
-func (f *IntField) IsInc() bool {
+func (f *IntField) isInc() bool {
 	return f.inc
 }
 
@@ -271,7 +280,7 @@ func (f *IntField) IsNull() bool {
 }
 
 //IsUni return true if the column is a unique key
-func (f *IntField) IsUni() bool {
+func (f *IntField) isUni() bool {
 	return f.uni
 }
 
@@ -339,56 +348,56 @@ func (f *IntField) BulkUpdateValue(val int64, isNull bool) *UpdateValue {
 }
 
 //Where generate a Where by self value
-func (f *IntField) Where() *Where {
+func (f *IntField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
 }
 
 //Eq generate a equal Where
 func (f *IntField) Eq(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+	return newWhere(f.db, f.tab, f.column, "=", val)
 }
 
 //Neq generate a not equal Where
 func (f *IntField) Neq(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
+	return newWhere(f.db, f.tab, f.column, "<>", val)
 }
 
 //Lt generate a less than Where
 func (f *IntField) Lt(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val)
+	return newWhere(f.db, f.tab, f.column, "<", val)
 }
 
 //Gt generate a great than Where
 func (f *IntField) Gt(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val)
+	return newWhere(f.db, f.tab, f.column, ">", val)
 }
 
 //Lte generate a less than equal Where
 func (f *IntField) Lte(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val)
+	return newWhere(f.db, f.tab, f.column, "<=", val)
 }
 
 //Gte generate a great than equal Where
 func (f *IntField) Gte(val int64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val)
+	return newWhere(f.db, f.tab, f.column, ">=", val)
 }
 
 //Null generate null Where
 func (f *IntField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *IntField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 //In generate a in Where
 func (f *IntField) In(val []int) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", toListStr(val))
+	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
 }
 
 //LessFunc return a function for sort ModelList
@@ -432,7 +441,7 @@ func (f *IntField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //SumFunc return a function for sum aggregate
@@ -491,19 +500,21 @@ func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
 
 //FloatField represent float, decimal types in mysql
 type FloatField struct {
-	super  Model
-	val    float64
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      float64
+	valid    bool
+	null     bool
 }
 
 //NewFloatField create new FloatField
-func NewFloatField(model Model, column string, pk bool, inc bool, uni bool) *FloatField {
-	return &FloatField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewFloatField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *FloatField {
+	return &FloatField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *FloatField) value() interface{} {
@@ -513,24 +524,26 @@ func (f *FloatField) value() interface{} {
 	return f.val
 }
 
-//Super return Model which the field stored in
-func (f *FloatField) superModel() Model {
-	return f.super
+func (f *FloatField) dbName() string {
+	return f.db
 }
 
-//Column return column name
+func (f *FloatField) tabName() string {
+	return f.tab
+}
+
 func (f *FloatField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if the column is primary key
-func (f *FloatField) IsPk() bool {
+func (f *FloatField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if the column is auto_increment column
-func (f *FloatField) IsInc() bool {
-	return f.inc
+func (f *FloatField) isInc() bool {
+	return false
 }
 
 //IsValid return true if the field has been set a value or been scanned
@@ -544,7 +557,7 @@ func (f *FloatField) IsNull() bool {
 }
 
 //IsUni return true if the column is a unique key
-func (f *FloatField) IsUni() bool {
+func (f *FloatField) isUni() bool {
 	return f.uni
 }
 
@@ -612,56 +625,56 @@ func (f *FloatField) BulkUpdateValue(val float64, isNull bool) *UpdateValue {
 }
 
 //Where generate a Where by self value
-func (f *FloatField) Where() *Where {
+func (f *FloatField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
 }
 
 //Eq generate a equal Where
 func (f *FloatField) Eq(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+	return newWhere(f.db, f.tab, f.column, "=", val)
 }
 
 //Neq generate a not equal Where
 func (f *FloatField) Neq(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
+	return newWhere(f.db, f.tab, f.column, "<>", val)
 }
 
 //Lt generate a less than Where
 func (f *FloatField) Lt(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val)
+	return newWhere(f.db, f.tab, f.column, "<", val)
 }
 
 //Gt generate a great than Where
 func (f *FloatField) Gt(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val)
+	return newWhere(f.db, f.tab, f.column, ">", val)
 }
 
 //Lte generate a less than equal Where
 func (f *FloatField) Lte(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val)
+	return newWhere(f.db, f.tab, f.column, "<=", val)
 }
 
 //Gte generate a great than equal Where
 func (f *FloatField) Gte(val float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val)
+	return newWhere(f.db, f.tab, f.column, ">=", val)
 }
 
 //Null generate a null Where
 func (f *FloatField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate a not null Where
 func (f *FloatField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", "NULL")
+	return newWhere(f.db, f.tab, f.column, "<>", "NULL")
 }
 
 //In generate in Where
 func (f *FloatField) In(val []float64) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", toListStr(val))
+	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
 }
 
 //LessFunc return a func for sort ModelList
@@ -705,24 +718,26 @@ func (f *FloatField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //BoolField represent tinyint(1) type in mysql
 type BoolField struct {
-	super  Model
-	val    bool
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      bool
+	valid    bool
+	null     bool
 }
 
 //NewBoolField return a new BoolField
-func NewBoolField(model Model, column string, pk bool, inc bool, uni bool) *BoolField {
-	return &BoolField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewBoolField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *BoolField {
+	return &BoolField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *BoolField) value() interface{} {
@@ -732,24 +747,26 @@ func (f *BoolField) value() interface{} {
 	return f.val
 }
 
-//Super return the Model which the field is stored in
-func (f *BoolField) superModel() Model {
-	return f.super
+func (f *BoolField) dbName() string {
+	return f.db
 }
 
-//Column return column name
+func (f *BoolField) tabName() string {
+	return f.tab
+}
+
 func (f *BoolField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if the column is a primary key
-func (f *BoolField) IsPk() bool {
+func (f *BoolField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if the column is a auto_increment column
-func (f *BoolField) IsInc() bool {
-	return f.inc
+func (f *BoolField) isInc() bool {
+	return false
 }
 
 //IsValid return true when the field has been set a value or been scanned
@@ -830,35 +847,35 @@ func (f *BoolField) BulkUpdateValue(val bool, isNull bool) *UpdateValue {
 }
 
 //Where generate a Where by self value
-func (f *BoolField) Where() *Where {
+func (f *BoolField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val)
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
 }
 
 //Eq generate euqal Where
 func (f *BoolField) Eq(val bool) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+	return newWhere(f.db, f.tab, f.column, "=", val)
 }
 
 //Neq generate not equal Where
 func (f *BoolField) Neq(val bool) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
+	return newWhere(f.db, f.tab, f.column, "<>", val)
 }
 
 //Null generate null Where
 func (f *BoolField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *BoolField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 //IsUni return true if column is a unique key
-func (f *BoolField) IsUni() bool {
+func (f *BoolField) isUni() bool {
 	return f.uni
 }
 
@@ -899,24 +916,26 @@ func (f *BoolField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //DateField represent date type in mysql
 type DateField struct {
-	super  Model
-	val    time.Time
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      time.Time
+	valid    bool
+	null     bool
 }
 
 //NewDateField create a new DateField
-func NewDateField(model Model, column string, pk bool, inc bool, uni bool) *DateField {
-	return &DateField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewDateField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *DateField {
+	return &DateField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *DateField) value() interface{} {
@@ -926,24 +945,26 @@ func (f *DateField) value() interface{} {
 	return f.val.Format("2006-01-02")
 }
 
-//Super return Model which the Field is stored in
-func (f *DateField) superModel() Model {
-	return f.super
+func (f *DateField) dbName() string {
+	return f.db
 }
 
-//Column return column name
+func (f *DateField) tabName() string {
+	return f.tab
+}
+
 func (f *DateField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if the column is a primary key
-func (f *DateField) IsPk() bool {
+func (f *DateField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if the column is a auto_increment column
-func (f *DateField) IsInc() bool {
-	return f.inc
+func (f *DateField) isInc() bool {
+	return false
 }
 
 //IsValid return true if the field has been set a value or been scanned
@@ -957,7 +978,7 @@ func (f *DateField) IsNull() bool {
 }
 
 //IsUni return true if the column is a unique key
-func (f *DateField) IsUni() bool {
+func (f *DateField) isUni() bool {
 	return f.uni
 }
 
@@ -1025,51 +1046,51 @@ func (f *DateField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
 }
 
 //Where generate where by self value
-func (f *DateField) Where() *Where {
+func (f *DateField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, "=", f.val.Format("2006-01-02"))
 }
 
 //Eq generte euqal Where
 func (f *DateField) Eq(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, "=", val.Format("2006-01-02"))
 }
 
 //Neq generate not euqal Where
 func (f *DateField) Neq(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, "<>", val.Format("2006-01-02"))
 }
 
 //Lt genereate less than Where
 func (f *DateField) Lt(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, "<", val.Format("2006-01-02"))
 }
 
 //Gt generate great then Where
 func (f *DateField) Gt(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, ">", val.Format("2006-01-02"))
 }
 
 //Lte generate less than equal Where
 func (f *DateField) Lte(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, "<=", val.Format("2006-01-02"))
 }
 
 //Gte generate great than equal Where
 func (f *DateField) Gte(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val.Format("2006-01-02"))
+	return newWhere(f.db, f.tab, f.column, ">=", val.Format("2006-01-02"))
 }
 
 //Null generate null Where
 func (f *DateField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *DateField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 //In generate in Where
@@ -1078,7 +1099,7 @@ func (f *DateField) In(val []time.Time) *Where {
 	for i := range val {
 		l[i] = val[i].Format("2006-01-02")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 
 }
 
@@ -1123,24 +1144,26 @@ func (f *DateField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //DatetimeField represent datetime, timestamp types in mysql
 type DatetimeField struct {
-	super  Model
-	val    time.Time
-	valid  bool
-	null   bool
-	column string
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      time.Time
+	valid    bool
+	null     bool
 }
 
 //NewDatetimeField create a DatetimeField
-func NewDatetimeField(model Model, column string, pk bool, inc bool, uni bool) *DatetimeField {
-	return &DatetimeField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewDatetimeField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *DatetimeField {
+	return &DatetimeField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *DatetimeField) value() interface{} {
@@ -1150,24 +1173,26 @@ func (f *DatetimeField) value() interface{} {
 	return f.val.Format("2006-01-02 15:04:05")
 }
 
-//Super return Model where the field is stored in
-func (f *DatetimeField) superModel() Model {
-	return f.super
+func (f *DatetimeField) dbName() string {
+	return f.db
 }
 
-//Column return column name
+func (f *DatetimeField) tabName() string {
+	return f.tab
+}
+
 func (f *DatetimeField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if column is a primary key
-func (f *DatetimeField) IsPk() bool {
+func (f *DatetimeField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if column is a auto_increment column
-func (f *DatetimeField) IsInc() bool {
-	return f.inc
+func (f *DatetimeField) isInc() bool {
+	return false
 }
 
 //IsValid return true if field has been set a value or has been scanned
@@ -1181,7 +1206,7 @@ func (f *DatetimeField) IsNull() bool {
 }
 
 //IsUni return true if column is a unique key
-func (f *DatetimeField) IsUni() bool {
+func (f *DatetimeField) isUni() bool {
 	return f.uni
 }
 
@@ -1249,51 +1274,51 @@ func (f *DatetimeField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue
 }
 
 //Where generate Where by self value
-func (f *DatetimeField) Where() *Where {
+func (f *DatetimeField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", f.val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, "=", f.val.Format("2006-01-02 15:04:05"))
 }
 
 //Eq generate equal Where
 func (f *DatetimeField) Eq(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, "=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Neq generate not euqal Where
 func (f *DatetimeField) Neq(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, "<>", val.Format("2006-01-02 15:04:05"))
 }
 
 //Lt generate less than Where
 func (f *DatetimeField) Lt(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, "<", val.Format("2006-01-02 15:04:05"))
 }
 
 //Gt generate great than Where
 func (f *DatetimeField) Gt(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, ">", val.Format("2006-01-02 15:04:05"))
 }
 
 //Lte generate less then equal Where
 func (f *DatetimeField) Lte(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<=", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, "<=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Gte generate great than equal Where
 func (f *DatetimeField) Gte(val time.Time) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, ">=", val.Format("2006-01-02 15:04:05"))
+	return newWhere(f.db, f.tab, f.column, ">=", val.Format("2006-01-02 15:04:05"))
 }
 
 //Null generate null Where
 func (f *DatetimeField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *DatetimeField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 //In generate in Where
@@ -1302,7 +1327,7 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 	for i := range val {
 		l[i] = val[i].Format("2006-01-02 15:04:05")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 }
 
 //LessFunc return a function for sorting ModelList
@@ -1346,24 +1371,26 @@ func (f *DatetimeField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //BinaryField represent blob type in mysql
 type BinaryField struct {
-	super  Model
-	column string
-	val    []byte
-	valid  bool
-	null   bool
-	pk     bool
-	inc    bool
-	uni    bool
+	db       string
+	tab      string
+	column   string
+	nullable bool
+	pk       bool
+	uni      bool
+	defVal   interface{}
+	val      []byte
+	valid    bool
+	null     bool
 }
 
 //NewBinaryField create a BinaryField
-func NewBinaryField(model Model, column string, pk bool, inc bool, uni bool) *BinaryField {
-	return &BinaryField{super: model, column: column, pk: pk, inc: inc, uni: uni}
+func NewBinaryField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *BinaryField {
+	return &BinaryField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
 }
 
 func (f *BinaryField) value() interface{} {
@@ -1400,23 +1427,30 @@ func (f *BinaryField) Scan(val interface{}) error {
 	return nil
 }
 
-//Column return column name
+func (f *BinaryField) dbName() string {
+	return f.db
+}
+
+func (f *BinaryField) tabName() string {
+	return f.tab
+}
+
 func (f *BinaryField) columnName() string {
 	return f.column
 }
 
 //IsPk return true if column is a primary key
-func (f *BinaryField) IsPk() bool {
+func (f *BinaryField) isPk() bool {
 	return f.pk
 }
 
 //IsInc return true if column is a auto_increment column
-func (f *BinaryField) IsInc() bool {
-	return f.inc
+func (f *BinaryField) isInc() bool {
+	return false
 }
 
 //IsUni return true if column is a unique key
-func (f *BinaryField) IsUni() bool {
+func (f *BinaryField) isUni() bool {
 	return f.uni
 }
 
@@ -1460,30 +1494,30 @@ func (f *BinaryField) Invalidate() {
 
 //Eq generate equal Where
 func (f *BinaryField) Eq(val []byte) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", val)
+	return newWhere(f.db, f.tab, f.column, "=", val)
 }
 
 //Where generate Where by self value
-func (f *BinaryField) Where() *Where {
+func (f *BinaryField) where() *Where {
 	if f.null {
-		return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "=", fmt.Sprintf("X'%x'", f.val))
+	return newWhere(f.db, f.tab, f.column, "=", fmt.Sprintf("X'%x'", f.val))
 }
 
 //Neq generate not equal Where
 func (f *BinaryField) Neq(val []byte) *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "<>", val)
+	return newWhere(f.db, f.tab, f.column, "<>", val)
 }
 
 //Null generate null Where
 func (f *BinaryField) Null() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 }
 
 //NotNull generate not null Where
 func (f *BinaryField) NotNull() *Where {
-	return newWhere(f.super.DB(), f.super.Tab(), f.column, "IS NOT", "NULL")
+	return newWhere(f.db, f.tab, f.column, "IS NOT", "NULL")
 }
 
 func (f *BinaryField) SortOrder(reverse bool) string {
@@ -1493,210 +1527,119 @@ func (f *BinaryField) SortOrder(reverse bool) string {
 	} else {
 		o = "ASC"
 	}
-	return fmt.Sprintf("%s.%s.%s %s", f.super.DB(), f.super.Tab(), f.column, o)
-}
-
-func (f *BinaryField) superModel() Model {
-	return f.super
+	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
 //OneToOne represent a one point on relation
 type OneToOne struct {
-	srcField     Field
-	dstField     Field
-	dstFieldFunc func() (dstField Field)
+	srcDB   string
+	srcTab  string
+	srcCol  string
+	dstDB   string
+	dstTab  string
+	dstCol  string
+	srcValF func() interface{}
 }
 
 //NewOneToOne create a OneToOne
-func NewOneToOne(srcField Field, dstFieldFunc func() (dstField Field)) *OneToOne {
-	return &OneToOne{srcField: srcField, dstFieldFunc: dstFieldFunc}
-}
-
-func (oto *OneToOne) srcDB() string {
-	return oto.srcField.superModel().DB()
-}
-
-func (oto *OneToOne) srcTab() string {
-	return oto.srcField.superModel().Tab()
-}
-
-func (oto *OneToOne) srcCol() string {
-	return oto.srcField.columnName()
-}
-
-func (oto *OneToOne) dstDB() string {
-	if oto.dstField == nil {
-		oto.dstField = oto.dstFieldFunc()
-	}
-	return oto.dstField.superModel().DB()
-}
-
-func (oto *OneToOne) dstTab() string {
-	if oto.dstField == nil {
-		oto.dstField = oto.dstFieldFunc()
-	}
-	return oto.dstField.superModel().Tab()
-}
-
-func (oto *OneToOne) dstCol() string {
-	if oto.dstField == nil {
-		oto.dstField = oto.dstFieldFunc()
-	}
-	return oto.dstField.columnName()
-}
-
-func (oto *OneToOne) srcModel() Model {
-	return oto.srcField.superModel()
-}
-
-func (oto *OneToOne) getSrcField() Field {
-	return oto.srcField
+func NewOneToOne(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *OneToOne {
+	return &OneToOne{srcDB, srcTab, srcCol, dstDB, dstTab, dstCol, srcValF}
 }
 
 //Query query related table by OneToOne relation
 func (oto *OneToOne) Query(m Model) error {
-	if m.DB() != oto.dstDB() || m.Tab() != oto.dstTab() {
-		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB(), oto.dstTab(), m.DB(), m.Tab())
+	if m.DB() != oto.dstDB || m.Tab() != oto.dstTab {
+		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, m.DB(), m.Tab())
 	}
 	return relationQuery(m, oto, nil, nil, nil)
 }
 
 func (oto *OneToOne) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", oto.dstDB(), oto.dstTab(), oto.srcDB(), oto.srcTab(), oto.srcCol(), oto.dstDB(),
-		oto.dstTab(), oto.dstCol())
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", oto.dstDB, oto.dstTab, oto.srcDB, oto.srcTab, oto.srcCol, oto.dstDB,
+		oto.dstTab, oto.dstCol)
+}
+
+func (oto *OneToOne) where() *Where {
+	return newWhere(oto.srcDB, oto.srcTab, oto.srcCol, "=", oto.srcValF())
+}
+
+func (oto *OneToOne) getSrcDB() string {
+	return oto.srcDB
+}
+
+func (oto *OneToOne) getSrcTab() string {
+	return oto.srcTab
 }
 
 //ForeignKey represent a one point many relation
 type ForeignKey struct {
-	srcField     Field
-	dstField     Field
-	dstFieldFunc func() (dstField Field)
+	srcDB   string
+	srcTab  string
+	srcCol  string
+	dstDB   string
+	dstTab  string
+	dstCol  string
+	srcValF func() interface{}
 }
 
 //NewForeignKey create a ForeignKey
-func NewForeignKey(srcField Field, dstFieldFunc func() (dstField Field)) *ForeignKey {
-	return &ForeignKey{srcField: srcField, dstFieldFunc: dstFieldFunc}
-}
-
-func (fk *ForeignKey) srcDB() string {
-	return fk.srcField.superModel().DB()
-}
-
-func (fk *ForeignKey) srcTab() string {
-	return fk.srcField.superModel().Tab()
-}
-
-func (fk *ForeignKey) srcCol() string {
-	return fk.srcField.columnName()
-}
-
-func (fk *ForeignKey) dstDB() string {
-	if fk.dstField == nil {
-		fk.dstField = fk.dstFieldFunc()
-	}
-	return fk.dstField.superModel().DB()
-}
-
-func (fk *ForeignKey) dstTab() string {
-	if fk.dstField == nil {
-		fk.dstField = fk.dstFieldFunc()
-	}
-	return fk.dstField.superModel().Tab()
-}
-
-func (fk *ForeignKey) dstCol() string {
-	if fk.dstField == nil {
-		fk.dstField = fk.dstFieldFunc()
-	}
-	return fk.dstField.columnName()
-}
-
-func (fk *ForeignKey) srcModel() Model {
-	return fk.srcField.superModel()
-}
-
-func (fk *ForeignKey) getSrcField() Field {
-	return fk.srcField
+func NewForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *ForeignKey {
+	return &ForeignKey{srcDB, srcTab, srcCol, dstDB, dstTab, dstCol, srcValF}
 }
 
 //Query query related table by this relation
 func (fk *ForeignKey) Query(m Model) error {
-	if m.DB() != fk.dstDB() || m.Tab() != fk.dstTab() {
-		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB(), fk.dstTab(), m.DB(), m.Tab())
+	if m.DB() != fk.dstDB || m.Tab() != fk.dstTab {
+		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB, fk.dstTab, m.DB(), m.Tab())
 	}
 	return relationQuery(m, fk, nil, nil, nil)
 }
 
 func (fk *ForeignKey) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", fk.dstDB(), fk.dstTab(), fk.srcDB(), fk.srcTab(), fk.srcCol(), fk.dstDB(),
-		fk.dstTab(), fk.dstCol())
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", fk.dstDB, fk.dstTab, fk.srcDB, fk.srcTab, fk.srcCol, fk.dstDB,
+		fk.dstTab, fk.dstCol)
+}
+
+func (fk *ForeignKey) where() *Where {
+	return newWhere(fk.srcDB, fk.srcTab, fk.srcCol, "=", fk.srcValF())
+}
+
+func (fk *ForeignKey) getSrcDB() string {
+	return fk.srcDB
+}
+
+func (fk *ForeignKey) getSrcTab() string {
+	return fk.srcTab
 }
 
 //ReverseForeignKey represent many point one relation
 type ReverseForeignKey struct {
-	srcField     Field
-	dstField     Field
-	dstFieldFunc func() (dstField Field)
+	srcDB   string
+	srcTab  string
+	srcCol  string
+	dstDB   string
+	dstTab  string
+	dstCol  string
+	srcValF func() interface{}
 }
 
 //NewReverseForeignKey create ReverseForeignKey
-func NewReverseForeignKey(srcField Field, dstFieldFunc func() (dstField Field)) *ReverseForeignKey {
-	return &ReverseForeignKey{srcField: srcField, dstFieldFunc: dstFieldFunc}
-}
-
-func (rfk *ReverseForeignKey) srcDB() string {
-	return rfk.srcField.superModel().DB()
-}
-
-func (rfk *ReverseForeignKey) srcTab() string {
-	return rfk.srcField.superModel().DB()
-}
-
-func (rfk *ReverseForeignKey) srcCol() string {
-	return rfk.srcField.columnName()
-}
-
-func (rfk *ReverseForeignKey) dstDB() string {
-	if rfk.dstField == nil {
-		rfk.dstField = rfk.dstFieldFunc()
-	}
-	return rfk.dstField.superModel().DB()
-}
-
-func (rfk *ReverseForeignKey) dstTab() string {
-	if rfk.dstField == nil {
-		rfk.dstField = rfk.dstFieldFunc()
-	}
-	return rfk.dstField.superModel().Tab()
-}
-
-func (rfk *ReverseForeignKey) dstCol() string {
-	if rfk.dstField == nil {
-		rfk.dstField = rfk.dstFieldFunc()
-	}
-	return rfk.dstField.columnName()
-}
-
-func (rfk *ReverseForeignKey) srcModel() Model {
-	return rfk.srcField.superModel()
-}
-
-func (rfk *ReverseForeignKey) getSrcField() Field {
-	return rfk.srcField
+func NewReverseForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *ReverseForeignKey {
+	return &ReverseForeignKey{srcDB, srcTab, srcCol, dstDB, dstTab, dstCol, srcValF}
 }
 
 //All query all records in related table by this relation
 func (rfk *ReverseForeignKey) All(l ModelList, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(), l.Model().DB(), l.Model().Tab())
+	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab, l.Model().DB(), l.Model().Tab())
 	}
 	return relationQuery(l, rfk, nil, sorter, pager)
 }
 
 //AllWithFoundRows query all records in related table by this relation and the number of found rows
 func (rfk *ReverseForeignKey) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
-		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
 			l.Model().DB(), l.Model().Tab())
 	}
 	return relationQueryWithFoundRows(l, rfk, nil, sorter, pager)
@@ -1704,8 +1647,8 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(l ModelList, sorter *Sorter, page
 
 //Query query related table by this relation
 func (rfk *ReverseForeignKey) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.Query() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.Query() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
 			l.Model().DB(), l.Model().Tab())
 	}
 	return relationQuery(l, rfk, where, sorter, pager)
@@ -1713,192 +1656,128 @@ func (rfk *ReverseForeignKey) Query(l ModelList, where *Where, sorter *Sorter, p
 
 //QueryWithFoundRows query related table by this realtion and number of found rows
 func (rfk *ReverseForeignKey) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != rfk.dstDB() || l.Model().Tab() != rfk.dstTab() {
-		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB(), rfk.dstTab(),
+	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
 			l.Model().DB(), l.Model().Tab())
 	}
 	return relationQueryWithFoundRows(l, rfk, where, sorter, pager)
 }
 
 func (rfk *ReverseForeignKey) Add(m Model) error {
-	if rfk.dstDB() != m.DB() || rfk.dstTab() != m.Tab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.Add() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB(),
-			rfk.dstTab(), m.DB(), m.Tab())
+	if rfk.dstDB != m.DB() || rfk.dstTab != m.Tab() {
+		return fmt.Errorf("nborm.ReverseForeignKey.Add() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB,
+			rfk.dstTab, m.DB(), m.Tab())
 	}
 	return relationAddOne(rfk, m)
 }
 
 func (rfk *ReverseForeignKey) Remove(m Model) error {
-	if rfk.dstDB() != m.DB() || rfk.dstTab() != m.Tab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.Remove() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB(),
-			rfk.dstTab(), m.DB(), m.Tab())
+	if rfk.dstDB != m.DB() || rfk.dstTab != m.Tab() {
+		return fmt.Errorf("nborm.ReverseForeignKey.Remove() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB,
+			rfk.dstTab, m.DB(), m.Tab())
 	}
 	return relationRemoveOne(rfk, m)
 }
 
 func (rfk *ReverseForeignKey) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB(), rfk.dstTab(), rfk.srcDB(), rfk.srcTab(), rfk.srcCol(), rfk.dstDB(),
-		rfk.dstTab(), rfk.dstCol())
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB, rfk.dstTab, rfk.srcDB, rfk.srcTab, rfk.srcCol, rfk.dstDB,
+		rfk.dstTab, rfk.dstCol)
+}
+
+func (rfk *ReverseForeignKey) where() *Where {
+	return newWhere(rfk.srcDB, rfk.srcTab, rfk.srcCol, "=", rfk.srcValF())
+}
+
+func (rfk *ReverseForeignKey) getSrcDB() string {
+	return rfk.srcDB
+}
+
+func (rfk *ReverseForeignKey) getSrcTab() string {
+	return rfk.srcTab
 }
 
 //ManyToMany represent many point many relation
 type ManyToMany struct {
-	srcField      Field
-	midLeftField  Field
-	midRightField Field
-	dstField      Field
-	midFieldsFunc func() (midLeftField, midRighField Field)
-	dstFieldFunc  func() (destField Field)
+	srcDB       string
+	srcTab      string
+	srcCol      string
+	midDB       string
+	midTab      string
+	midLeftCol  string
+	midRightCol string
+	dstDB       string
+	dstTab      string
+	dstCol      string
+	srcValF     func() interface{}
 }
 
 //NewManyToMany create ManyToMany
-func NewManyToMany(srcField Field, midFieldsFunc func() (midLeftField, midRightField Field), dstFieldFunc func() (dstField Field)) *ManyToMany {
-	return &ManyToMany{srcField: srcField, midFieldsFunc: midFieldsFunc, dstFieldFunc: dstFieldFunc}
-}
-
-func (mtm *ManyToMany) srcDB() string {
-	return mtm.srcField.superModel().DB()
-}
-
-func (mtm *ManyToMany) srcTab() string {
-	return mtm.srcField.superModel().Tab()
-}
-
-func (mtm *ManyToMany) srcCol() string {
-	return mtm.srcField.columnName()
-}
-
-func (mtm *ManyToMany) midDB() string {
-	switch {
-	case mtm.midLeftField != nil:
-		return mtm.midLeftField.superModel().DB()
-	case mtm.midRightField != nil:
-		return mtm.midRightField.superModel().DB()
-	default:
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-		return mtm.midLeftField.superModel().DB()
-	}
-}
-
-func (mtm *ManyToMany) midTab() string {
-	switch {
-	case mtm.midLeftField != nil:
-		return mtm.midLeftField.superModel().Tab()
-	case mtm.midRightField != nil:
-		return mtm.midRightField.superModel().Tab()
-	default:
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-		return mtm.midLeftField.superModel().Tab()
-	}
-}
-
-func (mtm *ManyToMany) midLeftCol() string {
-	if mtm.midLeftField == nil {
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-	}
-	return mtm.midLeftField.columnName()
-}
-
-func (mtm *ManyToMany) midRightCol() string {
-	if mtm.midRightField == nil {
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-	}
-	return mtm.midRightField.columnName()
-}
-
-func (mtm *ManyToMany) dstDB() string {
-	if mtm.dstField == nil {
-		mtm.dstField = mtm.dstFieldFunc()
-	}
-	return mtm.dstField.superModel().DB()
-}
-
-func (mtm *ManyToMany) dstTab() string {
-	if mtm.dstField == nil {
-		mtm.dstField = mtm.dstFieldFunc()
-	}
-	return mtm.dstField.superModel().Tab()
-}
-
-func (mtm *ManyToMany) dstCol() string {
-	if mtm.dstField == nil {
-		mtm.dstField = mtm.dstFieldFunc()
-	}
-	return mtm.dstField.columnName()
-}
-
-func (mtm *ManyToMany) srcModel() Model {
-	return mtm.srcField.superModel()
-}
-
-func (mtm *ManyToMany) getSrcField() Field {
-	return mtm.srcField
-}
-
-func (mtm *ManyToMany) getMidLeftField() Field {
-	if mtm.midLeftField == nil {
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-	}
-	return mtm.midLeftField
-}
-
-func (mtm *ManyToMany) getMidRightField() Field {
-	if mtm.midRightField == nil {
-		mtm.midLeftField, mtm.midRightField = mtm.midFieldsFunc()
-	}
-	return mtm.midRightField
+func NewManyToMany(srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *ManyToMany {
+	return &ManyToMany{srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol, dstDB, dstTab, dstCol, srcValF}
 }
 
 //All query all records in related table by this relation
 func (mtm *ManyToMany) All(l ModelList, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
-		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
 	}
 	return relationQuery(l, mtm, nil, sorter, pager)
 }
 
 //AllWithFoundRows query all records in related table and number of found rows by this relation
 func (mtm *ManyToMany) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
-		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
+		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
 	}
 	return relationQueryWithFoundRows(l, mtm, nil, sorter, pager)
 }
 
 //Query query records in related table by this relation
 func (mtm *ManyToMany) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
-		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
 	}
 	return relationQuery(l, mtm, where, sorter, pager)
 }
 
 //QueryWithFoundRows query records in related table and number of found rows by this relation
 func (mtm *ManyToMany) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != mtm.dstDB() || l.Model().Tab() != mtm.dstTab() {
-		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), l.Model().DB(), l.Model().Tab())
+	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
+		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
 	}
 	return relationQueryWithFoundRows(l, mtm, where, sorter, pager)
 }
 
 //Add add a relation record to middle table
 func (mtm *ManyToMany) Add(m Model) error {
-	if m.DB() != mtm.dstDB() || m.Tab() != mtm.dstTab() {
-		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), m.DB(), m.Tab())
+	if m.DB() != mtm.dstDB || m.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, m.DB(), m.Tab())
 	}
 	return relationAddOne(mtm, m)
 }
 
 //Remove remove a record from middle table
 func (mtm *ManyToMany) Remove(m Model) error {
-	if m.DB() != mtm.dstDB() || m.Tab() != mtm.dstTab() {
-		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB(), mtm.dstTab(), m.DB(), m.Tab())
+	if m.DB() != mtm.dstDB || m.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, m.DB(), m.Tab())
 	}
 	return relationRemoveOne(mtm, m)
 }
 
 func (mtm *ManyToMany) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", mtm.midDB(), mtm.midTab(), mtm.srcDB(), mtm.srcTab(),
-		mtm.srcCol(), mtm.midDB(), mtm.midTab(), mtm.midLeftCol(), mtm.dstDB(), mtm.dstTab(), mtm.midDB(), mtm.midTab(), mtm.midRightCol(), mtm.dstDB(),
-		mtm.dstTab(), mtm.dstCol())
+	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab,
+		mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB,
+		mtm.dstTab, mtm.dstCol)
+}
+
+func (mtm *ManyToMany) where() *Where {
+	return newWhere(mtm.srcDB, mtm.srcTab, mtm.srcCol, "=", mtm.srcValF())
+}
+
+func (mtm *ManyToMany) getSrcDB() string {
+	return mtm.srcDB
+}
+
+func (mtm *ManyToMany) getSrcTab() string {
+	return mtm.srcTab
 }

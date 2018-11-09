@@ -1,9 +1,7 @@
 package nborm
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,6 +19,7 @@ type Auth struct {
 	CreateTime    *DatetimeField
 	LastLoginTime *DatetimeField
 	IsSuperUser   *BoolField
+	Test          *ForeignKey `source_column:"id" destination_column:"test.test.test"`
 	_isSync       bool
 }
 
@@ -55,19 +54,7 @@ func (l *AuthList) Tab() string {
 }
 
 func TestReflect(t *testing.T) {
-	db, err := sql.Open("mysql", "wangjun:Wt20110523@tcp(127.0.0.1:12345)/bk_dalian")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	rows, err := db.Query("SELECT * FROM auth")
-	if err != nil {
-		log.Fatal(err)
-	}
-	auths := make(AuthList, 0, 8)
-	err = scanRows(&auths, rows)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(auths[0].Username.Get())
+	auth := &Auth{}
+	InitModel(auth)
+	fmt.Println(auth.Test.dstCol)
 }

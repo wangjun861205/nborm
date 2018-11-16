@@ -22,8 +22,8 @@ type ModelList interface {
 	table
 	New() Model
 	Len() int
-	Index(int) Model
-	Delete(int)
+	// Index(int) Model
+	// Delete(int)
 	Swap(i, j int)
 	json.Marshaler
 	Model() Model
@@ -41,12 +41,13 @@ type Field interface {
 	isInc() bool
 	isUni() bool
 	where() *Where
-	LessFunc() func(Model, Model) int
+	LessFunc() func(iaddr, jaddr uintptr) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
 	SortOrder(reverse bool) string
 	value() interface{}
 	setVal(interface{}, bool)
+	updateValue() *UpdateValue
 }
 
 type relation interface {
@@ -54,4 +55,6 @@ type relation interface {
 	where() *Where
 	getSrcDB() string
 	getSrcTab() string
+	getDstDB() string
+	getDstTab() string
 }

@@ -86,3 +86,37 @@ func (w *Where) Or(other *Where) *Where {
 func Group(w *Where) *Where {
 	return &Where{sub: w}
 }
+
+func genWhere(addr uintptr, tabInfo *tableInfo) *Where {
+	inc := getIncWithTableInfo(addr, tabInfo)
+	if inc != nil && inc.IsValid() {
+		return inc.where()
+	}
+	pks := getPksWithTableInfo(addr, tabInfo)
+	var where *Where
+	for _, pk := range pks {
+		if !pk.IsValid() {
+			where = nil
+			break
+		}
+		where = where.And(pk.where())
+	}
+	if where != nil {
+		return where
+	}
+	unis := getUinsWithTableInfo(addr, tabInfo)
+	if len(unis) > 0 {
+		for _, uni := range unis {
+			if uni.IsValid() {
+				return uni.where()
+			}
+		}
+	}
+	for _, col := range tabInfo.columns {
+		field := getFieldByColumnInfo(addr, col)
+		if field.IsValid() {
+			where = where.And(field.where())
+		}
+	}
+	return where
+}

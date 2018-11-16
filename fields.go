@@ -5,13 +5,21 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
-//UpdateValue is used for bulk update
-type UpdateValue struct {
-	column string
-	val    interface{}
-	null   bool
+type SyncFlag bool
+
+func setSync(addr uintptr, tabInfo *tableInfo) {
+	*(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag)) = true
+}
+
+func unsetSync(addr uintptr, tabInfo *tableInfo) {
+	*(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag)) = false
+}
+
+func getSync(addr uintptr, tabInfo *tableInfo) bool {
+	return *(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag))
 }
 
 //StringField represent char, varchar, text type in mysql
@@ -23,14 +31,15 @@ type StringField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      string
 	valid    bool
 	null     bool
 }
 
 //NewStringField create a StringField
-func NewStringField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *StringField {
-	return &StringField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewStringField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *StringField {
+	return &StringField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *StringField) value() interface{} {
@@ -132,8 +141,12 @@ func (f *StringField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue generate a UpdateValue by value which is passed in, it is for bulk update
-func (f *StringField) BulkUpdateValue(val string, isNull bool) *UpdateValue {
+func (f *StringField) UpdateValue(val string, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val, isNull}
+}
+
+func (f *StringField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate a Where by self value
@@ -177,10 +190,9 @@ func (f *StringField) In(val []string) *Where {
 }
 
 //LessFunc generate a function for sort a ModelList
-func (f *StringField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*StringField), getFieldByName(jm, f.columnName(), tabInfo).(*StringField)
+func (f *StringField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*StringField)(unsafe.Pointer(iaddr+f.offset)), (*StringField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -231,14 +243,15 @@ type IntField struct {
 	inc      bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      int64
 	valid    bool
 	null     bool
 }
 
 //NewIntField return a IntField
-func NewIntField(db, tab, column string, nullable, pk, inc, uni bool, defVal interface{}) *IntField {
-	return &IntField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, inc: inc, uni: uni, defVal: defVal}
+func NewIntField(db, tab, column string, nullable, pk, inc, uni bool, defVal interface{}, offset uintptr) *IntField {
+	return &IntField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, inc: inc, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *IntField) value() interface{} {
@@ -344,8 +357,12 @@ func (f *IntField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue return a UpdateValue for bulk update
-func (f *IntField) BulkUpdateValue(val int64, isNull bool) *UpdateValue {
+func (f *IntField) UpdateValue(val int64, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val, isNull}
+}
+
+func (f *IntField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate a Where by self value
@@ -402,10 +419,9 @@ func (f *IntField) In(val []int) *Where {
 }
 
 //LessFunc return a function for sort ModelList
-func (f *IntField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*IntField), getFieldByName(jm, f.columnName(), tabInfo).(*IntField)
+func (f *IntField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*IntField)(unsafe.Pointer(iaddr+f.offset)), (*IntField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -447,14 +463,13 @@ func (f *IntField) SortOrder(reverse bool) string {
 }
 
 //SumFunc return a function for sum aggregate
-func (f *IntField) SumFunc() func(ModelList) float64 {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(l ModelList) float64 {
+func (f *IntField) SumFunc() func(slice table) float64 {
+	return func(slice table) float64 {
+		l := **(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 		var sum int
-		for i := 0; i < l.Len(); i++ {
-			m := l.Index(i)
-			field := getFieldByName(m, f.column, tabInfo)
-			val, valid, null := field.(*IntField).Get()
+		for i := 0; i < len(l); i++ {
+			field := (*IntField)(unsafe.Pointer(l[i] + f.offset))
+			val, valid, null := field.Get()
 			if valid && !null {
 				sum += int(val)
 			}
@@ -464,15 +479,14 @@ func (f *IntField) SumFunc() func(ModelList) float64 {
 }
 
 //AvgFunc return a funcion for average aggregate
-func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
-	tabInfo := getTabInfoByName(f.db, f.tab)
+func (f *IntField) AvgFunc(ignoreNull bool) func(slice table) float64 {
 	if ignoreNull {
-		return func(l ModelList) float64 {
+		return func(slice table) float64 {
+			l := **(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 			var num, sum int
-			for i := 0; i < l.Len(); i++ {
-				m := l.Index(i)
-				field := getFieldByName(m, f.column, tabInfo)
-				val, valid, null := field.(*IntField).Get()
+			for i := 0; i < len(l); i++ {
+				field := (*IntField)(unsafe.Pointer(l[i] + f.offset))
+				val, valid, null := field.Get()
 				if valid && !null {
 					num++
 					sum += int(val)
@@ -484,12 +498,12 @@ func (f *IntField) AvgFunc(ignoreNull bool) func(ModelList) float64 {
 			return float64(sum) / float64(num)
 		}
 	}
-	return func(l ModelList) float64 {
+	return func(slice table) float64 {
+		l := **(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 		var num, sum int
-		for i := 0; i < l.Len(); i++ {
-			m := l.Index(i)
-			field := getFieldByName(m, f.column, tabInfo)
-			val, valid, null := field.(*IntField).Get()
+		for i := 0; i < len(l); i++ {
+			field := (*IntField)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
+			val, valid, null := field.Get()
 			num++
 			if valid && !null {
 				sum += int(val)
@@ -511,14 +525,15 @@ type FloatField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      float64
 	valid    bool
 	null     bool
 }
 
 //NewFloatField create new FloatField
-func NewFloatField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *FloatField {
-	return &FloatField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewFloatField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *FloatField {
+	return &FloatField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *FloatField) value() interface{} {
@@ -624,8 +639,12 @@ func (f *FloatField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue generate a UpdateValue for bulk update
-func (f *FloatField) BulkUpdateValue(val float64, isNull bool) *UpdateValue {
+func (f *FloatField) UpdateValue(val float64, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val, isNull}
+}
+
+func (f *FloatField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate a Where by self value
@@ -682,10 +701,9 @@ func (f *FloatField) In(val []float64) *Where {
 }
 
 //LessFunc return a func for sort ModelList
-func (f *FloatField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*FloatField), getFieldByName(jm, f.columnName(), tabInfo).(*FloatField)
+func (f *FloatField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*FloatField)(unsafe.Pointer(iaddr+f.offset)), (*FloatField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -735,14 +753,15 @@ type BoolField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      bool
 	valid    bool
 	null     bool
 }
 
 //NewBoolField return a new BoolField
-func NewBoolField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *BoolField {
-	return &BoolField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewBoolField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *BoolField {
+	return &BoolField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *BoolField) value() interface{} {
@@ -847,8 +866,12 @@ func (f *BoolField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue return a UpdateValue struct for bulk update
-func (f *BoolField) BulkUpdateValue(val bool, isNull bool) *UpdateValue {
+func (f *BoolField) UpdateValue(val bool, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val, isNull}
+}
+
+func (f *BoolField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate a Where by self value
@@ -885,10 +908,9 @@ func (f *BoolField) isUni() bool {
 }
 
 //LessFunc return a func for sort ModelList
-func (f *BoolField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*BoolField), getFieldByName(jm, f.columnName(), tabInfo).(*BoolField)
+func (f *BoolField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*BoolField)(unsafe.Pointer(iaddr+f.offset)), (*BoolField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -934,14 +956,15 @@ type DateField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      time.Time
 	valid    bool
 	null     bool
 }
 
 //NewDateField create a new DateField
-func NewDateField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *DateField {
-	return &DateField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewDateField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *DateField {
+	return &DateField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *DateField) value() interface{} {
@@ -1047,8 +1070,12 @@ func (f *DateField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue generate a UpdateValue for bulk update
-func (f *DateField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
+func (f *DateField) UpdateValue(val time.Time, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val.Format("2006-01-02"), isNull}
+}
+
+func (f *DateField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate where by self value
@@ -1110,10 +1137,9 @@ func (f *DateField) In(val []time.Time) *Where {
 }
 
 //LessFunc return a function for sort ModelList
-func (f *DateField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*DateField), getFieldByName(jm, f.columnName(), tabInfo).(*DateField)
+func (f *DateField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*DateField)(unsafe.Pointer(iaddr+f.offset)), (*DateField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1163,14 +1189,15 @@ type DatetimeField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      time.Time
 	valid    bool
 	null     bool
 }
 
 //NewDatetimeField create a DatetimeField
-func NewDatetimeField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *DatetimeField {
-	return &DatetimeField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewDatetimeField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *DatetimeField {
+	return &DatetimeField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *DatetimeField) value() interface{} {
@@ -1276,8 +1303,12 @@ func (f *DatetimeField) MarshalJSON() ([]byte, error) {
 }
 
 //BulkUpdateValue return a UpdateValue for bulk update
-func (f *DatetimeField) BulkUpdateValue(val time.Time, isNull bool) *UpdateValue {
+func (f *DatetimeField) UpdateValue(val time.Time, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, val.Format("2006-01-02 15:04:05"), isNull}
+}
+
+func (f *DatetimeField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 //Where generate Where by self value
@@ -1338,10 +1369,9 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 }
 
 //LessFunc return a function for sorting ModelList
-func (f *DatetimeField) LessFunc() func(Model, Model) int {
-	tabInfo := getTabInfoByName(f.db, f.tab)
-	return func(im, jm Model) int {
-		iField, jField := getFieldByName(im, f.columnName(), tabInfo).(*DatetimeField), getFieldByName(jm, f.columnName(), tabInfo).(*DatetimeField)
+func (f *DatetimeField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
+		iField, jField := (*DatetimeField)(unsafe.Pointer(iaddr+f.offset)), (*DatetimeField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1391,14 +1421,15 @@ type BinaryField struct {
 	pk       bool
 	uni      bool
 	defVal   interface{}
+	offset   uintptr
 	val      []byte
 	valid    bool
 	null     bool
 }
 
 //NewBinaryField create a BinaryField
-func NewBinaryField(db, tab, column string, nullable, pk, uni bool, defVal interface{}) *BinaryField {
-	return &BinaryField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal}
+func NewBinaryField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *BinaryField {
+	return &BinaryField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *BinaryField) value() interface{} {
@@ -1463,8 +1494,12 @@ func (f *BinaryField) isUni() bool {
 }
 
 //BulkUpdateValue generate UpdateValue for bulk update
-func (f *BinaryField) BulkUpdateValue(val []byte, isNull bool) *UpdateValue {
+func (f *BinaryField) UpdateValue(val []byte, isNull bool) *UpdateValue {
 	return &UpdateValue{f.column, fmt.Sprintf("X'%x'", val), isNull}
+}
+
+func (f *BinaryField) updateValue() *UpdateValue {
+	return &UpdateValue{f.column, f.value, f.null}
 }
 
 func (f *BinaryField) toSQL() interface{} {
@@ -1475,8 +1510,8 @@ func (f *BinaryField) toSQL() interface{} {
 }
 
 //LessFunc generate function for sorting ModelList (this will return a fake function)
-func (f *BinaryField) LessFunc() func(Model, Model) int {
-	return func(iMod, jMod Model) int {
+func (f *BinaryField) LessFunc() func(iaddr, jaddr uintptr) int {
+	return func(iaddr, jaddr uintptr) int {
 		return 0
 	}
 }
@@ -1555,11 +1590,14 @@ func NewOneToOne(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF fu
 }
 
 //Query query related table by OneToOne relation
-func (oto *OneToOne) Query(m Model) error {
-	if m.DB() != oto.dstDB || m.Tab() != oto.dstTab {
-		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, m.DB(), m.Tab())
+func (oto *OneToOne) Query(model table) error {
+	if model.DB() != oto.dstDB || model.Tab() != oto.dstTab {
+		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, model.DB(), model.Tab())
 	}
-	return relationQuery(m, oto, nil, nil, nil)
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	row := relationQueryRow(oto, oto.where())
+	return scanRow(modAddr, tabInfo, row)
 }
 
 func (oto *OneToOne) joinClause() string {
@@ -1579,6 +1617,14 @@ func (oto *OneToOne) getSrcTab() string {
 	return oto.srcTab
 }
 
+func (oto *OneToOne) getDstDB() string {
+	return oto.dstDB
+}
+
+func (oto *OneToOne) getDstTab() string {
+	return oto.dstTab
+}
+
 //ForeignKey represent a one point many relation
 type ForeignKey struct {
 	srcDB   string
@@ -1596,11 +1642,15 @@ func NewForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF 
 }
 
 //Query query related table by this relation
-func (fk *ForeignKey) Query(m Model) error {
-	if m.DB() != fk.dstDB || m.Tab() != fk.dstTab {
-		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB, fk.dstTab, m.DB(), m.Tab())
+func (fk *ForeignKey) Query(model table) error {
+	if model.DB() != fk.dstDB || model.Tab() != fk.dstTab {
+		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB, fk.dstTab, model.DB(), model.Tab())
 	}
-	return relationQuery(m, fk, nil, nil, nil)
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	where := fk.where()
+	row := relationQueryRow(fk, where)
+	return scanRow(modAddr, tabInfo, row)
 }
 
 func (fk *ForeignKey) joinClause() string {
@@ -1620,6 +1670,14 @@ func (fk *ForeignKey) getSrcTab() string {
 	return fk.srcTab
 }
 
+func (fk *ForeignKey) getDstDB() string {
+	return fk.dstDB
+}
+
+func (fk *ForeignKey) getDstTab() string {
+	return fk.dstTab
+}
+
 //ReverseForeignKey represent many point one relation
 type ReverseForeignKey struct {
 	srcDB   string
@@ -1637,54 +1695,83 @@ func NewReverseForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, s
 }
 
 //All query all records in related table by this relation
-func (rfk *ReverseForeignKey) All(l ModelList, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab, l.Model().DB(), l.Model().Tab())
+func (rfk *ReverseForeignKey) All(slice table, sorter *Sorter, pager *Pager) error {
+	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab, slice.DB(), slice.Tab())
 	}
-	return relationQuery(l, rfk, nil, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	where := rfk.where()
+	rows, err := relationQueryRows(rfk, where, sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //AllWithFoundRows query all records in related table by this relation and the number of found rows
-func (rfk *ReverseForeignKey) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+func (rfk *ReverseForeignKey) AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
+	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			l.Model().DB(), l.Model().Tab())
+			slice.DB(), slice.Tab())
 	}
-	return relationQueryWithFoundRows(l, rfk, nil, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, numRows, tx, err := relationQueryRowsAndFoundRows(rfk, rfk.where(), sorter, pager)
+	if err != nil {
+		return -1, err
+	}
+	err = scanRows(sliceAddr, tabInfo, rows)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return -1, err
+	}
+	return numRows, nil
 }
 
 //Query query related table by this relation
-func (rfk *ReverseForeignKey) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+func (rfk *ReverseForeignKey) Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
+	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
 		return fmt.Errorf("nborm.ReverseForeignKey.Query() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			l.Model().DB(), l.Model().Tab())
+			slice.DB(), slice.Tab())
 	}
-	return relationQuery(l, rfk, where, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	where = rfk.where().And(where)
+	rows, err := relationQueryRows(rfk, where, sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //QueryWithFoundRows query related table by this realtion and number of found rows
-func (rfk *ReverseForeignKey) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != rfk.dstDB || l.Model().Tab() != rfk.dstTab {
+func (rfk *ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			l.Model().DB(), l.Model().Tab())
+			slice.DB(), slice.Tab())
 	}
-	return relationQueryWithFoundRows(l, rfk, where, sorter, pager)
-}
-
-func (rfk *ReverseForeignKey) Add(m Model) error {
-	if rfk.dstDB != m.DB() || rfk.dstTab != m.Tab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.Add() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB,
-			rfk.dstTab, m.DB(), m.Tab())
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	where = rfk.where().And(where)
+	rows, numRows, tx, err := relationQueryRowsAndFoundRows(rfk, where, sorter, pager)
+	if err != nil {
+		return -1, err
 	}
-	return relationAddOne(rfk, m)
-}
-
-func (rfk *ReverseForeignKey) Remove(m Model) error {
-	if rfk.dstDB != m.DB() || rfk.dstTab != m.Tab() {
-		return fmt.Errorf("nborm.ReverseForeignKey.Remove() error: type inconsitent, required %s.%s supported %s.%s", rfk.dstDB,
-			rfk.dstTab, m.DB(), m.Tab())
+	err = scanRows(sliceAddr, tabInfo, rows)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
 	}
-	return relationRemoveOne(rfk, m)
+	err = tx.Commit()
+	if err != nil {
+		return -1, err
+	}
+	return numRows, nil
 }
 
 func (rfk *ReverseForeignKey) joinClause() string {
@@ -1702,6 +1789,14 @@ func (rfk *ReverseForeignKey) getSrcDB() string {
 
 func (rfk *ReverseForeignKey) getSrcTab() string {
 	return rfk.srcTab
+}
+
+func (rfk *ReverseForeignKey) getDstDB() string {
+	return rfk.dstDB
+}
+
+func (rfk *ReverseForeignKey) getDstTab() string {
+	return rfk.dstTab
 }
 
 //ManyToMany represent many point many relation
@@ -1725,51 +1820,107 @@ func NewManyToMany(srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol
 }
 
 //All query all records in related table by this relation
-func (mtm *ManyToMany) All(l ModelList, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
+func (mtm *ManyToMany) All(slice table, sorter *Sorter, pager *Pager) error {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
 	}
-	return relationQuery(l, mtm, nil, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, err := relationQueryRows(mtm, mtm.where(), sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //AllWithFoundRows query all records in related table and number of found rows by this relation
-func (mtm *ManyToMany) AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
-		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
+func (mtm *ManyToMany) AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(),
+			slice.Tab())
 	}
-	return relationQueryWithFoundRows(l, mtm, nil, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, numRows, tx, err := relationQueryRowsAndFoundRows(mtm, mtm.where(), sorter, pager)
+	if err != nil {
+		return -1, err
+	}
+	err = scanRows(sliceAddr, tabInfo, rows)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return -1, err
+	}
+	return numRows, nil
 }
 
 //Query query records in related table by this relation
-func (mtm *ManyToMany) Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
+func (mtm *ManyToMany) Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
 	}
-	return relationQuery(l, mtm, where, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	where = mtm.where().And(where)
+	rows, err := relationQueryRows(mtm, where, sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //QueryWithFoundRows query records in related table and number of found rows by this relation
-func (mtm *ManyToMany) QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if l.Model().DB() != mtm.dstDB || l.Model().Tab() != mtm.dstTab {
-		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, l.Model().DB(), l.Model().Tab())
+func (mtm *ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab,
+			slice.DB(), slice.Tab())
 	}
-	return relationQueryWithFoundRows(l, mtm, where, sorter, pager)
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	where = mtm.where().And(where)
+	rows, numRows, tx, err := relationQueryRowsAndFoundRows(mtm, where, sorter, pager)
+	if err != nil {
+		return -1, err
+	}
+	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	if err := tx.Commit(); err != nil {
+		return -1, err
+	}
+	return numRows, nil
 }
 
 //Add add a relation record to middle table
-func (mtm *ManyToMany) Add(m Model) error {
-	if m.DB() != mtm.dstDB || m.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, m.DB(), m.Tab())
+func (mtm *ManyToMany) Add(model table) error {
+	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
 	}
-	return relationAddOne(mtm, m)
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+	if _, err := dbMap[mtm.midDB].Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+		return err
+	}
+	return nil
 }
 
 //Remove remove a record from middle table
-func (mtm *ManyToMany) Remove(m Model) error {
-	if m.DB() != mtm.dstDB || m.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, m.DB(), m.Tab())
+func (mtm *ManyToMany) Remove(model table) error {
+	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
 	}
-	return relationRemoveOne(mtm, m)
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+	if _, err := dbMap[mtm.midDB].Exec(stmt, mtm.srcValF, getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (mtm *ManyToMany) joinClause() string {
@@ -1788,4 +1939,12 @@ func (mtm *ManyToMany) getSrcDB() string {
 
 func (mtm *ManyToMany) getSrcTab() string {
 	return mtm.srcTab
+}
+
+func (mtm *ManyToMany) getDstDB() string {
+	return mtm.dstDB
+}
+
+func (mtm *ManyToMany) getDstTab() string {
+	return mtm.dstTab
 }

@@ -81,6 +81,8 @@ type manyToManyInfo struct {
 }
 
 type tableInfo struct {
+	db                 string
+	tab                string
 	modelType          reflect.Type
 	columns            []*columnInfo
 	columnMap          map[string]*columnInfo
@@ -91,6 +93,7 @@ type tableInfo struct {
 	inc                *columnInfo
 	pks                []*columnInfo
 	unis               []*columnInfo
+	syncFlag           uintptr
 }
 
 type databaseInfo struct {
@@ -256,8 +259,8 @@ func parseManyToMany(field reflect.StructField) *manyToManyInfo {
 }
 
 func parseTable(table table) *tableInfo {
-	tabInfo := &tableInfo{columnMap: make(map[string]*columnInfo)}
 	dbName, tabName := table.DB(), table.Tab()
+	tabInfo := &tableInfo{db: dbName, tab: tabName, columnMap: make(map[string]*columnInfo)}
 	typ := reflect.TypeOf(table)
 	if typ.Kind() != reflect.Ptr {
 		panic(fmt.Errorf("nborm.parseTable() error: require a pointer but supported (%s)", typ.Name()))
@@ -313,10 +316,18 @@ func parseTable(table table) *tableInfo {
 		case "*nborm.ManyToMany":
 			mtmInfo := parseManyToMany(field)
 			tabInfo.manyToManys = append(tabInfo.manyToManys, mtmInfo)
+		case "nborm.SyncFlag":
+			if tabInfo.syncFlag != 0 {
+				panic(fmt.Errorf("nborm.parseTable() error: multiple SyncFlag (%s)", typ.Name()))
+			}
+			tabInfo.syncFlag = field.Offset
 		}
 	}
 	if tabInfo.pks == nil {
 		panic(fmt.Errorf("nborm.parseTable() error: no primary key in %s.%s", dbName, tabName))
+	}
+	if tabInfo.syncFlag == 0 {
+		panic(fmt.Errorf("nborm.parseTable() error: no SyncFlag in %s.%s", dbName, tabName))
 	}
 	return tabInfo
 }
@@ -363,49 +374,49 @@ func getTabInfoByName(db, tab string) *tableInfo {
 	}
 }
 
-func initModelWithTableInfo(model Model, tabInfo *tableInfo) {
+func initModelWithTableInfo(model table, tabInfo *tableInfo) {
 	db, tab := model.DB(), model.Tab()
 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
 	for _, col := range tabInfo.columns {
 		switch col.ormType {
 		case TypeStringField:
 			*(**StringField)(unsafe.Pointer(baseAddr + col.offset)) = NewStringField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeIntField:
 			*(**IntField)(unsafe.Pointer(baseAddr + col.offset)) = NewIntField(db, tab, col.colName, col.nullable, col.isPk, col.isInc, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeFloatField:
 			*(**FloatField)(unsafe.Pointer(baseAddr + col.offset)) = NewFloatField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeBoolField:
 			*(**BoolField)(unsafe.Pointer(baseAddr + col.offset)) = NewBoolField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeBinaryField:
 			*(**BinaryField)(unsafe.Pointer(baseAddr + col.offset)) = NewBinaryField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeDateField:
 			*(**DateField)(unsafe.Pointer(baseAddr + col.offset)) = NewDateField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		case TypeDatetimeField:
 			*(**DatetimeField)(unsafe.Pointer(baseAddr + col.offset)) = NewDatetimeField(db, tab, col.colName, col.nullable, col.isPk, col.isUni,
-				col.defVal)
+				col.defVal, col.offset)
 		}
 	}
 	for _, oto := range tabInfo.oneToOnes {
-		srcField := getFieldByName(model, oto.srcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, oto.srcCol, tabInfo)
 		*(**OneToOne)(unsafe.Pointer(baseAddr + oto.offset)) = NewOneToOne(db, tab, oto.srcCol, oto.dstDB, oto.dstTab, oto.dstCol, srcField.value)
 	}
 	for _, fk := range tabInfo.foreignKeys {
-		srcField := getFieldByName(model, fk.srcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, fk.srcCol, tabInfo)
 		*(**ForeignKey)(unsafe.Pointer(baseAddr + fk.offset)) = NewForeignKey(db, tab, fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol, srcField.value)
 	}
 	for _, rfk := range tabInfo.reverseForeignKeys {
-		srcField := getFieldByName(model, rfk.srcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, rfk.srcCol, tabInfo)
 		*(**ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset)) = NewReverseForeignKey(db, tab, rfk.srcCol, rfk.dstDB, rfk.dstTab, rfk.dstCol,
 			srcField.value)
 	}
 	for _, mtm := range tabInfo.manyToManys {
-		srcField := getFieldByName(model, mtm.srcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, mtm.srcCol, tabInfo)
 		*(**ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset)) = NewManyToMany(db, tab, mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol,
 			mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol, srcField.value)
 	}
@@ -436,48 +447,105 @@ func InitSlice(table table) {
 	*(*uintptr)(unsafe.Pointer(underArrayAddr)) = newModelAddr(tabInfo)
 }
 
-func getFieldByName(model Model, colName string, tabInfo *tableInfo) Field {
+// func getFieldByName(model table, colName string, tabInfo *tableInfo) Field {
+// 	colInfo, ok := tabInfo.columnMap[colName]
+// 	if !ok {
+// 		panic(fmt.Errorf("nborm.getFieldByName() error: %T.%s column not exist", model, colName))
+// 	}
+// 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
+// 	switch colInfo.ormType {
+// 	case TypeStringField:
+// 		return *(**StringField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeIntField:
+// 		return *(**IntField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeFloatField:
+// 		return *(**FloatField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeBoolField:
+// 		return *(**BoolField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeBinaryField:
+// 		return *(**BinaryField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeDateField:
+// 		return *(**DateField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	case TypeDatetimeField:
+// 		return *(**DatetimeField)(unsafe.Pointer(baseAddr + colInfo.offset))
+// 	default:
+// 		panic(fmt.Errorf("nborm.getFieldByName() error: unknown field type (%d)", colInfo.ormType))
+// 	}
+// }
+
+func getFieldByName(addr uintptr, colName string, tabInfo *tableInfo) Field {
 	colInfo, ok := tabInfo.columnMap[colName]
 	if !ok {
-		panic(fmt.Errorf("nborm.getFieldByName() error: %T.%s column not exist", model, colName))
+		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.db, tabInfo.tab, colName))
 	}
-	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
 	switch colInfo.ormType {
 	case TypeStringField:
-		return *(**StringField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**StringField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeIntField:
-		return *(**IntField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**IntField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeFloatField:
-		return *(**FloatField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**FloatField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeBoolField:
-		return *(**BoolField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**BoolField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeBinaryField:
-		return *(**BinaryField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**BinaryField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeDateField:
-		return *(**DateField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**DateField)(unsafe.Pointer(addr + colInfo.offset))
 	case TypeDatetimeField:
-		return *(**DatetimeField)(unsafe.Pointer(baseAddr + colInfo.offset))
+		return *(**DatetimeField)(unsafe.Pointer(addr + colInfo.offset))
 	default:
 		panic(fmt.Errorf("nborm.getFieldByName() error: unknown field type (%d)", colInfo.ormType))
 	}
 }
 
-func getPks(model Model) []Field {
-	tabInfo := getTabInfo(model)
-	l := make([]Field, len(tabInfo.pks))
-	for i, pkCol := range tabInfo.pks {
-		l[i] = getFieldByName(model, pkCol.colName, tabInfo)
+func getFieldByColumnInfo(addr uintptr, colInfo *columnInfo) Field {
+	fieldAddr := unsafe.Pointer(addr + colInfo.offset)
+	switch colInfo.ormType {
+	case TypeStringField:
+		return *(**StringField)(fieldAddr)
+	case TypeIntField:
+		return *(**IntField)(fieldAddr)
+	case TypeFloatField:
+		return *(**FloatField)(fieldAddr)
+	case TypeBoolField:
+		return *(**BoolField)(fieldAddr)
+	case TypeBinaryField:
+		return *(**BinaryField)(fieldAddr)
+	case TypeDateField:
+		return *(**DateField)(fieldAddr)
+	case TypeDatetimeField:
+		return *(**DatetimeField)(fieldAddr)
+	default:
+		panic(fmt.Errorf("nborm.getFieldByColumnInfo() error: unknown field type (%d)", colInfo.ormType))
+	}
+
+}
+
+// func getPks(model Model) []Field {
+// 	tabInfo := getTabInfo(model)
+// 	l := make([]Field, len(tabInfo.pks))
+// 	for i, pkCol := range tabInfo.pks {
+// 		l[i] = getFieldByName(model, pkCol.colName, tabInfo)
+// 	}
+// 	return l
+// }
+
+func getPksWithTableInfo(addr uintptr, info *tableInfo) []Field {
+	l := make([]Field, len(info.pks))
+	for i, pkCol := range info.pks {
+		l[i] = getFieldByColumnInfo(addr, pkCol)
 	}
 	return l
 }
 
 func getPksAndOthers(model Model) (pks []Field, others []Field) {
 	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
 	for _, col := range tabInfo.columns {
 		if col.isPk {
-			pks = append(pks, getFieldByName(model, col.colName, tabInfo))
+			pks = append(pks, getFieldByName(modAddr, col.colName, tabInfo))
 		} else {
-			others = append(others, getFieldByName(model, col.colName, tabInfo))
+			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
 		}
 
 	}
@@ -486,19 +554,26 @@ func getPksAndOthers(model Model) (pks []Field, others []Field) {
 
 func getInc(model Model) Field {
 	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
 	if tabInfo.inc == nil {
 		return nil
 	}
-	return getFieldByName(model, tabInfo.inc.colName, tabInfo)
+	return getFieldByName(modAddr, tabInfo.inc.colName, tabInfo)
 }
 
-func getIncAndOthers(model Model) (inc Field, others []Field) {
-	tabInfo := getTabInfo(model)
+func getIncWithTableInfo(addr uintptr, info *tableInfo) Field {
+	if info.inc == nil {
+		return nil
+	}
+	return *(**IntField)(unsafe.Pointer(addr + info.inc.offset))
+}
+
+func getIncAndOthers(addr uintptr, tabInfo *tableInfo) (inc Field, others []Field) {
 	for _, col := range tabInfo.columns {
 		if col.isInc {
-			inc = getFieldByName(model, col.colName, tabInfo)
+			inc = getFieldByColumnInfo(addr, col)
 		} else {
-			others = append(others, getFieldByName(model, col.colName, tabInfo))
+			others = append(others, getFieldByColumnInfo(addr, col))
 		}
 	}
 	return
@@ -506,23 +581,36 @@ func getIncAndOthers(model Model) (inc Field, others []Field) {
 
 func getUnis(model Model) []Field {
 	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
 	if tabInfo.unis == nil {
 		return nil
 	}
 	l := make([]Field, len(tabInfo.unis))
 	for i, uniCol := range tabInfo.unis {
-		l[i] = getFieldByName(model, uniCol.colName, tabInfo)
+		l[i] = getFieldByName(modAddr, uniCol.colName, tabInfo)
+	}
+	return l
+}
+
+func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+	if tabInfo.unis == nil {
+		return nil
+	}
+	l := make([]Field, len(tabInfo.unis))
+	for i, uniCol := range tabInfo.unis {
+		l[i] = getFieldByColumnInfo(addr, uniCol)
 	}
 	return l
 }
 
 func getUnisAndOthers(model Model) (unis []Field, others []Field) {
 	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
 	for _, col := range tabInfo.columns {
 		if col.isUni {
-			unis = append(unis, getFieldByName(model, col.colName, tabInfo))
+			unis = append(unis, getFieldByName(modAddr, col.colName, tabInfo))
 		} else {
-			others = append(others, getFieldByName(model, col.colName, tabInfo))
+			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
 		}
 
 	}
@@ -555,51 +643,33 @@ func getAllFields(model Model) []interface{} {
 	return l
 }
 
-func getAllFieldsWithTableInfo(model Model, tabInfo *tableInfo) []interface{} {
-	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
+func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []interface{} {
 	l := make([]interface{}, len(tabInfo.columns))
 	for i, colInfo := range tabInfo.columns {
-		fieldPointer := unsafe.Pointer(baseAddr + colInfo.offset)
-		switch colInfo.ormType {
-		case TypeStringField:
-			l[i] = *(**StringField)(fieldPointer)
-		case TypeIntField:
-			l[i] = *(**IntField)(fieldPointer)
-		case TypeFloatField:
-			l[i] = *(**FloatField)(fieldPointer)
-		case TypeBoolField:
-			l[i] = *(**FloatField)(fieldPointer)
-		case TypeBinaryField:
-			l[i] = *(**BinaryField)(fieldPointer)
-		case TypeDateField:
-			l[i] = *(**DateField)(fieldPointer)
-		case TypeDatetimeField:
-			l[i] = *(**DatetimeField)(fieldPointer)
-		}
+		l[i] = getFieldByColumnInfo(addr, colInfo)
 	}
 	return l
 }
 
-func scanRow(model Model, row *sql.Row) error {
-	fields := getAllFields(model)
+func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
+	fields := getAllFieldsWithTableInfo(addr, tabInfo)
 	if err := row.Scan(fields...); err != nil {
 		return err
 	}
-	model.SetSync(true)
+	setSync(addr, tabInfo)
 	return nil
 }
 
-func scanRows(slice table, rows *sql.Rows) error {
+func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 	defer rows.Close()
-	tabInfo := getTabInfo(slice)
-	lAddr := (*[]uintptr)(unsafe.Pointer(*(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))))
+	lAddr := (*[]uintptr)(unsafe.Pointer(addr))
 	for rows.Next() {
-		model := newModel(tabInfo)
-		if err := rows.Scan(getAllFieldsWithTableInfo(model, tabInfo)...); err != nil {
+		modelAddr := newModelAddr(tabInfo)
+		if err := rows.Scan(getAllFieldsWithTableInfo(modelAddr, tabInfo)...); err != nil {
 			return err
 		}
-		model.SetSync(true)
-		*lAddr = append(*lAddr, *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8))))
+		setSync(addr, tabInfo)
+		*lAddr = append(*lAddr, *(*uintptr)(unsafe.Pointer(&modelAddr)))
 	}
 	if err := rows.Err(); err != nil {
 		return err

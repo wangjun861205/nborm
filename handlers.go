@@ -11,9 +11,12 @@ import (
 )
 
 //First get the first record in database, no error return when no record in table, check Model synchronized status after query
-func First(m Model) error {
-	stmt, valList := genSelect(m, nil, nil, nil, false)
-	err := queryAndScan(m, stmt, valList)
+func First(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	where := genWhere(modAddr, tabInfo)
+	row := queryRow(tabInfo, where)
+	err := scanRow(modAddr, tabInfo, row)
 	if err == sql.ErrNoRows {
 		return nil
 	}
@@ -21,56 +24,102 @@ func First(m Model) error {
 }
 
 //GetOne get one record by Model owned field value, if no record, it will return a sql.ErrNoRows error
-func GetOne(m Model) error {
-	stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
-	return queryAndScan(m, stmt, valList)
+func GetOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	where := genWhere(modAddr, tabInfo)
+	row := queryRow(tabInfo, where)
+	return scanRow(modAddr, tabInfo, row)
 }
 
 //GetMul get multiple Models by Models's owned field value, if one of them not has conresponse record, it will return a sql.ErrNoRows error
-func GetMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error {
-		stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
-		return queryAndScanContext(ctx, m, stmt, valList)
+func GetMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		where := genWhere(addr, tabInfo)
+		row := queryRowContext(ctx, tabInfo, where)
+		return scanRow(addr, tabInfo, row)
 	})
 }
 
 //JoinQueryOne query one record by join tables, no error return when no conresponse record, check Model synchronized status after query
-func JoinQueryOne(m Model, where *Where, relations ...relation) error {
-	stmt, valList := genSelect(m, where, nil, nil, false, relations...)
-	err := queryAndScan(m, stmt, valList)
-	if err == sql.ErrNoRows {
-		return nil
+func JoinQueryOne(model table, where *Where, relations ...relation) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	row := joinQueryRow(tabInfo, where, relations...)
+	return scanRow(modAddr, tabInfo, row)
+}
+
+//JoinQuery join query records by where
+func JoinQuery(slice table, where *Where, sorter *Sorter, pager *Pager, relations ...relation) error {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, err := joinQueryRows(tabInfo, where, sorter, pager, relations...)
+	if err != nil {
+		return err
 	}
-	return err
+	return scanRows(sliceAddr, tabInfo, rows)
+}
+
+//JoinQueryWithFoundRows join query records and get the number of found rows
+func JoinQueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager, relations ...relation) (int, error) {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, numRows, tx, err := joinQueryRowsAndFoundRows(tabInfo, where, sorter, pager, relations...)
+	if err != nil {
+		return -1, err
+	}
+	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return numRows, nil
 }
 
 //All get all records of one table
-func All(l ModelList, sorter *Sorter, pager *Pager) error {
-	stmt, valList := genSelect(l, nil, sorter, pager, false)
-	return queryAndScan(l, stmt, valList)
+func All(slice table, sorter *Sorter, pager *Pager) error {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, err := queryRows(tabInfo, nil, sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //AllWithFoundRows get all records of one table and the number of records
-func AllWithFoundRows(l ModelList, sorter *Sorter, pager *Pager) (int, error) {
-	stmt, valList := genSelect(l, nil, sorter, pager, true)
-	return queryAndScanWithNum(l, stmt, valList)
+func AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, numRows, tx, err := queryRowsAndFoundRows(tabInfo, nil, sorter, pager)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
+		return -1, err
+	}
+	tx.Commit()
+	return numRows, nil
+
 }
 
 //QueryOne query one record, no error will return when no conresponse record, check the synchronized status of Model after query
-func QueryOne(m Model, where *Where) error {
-	stmt, valList := genSelect(m, where, nil, nil, false)
-	err := queryAndScan(m, stmt, valList)
-	if err == sql.ErrNoRows {
-		return nil
-	}
-	return err
+func QueryOne(model table, where *Where) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	row := queryRow(tabInfo, where)
+	return scanRow(modAddr, tabInfo, row)
 }
 
 //QueryMul query multiple Models, no error will be returned if no conresponse record, check synchronized status of Models after query
-func QueryMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error {
-		stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
-		err := queryAndScanContext(ctx, m, stmt, valList)
+func QueryMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		where := genWhere(addr, tabInfo)
+		row := queryRowContext(ctx, tabInfo, where)
+		err := scanRow(addr, tabInfo, row)
 		if err == sql.ErrNoRows {
 			return nil
 		}
@@ -79,115 +128,146 @@ func QueryMul(l ModelList) error {
 }
 
 //Query query records by where
-func Query(l ModelList, where *Where, sorter *Sorter, pager *Pager) error {
-	stmt, valList := genSelect(l, where, sorter, pager, false)
-	return queryAndScan(l, stmt, valList)
+func Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, err := queryRows(tabInfo, where, sorter, pager)
+	if err != nil {
+		return err
+	}
+	return scanRows(sliceAddr, tabInfo, rows)
 }
 
 //QueryWithFoundRows query records by where and get the number of found rows
-func QueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	stmt, valList := genSelect(l, where, sorter, pager, true)
-	return queryAndScanWithNum(l, stmt, valList)
-}
-
-//JoinQuery join query records by where
-func JoinQuery(l ModelList, where *Where, sorter *Sorter, pager *Pager, relations ...relation) error {
-	stmt, valList := genSelect(l, where, sorter, pager, false, relations...)
-	return queryAndScan(l, stmt, valList)
-}
-
-//JoinQueryWithFoundRows join query records and get the number of found rows
-func JoinQueryWithFoundRows(l ModelList, where *Where, sorter *Sorter, pager *Pager, relations ...relation) (int, error) {
-	stmt, valList := genSelect(l, where, sorter, pager, true, relations...)
-	return queryAndScanWithNum(l, stmt, valList)
+func QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := getTabAddr(slice)
+	rows, numRows, tx, err := queryRowsAndFoundRows(tabInfo, where, sorter, pager)
+	if err != nil {
+		return -1, err
+	}
+	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	tx.Commit()
+	return numRows, nil
 }
 
 //InsertOne insert one record
-func InsertOne(m Model) error {
-	return insertAndGetInc(m, false)
+func InsertOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	lid, err := insert(modAddr, tabInfo)
+	if err != nil {
+		return err
+	}
+	setInc(modAddr, tabInfo, lid)
+	return nil
 }
 
 //InsertOrUpdateOne insert or update one record
-func InsertOrUpdateOne(m Model) error {
-	return insertAndGetInc(m, true)
+func InsertOrUpdateOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	lid, err := insertOrUpdate(modAddr, tabInfo)
+	if err != nil {
+		return err
+	}
+	setInc(modAddr, tabInfo, lid)
+	return nil
 }
 
 //InsertMul insert multiple record
-func InsertMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error { return insertAndGetIncContext(ctx, m, false) })
+func InsertMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		lid, err := insertContext(ctx, addr, tabInfo)
+		if err != nil {
+			return err
+		}
+		inc := getIncWithTableInfo(addr, tabInfo)
+		inc.setVal(lid, false)
+		return nil
+	})
 }
 
 //InsertOrUpdateMul insert or update multiple record
-func InsertOrUpdateMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error { return insertAndGetIncContext(ctx, m, true) })
+func InsertOrUpdateMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		lid, err := insertOrUpdateContext(ctx, addr, tabInfo)
+		if err != nil {
+			return err
+		}
+		inc := getIncWithTableInfo(addr, tabInfo)
+		inc.setVal(lid, false)
+		return nil
+	})
 }
 
 //InsertOrGetOne insert one record or get it when it is already exists
-func InsertOrGetOne(m Model) error {
-	err := insertAndGetInc(m, false)
+func InsertOrGetOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	lid, err := insert(modAddr, tabInfo)
 	if err != nil {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-			stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
-			return queryAndScan(m, stmt, valList)
+			where := genWhere(modAddr, tabInfo)
+			row := queryRow(tabInfo, where)
+			err := scanRow(modAddr, tabInfo, row)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 		return err
 	}
+	inc := getIncWithTableInfo(modAddr, tabInfo)
+	inc.setVal(lid, false)
 	return nil
 }
 
 //InsertOrGetMul insert multiple records or get them when they are already exist
-func InsertOrGetMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error {
-		err := insertAndGetIncContext(ctx, m, false)
+func InsertOrGetMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		lid, err := insertContext(ctx, addr, tabInfo)
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-				stmt, valList := genSelect(m, genWhere(m), nil, nil, false)
-				return queryAndScanContext(ctx, m, stmt, valList)
+				where := genWhere(addr, tabInfo)
+				row := queryRowContext(ctx, tabInfo, where)
+				err := scanRow(addr, tabInfo, row)
+				if err != nil {
+					return err
+				}
+				return nil
 			}
 			return err
 		}
+		setInc(addr, tabInfo, lid)
 		return nil
 	})
 }
 
 //UpdateOne update one record
-func UpdateOne(m Model) error {
-	_, fs := getIncAndOthers(m)
-	fs = filterValid(fs)
-	colList := make([]string, 0, len(fs))
-	valList := make([]interface{}, 0, len(fs))
-	for i, f := range fs {
-		colList[i] = f.columnName() + " = ?"
-		valList[i] = f.value()
-	}
-	whereStr, whereList := genWhere(m).toClause()
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
-	db := dbMap[m.DB()]
-	_, err := db.Exec(stmtStr, append(valList, whereList)...)
+func UpdateOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	where := genWhere(modAddr, tabInfo)
+	updVals := genUpdVals(modAddr, tabInfo)
+	_, err := update(tabInfo, where, updVals...)
 	return err
 }
 
 //UpdateMul update multiple records
-func UpdateMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			_, fs := getIncAndOthers(m)
-			fs = filterValid(fs)
-			colList := make([]string, len(fs))
-			valList := make([]interface{}, len(fs))
-			for i, f := range fs {
-				colList[i] = f.columnName() + " = ?"
-				valList[i] = f.value()
-			}
-			whereStr, whereList := genWhere(m).toClause()
-			stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
-			db := dbMap[m.DB()]
-			_, err := db.ExecContext(ctx, stmtStr, append(valList, whereList)...)
-			return err
-		}
+func UpdateMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		updVals := genUpdVals(addr, tabInfo)
+		where := genWhere(addr, tabInfo)
+		_, err := update(tabInfo, where, updVals...)
+		return err
 	})
 }
 
@@ -211,29 +291,26 @@ func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
 }
 
 //DeleteOne delete one record
-func DeleteOne(m Model) error {
-	db := dbMap[m.DB()]
-	colStr, valList := genWhere(m).toClause()
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
-	_, err := db.Exec(stmtStr, valList)
-	if err != nil {
+func DeleteOne(model table) error {
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	where := genWhere(modAddr, tabInfo)
+	if _, err := delete(tabInfo, where); err != nil {
 		return err
 	}
-	m.SetSync(false)
+	unsetSync(modAddr, tabInfo)
 	return nil
 }
 
 //DeleteMul delete multiple records
-func DeleteMul(l ModelList) error {
-	return iterList(l, func(ctx context.Context, m Model) error {
-		db := dbMap[m.DB()]
-		colStr, valList := genWhere(m).toClause()
-		stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
-		_, err := db.ExecContext(ctx, stmtStr, valList)
-		if err != nil {
+func DeleteMul(slice table) error {
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, addr uintptr) error {
+		where := genWhere(addr, tabInfo)
+		if _, err := delete(tabInfo, where); err != nil {
 			return err
 		}
-		m.SetSync(false)
+		unsetSync(addr, tabInfo)
 		return nil
 	})
 }
@@ -273,11 +350,11 @@ func Count(m Model, where *Where) (int, error) {
 
 //Sort sort ModelList
 func Sort(l ModelList, reverse bool, fields ...Field) {
-	funcs := make([]func(Model, Model) int, len(fields))
+	funcs := make([]func(iaddr, jaddr uintptr) int, len(fields))
 	for i, f := range fields {
 		funcs[i] = f.LessFunc()
 	}
-	o := &sortObj{l, funcs}
+	o := &sorter{l, funcs}
 	if reverse {
 		sort.Sort(sort.Reverse(o))
 	} else {
@@ -286,13 +363,13 @@ func Sort(l ModelList, reverse bool, fields ...Field) {
 }
 
 //Distinct distinct Models in a ModelList by selected Fields
-func Distinct(l ModelList, fields ...Field) {
-	tabInfo := getTabInfoByName(l.DB(), l.Tab())
+func Distinct(slice table, fields ...Field) {
+	tabInfo := getTabInfoByName(slice.DB(), slice.Tab())
 	distMap := make(map[string]bool)
-	f := func(m Model) bool {
+	f := func(addr uintptr) bool {
 		builder := strings.Builder{}
 		for _, field := range fields {
-			builder.WriteString(fmt.Sprintf("%v", getFieldByName(m, field.columnName(), tabInfo).value()))
+			builder.WriteString(fmt.Sprintf("%v", getFieldByName(addr, field.columnName(), tabInfo).value()))
 		}
 		id := builder.String()
 		if distMap[id] {
@@ -301,5 +378,5 @@ func Distinct(l ModelList, fields ...Field) {
 		distMap[id] = true
 		return false
 	}
-	filterList(l, f)
+	filterList(slice, f)
 }

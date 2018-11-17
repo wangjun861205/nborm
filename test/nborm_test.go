@@ -9,20 +9,11 @@ import (
 )
 
 func TestNBorm(t *testing.T) {
-	bookInfos := NewBookInfoList()
-	err := nborm.QueryOne(bookInfos, bookInfos.Title.Contains("你好"))
+	bookInfos := MakeBookInfoList()
+	tag := NewTag()
+	err := nborm.JoinQuery(&bookInfos, tag.Tag.Eq("文学"), nil, nil, bookInfos[0].Tag)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, info := range bookInfos.List {
-		tags := NewTagList()
-		err := info.Tag.All(tags, nil, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, tag := range tags.List {
-			fmt.Println(info.Title.Get())
-			fmt.Println(tag.Tag.Get())
-		}
-	}
+	fmt.Println(len(bookInfos))
 }

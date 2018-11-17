@@ -273,7 +273,7 @@ func UpdateMul(slice table) error {
 
 //BulkUpdate update records by where
 func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
-	db := dbMap[m.DB()]
+	db := getConn(m.DB())
 	colList := make([]string, len(values))
 	valList := make([]interface{}, len(values))
 	for i, val := range values {
@@ -317,7 +317,7 @@ func DeleteMul(slice table) error {
 
 //BulkDelete delete by where
 func BulkDelete(m Model, where *Where) error {
-	db := dbMap[m.DB()]
+	db := getConn(m.DB())
 	colStr, valList := where.toClause()
 	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
 	_, err := db.Exec(stmtStr, valList)
@@ -326,7 +326,7 @@ func BulkDelete(m Model, where *Where) error {
 
 //DeleteAll delete all records from one table
 func DeleteAll(m Model) error {
-	db := dbMap[m.DB()]
+	db := getConn(m.DB())
 	stmtStr := fmt.Sprintf("TRUNCATE TABLE %s.%s", m.DB(), m.Tab())
 	_, err := db.Exec(stmtStr)
 	return err
@@ -334,7 +334,7 @@ func DeleteAll(m Model) error {
 
 //Count get the number of rows in one table
 func Count(m Model, where *Where) (int, error) {
-	db := dbMap[m.DB()]
+	db := getConn(m.DB())
 	var stmtStr string
 	colStr, valList := where.toClause()
 	stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", m.DB(), m.Tab(), colStr)

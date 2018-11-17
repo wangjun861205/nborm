@@ -1903,7 +1903,7 @@ func (mtm *ManyToMany) Add(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
-	if _, err := dbMap[mtm.midDB].Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+	if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
 		return err
 	}
 	return nil
@@ -1917,7 +1917,7 @@ func (mtm *ManyToMany) Remove(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
-	if _, err := dbMap[mtm.midDB].Exec(stmt, mtm.srcValF, getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+	if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF, getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
 		return err
 	}
 	return nil

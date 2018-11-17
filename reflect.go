@@ -424,24 +424,24 @@ func initModelWithTableInfo(model table, tabInfo *tableInfo) {
 
 func newModelAddr(tabInfo *tableInfo) uintptr {
 	model := reflect.New(tabInfo.modelType)
-	initModelWithTableInfo(model.Interface().(Model), tabInfo)
+	initModelWithTableInfo(model.Interface().(table), tabInfo)
 	return model.Pointer()
 }
 
-func newModel(tabInfo *tableInfo) Model {
-	model := reflect.New(tabInfo.modelType).Interface().(Model)
+func newModel(tabInfo *tableInfo) table {
+	model := reflect.New(tabInfo.modelType).Interface().(table)
 	initModelWithTableInfo(model, tabInfo)
 	return model
 }
 
-func InitModel(model Model) {
+func InitModel(model table) {
 	tabInfo := getTabInfo(model)
 	initModelWithTableInfo(model, tabInfo)
 }
 
-func InitSlice(table table) {
-	tabInfo := getTabInfo(table)
-	sliceAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&table)) + uintptr(8)))
+func InitSlice(slice table) {
+	tabInfo := getTabInfo(slice)
+	sliceAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 	*(*int)(unsafe.Pointer(sliceAddr + uintptr(8))) = 1
 	underArrayAddr := *(*uintptr)(unsafe.Pointer(sliceAddr))
 	*(*uintptr)(unsafe.Pointer(underArrayAddr)) = newModelAddr(tabInfo)
@@ -668,7 +668,7 @@ func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 		if err := rows.Scan(getAllFieldsWithTableInfo(modelAddr, tabInfo)...); err != nil {
 			return err
 		}
-		setSync(addr, tabInfo)
+		setSync(modelAddr, tabInfo)
 		*lAddr = append(*lAddr, *(*uintptr)(unsafe.Pointer(&modelAddr)))
 	}
 	if err := rows.Err(); err != nil {

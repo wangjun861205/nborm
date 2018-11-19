@@ -41,7 +41,7 @@ type Field interface {
 	isInc() bool
 	isUni() bool
 	where() *Where
-	LessFunc() func(iaddr, jaddr uintptr) int
+	LessFunc(reverse bool) func(iaddr, jaddr uintptr) int
 	SetByUpdateValue(*UpdateValue)
 	Invalidate()
 	SortOrder(reverse bool) string

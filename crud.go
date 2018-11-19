@@ -292,3 +292,21 @@ func joinQueryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter,
 	}
 	return rows, numRows, tx, nil
 }
+
+func truncateTable(tabInfo *tableInfo) (int64, error) {
+	res, err := getConn(tabInfo.db).Exec(fmt.Sprintf("TRUNCATE TABLE %s.%s", tabInfo.db, tabInfo.tab))
+	if err != nil {
+		return -1, err
+	}
+	return res.RowsAffected()
+}
+
+func count(tabInfo *tableInfo, where *Where) (int, error) {
+	whereClause, whereValues := where.toClause()
+	row := getConn(tabInfo.db).QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause), whereValues...)
+	var num int
+	if err := row.Scan(&num); err != nil {
+		return -1, err
+	}
+	return num, nil
+}

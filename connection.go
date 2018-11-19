@@ -30,7 +30,7 @@ func getConn(db string) *sql.DB {
 	return conn
 }
 
-//CloseConns close all connections which is stored in dbMap
+//CloseConns close all connections which is stored in connMap
 func CloseConns() error {
 	connLock.Lock()
 	defer connLock.Unlock()

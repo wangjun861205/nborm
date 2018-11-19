@@ -272,21 +272,9 @@ func UpdateMul(slice table) error {
 }
 
 //BulkUpdate update records by where
-func BulkUpdate(m Model, where *Where, values ...*UpdateValue) error {
-	db := getConn(m.DB())
-	colList := make([]string, len(values))
-	valList := make([]interface{}, len(values))
-	for i, val := range values {
-		colList[i] = val.column + " = ?"
-		if val.null {
-			valList[i] = "NULL"
-		} else {
-			valList[i] = val.val
-		}
-	}
-	whereStr, whereList := where.toClause()
-	stmtStr := fmt.Sprintf("UPDATE %s.%s SET %s %s", m.DB(), m.Tab(), strings.Join(colList, ", "), whereStr)
-	_, err := db.Exec(stmtStr, append(valList, whereList)...)
+func BulkUpdate(table table, where *Where, updVals ...*UpdateValue) error {
+	tabInfo := getTabInfo(table)
+	_, err := update(tabInfo, where, updVals...)
 	return err
 }
 
@@ -316,45 +304,28 @@ func DeleteMul(slice table) error {
 }
 
 //BulkDelete delete by where
-func BulkDelete(m Model, where *Where) error {
-	db := getConn(m.DB())
-	colStr, valList := where.toClause()
-	stmtStr := fmt.Sprintf("DELETE FROM %s.%s %s", m.DB(), m.Tab(), colStr)
-	_, err := db.Exec(stmtStr, valList)
+func BulkDelete(table table, where *Where) error {
+	tabInfo := getTabInfo(table)
+	_, err := delete(tabInfo, where)
 	return err
 }
 
 //DeleteAll delete all records from one table
-func DeleteAll(m Model) error {
-	db := getConn(m.DB())
-	stmtStr := fmt.Sprintf("TRUNCATE TABLE %s.%s", m.DB(), m.Tab())
-	_, err := db.Exec(stmtStr)
+func DeleteAll(table table) error {
+	tabInfo := getTabInfo(table)
+	_, err := truncateTable(tabInfo)
 	return err
 }
 
 //Count get the number of rows in one table
-func Count(m Model, where *Where) (int, error) {
-	db := getConn(m.DB())
-	var stmtStr string
-	colStr, valList := where.toClause()
-	stmtStr = fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", m.DB(), m.Tab(), colStr)
-	var num int
-	row := db.QueryRow(stmtStr, valList)
-	err := row.Scan(&num)
-	if err != nil {
-		return -1, err
-	}
-	return num, nil
-
+func Count(table table, where *Where) (int, error) {
+	tabInfo := getTabInfo(table)
+	return count(tabInfo, where)
 }
 
 //Sort sort ModelList
-func Sort(l ModelList, reverse bool, fields ...Field) {
-	funcs := make([]func(iaddr, jaddr uintptr) int, len(fields))
-	for i, f := range fields {
-		funcs[i] = f.LessFunc()
-	}
-	o := &sorter{l, funcs}
+func Sort(slice table, reverse bool, funcs ...func(iaddr, jaddr uintptr) int) {
+	o := &sorter{slice, funcs}
 	if reverse {
 		sort.Sort(sort.Reverse(o))
 	} else {

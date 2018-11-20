@@ -42,6 +42,7 @@ type columnInfo struct {
 	isUni    bool
 	defVal   interface{}
 	offset   uintptr
+	sqlType  string
 }
 
 type oneToOneInfo struct {

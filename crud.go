@@ -58,8 +58,9 @@ func insertOrUpdate(addr uintptr, tabInfo *tableInfo) (int64, error) {
 		}
 	}
 	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), tabInfo.inc.colName, tabInfo.inc.colName, strings.Join(updList, ", "))
-	res, err := getConn(tabInfo.db).Exec(stmt, append(updList, updList...))
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+		strings.Join(updList, ", "))
+	res, err := getConn(tabInfo.db).Exec(stmt, append(valList, valList...))
 	if err != nil {
 		return -1, err
 	}
@@ -79,8 +80,9 @@ func insertOrUpdateContext(ctx context.Context, addr uintptr, tabInfo *tableInfo
 		}
 	}
 	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), tabInfo.inc.colName, tabInfo.inc.colName, strings.Join(updList, ", "))
-	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, append(updList, updList...))
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+		strings.Join(updList, ", "))
+	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, append(valList, valList...))
 	if err != nil {
 		return -1, err
 	}

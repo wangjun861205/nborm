@@ -2,6 +2,7 @@ package nborm
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"regexp"
 	"strings"
@@ -108,11 +109,11 @@ func filterValid(fields []Field) (validFields []Field) {
 }
 
 func filterList(slice table, f func(uintptr) bool) {
-	l := **(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
+	l := *(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 	i := 1
-	for i < len(l) {
-		if f(l[i]) {
-			l = append(l[:i], l[i+1:]...)
+	for i < len(*l) {
+		if f((*l)[i]) {
+			*l = append((*l)[:i], (*l)[i+1:]...)
 			continue
 		}
 		i++
@@ -130,7 +131,7 @@ func iterList(slice table, f func(context.Context, uintptr) error) error {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			err := f(ctx, l[i])
+			err := f(ctx, l[index])
 			if err != nil {
 				errChan <- err
 			}
@@ -140,15 +141,17 @@ func iterList(slice table, f func(context.Context, uintptr) error) error {
 		wg.Wait()
 		close(doneChan)
 	}()
-	select {
-	case err := <-errChan:
-		cancel()
-		wg.Wait()
-		close(errChan)
-		return err
-	case <-doneChan:
-		close(errChan)
-		return nil
+	for {
+		select {
+		case err := <-errChan:
+			cancel()
+			wg.Wait()
+			close(errChan)
+			return err
+		case <-doneChan:
+			close(errChan)
+			return nil
+		}
 	}
 }
 
@@ -183,4 +186,36 @@ func genUpdVals(addr uintptr, tabInfo *tableInfo) []*UpdateValue {
 		}
 	}
 	return updVals
+}
+
+func getFoundRows(tx *sql.Tx) (int, error) {
+	var num int
+	row := tx.QueryRow("SELECT FOUND_ROWS()")
+	if err := row.Scan(&num); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	return num, nil
+}
+
+func getFoundRowsContext(ctx context.Context, tx *sql.Tx) (int, error) {
+	var num int
+	row := tx.QueryRowContext(ctx, "SELECT FOUND_ROWS()")
+	if err := row.Scan(&num); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	return num, nil
+}
+
+//NumRes return the number of query result set. Because the first element of model slice is an example model, so this function infact return
+//ModelSlice[1:]
+func NumRes(slice table) int {
+	l := **(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
+	return len(l) - 1
+}
+
+func ClsRes(slice table) {
+	l := *(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
+	*l = (*l)[:1]
 }

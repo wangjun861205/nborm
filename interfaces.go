@@ -2,7 +2,6 @@ package nborm
 
 import (
 	"database/sql"
-	"encoding/json"
 )
 
 type table interface {
@@ -11,23 +10,23 @@ type table interface {
 }
 
 //Model declare a Model interface
-type Model interface {
-	table
-	Fields() []Field
-	SetSync(bool)
-}
+// type Model interface {
+// 	table
+// 	Fields() []Field
+// 	SetSync(bool)
+// }
 
 //ModelList declare a ModelList interface
-type ModelList interface {
-	table
-	New() Model
-	Len() int
-	// Index(int) Model
-	// Delete(int)
-	Swap(i, j int)
-	json.Marshaler
-	Model() Model
-}
+// type ModelList interface {
+// 	table
+// 	New() Model
+// 	Len() int
+// 	// Index(int) Model
+// 	// Delete(int)
+// 	Swap(i, j int)
+// 	json.Marshaler
+// 	Model() Model
+// }
 
 //Field declare a Field interface
 type Field interface {

@@ -62,6 +62,12 @@ func (w *Where) toSQL() (string, []interface{}) {
 
 //And and operation
 func (w *Where) And(other *Where) *Where {
+	if w == nil {
+		return other
+	}
+	if other == nil {
+		return w
+	}
 	end := w
 	for end.next != nil {
 		end = end.next
@@ -87,10 +93,19 @@ func Group(w *Where) *Where {
 	return &Where{sub: w}
 }
 
-func genWhere(addr uintptr, tabInfo *tableInfo) *Where {
+type whereType int
+
+const (
+	autoIncrement whereType = iota
+	primaryKey
+	uniqueKeys
+	others
+)
+
+func genWhere(addr uintptr, tabInfo *tableInfo) (*Where, whereType) {
 	inc := getIncWithTableInfo(addr, tabInfo)
 	if inc != nil && inc.IsValid() {
-		return inc.where()
+		return inc.where(), autoIncrement
 	}
 	pks := getPksWithTableInfo(addr, tabInfo)
 	var where *Where
@@ -102,13 +117,13 @@ func genWhere(addr uintptr, tabInfo *tableInfo) *Where {
 		where = where.And(pk.where())
 	}
 	if where != nil {
-		return where
+		return where, primaryKey
 	}
 	unis := getUinsWithTableInfo(addr, tabInfo)
 	if len(unis) > 0 {
 		for _, uni := range unis {
 			if uni.IsValid() {
-				return uni.where()
+				return uni.where(), uniqueKeys
 			}
 		}
 	}
@@ -118,5 +133,5 @@ func genWhere(addr uintptr, tabInfo *tableInfo) *Where {
 			where = where.And(field.where())
 		}
 	}
-	return where
+	return where, others
 }

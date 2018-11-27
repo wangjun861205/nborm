@@ -14,7 +14,7 @@ import (
 func First(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	where := genWhere(modAddr, tabInfo)
+	where, _ := genWhere(modAddr, tabInfo)
 	row := queryRow(tabInfo, where)
 	err := scanRow(modAddr, tabInfo, row)
 	if err == sql.ErrNoRows {
@@ -27,7 +27,10 @@ func First(model table) error {
 func GetOne(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	where := genWhere(modAddr, tabInfo)
+	where, typ := genWhere(modAddr, tabInfo)
+	if typ == others {
+		return fmt.Errorf("nborm.GetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+	}
 	row := queryRow(tabInfo, where)
 	return scanRow(modAddr, tabInfo, row)
 }
@@ -36,7 +39,10 @@ func GetOne(model table) error {
 func GetMul(slice table) error {
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
-		where := genWhere(addr, tabInfo)
+		where, typ := genWhere(addr, tabInfo)
+		if typ == others {
+			return fmt.Errorf("nborm.GetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		}
 		row := queryRowContext(ctx, tabInfo, where)
 		return scanRow(addr, tabInfo, row)
 	})
@@ -51,10 +57,10 @@ func JoinQueryOne(model table, where *Where, relations ...relation) error {
 }
 
 //JoinQuery join query records by where
-func JoinQuery(slice table, where *Where, sorter *Sorter, pager *Pager, relations ...relation) error {
+func JoinQuery(slice table, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) error {
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, err := joinQueryRows(tabInfo, where, sorter, pager, relations...)
+	rows, err := joinQueryRows(tabInfo, where, sorter, pager, distinct, relations...)
 	if err != nil {
 		return err
 	}
@@ -62,10 +68,10 @@ func JoinQuery(slice table, where *Where, sorter *Sorter, pager *Pager, relation
 }
 
 //JoinQueryWithFoundRows join query records and get the number of found rows
-func JoinQueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager, relations ...relation) (int, error) {
+func JoinQueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (int, error) {
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, numRows, tx, err := joinQueryRowsAndFoundRows(tabInfo, where, sorter, pager, relations...)
+	rows, tx, err := joinQueryRowsAndFoundRows(tabInfo, where, sorter, pager, distinct, relations...)
 	if err != nil {
 		return -1, err
 	}
@@ -73,8 +79,13 @@ func JoinQueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pa
 		tx.Rollback()
 		return -1, err
 	}
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
 	tx.Commit()
-	return numRows, nil
+	return num, nil
 }
 
 //All get all records of one table
@@ -92,16 +103,21 @@ func All(slice table, sorter *Sorter, pager *Pager) error {
 func AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, numRows, tx, err := queryRowsAndFoundRows(tabInfo, nil, sorter, pager)
+	rows, tx, err := queryRowsAndFoundRows(tabInfo, nil, sorter, pager)
+	if err != nil {
+		return -1, err
+	}
+	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	num, err := getFoundRows(tx)
 	if err != nil {
 		tx.Rollback()
 		return -1, err
 	}
-	if err := scanRows(sliceAddr, tabInfo, rows); err != nil {
-		return -1, err
-	}
 	tx.Commit()
-	return numRows, nil
+	return num, nil
 
 }
 
@@ -117,7 +133,7 @@ func QueryOne(model table, where *Where) error {
 func QueryMul(slice table) error {
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
-		where := genWhere(addr, tabInfo)
+		where, _ := genWhere(addr, tabInfo)
 		row := queryRowContext(ctx, tabInfo, where)
 		err := scanRow(addr, tabInfo, row)
 		if err == sql.ErrNoRows {
@@ -142,7 +158,7 @@ func Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
 func QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, numRows, tx, err := queryRowsAndFoundRows(tabInfo, where, sorter, pager)
+	rows, tx, err := queryRowsAndFoundRows(tabInfo, where, sorter, pager)
 	if err != nil {
 		return -1, err
 	}
@@ -150,8 +166,13 @@ func QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager)
 		tx.Rollback()
 		return -1, err
 	}
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
 	tx.Commit()
-	return numRows, nil
+	return num, nil
 }
 
 //InsertOne insert one record
@@ -175,6 +196,7 @@ func InsertOrUpdateOne(model table) error {
 		return err
 	}
 	setInc(modAddr, tabInfo, lid)
+	setSync(modAddr, tabInfo)
 	return nil
 }
 
@@ -186,8 +208,8 @@ func InsertMul(slice table) error {
 		if err != nil {
 			return err
 		}
-		inc := getIncWithTableInfo(addr, tabInfo)
-		inc.setVal(lid, false)
+		setInc(addr, tabInfo, lid)
+		setSync(addr, tabInfo)
 		return nil
 	})
 }
@@ -200,8 +222,8 @@ func InsertOrUpdateMul(slice table) error {
 		if err != nil {
 			return err
 		}
-		inc := getIncWithTableInfo(addr, tabInfo)
-		inc.setVal(lid, false)
+		setInc(addr, tabInfo, lid)
+		setSync(addr, tabInfo)
 		return nil
 	})
 }
@@ -213,7 +235,10 @@ func InsertOrGetOne(model table) error {
 	lid, err := insert(modAddr, tabInfo)
 	if err != nil {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-			where := genWhere(modAddr, tabInfo)
+			where, typ := genWhere(modAddr, tabInfo)
+			if typ == others {
+				return fmt.Errorf("nborm.InsertOrGetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			}
 			row := queryRow(tabInfo, where)
 			err := scanRow(modAddr, tabInfo, row)
 			if err != nil {
@@ -235,7 +260,10 @@ func InsertOrGetMul(slice table) error {
 		lid, err := insertContext(ctx, addr, tabInfo)
 		if err != nil {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-				where := genWhere(addr, tabInfo)
+				where, typ := genWhere(addr, tabInfo)
+				if typ == others {
+					return fmt.Errorf("nborm.InsertOrGetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+				}
 				row := queryRowContext(ctx, tabInfo, where)
 				err := scanRow(addr, tabInfo, row)
 				if err != nil {
@@ -254,10 +282,17 @@ func InsertOrGetMul(slice table) error {
 func UpdateOne(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	where := genWhere(modAddr, tabInfo)
+	where, typ := genWhere(modAddr, tabInfo)
+	if typ == others {
+		return fmt.Errorf("nborm.UpdateOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+	}
 	updVals := genUpdVals(modAddr, tabInfo)
 	_, err := update(tabInfo, where, updVals...)
-	return err
+	if err != nil {
+		return err
+	}
+	setSync(modAddr, tabInfo)
+	return nil
 }
 
 //UpdateMul update multiple records
@@ -265,9 +300,16 @@ func UpdateMul(slice table) error {
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
 		updVals := genUpdVals(addr, tabInfo)
-		where := genWhere(addr, tabInfo)
+		where, typ := genWhere(addr, tabInfo)
+		if typ == others {
+			return fmt.Errorf("nborm.UpdateMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		}
 		_, err := update(tabInfo, where, updVals...)
-		return err
+		if err != nil {
+			return err
+		}
+		setSync(addr, tabInfo)
+		return nil
 	})
 }
 
@@ -282,7 +324,10 @@ func BulkUpdate(table table, where *Where, updVals ...*UpdateValue) error {
 func DeleteOne(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	where := genWhere(modAddr, tabInfo)
+	where, typ := genWhere(modAddr, tabInfo)
+	if typ == others {
+		return fmt.Errorf("nborm.DeleteOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+	}
 	if _, err := delete(tabInfo, where); err != nil {
 		return err
 	}
@@ -294,7 +339,10 @@ func DeleteOne(model table) error {
 func DeleteMul(slice table) error {
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
-		where := genWhere(addr, tabInfo)
+		where, typ := genWhere(addr, tabInfo)
+		if typ == others {
+			return fmt.Errorf("nborm.DeleteMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		}
 		if _, err := delete(tabInfo, where); err != nil {
 			return err
 		}
@@ -313,6 +361,12 @@ func BulkDelete(table table, where *Where) error {
 //DeleteAll delete all records from one table
 func DeleteAll(table table) error {
 	tabInfo := getTabInfo(table)
+	_, err := deleteAll(tabInfo)
+	return err
+}
+
+func TruncateTable(table table) error {
+	tabInfo := getTabInfo(table)
 	_, err := truncateTable(tabInfo)
 	return err
 }
@@ -324,13 +378,9 @@ func Count(table table, where *Where) (int, error) {
 }
 
 //Sort sort ModelList
-func Sort(slice table, reverse bool, funcs ...func(iaddr, jaddr uintptr) int) {
+func Sort(slice table, funcs ...func(iaddr, jaddr uintptr) int) {
 	o := &sorter{slice, funcs}
-	if reverse {
-		sort.Sort(sort.Reverse(o))
-	} else {
-		sort.Sort(o)
-	}
+	sort.Sort(o)
 }
 
 //Distinct distinct Models in a ModelList by selected Fields

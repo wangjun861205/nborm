@@ -87,8 +87,12 @@ func (f *StringField) isUni() bool {
 }
 
 //Set set a value for the field
-func (f *StringField) Set(val string, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *StringField) Set(val string) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *StringField) SetNull() {
+	f.valid, f.null, f.val = true, true, ""
 }
 
 func (f *StringField) setVal(val interface{}, isNull bool) {
@@ -146,7 +150,7 @@ func (f *StringField) UpdateValue(val string, isNull bool) *UpdateValue {
 }
 
 func (f *StringField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate a Where by self value
@@ -193,7 +197,7 @@ func (f *StringField) In(val []string) *Where {
 func (f *StringField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*StringField)(unsafe.Pointer(iaddr+f.offset)), (*StringField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**StringField)(unsafe.Pointer(iaddr + f.offset)), *(**StringField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -223,7 +227,7 @@ func (f *StringField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*StringField)(unsafe.Pointer(iaddr+f.offset)), (*StringField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**StringField)(unsafe.Pointer(iaddr + f.offset)), *(**StringField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -330,8 +334,12 @@ func (f *IntField) isUni() bool {
 }
 
 //Set set a value for this field
-func (f *IntField) Set(val int64, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *IntField) Set(val int64) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *IntField) SetNull() {
+	f.valid, f.null, f.val = true, true, 0
 }
 
 func (f *IntField) setVal(val interface{}, isNull bool) {
@@ -393,7 +401,7 @@ func (f *IntField) UpdateValue(val int64, isNull bool) *UpdateValue {
 }
 
 func (f *IntField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate a Where by self value
@@ -453,7 +461,7 @@ func (f *IntField) In(val []int) *Where {
 func (f *IntField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*IntField)(unsafe.Pointer(iaddr+f.offset)), (*IntField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**IntField)(unsafe.Pointer(iaddr + f.offset)), *(**IntField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -483,7 +491,7 @@ func (f *IntField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*IntField)(unsafe.Pointer(iaddr+f.offset)), (*IntField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**IntField)(unsafe.Pointer(iaddr + f.offset)), *(**IntField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -643,8 +651,12 @@ func (f *FloatField) isUni() bool {
 }
 
 //Set set a value
-func (f *FloatField) Set(val float64, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *FloatField) Set(val float64) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *FloatField) SetNull() {
+	f.valid, f.null, f.val = true, true, 0
 }
 
 func (f *FloatField) setVal(val interface{}, isNull bool) {
@@ -706,7 +718,7 @@ func (f *FloatField) UpdateValue(val float64, isNull bool) *UpdateValue {
 }
 
 func (f *FloatField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate a Where by self value
@@ -766,7 +778,7 @@ func (f *FloatField) In(val []float64) *Where {
 func (f *FloatField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*FloatField)(unsafe.Pointer(iaddr+f.offset)), (*FloatField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**FloatField)(unsafe.Pointer(iaddr + f.offset)), *(**FloatField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -796,7 +808,7 @@ func (f *FloatField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*FloatField)(unsafe.Pointer(iaddr+f.offset)), (*FloatField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**FloatField)(unsafe.Pointer(iaddr + f.offset)), *(**FloatField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -897,8 +909,12 @@ func (f *BoolField) IsNull() bool {
 }
 
 //Set set a value
-func (f *BoolField) Set(val bool, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *BoolField) Set(val bool) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *BoolField) SetNull() {
+	f.valid, f.null, f.val = true, true, false
 }
 
 func (f *BoolField) setVal(val interface{}, isNull bool) {
@@ -964,7 +980,7 @@ func (f *BoolField) UpdateValue(val bool, isNull bool) *UpdateValue {
 }
 
 func (f *BoolField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate a Where by self value
@@ -1004,7 +1020,7 @@ func (f *BoolField) isUni() bool {
 func (f *BoolField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*BoolField)(unsafe.Pointer(iaddr+f.offset)), (*BoolField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**BoolField)(unsafe.Pointer(iaddr + f.offset)), *(**BoolField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -1030,7 +1046,7 @@ func (f *BoolField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*BoolField)(unsafe.Pointer(iaddr+f.offset)), (*BoolField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**BoolField)(unsafe.Pointer(iaddr + f.offset)), *(**BoolField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1132,8 +1148,12 @@ func (f *DateField) isUni() bool {
 }
 
 //Set set a value
-func (f *DateField) Set(val time.Time, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *DateField) Set(val time.Time) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *DateField) SetNull() {
+	f.valid, f.null, f.val = true, true, time.Time{}
 }
 
 func (f *DateField) setVal(val interface{}, isNull bool) {
@@ -1195,7 +1215,7 @@ func (f *DateField) UpdateValue(val time.Time, isNull bool) *UpdateValue {
 }
 
 func (f *DateField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate where by self value
@@ -1260,7 +1280,7 @@ func (f *DateField) In(val []time.Time) *Where {
 func (f *DateField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*DateField)(unsafe.Pointer(iaddr+f.offset)), (*DateField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**DateField)(unsafe.Pointer(iaddr + f.offset)), *(**DateField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -1290,7 +1310,7 @@ func (f *DateField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*DateField)(unsafe.Pointer(iaddr+f.offset)), (*DateField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**DateField)(unsafe.Pointer(iaddr + f.offset)), *(**DateField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1396,8 +1416,12 @@ func (f *DatetimeField) isUni() bool {
 }
 
 //Set set value
-func (f *DatetimeField) Set(val time.Time, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *DatetimeField) Set(val time.Time) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *DatetimeField) SetNull() {
+	f.valid, f.null, f.val = true, true, time.Time{}
 }
 
 func (f *DatetimeField) setVal(val interface{}, isNull bool) {
@@ -1459,7 +1483,7 @@ func (f *DatetimeField) UpdateValue(val time.Time, isNull bool) *UpdateValue {
 }
 
 func (f *DatetimeField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 //Where generate Where by self value
@@ -1523,7 +1547,7 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 func (f *DatetimeField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := (*DatetimeField)(unsafe.Pointer(iaddr+f.offset)), (*DatetimeField)(unsafe.Pointer(jaddr+f.offset))
+			iField, jField := *(**DatetimeField)(unsafe.Pointer(iaddr + f.offset)), *(**DatetimeField)(unsafe.Pointer(jaddr + f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -1553,7 +1577,7 @@ func (f *DatetimeField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := (*DatetimeField)(unsafe.Pointer(iaddr+f.offset)), (*DatetimeField)(unsafe.Pointer(jaddr+f.offset))
+		iField, jField := *(**DatetimeField)(unsafe.Pointer(iaddr + f.offset)), *(**DatetimeField)(unsafe.Pointer(jaddr + f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int
@@ -1681,7 +1705,7 @@ func (f *BinaryField) UpdateValue(val []byte, isNull bool) *UpdateValue {
 }
 
 func (f *BinaryField) updateValue() *UpdateValue {
-	return &UpdateValue{f.column, f.value, f.null}
+	return &UpdateValue{f.column, f.val, f.null}
 }
 
 func (f *BinaryField) toSQL() interface{} {
@@ -1732,8 +1756,12 @@ func (f *BinaryField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 }
 
 //Set set value
-func (f *BinaryField) Set(val []byte, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val
+func (f *BinaryField) Set(val []byte) {
+	f.valid, f.null, f.val = true, false, val
+}
+
+func (f *BinaryField) SetNull() {
+	f.valid, f.null, f.val = true, true, nil
 }
 
 func (f *BinaryField) setVal(val interface{}, null bool) {

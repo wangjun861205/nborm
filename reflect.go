@@ -155,7 +155,7 @@ func parseColumn(field reflect.StructField) *columnInfo {
 				}
 			case TypeIntField:
 				if group := sqlIntRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseInt(defVal, 10, 64); err != nil {
+					if c.defVal, err = strconv.ParseInt(group[1], 10, 64); err != nil {
 						panic(err)
 					}
 				} else {
@@ -163,7 +163,7 @@ func parseColumn(field reflect.StructField) *columnInfo {
 				}
 			case TypeFloatField:
 				if group := sqlFloatRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseFloat(defVal, 64); err != nil {
+					if c.defVal, err = strconv.ParseFloat(group[1], 64); err != nil {
 						panic(err)
 					}
 				} else {
@@ -171,7 +171,7 @@ func parseColumn(field reflect.StructField) *columnInfo {
 				}
 			case TypeBoolField:
 				if group := sqlBoolRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseBool(defVal); err != nil {
+					if c.defVal, err = strconv.ParseBool(group[1]); err != nil {
 						panic(err)
 					}
 				} else {
@@ -539,28 +539,28 @@ func getPksWithTableInfo(addr uintptr, info *tableInfo) []Field {
 	return l
 }
 
-func getPksAndOthers(model Model) (pks []Field, others []Field) {
-	tabInfo := getTabInfo(model)
-	modAddr := getTabAddr(model)
-	for _, col := range tabInfo.columns {
-		if col.isPk {
-			pks = append(pks, getFieldByName(modAddr, col.colName, tabInfo))
-		} else {
-			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
-		}
+// func getPksAndOthers(model Model) (pks []Field, others []Field) {
+// 	tabInfo := getTabInfo(model)
+// 	modAddr := getTabAddr(model)
+// 	for _, col := range tabInfo.columns {
+// 		if col.isPk {
+// 			pks = append(pks, getFieldByName(modAddr, col.colName, tabInfo))
+// 		} else {
+// 			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
+// 		}
 
-	}
-	return
-}
+// 	}
+// 	return
+// }
 
-func getInc(model Model) Field {
-	tabInfo := getTabInfo(model)
-	modAddr := getTabAddr(model)
-	if tabInfo.inc == nil {
-		return nil
-	}
-	return getFieldByName(modAddr, tabInfo.inc.colName, tabInfo)
-}
+// func getInc(model Model) Field {
+// 	tabInfo := getTabInfo(model)
+// 	modAddr := getTabAddr(model)
+// 	if tabInfo.inc == nil {
+// 		return nil
+// 	}
+// 	return getFieldByName(modAddr, tabInfo.inc.colName, tabInfo)
+// }
 
 func getIncWithTableInfo(addr uintptr, info *tableInfo) Field {
 	if info.inc == nil {
@@ -580,18 +580,18 @@ func getIncAndOthers(addr uintptr, tabInfo *tableInfo) (inc Field, others []Fiel
 	return
 }
 
-func getUnis(model Model) []Field {
-	tabInfo := getTabInfo(model)
-	modAddr := getTabAddr(model)
-	if tabInfo.unis == nil {
-		return nil
-	}
-	l := make([]Field, len(tabInfo.unis))
-	for i, uniCol := range tabInfo.unis {
-		l[i] = getFieldByName(modAddr, uniCol.colName, tabInfo)
-	}
-	return l
-}
+// func getUnis(model Model) []Field {
+// 	tabInfo := getTabInfo(model)
+// 	modAddr := getTabAddr(model)
+// 	if tabInfo.unis == nil {
+// 		return nil
+// 	}
+// 	l := make([]Field, len(tabInfo.unis))
+// 	for i, uniCol := range tabInfo.unis {
+// 		l[i] = getFieldByName(modAddr, uniCol.colName, tabInfo)
+// 	}
+// 	return l
+// }
 
 func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
 	if tabInfo.unis == nil {
@@ -604,45 +604,45 @@ func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
 	return l
 }
 
-func getUnisAndOthers(model Model) (unis []Field, others []Field) {
-	tabInfo := getTabInfo(model)
-	modAddr := getTabAddr(model)
-	for _, col := range tabInfo.columns {
-		if col.isUni {
-			unis = append(unis, getFieldByName(modAddr, col.colName, tabInfo))
-		} else {
-			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
-		}
+// func getUnisAndOthers(model Model) (unis []Field, others []Field) {
+// 	tabInfo := getTabInfo(model)
+// 	modAddr := getTabAddr(model)
+// 	for _, col := range tabInfo.columns {
+// 		if col.isUni {
+// 			unis = append(unis, getFieldByName(modAddr, col.colName, tabInfo))
+// 		} else {
+// 			others = append(others, getFieldByName(modAddr, col.colName, tabInfo))
+// 		}
 
-	}
-	return
-}
+// 	}
+// 	return
+// }
 
-func getAllFields(model Model) []interface{} {
-	tabInfo := getTabInfo(model)
-	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
-	l := make([]interface{}, len(tabInfo.columns))
-	for i, colInfo := range tabInfo.columns {
-		fieldPointer := unsafe.Pointer(baseAddr + colInfo.offset)
-		switch colInfo.ormType {
-		case TypeStringField:
-			l[i] = *(**StringField)(fieldPointer)
-		case TypeIntField:
-			l[i] = *(**IntField)(fieldPointer)
-		case TypeFloatField:
-			l[i] = *(**FloatField)(fieldPointer)
-		case TypeBoolField:
-			l[i] = *(**FloatField)(fieldPointer)
-		case TypeBinaryField:
-			l[i] = *(**BinaryField)(fieldPointer)
-		case TypeDateField:
-			l[i] = *(**DateField)(fieldPointer)
-		case TypeDatetimeField:
-			l[i] = *(**DatetimeField)(fieldPointer)
-		}
-	}
-	return l
-}
+// func getAllFields(model Model) []interface{} {
+// 	tabInfo := getTabInfo(model)
+// 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
+// 	l := make([]interface{}, len(tabInfo.columns))
+// 	for i, colInfo := range tabInfo.columns {
+// 		fieldPointer := unsafe.Pointer(baseAddr + colInfo.offset)
+// 		switch colInfo.ormType {
+// 		case TypeStringField:
+// 			l[i] = *(**StringField)(fieldPointer)
+// 		case TypeIntField:
+// 			l[i] = *(**IntField)(fieldPointer)
+// 		case TypeFloatField:
+// 			l[i] = *(**FloatField)(fieldPointer)
+// 		case TypeBoolField:
+// 			l[i] = *(**FloatField)(fieldPointer)
+// 		case TypeBinaryField:
+// 			l[i] = *(**BinaryField)(fieldPointer)
+// 		case TypeDateField:
+// 			l[i] = *(**DateField)(fieldPointer)
+// 		case TypeDatetimeField:
+// 			l[i] = *(**DatetimeField)(fieldPointer)
+// 		}
+// 	}
+// 	return l
+// }
 
 func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []interface{} {
 	l := make([]interface{}, len(tabInfo.columns))

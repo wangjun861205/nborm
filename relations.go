@@ -146,7 +146,7 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(slice table, sorter *Sorter, page
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, numRows, tx, err := relationQueryRowsAndFoundRows(rfk, rfk.where(), sorter, pager)
+	rows, tx, err := relationQueryRowsAndFoundRows(rfk, rfk.where(), sorter, pager)
 	if err != nil {
 		return -1, err
 	}
@@ -155,11 +155,13 @@ func (rfk *ReverseForeignKey) AllWithFoundRows(slice table, sorter *Sorter, page
 		tx.Rollback()
 		return -1, err
 	}
-	err = tx.Commit()
+	num, err := getFoundRows(tx)
 	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return numRows, nil
+	tx.Commit()
+	return num, nil
 }
 
 //Query query related table by this relation
@@ -187,7 +189,7 @@ func (rfk *ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sort
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
 	where = rfk.where().And(where)
-	rows, numRows, tx, err := relationQueryRowsAndFoundRows(rfk, where, sorter, pager)
+	rows, tx, err := relationQueryRowsAndFoundRows(rfk, where, sorter, pager)
 	if err != nil {
 		return -1, err
 	}
@@ -196,11 +198,13 @@ func (rfk *ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sort
 		tx.Rollback()
 		return -1, err
 	}
-	err = tx.Commit()
+	num, err := getFoundRows(tx)
 	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return numRows, nil
+	tx.Commit()
+	return num, nil
 }
 
 func (rfk *ReverseForeignKey) joinClause() string {
@@ -270,7 +274,7 @@ func (mtm *ManyToMany) AllWithFoundRows(slice table, sorter *Sorter, pager *Page
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	rows, numRows, tx, err := relationQueryRowsAndFoundRows(mtm, mtm.where(), sorter, pager)
+	rows, tx, err := relationQueryRowsAndFoundRows(mtm, mtm.where(), sorter, pager)
 	if err != nil {
 		return -1, err
 	}
@@ -279,11 +283,13 @@ func (mtm *ManyToMany) AllWithFoundRows(slice table, sorter *Sorter, pager *Page
 		tx.Rollback()
 		return -1, err
 	}
-	err = tx.Commit()
+	num, err := getFoundRows(tx)
 	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return numRows, nil
+	tx.Commit()
+	return num, nil
 }
 
 //Query query records in related table by this relation
@@ -310,7 +316,7 @@ func (mtm *ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sor
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
 	where = mtm.where().And(where)
-	rows, numRows, tx, err := relationQueryRowsAndFoundRows(mtm, where, sorter, pager)
+	rows, tx, err := relationQueryRowsAndFoundRows(mtm, where, sorter, pager)
 	if err != nil {
 		return -1, err
 	}
@@ -318,10 +324,13 @@ func (mtm *ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sor
 		tx.Rollback()
 		return -1, err
 	}
-	if err := tx.Commit(); err != nil {
+	num, err := getFoundRows(tx)
+	if err != nil {
+		tx.Rollback()
 		return -1, err
 	}
-	return numRows, nil
+	tx.Commit()
+	return num, nil
 }
 
 //Add add a relation record to middle table

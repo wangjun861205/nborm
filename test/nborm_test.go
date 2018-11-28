@@ -434,6 +434,323 @@ var tests = []struct {
 		}
 		return nil
 	}},
+	{"foreign key query", func() error {
+		book := NewBook()
+		book.Isbn.Set(fmt.Sprintf("%011d", 90))
+		book.UniqueCode.Set("12345")
+		if err := nborm.InsertOne(book); err != nil {
+			return err
+		}
+		bookInfo := NewBookInfo()
+		if err := book.BookInfo.Query(bookInfo); err != nil {
+			return err
+		}
+		bisbn, _, _ := book.Isbn.Get()
+		iisbn, _, _ := bookInfo.Isbn.Get()
+		if bisbn != iisbn {
+			return fmt.Errorf("isbn is %s, want %s", iisbn, bisbn)
+		}
+		return nil
+	}},
+	{"reverse foreign key all", func() error {
+		books := MakeBookList()
+		for i := 0; i < 20; i++ {
+			book := NewBook()
+			book.Isbn.Set(fmt.Sprintf("%011d", 91))
+			book.UniqueCode.Set(fmt.Sprintf("%d", i*100))
+			books = append(books, book)
+		}
+		if err := nborm.InsertMul(&books); err != nil {
+			return err
+		}
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
+		nborm.ClsRes(&books)
+		if err := bookInfo.Book.All(&books, nil, nil); err != nil {
+			return err
+		}
+		if nborm.NumRes(&books) != 20 {
+			return fmt.Errorf("the number of result set is %d, want 20", nborm.NumRes(&books))
+		}
+		return nil
+	}},
+	{"reverse foreign key all and found rows", func() error {
+		books := MakeBookList()
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
+		if num, err := bookInfo.Book.AllWithFoundRows(&books, nil, nil); err != nil {
+			return err
+		} else if num != 20 {
+			return fmt.Errorf("the number of result set is %d, want 20", num)
+		}
+		return nil
+	}},
+	{"reverse foreign key query", func() error {
+		books := MakeBookList()
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
+		if err := bookInfo.Book.Query(&books, books[0].UniqueCode.Eq("100"), nil, nil); err != nil {
+			return err
+		}
+		if nborm.NumRes(&books) != 1 {
+			return fmt.Errorf("the number of result set is %d, want 1", nborm.NumRes(&books))
+		}
+		return nil
+	}},
+	{"reverse foreign key query and found rows", func() error {
+		books := MakeBookList()
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
+		if num, err := bookInfo.Book.QueryWithFoundRows(&books, books[0].UniqueCode.Eq("200"), nil, nil); err != nil {
+			return err
+		} else if num != 1 {
+			return fmt.Errorf("the number of result set is %d, want 1", num)
+		}
+		return nil
+	}},
+	{"reverse foreign key add one", func() error {
+		book := NewBook()
+		book.UniqueCode.Set("11111")
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 92))
+		if err := bookInfo.Book.AddOne(book); err != nil {
+			return err
+		}
+		nb := NewBook()
+		nb.UniqueCode.Set("11111")
+		if err := nborm.GetOne(nb); err != nil {
+			return err
+		}
+		ni := NewBookInfo()
+		if err := nb.BookInfo.Query(ni); err != nil {
+			return err
+		}
+		if isbn, _, _ := ni.Isbn.Get(); isbn != fmt.Sprintf("%011d", 92) {
+			return fmt.Errorf("isbn is %s, want %s", isbn, fmt.Sprintf("%011d", 92))
+		}
+		return nil
+	}},
+	{"reverse foreign key add many", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.InsertOne(bookInfo); err != nil {
+			return err
+		}
+		books := MakeBookList()
+		for i := 0; i < 10; i++ {
+			book := NewBook()
+			book.UniqueCode.Set(fmt.Sprintf("%08d", i))
+			books = append(books, book)
+		}
+		if err := bookInfo.Book.AddMul(&books); err != nil {
+			return err
+		}
+		nborm.ClsRes(&books)
+		if err := bookInfo.Book.All(&books, nil, nil); err != nil {
+			return err
+		}
+		if nborm.NumRes(&books) != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", nborm.NumRes(&books))
+		}
+		return nil
+	}},
+	{"many to many all", func() error {
+		tags := MakeTagList()
+		for i := 0; i < 10; i++ {
+			tag := NewTag()
+			tag.Tag.Set("test")
+			tags = append(tags, tag)
+		}
+		if err := nborm.InsertMul(&tags); err != nil {
+			return err
+		}
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		if err := bookInfo.Tag.AddMul(&tags); err != nil {
+			return err
+		}
+		nborm.ClsRes(&tags)
+		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
+			return err
+		}
+		if nborm.NumRes(&tags) != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", nborm.NumRes(&tags))
+		}
+		return nil
+	}},
+	{"many to many all and found rows", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		if num, err := bookInfo.Tag.AllWithFoundRows(&tags, nil, nil); err != nil {
+			return err
+		} else if num != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", num)
+		}
+		return nil
+	}},
+	{"many to many query", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		if err := bookInfo.Tag.Query(&tags, tags[0].Tag.Eq("test"), nil, nil); err != nil {
+			return err
+		}
+		if nborm.NumRes(&tags) != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", nborm.NumRes(&tags))
+		}
+		return nil
+	}},
+	{"many to many query and found rows", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		if num, err := bookInfo.Tag.QueryWithFoundRows(&tags, tags[0].Tag.Eq("test"), nil, nil); err != nil {
+			return err
+		} else if num != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", num)
+		}
+		return nil
+	}},
+	{"many to many add one", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tag := NewTag()
+		tag.Tag.Set("测试")
+		if err := nborm.InsertOne(tag); err != nil {
+			return err
+		}
+		if err := bookInfo.Tag.AddOne(tag); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 11 {
+			return fmt.Errorf("the number of result set is %d, want 11", num)
+		}
+		return nil
+	}},
+	{"many to many add many", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		for i := 0; i < 10; i++ {
+			tag := NewTag()
+			tag.Tag.Set("add many")
+			tags = append(tags, tag)
+		}
+		if err := nborm.InsertMul(&tags); err != nil {
+			return err
+		}
+		if err := bookInfo.Tag.AddMul(&tags); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 21 {
+			return fmt.Errorf("the number of result set is %d, want 21", num)
+		}
+		return nil
+	}},
+	{"many to many insert one", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tag := NewTag()
+		tag.Tag.Set("insert one")
+		if err := bookInfo.Tag.InsertOne(tag); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 22 {
+			return fmt.Errorf("the number of result set is %d, want 22", num)
+		}
+		return nil
+	}},
+	{"many to many insert many", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		for i := 0; i < 10; i++ {
+			tag := NewTag()
+			tag.Tag.Set("insert many")
+			tags = append(tags, tag)
+		}
+		if err := bookInfo.Tag.InsertMul(&tags); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 32 {
+			return fmt.Errorf("the number of result set is %d, want 32", num)
+		}
+		return nil
+	}},
+	{"many to many remove one", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return nil
+		}
+		tags := MakeTagList()
+		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
+			return err
+		}
+		if err := bookInfo.Tag.RemoveOne(tags[1]); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 31 {
+			return fmt.Errorf("the number of result set is %d, want 31", num)
+		}
+		return nil
+	}},
+	{"many to many remove many", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
+		if err := nborm.GetOne(bookInfo); err != nil {
+			return nil
+		}
+		tags := MakeTagList()
+		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
+			return err
+		}
+		tags = tags[:11]
+		if err := bookInfo.Tag.RemoveMul(&tags); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 21 {
+			return fmt.Errorf("the number of result set is %d, want 21", num)
+		}
+		return nil
+	}},
 }
 
 func TestInsert(t *testing.T) {

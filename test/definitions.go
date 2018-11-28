@@ -143,7 +143,7 @@ func (s *BookInfoList) Tab() string {
 }
 
 type Tag struct {
-	Id       *nborm.IntField    `json:"id" primary_key:"true"`
+	Id       *nborm.IntField    `json:"id" auto_increment:"true" primary_key:"true"`
 	Tag      *nborm.StringField `json:"tag"`
 	BookInfo *nborm.ManyToMany  `json:"book_info" source_column:"id" middle_database:"bk_dalian" middle_table:"book_info__tag" middle_left_column:"tag__id" middle_right_column:"book_info__isbn" destination_column:"bk_dalian.book_info.isbn"`
 	_isSync  nborm.SyncFlag

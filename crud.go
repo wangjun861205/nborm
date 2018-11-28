@@ -227,6 +227,18 @@ func relationQueryRowsAndFoundRows(relation relation, where *Where, sorter *Sort
 	return rows, tx, nil
 }
 
+func relationCount(relation relation, where *Where) (int, error) {
+	where = relation.where().And(where)
+	whereClause, whereValues := where.toClause()
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s %s", relation.getSrcDB(), relation.getSrcTab(), relation.joinClause(), whereClause)
+	row := getConn(relation.getDstDB()).QueryRow(stmt, whereValues...)
+	var num int
+	if err := row.Scan(&num); err != nil {
+		return 0, err
+	}
+	return num, nil
+}
+
 func joinQueryRow(tabInfo *tableInfo, where *Where, relations ...relation) *sql.Row {
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {

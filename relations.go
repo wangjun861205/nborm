@@ -1,6 +1,10 @@
 package nborm
 
-import "fmt"
+import (
+	"context"
+	"errors"
+	"fmt"
+)
 
 //OneToOne represent a one point on relation
 type OneToOne struct {
@@ -207,6 +211,57 @@ func (rfk *ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sort
 	return num, nil
 }
 
+//AddOne add a related model by reverse foreign key relation
+func (rfk *ReverseForeignKey) AddOne(model table) error {
+	if model.DB() != rfk.dstDB || model.Tab() != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: database or table not match (%s.%s), want %s.%s", model.DB(), model.Tab(),
+			rfk.dstDB, rfk.dstTab)
+	}
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
+	if dstField.IsValid() {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: destination field already set (%s.%s.%s)", model.DB(), model.Tab(),
+			dstField.columnName)
+	}
+	dstField.setVal(rfk.srcValF(), false)
+	lid, err := insert(modAddr, tabInfo)
+	if err != nil {
+		return err
+	}
+	setInc(modAddr, tabInfo, lid)
+	setSync(modAddr, tabInfo)
+	return nil
+}
+
+//AddMul add many model by reverse foreign key relation
+func (rfk *ReverseForeignKey) AddMul(slice table) error {
+	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: database or table not match (%s.%s), want %s.%s", slice.DB(), slice.Tab(),
+			rfk.dstDB, rfk.dstTab)
+	}
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
+		dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
+		if dstField.IsValid() {
+			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: destination field already set (%s.%s.%s)", slice.DB(), slice.Tab(),
+				dstField.columnName)
+		}
+		dstField.setVal(rfk.srcValF(), false)
+		lid, err := insertContext(ctx, modAddr, tabInfo)
+		if err != nil {
+			return err
+		}
+		setInc(modAddr, tabInfo, lid)
+		setSync(modAddr, tabInfo)
+		return nil
+	})
+}
+
+func (rfk *ReverseForeignKey) Count(where *Where) (int, error) {
+	return relationCount(rfk, where)
+}
+
 func (rfk *ReverseForeignKey) joinClause() string {
 	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB, rfk.dstTab, rfk.srcDB, rfk.srcTab, rfk.srcCol, rfk.dstDB,
 		rfk.dstTab, rfk.dstCol)
@@ -333,10 +388,10 @@ func (mtm *ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sor
 	return num, nil
 }
 
-//Add add a relation record to middle table
-func (mtm *ManyToMany) Add(model table) error {
+//AddOne add a relation record to middle table
+func (mtm *ManyToMany) AddOne(model table) error {
 	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Add() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+		return fmt.Errorf("nborm.ManyToMany.AddOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -347,18 +402,104 @@ func (mtm *ManyToMany) Add(model table) error {
 	return nil
 }
 
-//Remove remove a record from middle table
-func (mtm *ManyToMany) Remove(model table) error {
+//AddMul add a relation record to middle table
+func (mtm *ManyToMany) AddMul(slice table) error {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.AddMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	}
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
+		stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+		if _, err := getConn(mtm.midDB).ExecContext(ctx, stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (mtm *ManyToMany) InsertOne(model table) error {
 	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Remove() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+	}
+	tabInfo := getTabInfo(model)
+	modAddr := getTabAddr(model)
+	if getSync(modAddr, tabInfo) {
+		return errors.New("nborm.ManyToMany.InsertOne() error: model already exists. If you want to add a exist model, please use ManyToMany.AddOne()")
+	}
+	lid, err := insert(modAddr, tabInfo)
+	if err != nil {
+		return err
+	}
+	setInc(modAddr, tabInfo, lid)
+	setSync(modAddr, tabInfo)
+	dstField := getFieldByName(modAddr, mtm.dstCol, tabInfo)
+	if !dstField.IsValid() {
+		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: destination field is invalid")
+	}
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+	if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (mtm *ManyToMany) InsertMul(slice table) error {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	}
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
+		if getSync(modAddr, tabInfo) {
+			return errors.New("nborm.ManyToMany.InsertMul() error: model already exists. If you want to add a exist model, please use ManyToMany.AddOne()")
+		}
+		lid, err := insert(modAddr, tabInfo)
+		if err != nil {
+			return err
+		}
+		setInc(modAddr, tabInfo, lid)
+		setSync(modAddr, tabInfo)
+		dstField := getFieldByName(modAddr, mtm.dstCol, tabInfo)
+		if !dstField.IsValid() {
+			return fmt.Errorf("nborm.ManyToMany.InsertOne() error: destination field is invalid")
+		}
+		stmt := fmt.Sprintf("INSERT INTO %s.%s (%s, %s) VALUES (?, ?)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+		if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+//Remove remove a record from middle table
+func (mtm *ManyToMany) RemoveOne(model table) error {
+	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.RemoveOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
-	if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF, getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+	if _, err := getConn(mtm.midDB).Exec(stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (mtm *ManyToMany) RemoveMul(slice table) error {
+	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.RemoveMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	}
+	tabInfo := getTabInfo(slice)
+	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
+		stmt := fmt.Sprintf("DELETE FROM %s.%s WHERE %s = ? AND %s = ?", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+		if _, err := getConn(mtm.midDB).ExecContext(ctx, stmt, mtm.srcValF(), getFieldByName(modAddr, mtm.dstCol, tabInfo).value()); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (mtm *ManyToMany) Count(where *Where) (int, error) {
+	return relationCount(mtm, where)
 }
 
 func (mtm *ManyToMany) joinClause() string {

@@ -734,7 +734,7 @@ var tests = []struct {
 		bookInfo := NewBookInfo()
 		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 200))
 		if err := nborm.GetOne(bookInfo); err != nil {
-			return nil
+			return err
 		}
 		tags := MakeTagList()
 		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
@@ -748,6 +748,39 @@ var tests = []struct {
 			return err
 		} else if num != 21 {
 			return fmt.Errorf("the number of result set is %d, want 21", num)
+		}
+		return nil
+	}},
+	{"many to many bulk remove", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 300))
+		if err := nborm.InsertOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagList()
+		for i := 0; i < 10; i++ {
+			tag1 := NewTag()
+			tag1.Tag.Set("bulk remove")
+			tag2 := NewTag()
+			tag2.Tag.Set("not remove")
+			tags = append(tags, tag1, tag2)
+		}
+
+		if err := bookInfo.Tag.InsertMul(&tags); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 20 {
+			return fmt.Errorf("the number of result set is %d, want 20", num)
+		}
+		if err := bookInfo.Tag.BulkRemove(tags[0].Tag.Eq("bulk remove")); err != nil {
+			return err
+		}
+		if num, err := bookInfo.Tag.Count(nil); err != nil {
+			return err
+		} else if num != 10 {
+			return fmt.Errorf("the number of result set is %d, want 10", num)
 		}
 		return nil
 	}},

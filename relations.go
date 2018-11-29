@@ -498,6 +498,18 @@ func (mtm *ManyToMany) RemoveMul(slice table) error {
 	})
 }
 
+func (mtm *ManyToMany) BulkRemove(where *Where) error {
+	if where != nil && (where.db != mtm.dstDB || where.table != mtm.dstTab) {
+		return fmt.Errorf("nborm.ManyToMany.BulkRemove() error: where destination table is %s.%s, want %s.%s", where.db, where.table, mtm.dstDB,
+			mtm.dstTab)
+	}
+	where = mtm.where().And(where)
+	whereClause, whereValues := where.toClause()
+	stmt := fmt.Sprintf("DELETE %s.%s FROM %s.%s %s %s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.joinClause(), whereClause)
+	_, err := getConn(mtm.midDB).Exec(stmt, whereValues...)
+	return err
+}
+
 func (mtm *ManyToMany) Count(where *Where) (int, error) {
 	return relationCount(mtm, where)
 }

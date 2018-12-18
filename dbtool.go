@@ -114,7 +114,7 @@ func parseField(field *ast.Field) *columnInfo {
 		colInfo.colName = toSnakeCase(name)
 	}
 	if colInfo.sqlType == "" {
-		typ := field.Type.(*ast.StarExpr).X.(*ast.SelectorExpr).Sel.Name
+		typ := field.Type.(*ast.SelectorExpr).Sel.Name
 		if sqlType, ok := goToSQLMap[typ]; !ok {
 			panic(fmt.Errorf("nborm.parseField() error: unsupported field type (%s)", typ))
 		} else {
@@ -265,8 +265,8 @@ func parseModel(decl *ast.GenDecl) {
 				}
 				tabInfo := schemaCache.databaseMap[dt.db].tableMap[dt.tab]
 				for _, field := range stctType.Fields.List {
-					if expr, ok := field.Type.(*ast.StarExpr); ok {
-						switch expr.X.(*ast.SelectorExpr).Sel.Name {
+					if expr, ok := field.Type.(*ast.SelectorExpr); ok {
+						switch expr.Sel.Name {
 						case "StringField", "IntField", "FloatField", "BoolField", "BinaryField", "DateField", "DatetimeField":
 							colInfo := parseField(field)
 							tabInfo.columns = append(tabInfo.columns, colInfo)
@@ -419,13 +419,6 @@ func create() error {
 			}
 		}
 		for tname, tab := range db.tableMap {
-			// for _, oto := range tab.oneToOnes {
-			// 	stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", tname, oto.srcCol,
-			// 		oto.dstDB, oto.dstTab, oto.dstCol)
-			// 	if _, err := conn.Exec(stmt); err != nil {
-			// 		return err
-			// 	}
-			// }
 			for _, fk := range tab.foreignKeys {
 				stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", tname, fk.srcCol,
 					fk.dstDB, fk.dstTab, fk.dstCol)
@@ -433,13 +426,6 @@ func create() error {
 					return err
 				}
 			}
-			// for _, rfk := range tab.reverseForeignKeys {
-			// 	stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", tname, rfk.srcCol,
-			// 		rfk.dstDB, rfk.dstTab, rfk.dstCol)
-			// 	if _, err := conn.Exec(stmt); err != nil {
-			// 		return err
-			// 	}
-			// }
 			for _, mtm := range tab.manyToManys {
 				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
 				if _, err := conn.Exec(stmt); err != nil {

@@ -8,18 +8,42 @@ import (
 	"unsafe"
 )
 
-type SyncFlag bool
+type ModelStatus struct {
+	isInit bool
+	isSync bool
+}
+
+func (s *ModelStatus) IsSync() bool {
+	return s.isSync
+}
+
+func getStatus(addr uintptr, tabInfo *tableInfo) *ModelStatus {
+	return (*ModelStatus)(unsafe.Pointer(addr + tabInfo.modelStatus))
+}
 
 func setSync(addr uintptr, tabInfo *tableInfo) {
-	*(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag)) = true
+	status := getStatus(addr, tabInfo)
+	status.isSync = true
 }
 
 func unsetSync(addr uintptr, tabInfo *tableInfo) {
-	*(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag)) = false
+	status := getStatus(addr, tabInfo)
+	status.isSync = false
 }
 
 func getSync(addr uintptr, tabInfo *tableInfo) bool {
-	return *(*bool)(unsafe.Pointer(addr + tabInfo.syncFlag))
+	status := getStatus(addr, tabInfo)
+	return status.isSync
+}
+
+func setInit(addr uintptr, tabInfo *tableInfo) {
+	status := getStatus(addr, tabInfo)
+	status.isInit = true
+}
+
+func getInit(addr uintptr, tabInfo *tableInfo) bool {
+	status := getStatus(addr, tabInfo)
+	return status.isInit
 }
 
 //StringField represent char, varchar, text type in mysql
@@ -197,7 +221,7 @@ func (f *StringField) In(val []string) *Where {
 func (f *StringField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 	if reverse {
 		return func(iaddr, jaddr uintptr) int {
-			iField, jField := *(**StringField)(unsafe.Pointer(iaddr + f.offset)), *(**StringField)(unsafe.Pointer(jaddr + f.offset))
+			iField, jField := (*StringField)(unsafe.Pointer(iaddr+f.offset)), (*StringField)(unsafe.Pointer(jaddr+f.offset))
 			iVal, iValid, iNull := iField.Get()
 			jVal, jValid, jNull := jField.Get()
 			var iBit, jBit int
@@ -227,7 +251,7 @@ func (f *StringField) LessFunc(reverse bool) func(iaddr, jaddr uintptr) int {
 		}
 	}
 	return func(iaddr, jaddr uintptr) int {
-		iField, jField := *(**StringField)(unsafe.Pointer(iaddr + f.offset)), *(**StringField)(unsafe.Pointer(jaddr + f.offset))
+		iField, jField := (*StringField)(unsafe.Pointer(iaddr+f.offset)), (*StringField)(unsafe.Pointer(jaddr+f.offset))
 		iVal, iValid, iNull := iField.Get()
 		jVal, jValid, jNull := jField.Get()
 		var iBit, jBit int

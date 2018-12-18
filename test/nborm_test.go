@@ -36,7 +36,7 @@ var tests = []struct {
 		if err != nil {
 			return err
 		}
-		if !auth._isSync {
+		if !auth.IsSync() {
 			return errors.New("_isSync is false, want true")
 		}
 		username, valid, null := auth.Username.Get()
@@ -51,7 +51,7 @@ var tests = []struct {
 		if err != nil {
 			return err
 		}
-		if book._isSync {
+		if book.IsSync() {
 			return errors.New("auth._isSync is true, want false")
 		}
 		return nil
@@ -73,7 +73,7 @@ var tests = []struct {
 			return err
 		}
 		for _, bookInfo := range bookInfos[1:] {
-			if !bookInfo._isSync {
+			if !bookInfo.IsSync() {
 				return fmt.Errorf("SyncFlag is false, want true")
 			}
 		}
@@ -91,7 +91,7 @@ var tests = []struct {
 		if err := nborm.JoinQueryOne(book, where, book.BookInfo); err != nil {
 			return err
 		}
-		if !book._isSync {
+		if !book.IsSync() {
 			return errors.New("SyncFlag is false, want true")
 		}
 		isbn, _, _ := book.Isbn.Get()
@@ -201,7 +201,7 @@ var tests = []struct {
 		if err := nborm.InsertOrUpdateOne(bookInfo); err != nil {
 			return err
 		}
-		if !bookInfo._isSync {
+		if !bookInfo.IsSync() {
 			return errors.New("SyncFlag is false, want true")
 		}
 		return nil
@@ -218,7 +218,7 @@ var tests = []struct {
 			return err
 		}
 		for _, bookInfo := range bookInfos[1:] {
-			if !bookInfo._isSync {
+			if !bookInfo.IsSync() {
 				return errors.New("SyncFlag is false, want true")
 			}
 		}
@@ -230,7 +230,7 @@ var tests = []struct {
 		if err := nborm.InsertOrGetOne(bookInfo); err != nil {
 			return err
 		}
-		if !bookInfo._isSync {
+		if !bookInfo.IsSync() {
 			return errors.New("SyncFlag is false, want true")
 		}
 		if author, _, _ := bookInfo.Author.Get(); author != "王君" {
@@ -249,7 +249,7 @@ var tests = []struct {
 			return err
 		}
 		for _, bookInfo := range bookInfos[1:] {
-			if !bookInfo._isSync {
+			if !bookInfo.IsSync() {
 				return errors.New("SyncFlag is false, want true")
 			}
 			if author, _, _ := bookInfo.Author.Get(); author != "王君" {
@@ -265,7 +265,7 @@ var tests = []struct {
 		if err := nborm.UpdateOne(bookInfo); err != nil {
 			return err
 		}
-		if !bookInfo._isSync {
+		if !bookInfo.IsSync() {
 			return errors.New("SyncFlag is false, want true")
 		}
 		return nil
@@ -282,7 +282,7 @@ var tests = []struct {
 			return err
 		}
 		for _, bookInfo := range bookInfos[1:] {
-			if !bookInfo._isSync {
+			if !bookInfo.IsSync() {
 				return errors.New("SyncFlag is false, want true")
 			}
 		}
@@ -428,7 +428,7 @@ var tests = []struct {
 		if nborm.NumRes(&bookInfos) < 2 {
 			return errors.New("the number of result set is less than one, want larger than one")
 		}
-		nborm.Distinct(&bookInfos, bookInfos[0].Author)
+		nborm.Distinct(&bookInfos, &bookInfos[0].Author)
 		if nborm.NumRes(&bookInfos) != 1 {
 			return fmt.Errorf("the number of result set is %d, want 1", nborm.NumRes(&bookInfos))
 		}

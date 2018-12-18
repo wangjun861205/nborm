@@ -314,8 +314,8 @@ func UpdateMul(slice table) error {
 }
 
 //BulkUpdate update records by where
-func BulkUpdate(table table, where *Where, updVals ...*UpdateValue) error {
-	tabInfo := getTabInfo(table)
+func BulkUpdate(model table, where *Where, updVals ...*UpdateValue) error {
+	tabInfo := getTabInfo(model)
 	_, err := update(tabInfo, where, updVals...)
 	return err
 }
@@ -352,8 +352,8 @@ func DeleteMul(slice table) error {
 }
 
 //BulkDelete delete by where
-func BulkDelete(table table, where *Where) error {
-	tabInfo := getTabInfo(table)
+func BulkDelete(model table, where *Where) error {
+	tabInfo := getTabInfo(model)
 	_, err := delete(tabInfo, where)
 	return err
 }
@@ -372,8 +372,8 @@ func TruncateTable(table table) error {
 }
 
 //Count get the number of rows in one table
-func Count(table table, where *Where) (int, error) {
-	tabInfo := getTabInfo(table)
+func Count(model table, where *Where) (int, error) {
+	tabInfo := getTabInfo(model)
 	return count(tabInfo, where)
 }
 

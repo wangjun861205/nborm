@@ -56,7 +56,7 @@ type Book struct {
 	Volume     nborm.IntField    `json:"volume" default_value:"d'1'"`
 	UniqueCode nborm.StringField `json:"unique_code" primary_key:"true"`
 	Status     nborm.IntField    `json:"status" default_value:"d'1'"`
-	BookInfo   nborm.ForeignKey  `json:"book_info" source_column:"isbn" destination_column:"bk_dalian.book_info.isbn"`
+	BookInfo   nborm.ForeignKey  `json:"book_info" src_col:"isbn" dst_db:"bk_dalian" dst_tab:"book_info" dst_col:"isbn"`
 }
 
 func NewBook() *Book {
@@ -108,8 +108,8 @@ type BookInfo struct {
 	Menu         nborm.StringField       `json:"menu" nullable:"true"`
 	Image        nborm.StringField       `json:"image" nullable:"true"`
 	IsOk         nborm.BoolField         `json:"is_ok" default_value:"b'true'"`
-	Book         nborm.ReverseForeignKey `json:"book" source_column:"isbn" destination_column:"bk_dalian.book.isbn"`
-	Tag          nborm.ManyToMany        `json:"tag" source_column:"isbn" middle_database:"bk_dalian" middle_table:"book_info__tag" middle_left_column:"book_info__isbn" middle_right_column:"tag__id" destination_column:"bk_dalian.tag.id"`
+	Book         nborm.ReverseForeignKey `json:"book" src_col:"isbn" dst_db:"bk_dalian" dst_tab:"book" dst_col:"isbn"`
+	Tag          nborm.ManyToMany        `json:"tag" src_col:"isbn" mid_db:"bk_dalian" mid_tab:"book_info__tag" mid_left_col:"book_info__isbn" mid_right_col:"tag__id" dst_db:"bk_dalian" dst_tab:"tag" dst_col:"id"`
 }
 
 func NewBookInfo() *BookInfo {
@@ -146,7 +146,7 @@ type Tag struct {
 	nborm.ModelStatus
 	Id       nborm.IntField    `json:"id" auto_increment:"true" primary_key:"true"`
 	Tag      nborm.StringField `json:"tag"`
-	BookInfo nborm.ManyToMany  `json:"book_info" source_column:"id" middle_database:"bk_dalian" middle_table:"book_info__tag" middle_left_column:"tag__id" middle_right_column:"book_info__isbn" destination_column:"bk_dalian.book_info.isbn"`
+	BookInfo nborm.ManyToMany  `json:"book_info" src_col:"id" mid_db:"bk_dalian" mid_tab:"book_info__tag" mid_left_col:"tag__id" mid_right_col:"book_info__isbn" dst_db:"bk_dalian" dst_tab:"book_info" dst_col:"isbn"`
 }
 
 func NewTag() *Tag {

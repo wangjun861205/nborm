@@ -24,8 +24,8 @@ func NewOneToOne(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF fu
 
 //Query query related table by OneToOne relation
 func (oto OneToOne) Query(model table) error {
-	if model.DB() != oto.dstDB || model.Tab() != oto.dstTab {
-		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, model.DB(), model.Tab())
+	if wrap(model.DB()) != oto.dstDB || wrap(model.Tab()) != oto.dstTab {
+		return fmt.Errorf("nborm.OneToOne.Query() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, wrap(model.DB()), wrap(model.Tab()))
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -76,8 +76,8 @@ func NewForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF 
 
 //Query query related table by this relation
 func (fk ForeignKey) Query(model table) error {
-	if model.DB() != fk.dstDB || model.Tab() != fk.dstTab {
-		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB, fk.dstTab, model.DB(), model.Tab())
+	if wrap(model.DB()) != fk.dstDB || wrap(model.Tab()) != fk.dstTab {
+		return fmt.Errorf("nborm.ForeignKey.Query() error: required %s.%s supported %s.%s", fk.dstDB, fk.dstTab, wrap(model.DB()), wrap(model.Tab()))
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -129,8 +129,9 @@ func NewReverseForeignKey(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, s
 
 //All query all records in related table by this relation
 func (rfk ReverseForeignKey) All(slice table, sorter *Sorter, pager *Pager) error {
-	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != rfk.dstDB || wrap(slice.Tab()) != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.All() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab, wrap(slice.DB()),
+			wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -144,9 +145,9 @@ func (rfk ReverseForeignKey) All(slice table, sorter *Sorter, pager *Pager) erro
 
 //AllWithFoundRows query all records in related table by this relation and the number of found rows
 func (rfk ReverseForeignKey) AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
-	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
+	if wrap(slice.DB()) != rfk.dstDB || wrap(slice.Tab()) != rfk.dstTab {
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.AllWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			slice.DB(), slice.Tab())
+			wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -170,9 +171,9 @@ func (rfk ReverseForeignKey) AllWithFoundRows(slice table, sorter *Sorter, pager
 
 //Query query related table by this relation
 func (rfk ReverseForeignKey) Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
-	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
+	if wrap(slice.DB()) != rfk.dstDB || wrap(slice.Tab()) != rfk.dstTab {
 		return fmt.Errorf("nborm.ReverseForeignKey.Query() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			slice.DB(), slice.Tab())
+			wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -186,9 +187,9 @@ func (rfk ReverseForeignKey) Query(slice table, where *Where, sorter *Sorter, pa
 
 //QueryWithFoundRows query related table by this realtion and number of found rows
 func (rfk ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
+	if wrap(slice.DB()) != rfk.dstDB || wrap(slice.Tab()) != rfk.dstTab {
 		return -1, fmt.Errorf("nborm.ReverseForeignKey.QueryWithFoundRows() error: required %s.%s supported %s.%s", rfk.dstDB, rfk.dstTab,
-			slice.DB(), slice.Tab())
+			wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -213,15 +214,15 @@ func (rfk ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sorte
 
 //AddOne add a related model by reverse foreign key relation
 func (rfk ReverseForeignKey) AddOne(model table) error {
-	if model.DB() != rfk.dstDB || model.Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: database or table not match (%s.%s), want %s.%s", model.DB(), model.Tab(),
+	if wrap(model.DB()) != rfk.dstDB || wrap(model.Tab()) != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: database or table not match (%s.%s), want %s.%s", wrap(model.DB()), wrap(model.Tab()),
 			rfk.dstDB, rfk.dstTab)
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
 	if dstField.IsValid() {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: destination field already set (%s.%s.%s)", model.DB(), model.Tab(),
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: destination field already set (%s.%s.%s)", wrap(model.DB()), wrap(model.Tab()),
 			dstField.columnName)
 	}
 	dstField.setVal(rfk.srcValF(), false)
@@ -236,15 +237,15 @@ func (rfk ReverseForeignKey) AddOne(model table) error {
 
 //AddMul add many model by reverse foreign key relation
 func (rfk ReverseForeignKey) AddMul(slice table) error {
-	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: database or table not match (%s.%s), want %s.%s", slice.DB(), slice.Tab(),
+	if wrap(slice.DB()) != rfk.dstDB || wrap(slice.Tab()) != rfk.dstTab {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: database or table not match (%s.%s), want %s.%s", wrap(slice.DB()), wrap(slice.Tab()),
 			rfk.dstDB, rfk.dstTab)
 	}
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
 		dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
 		if dstField.IsValid() {
-			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: destination field already set (%s.%s.%s)", slice.DB(), slice.Tab(),
+			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: destination field already set (%s.%s.%s)", wrap(slice.DB()), wrap(slice.Tab()),
 				dstField.columnName)
 		}
 		dstField.setVal(rfk.srcValF(), false)
@@ -309,8 +310,8 @@ func NewManyToMany(srcDB, srcTab, srcCol, midDB, midTab, midLeftCol, midRightCol
 
 //All query all records in related table by this relation
 func (mtm ManyToMany) All(slice table, sorter *Sorter, pager *Pager) error {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.All() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -323,9 +324,9 @@ func (mtm ManyToMany) All(slice table, sorter *Sorter, pager *Pager) error {
 
 //AllWithFoundRows query all records in related table and number of found rows by this relation
 func (mtm ManyToMany) AllWithFoundRows(slice table, sorter *Sorter, pager *Pager) (int, error) {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(),
-			slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return -1, fmt.Errorf("nborm.ManyToMany.AllWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()),
+			wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -349,8 +350,8 @@ func (mtm ManyToMany) AllWithFoundRows(slice table, sorter *Sorter, pager *Pager
 
 //Query query records in related table by this relation
 func (mtm ManyToMany) Query(slice table, where *Where, sorter *Sorter, pager *Pager) error {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.Query() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -364,9 +365,9 @@ func (mtm ManyToMany) Query(slice table, where *Where, sorter *Sorter, pager *Pa
 
 //QueryWithFoundRows query records in related table and number of found rows by this relation
 func (mtm ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sorter, pager *Pager) (int, error) {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
 		return -1, fmt.Errorf("nborm.ManyToMany.QueryWithFoundRows() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab,
-			slice.DB(), slice.Tab())
+			wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
@@ -390,8 +391,8 @@ func (mtm ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sort
 
 //AddOne add a relation record to middle table
 func (mtm ManyToMany) AddOne(model table) error {
-	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.AddOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+	if wrap(model.DB()) != mtm.dstDB || wrap(model.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.AddOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(model.DB()), wrap(model.Tab()))
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -404,8 +405,8 @@ func (mtm ManyToMany) AddOne(model table) error {
 
 //AddMul add a relation record to middle table
 func (mtm ManyToMany) AddMul(slice table) error {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.AddMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.AddMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
@@ -418,8 +419,8 @@ func (mtm ManyToMany) AddMul(slice table) error {
 }
 
 func (mtm ManyToMany) InsertOne(model table) error {
-	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+	if wrap(model.DB()) != mtm.dstDB || wrap(model.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(model.DB()), wrap(model.Tab()))
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -444,8 +445,8 @@ func (mtm ManyToMany) InsertOne(model table) error {
 }
 
 func (mtm ManyToMany) InsertMul(slice table) error {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.InsertOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
@@ -472,8 +473,8 @@ func (mtm ManyToMany) InsertMul(slice table) error {
 
 //Remove remove a record from middle table
 func (mtm ManyToMany) RemoveOne(model table) error {
-	if model.DB() != mtm.dstDB || model.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.RemoveOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, model.DB(), model.Tab())
+	if wrap(model.DB()) != mtm.dstDB || wrap(model.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.RemoveOne() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(model.DB()), wrap(model.Tab()))
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
@@ -485,8 +486,8 @@ func (mtm ManyToMany) RemoveOne(model table) error {
 }
 
 func (mtm ManyToMany) RemoveMul(slice table) error {
-	if slice.DB() != mtm.dstDB || slice.Tab() != mtm.dstTab {
-		return fmt.Errorf("nborm.ManyToMany.RemoveMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, slice.DB(), slice.Tab())
+	if wrap(slice.DB()) != mtm.dstDB || wrap(slice.Tab()) != mtm.dstTab {
+		return fmt.Errorf("nborm.ManyToMany.RemoveMul() error: require %s.%s supported %s.%s", mtm.dstDB, mtm.dstTab, wrap(slice.DB()), wrap(slice.Tab()))
 	}
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {

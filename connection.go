@@ -12,6 +12,7 @@ var connMap = map[string]*sql.DB{}
 var connLock sync.RWMutex
 
 func getConn(db string) *sql.DB {
+	db = escap(db)
 	connLock.RLock()
 	conn, ok := connMap[db]
 	if !ok {

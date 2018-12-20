@@ -173,8 +173,10 @@ func getTabAddr(tab table) uintptr {
 }
 
 func setInc(addr uintptr, tabInfo *tableInfo, lastInsertId int64) {
-	inc := getIncWithTableInfo(addr, tabInfo)
-	inc.setVal(lastInsertId, false)
+	if tabInfo.inc != nil {
+		inc := getIncWithTableInfo(addr, tabInfo)
+		inc.setVal(lastInsertId, false)
+	}
 }
 
 func genUpdVals(addr uintptr, tabInfo *tableInfo) []*UpdateValue {
@@ -215,7 +217,16 @@ func NumRes(slice table) int {
 	return len(l) - 1
 }
 
+//ClsRes clear result set except the first element(example model)
 func ClsRes(slice table) {
 	l := *(**[]uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&slice)) + uintptr(8)))
 	*l = (*l)[:1]
+}
+
+func wrap(s string) string {
+	return fmt.Sprintf("`%s`", s)
+}
+
+func escap(s string) string {
+	return strings.Trim(s, "`")
 }

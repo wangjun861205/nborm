@@ -4,15 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"go/ast"
+	"go/doc"
 	"go/parser"
 	"go/token"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var goToSQLMap = map[string]string{
-	"StringField":   "VARCHAR(255)",
+	"StringField":   "VARCHAR(128)",
 	"IntField":      "INT",
 	"FloatField":    "DECIMAL(65, 2)",
 	"BoolField":     "BOOL",
@@ -101,6 +104,12 @@ func parseFieldTag(tag string) *columnInfo {
 			panic(fmt.Errorf("nborm.parseFieldTag() error: invalid default value (%s)", expr))
 		}
 	}
+	if charset, ok := infoMap["charset"]; ok {
+		colInfo.charset = charset
+	}
+	if collate, ok := infoMap["collate"]; ok {
+		colInfo.collate = collate
+	}
 	return colInfo
 }
 
@@ -135,27 +144,54 @@ type relInfo struct {
 	dstCol      string
 }
 
+// func parseRelationInfo(tag string) (relInfo relInfo) {
+// 	fields := strings.Fields(strings.Trim(tag, "`"))
+// 	for _, f := range fields {
+// 		l := strings.Split(f, ":")
+// 		k, v := l[0], strings.Trim(l[1], "\"")
+// 		switch k {
+// 		case "source_column":
+// 			relInfo.srcCol = v
+// 		case "middle_database":
+// 			relInfo.midDB = v
+// 		case "middle_table":
+// 			relInfo.midTab = v
+// 		case "middle_left_column":
+// 			relInfo.midLeftCol = v
+// 		case "middle_right_column":
+// 			relInfo.midRightCol = v
+// 		case "destination_column":
+// 			dtc := strings.Split(v, ".")
+// 			relInfo.dstDB = dtc[0]
+// 			relInfo.dstTab = dtc[1]
+// 			relInfo.dstCol = dtc[2]
+// 		}
+// 	}
+// 	return
+// }
+
 func parseRelationInfo(tag string) (relInfo relInfo) {
 	fields := strings.Fields(strings.Trim(tag, "`"))
 	for _, f := range fields {
 		l := strings.Split(f, ":")
 		k, v := l[0], strings.Trim(l[1], "\"")
 		switch k {
-		case "source_column":
+		case "src_col":
 			relInfo.srcCol = v
-		case "middle_database":
+		case "mid_db":
 			relInfo.midDB = v
-		case "middle_table":
+		case "mid_tab":
 			relInfo.midTab = v
-		case "middle_left_column":
+		case "mid_left_col":
 			relInfo.midLeftCol = v
-		case "middle_right_column":
+		case "mid_right_col":
 			relInfo.midRightCol = v
-		case "destination_column":
-			dtc := strings.Split(v, ".")
-			relInfo.dstDB = dtc[0]
-			relInfo.dstTab = dtc[1]
-			relInfo.dstCol = dtc[2]
+		case "dst_db":
+			relInfo.dstDB = v
+		case "dst_tab":
+			relInfo.dstTab = v
+		case "dst_col":
+			relInfo.dstCol = v
 		}
 	}
 	return
@@ -250,6 +286,8 @@ func parseDBAndTab(fn *ast.FuncDecl) {
 	}
 }
 
+var keysRe = regexp.MustCompile(`key:(.*?)\n`)
+
 func parseModel(decl *ast.GenDecl) {
 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
@@ -264,6 +302,7 @@ func parseModel(decl *ast.GenDecl) {
 					schemaCache.databaseMap[dt.db].tableMap[dt.tab] = &tableInfo{columnMap: make(map[string]*columnInfo)}
 				}
 				tabInfo := schemaCache.databaseMap[dt.db].tableMap[dt.tab]
+				tabInfo.keys = parseKeys(modelName)
 				for _, field := range stctType.Fields.List {
 					if expr, ok := field.Type.(*ast.SelectorExpr); ok {
 						switch expr.Sel.Name {
@@ -377,10 +416,10 @@ func create() error {
 		return err
 	}
 	for dname, db := range schemaCache.databaseMap {
-		if _, err := conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dname)); err != nil {
+		if _, err := conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", wrap(dname))); err != nil {
 			return err
 		}
-		if _, err := conn.Exec(fmt.Sprintf("USE %s", dname)); err != nil {
+		if _, err := conn.Exec(fmt.Sprintf("USE %s", wrap(dname))); err != nil {
 			return err
 		}
 		for tname, tab := range db.tableMap {
@@ -389,7 +428,13 @@ func create() error {
 			unis := make([]string, len(tab.unis))
 			for i, col := range tab.columns {
 				l := make([]string, 0, 8)
-				l = append(l, col.colName, col.sqlType)
+				l = append(l, wrap(col.colName), col.sqlType)
+				if col.charset != "" {
+					l = append(l, fmt.Sprintf("CHARACTER SET %s", col.charset))
+				}
+				if col.collate != "" {
+					l = append(l, fmt.Sprintf("COLLATE %s", col.collate))
+				}
 				if !col.nullable {
 					l = append(l, "NOT NULL")
 				}
@@ -402,33 +447,58 @@ func create() error {
 				cols[i] = strings.Join(l, " ")
 			}
 			for i, pk := range tab.pks {
-				pks[i] = pk.colName
+				pks[i] = wrap(pk.colName)
 			}
 			for i, uni := range tab.unis {
-				unis[i] = fmt.Sprintf("UNIQUE KEY (%s)", uni.colName)
+				unis[i] = fmt.Sprintf("UNIQUE KEY (%s)", wrap(uni.colName))
 			}
 			var uniClause string
 			if len(unis) > 0 {
 				uniClause = ", " + strings.Join(unis, ", ")
 			}
-			stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (%s) %s)", tname, strings.Join(cols, ", "),
-				strings.Join(pks, ", "), uniClause)
+			stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY (%s) %s)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin",
+				wrap(tname), strings.Join(cols, ", "), strings.Join(pks, ", "), uniClause)
 			fmt.Println(stmt)
+			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 			if _, err := conn.Exec(stmt); err != nil {
 				return err
 			}
 		}
 		for tname, tab := range db.tableMap {
 			for _, fk := range tab.foreignKeys {
-				stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", tname, fk.srcCol,
-					fk.dstDB, fk.dstTab, fk.dstCol)
+				stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", wrap(tname),
+					wrap(fmt.Sprintf("%s_%s_%s__%s_%s_%s", dname, tname, fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol)), wrap(fk.srcCol), wrap(fk.dstDB),
+					wrap(fk.dstTab), wrap(fk.dstCol))
+				fmt.Println(stmt)
+				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
+					if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1826 {
+						fmt.Printf("warning: %v\n", e)
+						fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+						continue
+					}
 					return err
 				}
 			}
 			for _, mtm := range tab.manyToManys {
-				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.midRightCol)
+				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", wrap(mtm.midDB), wrap(mtm.midTab), wrap(mtm.midLeftCol),
+					wrap(mtm.midRightCol))
+				fmt.Println(stmt)
+				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
+					return err
+				}
+			}
+			for _, key := range tab.keys {
+				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD KEY %s", wrap(dname), wrap(tname), key)
+				fmt.Println(stmt)
+				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+				if _, err := conn.Exec(stmt); err != nil {
+					if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1061 {
+						fmt.Printf("warning: %v\n", e)
+						fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+						continue
+					}
 					return err
 				}
 			}
@@ -445,4 +515,35 @@ func ParseAndCreate(filename string) error {
 		return err
 	}
 	return nil
+}
+
+var commentMap = make(map[string]string)
+
+//ParseComment parse package comments
+func ParseComment(path string) error {
+	pfset := token.NewFileSet()
+	d, err := parser.ParseDir(pfset, path, nil, parser.ParseComments)
+	if err != nil {
+		return err
+	}
+	for _, f := range d {
+		p := doc.New(f, path, 0)
+		for _, t := range p.Types {
+			commentMap[t.Name] = t.Doc
+		}
+	}
+	return nil
+}
+
+func parseKeys(name string) []string {
+	l := make([]string, 0, 8)
+	if comment, ok := commentMap[name]; ok {
+		keys := keysRe.FindAllStringSubmatch(comment, -1)
+		for _, key := range keys {
+			l = append(l, key[1])
+		}
+	} else {
+		panic(fmt.Errorf("nborm.parseKeys() error: model name not exists"))
+	}
+	return l
 }

@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 	"sync"
 	"unsafe"
 )
@@ -43,6 +42,8 @@ type columnInfo struct {
 	defVal   interface{}
 	offset   uintptr
 	sqlType  string
+	charset  string
+	collate  string
 }
 
 type oneToOneInfo struct {
@@ -95,6 +96,7 @@ type tableInfo struct {
 	pks                []*columnInfo
 	unis               []*columnInfo
 	modelStatus        uintptr
+	keys               []string
 }
 
 type databaseInfo struct {
@@ -125,9 +127,14 @@ func parseColumn(field reflect.StructField) *columnInfo {
 	if !ok {
 		panic(fmt.Errorf("nborm.parseColumn() error: unsupported field type (%s)", field.Type.Name()))
 	}
-	if c.colName, ok = field.Tag.Lookup("column"); !ok {
-		c.colName = toSnakeCase(field.Name)
+	if colName, ok := field.Tag.Lookup("column"); !ok {
+		c.colName = wrap(toSnakeCase(field.Name))
+	} else {
+		c.colName = wrap(colName)
 	}
+	// if c.colName, ok = field.Tag.Lookup("column"); !ok {
+	// 	c.colName = toSnakeCase(field.Name)
+	// }
 	if nullable, ok := field.Tag.Lookup("nullable"); ok && nullable == "true" {
 		c.nullable = true
 	}
@@ -189,40 +196,81 @@ func parseColumn(field reflect.StructField) *columnInfo {
 	return c
 }
 
+// func getSrcCol(field reflect.StructField) string {
+// 	if srcCol, ok := field.Tag.Lookup("source_column"); !ok {
+// 		panic(fmt.Errorf("nborm.getSrcCol() error: no source column tag for field (%s)", field.Name))
+// 	} else {
+// 		return srcCol
+// 	}
+// }
+
 func getSrcCol(field reflect.StructField) string {
-	if srcCol, ok := field.Tag.Lookup("source_column"); !ok {
+	if srcCol, ok := field.Tag.Lookup("src_col"); !ok {
 		panic(fmt.Errorf("nborm.getSrcCol() error: no source column tag for field (%s)", field.Name))
 	} else {
-		return srcCol
+		return wrap(srcCol)
 	}
 }
 
+// func getDstCol(field reflect.StructField) (dstDB, dstTab, dstCol string) {
+// 	if dstCol, ok := field.Tag.Lookup("destination_column"); !ok {
+// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
+// 	} else {
+// 		l := strings.Split(dstCol, ".")
+// 		if len(l) != 3 {
+// 			panic(fmt.Errorf("nborm.getDstCol() error: invalid destination column tag (%s) for field (%s)", dstCol, field.Name))
+// 		}
+// 		return l[0], l[1], l[2]
+// 	}
+// }
+
 func getDstCol(field reflect.StructField) (dstDB, dstTab, dstCol string) {
-	if dstCol, ok := field.Tag.Lookup("destination_column"); !ok {
-		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
-	} else {
-		l := strings.Split(dstCol, ".")
-		if len(l) != 3 {
-			panic(fmt.Errorf("nborm.getDstCol() error: invalid destination column tag (%s) for field (%s)", dstCol, field.Name))
-		}
-		return l[0], l[1], l[2]
+	var ok bool
+	if dstDB, ok = field.Tag.Lookup("dst_db"); !ok {
+		panic(fmt.Errorf("nborm.getDstCol() error: no destination database tag for field (%s)", field.Name))
 	}
+	if dstTab, ok = field.Tag.Lookup("dst_tab"); !ok {
+		panic(fmt.Errorf("nborm.getDstCol() error: no destination table tag for field (%s)", field.Name))
+	}
+	if dstCol, ok = field.Tag.Lookup("dst_col"); !ok {
+		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
+	}
+	dstDB, dstTab, dstCol = wrap(dstDB), wrap(dstTab), wrap(dstCol)
+	return
 }
+
+// func getMidCol(field reflect.StructField) (midDB, midTab, midLeftCol, midRightCol string) {
+// 	var ok bool
+// 	if midDB, ok = field.Tag.Lookup("middle_database"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
+// 	}
+// 	if midTab, ok = field.Tag.Lookup("middle_table"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
+// 	}
+// 	if midLeftCol, ok = field.Tag.Lookup("middle_left_column"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
+// 	}
+// 	if midRightCol, ok = field.Tag.Lookup("middle_right_column"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
+// 	}
+// 	return
+// }
 
 func getMidCol(field reflect.StructField) (midDB, midTab, midLeftCol, midRightCol string) {
 	var ok bool
-	if midDB, ok = field.Tag.Lookup("middle_database"); !ok {
+	if midDB, ok = field.Tag.Lookup("mid_db"); !ok {
 		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
 	}
-	if midTab, ok = field.Tag.Lookup("middle_table"); !ok {
+	if midTab, ok = field.Tag.Lookup("mid_tab"); !ok {
 		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
 	}
-	if midLeftCol, ok = field.Tag.Lookup("middle_left_column"); !ok {
+	if midLeftCol, ok = field.Tag.Lookup("mid_left_col"); !ok {
 		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
 	}
-	if midRightCol, ok = field.Tag.Lookup("middle_right_column"); !ok {
+	if midRightCol, ok = field.Tag.Lookup("mid_right_col"); !ok {
 		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
 	}
+	midDB, midTab, midLeftCol, midRightCol = wrap(midDB), wrap(midTab), wrap(midLeftCol), wrap(midRightCol)
 	return
 }
 
@@ -260,7 +308,7 @@ func parseManyToMany(field reflect.StructField) *manyToManyInfo {
 }
 
 func parseTable(table table) *tableInfo {
-	dbName, tabName := table.DB(), table.Tab()
+	dbName, tabName := wrap(table.DB()), wrap(table.Tab())
 	tabInfo := &tableInfo{db: dbName, tab: tabName, columnMap: make(map[string]*columnInfo)}
 	var haveModelStatus bool
 	typ := reflect.TypeOf(table)
@@ -336,7 +384,7 @@ func parseTable(table table) *tableInfo {
 }
 
 func getTabInfo(table table) *tableInfo {
-	db, tab := table.DB(), table.Tab()
+	db, tab := wrap(table.DB()), wrap(table.Tab())
 	schemaLock.RLock()
 	dbInfo, ok := schemaCache.databaseMap[db]
 	if !ok {
@@ -366,10 +414,10 @@ func getTabInfo(table table) *tableInfo {
 func getTabInfoByName(db, tab string) *tableInfo {
 	schemaLock.RLock()
 	defer schemaLock.RUnlock()
-	if dbInfo, ok := schemaCache.databaseMap[db]; !ok {
+	if dbInfo, ok := schemaCache.databaseMap[wrap(db)]; !ok {
 		panic(fmt.Errorf("nborm.getTabInfoByName() error: database not exists (%s)", db))
 	} else {
-		if tabInfo, ok := dbInfo.tableMap[tab]; !ok {
+		if tabInfo, ok := dbInfo.tableMap[wrap(tab)]; !ok {
 			panic(fmt.Errorf("nborm.getTabInfoByName() error: table not exists (%s.%s)", db, tab))
 		} else {
 			return tabInfo
@@ -378,7 +426,7 @@ func getTabInfoByName(db, tab string) *tableInfo {
 }
 
 func initModelWithTableInfo(model table, tabInfo *tableInfo) {
-	db, tab := model.DB(), model.Tab()
+	db, tab := wrap(model.DB()), wrap(model.Tab())
 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
 	for _, col := range tabInfo.columns {
 		switch col.ormType {

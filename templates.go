@@ -165,3 +165,44 @@ func init() {
 	{{ endfor }}
 }
 `
+
+const methodTemplate = `
+package {{ package }}
+
+import (
+	"github.com/wangjun861205/nborm"
+)
+
+{{ for dbName, db in infos }}
+	{{ for tabName, modelName in db }}
+		func (model *{{ modelName }}) DB() string {
+			return "{{ dbName }}"
+		}
+		
+		func (model *{{ modelName }}) Tab() string {
+			return "{{ tabName }}"
+		}
+		
+		func New{{ modelName }}() *{{ modelName }} {
+			model := new({{ modelName }})
+			nborm.InitModel(model)
+			return model
+		}
+		
+		type {{ modelName }}Slice []*{{ modelName }}
+
+		func (slice *{{ modelName }}Slice) DB() string {
+			return "{{ dbName }}"
+		}
+
+		func (slice *{{ modelName }}Slice) Tab() string {
+			return "{{ tabName }}"
+		}
+		
+		func Make{{ modelName }}Slice(length, cap int) {{ modelName }}Slice {
+			slice := make({{ modelName }}Slice, length, cap)
+			nborm.InitSlice(&slice)
+			return slice
+		}
+	{{ endfor }}
+{{ endfor }}`

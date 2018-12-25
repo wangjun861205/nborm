@@ -25,4 +25,5 @@ func main() {
 			fmt.Println(err)
 		}
 	}
+	nborm.CreateMethodFile(path)
 }

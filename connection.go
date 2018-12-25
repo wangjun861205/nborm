@@ -31,6 +31,11 @@ func getConn(db string) *sql.DB {
 	return conn
 }
 
+func Begin() (*sql.Tx, error) {
+	db := getConn("information_schema")
+	return db.Begin()
+}
+
 //CloseConns close all connections which is stored in connMap
 func CloseConns() error {
 	connLock.Lock()

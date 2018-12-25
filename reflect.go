@@ -86,6 +86,7 @@ type tableInfo struct {
 	db                 string
 	tab                string
 	modelType          reflect.Type
+	modelName          string
 	columns            []*columnInfo
 	columnMap          map[string]*columnInfo
 	oneToOnes          []*oneToOneInfo
@@ -616,6 +617,20 @@ func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
 	return nil
 }
 
+func unionScanRow(addrs []uintptr, tabInfos []*tableInfo, row *sql.Row) error {
+	fields := make([]interface{}, 0, 64)
+	for i := 0; i < len(addrs); i++ {
+		fields = append(fields, getAllFieldsWithTableInfo(addrs[i], tabInfos[i]))
+	}
+	if err := row.Scan(fields...); err != nil {
+		return err
+	}
+	for i := 0; i < len(addrs); i++ {
+		setSync(addrs[i], tabInfos[i])
+	}
+	return nil
+}
+
 func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 	defer rows.Close()
 	lAddr := (*[]uintptr)(unsafe.Pointer(addr))
@@ -626,6 +641,35 @@ func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 		}
 		setSync(modelAddr, tabInfo)
 		*lAddr = append(*lAddr, *(*uintptr)(unsafe.Pointer(&modelAddr)))
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func unionScanRows(addrs []uintptr, tabInfos []*tableInfo, rows *sql.Rows) error {
+	defer rows.Close()
+	lAddrs := make([](*[]uintptr), len(addrs))
+	for i, addr := range addrs {
+		lAddrs[i] = (*[]uintptr)(unsafe.Pointer(addr))
+	}
+	for rows.Next() {
+		modelList := make([]uintptr, len(tabInfos))
+		fields := make([]interface{}, 0, 64)
+		for i, tabInfo := range tabInfos {
+			modelAddr := newModelAddr(tabInfo)
+			fields = append(fields, getAllFieldsWithTableInfo(modelAddr, tabInfo)...)
+			setSync(modelAddr, tabInfo)
+			modelList[i] = modelAddr
+			*lAddrs[i] = append(*lAddrs[i], *(*uintptr)(unsafe.Pointer(&modelList[i])))
+		}
+		if err := rows.Scan(fields...); err != nil {
+			return err
+		}
+		for i, modAddr := range modelList {
+			setSync(modAddr, tabInfos[i])
+		}
 	}
 	if err := rows.Err(); err != nil {
 		return err

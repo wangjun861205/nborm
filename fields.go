@@ -186,6 +186,14 @@ func (f *StringField) where() *Where {
 	}
 }
 
+func (f *StringField) Where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	} else {
+		return newWhere(f.db, f.tab, f.column, "=", f.val)
+	}
+}
+
 //Eq generate a equal Where
 func (f *StringField) Eq(val string) *Where {
 	return newWhere(f.db, f.tab, f.column, "=", val)
@@ -430,6 +438,13 @@ func (f *IntField) updateValue() *UpdateValue {
 
 //Where generate a Where by self value
 func (f *IntField) where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
+}
+
+func (f *IntField) Where() *Where {
 	if f.null {
 		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
@@ -753,6 +768,13 @@ func (f *FloatField) where() *Where {
 	return newWhere(f.db, f.tab, f.column, "=", f.val)
 }
 
+func (f *FloatField) Where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
+}
+
 //Eq generate a equal Where
 func (f *FloatField) Eq(val float64) *Where {
 	return newWhere(f.db, f.tab, f.column, "=", val)
@@ -1015,6 +1037,13 @@ func (f *BoolField) where() *Where {
 	return newWhere(f.db, f.tab, f.column, "=", f.val)
 }
 
+func (f *BoolField) Where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", f.val)
+}
+
 //Eq generate euqal Where
 func (f *BoolField) Eq(val bool) *Where {
 	return newWhere(f.db, f.tab, f.column, "=", val)
@@ -1244,6 +1273,13 @@ func (f *DateField) updateValue() *UpdateValue {
 
 //Where generate where by self value
 func (f *DateField) where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", f.val.Format("2006-01-02"))
+}
+
+func (f *DateField) Where() *Where {
 	if f.null {
 		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
@@ -1512,6 +1548,13 @@ func (f *DatetimeField) updateValue() *UpdateValue {
 
 //Where generate Where by self value
 func (f *DatetimeField) where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", f.val.Format("2006-01-02 15:04:05"))
+}
+
+func (f *DatetimeField) Where() *Where {
 	if f.null {
 		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}
@@ -1809,6 +1852,13 @@ func (f *BinaryField) Eq(val []byte) *Where {
 
 //Where generate Where by self value
 func (f *BinaryField) where() *Where {
+	if f.null {
+		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
+	}
+	return newWhere(f.db, f.tab, f.column, "=", fmt.Sprintf("X'%x'", f.val))
+}
+
+func (f *BinaryField) Where() *Where {
 	if f.null {
 		return newWhere(f.db, f.tab, f.column, "IS", "NULL")
 	}

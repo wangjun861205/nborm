@@ -156,7 +156,7 @@ func iterList(slice table, f func(context.Context, uintptr) error) error {
 }
 
 func toListStr(val interface{}) string {
-	return strings.Join(strings.Fields(strings.Trim(fmt.Sprint(val), "[]")), ", ")
+	return fmt.Sprintf("(%s)", strings.Join(strings.Fields(strings.Trim(fmt.Sprint(val), "[]")), ", "))
 }
 
 var snakeCaseRe = regexp.MustCompile(`[A-Z]+[0-9a-z]*`)

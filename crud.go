@@ -501,7 +501,7 @@ func unionQueryRowInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, relation
 		joinClause[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s FROM %s.%s %s %s FOR UPDATE", strings.Join(tabClause, ", "), tabInfos[0].db, tabInfos[0].tab, relations[0].getSrcDB(),
+	stmt := fmt.Sprintf("SELECT %s FROM %s.%s %s %s FOR UPDATE", strings.Join(tabClause, ", "), relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClause, " "), whereClause)
 	return tx.QueryRow(stmt, whereValues...)
 }

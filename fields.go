@@ -222,7 +222,11 @@ func (f *StringField) NotNull() *Where {
 
 //In generate a in Where
 func (f *StringField) In(val []string) *Where {
-	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(val, ", ")))
+	l := make([]string, len(val))
+	for i, v := range val {
+		l[i] = fmt.Sprintf("%q", v)
+	}
+	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 }
 
 //LessFunc generate a function for sort a ModelList

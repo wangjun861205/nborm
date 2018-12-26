@@ -620,7 +620,7 @@ func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
 func unionScanRow(addrs []uintptr, tabInfos []*tableInfo, row *sql.Row) error {
 	fields := make([]interface{}, 0, 64)
 	for i := 0; i < len(addrs); i++ {
-		fields = append(fields, getAllFieldsWithTableInfo(addrs[i], tabInfos[i]))
+		fields = append(fields, getAllFieldsWithTableInfo(addrs[i], tabInfos[i])...)
 	}
 	if err := row.Scan(fields...); err != nil {
 		return err

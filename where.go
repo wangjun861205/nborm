@@ -48,9 +48,8 @@ func (w *Where) toSQL() (string, []interface{}) {
 		switch {
 		case w.value == "NULL":
 			builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", w.db, w.table, w.column, w.operator))
-		// case w.operator == "IN":
-		// 	builder.WriteString(fmt.Sprintf("%s.%s.%s IN ?", w.db, w.table, w.column))
-		// 	valueList = append(valueList, strings.Trim(fmt.Sprintf("%v", w.value), "[]"))
+		case w.operator == "IN":
+			builder.WriteString(fmt.Sprintf("%s.%s.%s IN %s", w.db, w.table, w.column, w.value))
 		default:
 			builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", w.db, w.table, w.column, w.operator))
 			valueList = append(valueList, w.value)

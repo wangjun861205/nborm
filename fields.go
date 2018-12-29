@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -1739,7 +1740,16 @@ func (f *BinaryField) Scan(val interface{}) error {
 		return nil
 	}
 	f.null = false
-	f.val = val.([]byte)
+	b := val.([]byte)
+	s := strings.Trim(string(b), "X'")
+	b = []byte(s)
+	decodedLen := hex.DecodedLen(len(b))
+	l := make([]byte, decodedLen)
+	n, err := hex.Decode(l, b)
+	if err != nil {
+		return err
+	}
+	f.val = l[:n]
 	return nil
 }
 

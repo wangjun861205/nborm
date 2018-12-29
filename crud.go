@@ -552,7 +552,6 @@ func unionQueryRows(tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *
 	whereClause, whereValues := where.toClause()
 	stmt := fmt.Sprintf("SELECT %s %s FROM %s.%s %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "), relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
-	fmt.Println(stmt)
 	return getConn(tabInfos[0].db).Query(stmt, whereValues...)
 }
 

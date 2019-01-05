@@ -174,33 +174,57 @@ import (
 )
 
 {{ for dbName, db in infos }}
-	{{ for tabName, modelName in db }}
-		func (model *{{ modelName }}) DB() string {
+	{{ for tabName, info in db }}
+		func (model *{{ info.ModelName }}) DB() string {
 			return "{{ dbName }}"
 		}
 		
-		func (model *{{ modelName }}) Tab() string {
+		func (model *{{ info.ModelName }}) Tab() string {
 			return "{{ tabName }}"
 		}
-		
-		func New{{ modelName }}() *{{ modelName }} {
-			model := new({{ modelName }})
+
+		func (model *{{ info.ModelName }}) PrimaryKey() []string {
+			{{ info.Pk }}
+		}
+
+		func (model *{{ info.ModelName }}) UniqueKeys() [][]string {
+			{{ info.Unis }}
+		}
+
+		func (model *{{ info.ModelName }}) Keys() [][]string {
+			{{ info.Keys }}
+		}
+
+		func New{{ info.ModelName }}() *{{ info.ModelName }} {
+			model := new({{ info.ModelName }})
 			nborm.InitModel(model)
 			return model
 		}
 		
-		type {{ modelName }}Slice []*{{ modelName }}
+		type {{ info.ModelName }}Slice []*{{ info.ModelName }}
 
-		func (slice *{{ modelName }}Slice) DB() string {
+		func (slice *{{ info.ModelName }}Slice) DB() string {
 			return "{{ dbName }}"
 		}
 
-		func (slice *{{ modelName }}Slice) Tab() string {
+		func (slice *{{ info.ModelName }}Slice) Tab() string {
 			return "{{ tabName }}"
 		}
-		
-		func Make{{ modelName }}Slice(length, cap int) {{ modelName }}Slice {
-			slice := make({{ modelName }}Slice, length, cap)
+
+		func (model *{{ info.ModelName }}Slice) PrimaryKey() []string {
+			{{ info.Pk }}
+		}
+
+		func (model *{{ info.ModelName }}Slice) UniqueKeys() [][]string {
+			{{ info.Unis }}
+		}
+
+		func (model *{{ info.ModelName }}Slice) Keys() [][]string {
+			{{ info.Keys }}
+		}
+
+		func Make{{ info.ModelName }}Slice(length, cap int) {{ info.ModelName }}Slice {
+			slice := make({{ info.ModelName }}Slice, length, cap)
 			nborm.InitSlice(&slice)
 			return slice
 		}

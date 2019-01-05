@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -33,17 +34,18 @@ var ormTypeMap = map[string]ormType{
 }
 
 type columnInfo struct {
-	ormType  ormType
-	colName  string
-	nullable bool
-	isInc    bool
-	isPk     bool
-	isUni    bool
-	defVal   interface{}
-	offset   uintptr
-	sqlType  string
-	charset  string
-	collate  string
+	ormType   ormType
+	colName   string
+	fieldName string
+	nullable  bool
+	isInc     bool
+	isPk      bool
+	isUni     bool
+	defVal    interface{}
+	offset    uintptr
+	sqlType   string
+	charset   string
+	collate   string
 }
 
 type oneToOneInfo struct {
@@ -82,6 +84,136 @@ type manyToManyInfo struct {
 	offset      uintptr
 }
 
+type primaryKey []*columnInfo
+
+func (pk primaryKey) match(fields ...Field) bool {
+	for _, pkCol := range pk {
+		get := false
+		for _, field := range fields {
+			if field.columnName() == pkCol.colName {
+				get = true
+				break
+			}
+		}
+		if !get {
+			return false
+		}
+	}
+	return true
+}
+
+func (pk primaryKey) getFields(addr uintptr) []Field {
+	fields := make([]Field, len(pk))
+	for i, pkCol := range pk {
+		fields[i] = getFieldByColumnInfo(addr, pkCol)
+	}
+	return fields
+}
+
+func (pk primaryKey) genCreateClause() string {
+	l := make([]string, len(pk))
+	for i, col := range pk {
+		l[i] = wrap(col.colName)
+	}
+	return fmt.Sprintf(", PRIMARY KEY (%s)", strings.Join(l, ", "))
+}
+
+func (pk primaryKey) methodString() string {
+	l := make([]string, len(pk))
+	for i, col := range pk {
+		l[i] = fmt.Sprintf("%q", col.colName)
+	}
+	return fmt.Sprintf("return []string{ %s }", strings.Join(l, ", "))
+}
+
+type uniqueKeys [][]*columnInfo
+
+func (uks uniqueKeys) match(fields ...Field) (int, bool) {
+	for i, uk := range uks {
+		fit := true
+		for _, col := range uk {
+			get := false
+			for _, field := range fields {
+				if col.colName == field.columnName() {
+					get = true
+					break
+				}
+			}
+			if !get {
+				fit = false
+				break
+			}
+		}
+		if fit {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func (uks uniqueKeys) getFields(addr uintptr, ukIndex int) []Field {
+	uk := uks[ukIndex]
+	fields := make([]Field, len(uk))
+	for i, ukCol := range uk {
+		fields[i] = getFieldByColumnInfo(addr, ukCol)
+	}
+	return fields
+}
+
+func (uks uniqueKeys) genCreateClause() string {
+	keyList := make([]string, len(uks))
+	for i, key := range uks {
+		colList := make([]string, len(key))
+		for j, col := range key {
+			colList[j] = wrap(col.colName)
+		}
+		keyList[i] = fmt.Sprintf(", UNIQUE KEY (%s)", strings.Join(colList, ", "))
+	}
+	return strings.Join(keyList, ", ")
+}
+
+func (uks uniqueKeys) methodString() string {
+	keyList := make([]string, len(uks))
+	for i, key := range uks {
+		colList := make([]string, len(key))
+		for j, col := range key {
+			colList[j] = fmt.Sprintf("%q", col.colName)
+		}
+		keyList[i] = fmt.Sprintf("[]string{ %s },\n", strings.Join(colList, ", "))
+	}
+	return fmt.Sprintf(`[][]string{ 
+		%s 
+	}`, strings.Join(keyList, ", "))
+}
+
+type keys [][]*columnInfo
+
+func (ks keys) genCreateClause() string {
+	keyList := make([]string, len(ks))
+	for i, key := range ks {
+		colList := make([]string, len(key))
+		for j, col := range key {
+			colList[j] = wrap(col.colName)
+		}
+		keyList[i] = fmt.Sprintf(", KEY (%s)", strings.Join(colList, ", "))
+	}
+	return strings.Join(keyList, ", ")
+}
+
+func (ks keys) methodString() string {
+	keyList := make([]string, len(ks))
+	for i, key := range ks {
+		colList := make([]string, len(key))
+		for j, col := range key {
+			colList[j] = fmt.Sprintf("%q", col.colName)
+		}
+		keyList[i] = fmt.Sprintf("[]string{ %s },\n", strings.Join(colList, ", "))
+	}
+	return fmt.Sprintf(`[][]string{ 
+		%s 
+	}`, strings.Join(keyList, ", "))
+}
+
 type tableInfo struct {
 	db                 string
 	tab                string
@@ -94,10 +226,24 @@ type tableInfo struct {
 	reverseForeignKeys []*reverseForeignKeyInfo
 	manyToManys        []*manyToManyInfo
 	inc                *columnInfo
-	pks                []*columnInfo
-	unis               []*columnInfo
+	pk                 primaryKey
+	pkNames            []string
+	unis               uniqueKeys
+	uniNames           [][]string
+	keys               keys
+	keyNames           [][]string
 	modelStatus        uintptr
-	keys               []string
+	isComplete         bool
+	isNewMiddleTable   bool
+}
+
+func (ti *tableInfo) lookupColInfoByFieldName(fieldName string) *columnInfo {
+	for _, colInfo := range ti.columns {
+		if colInfo.fieldName == fieldName {
+			return colInfo
+		}
+	}
+	return nil
 }
 
 type databaseInfo struct {
@@ -105,9 +251,41 @@ type databaseInfo struct {
 	tableMap map[string]*tableInfo
 }
 
+func (si *databaseInfo) getOrCreate(tabName string) *tableInfo {
+	if info, ok := si.tableMap[tabName]; ok {
+		return info
+	} else {
+		info = &tableInfo{
+			columns:            make([]*columnInfo, 0, 32),
+			columnMap:          make(map[string]*columnInfo),
+			oneToOnes:          make([]*oneToOneInfo, 0, 8),
+			foreignKeys:        make([]*foreignKeyInfo, 0, 8),
+			reverseForeignKeys: make([]*reverseForeignKeyInfo, 0, 8),
+			manyToManys:        make([]*manyToManyInfo, 0, 8),
+			pk:                 make(primaryKey, 0, 8),
+			unis:               make(uniqueKeys, 0, 8),
+			keys:               make(keys, 0, 8),
+		}
+		si.tables = append(si.tables, info)
+		si.tableMap[tabName] = info
+		return info
+	}
+}
+
 type schemaInfo struct {
 	databases   []*databaseInfo
 	databaseMap map[string]*databaseInfo
+}
+
+func (si *schemaInfo) getOrCreate(dbName string) *databaseInfo {
+	if db, ok := si.databaseMap[dbName]; ok {
+		return db
+	} else {
+		dbInfo := &databaseInfo{make([]*tableInfo, 0, 16), make(map[string]*tableInfo)}
+		si.databases = append(si.databases, dbInfo)
+		si.databaseMap[dbName] = dbInfo
+		return dbInfo
+	}
 }
 
 var schemaCache = schemaInfo{make([]*databaseInfo, 0, 16), make(map[string]*databaseInfo)}
@@ -350,11 +528,11 @@ func parseTable(table table) *tableInfo {
 				tabInfo.inc = colInfo
 			}
 			if colInfo.isPk {
-				tabInfo.pks = append(tabInfo.pks, colInfo)
+				tabInfo.pk = append(tabInfo.pk, colInfo)
 			}
-			if colInfo.isUni {
-				tabInfo.unis = append(tabInfo.unis, colInfo)
-			}
+			// if colInfo.isUni {
+			// 	tabInfo.unis = append(tabInfo.unis, colInfo)
+			// }
 		case "nborm.OneToOne":
 			otoInfo := parseOneToOne(field)
 			tabInfo.oneToOnes = append(tabInfo.oneToOnes, otoInfo)
@@ -375,7 +553,7 @@ func parseTable(table table) *tableInfo {
 			haveModelStatus = true
 		}
 	}
-	if tabInfo.pks == nil {
+	if len(tabInfo.pk) == 0 {
 		panic(fmt.Errorf("nborm.parseTable() error: no primary key in %s.%s", dbName, tabName))
 	}
 	if !haveModelStatus {
@@ -391,7 +569,7 @@ func getTabInfo(table table) *tableInfo {
 	if !ok {
 		schemaLock.RUnlock()
 		tInfo := parseTable(table)
-		dInfo := &databaseInfo{[]*tableInfo{tInfo}, map[string]*tableInfo{tab: tInfo}}
+		dInfo := &databaseInfo{tables: []*tableInfo{tInfo}, tableMap: map[string]*tableInfo{tab: tInfo}}
 		schemaLock.Lock()
 		schemaCache.databases = append(schemaCache.databases, dInfo)
 		schemaCache.databaseMap[db] = dInfo
@@ -563,12 +741,20 @@ func getFieldByColumnInfo(addr uintptr, colInfo *columnInfo) Field {
 
 }
 
-func getPksWithTableInfo(addr uintptr, info *tableInfo) []Field {
-	l := make([]Field, len(info.pks))
-	for i, pkCol := range info.pks {
-		l[i] = getFieldByColumnInfo(addr, pkCol)
+// func getPksWithTableInfo(addr uintptr, info *tableInfo) []Field {
+// 	l := make([]Field, len(info.pks))
+// 	for i, pkCol := range info.pks {
+// 		l[i] = getFieldByColumnInfo(addr, pkCol)
+// 	}
+// 	return l
+// }
+
+func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
+	if tabInfo.pk.match(validFields...) {
+		return tabInfo.pk.getFields(addr)
 	}
-	return l
+	return nil
 }
 
 func getIncWithTableInfo(addr uintptr, info *tableInfo) Field {
@@ -589,28 +775,68 @@ func getIncAndOthers(addr uintptr, tabInfo *tableInfo) (inc Field, others []Fiel
 	return
 }
 
-func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
-	if tabInfo.unis == nil {
+func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+	if len(tabInfo.unis) == 0 {
 		return nil
 	}
-	l := make([]Field, len(tabInfo.unis))
-	for i, uniCol := range tabInfo.unis {
-		l[i] = getFieldByColumnInfo(addr, uniCol)
+	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
+	if idx, match := tabInfo.unis.match(validFields...); match {
+		return tabInfo.unis.getFields(addr, idx)
 	}
-	return l
+	return nil
 }
 
-func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []interface{} {
-	l := make([]interface{}, len(tabInfo.columns))
+// func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+// 	if tabInfo.unis == nil {
+// 		return nil
+// 	}
+
+// 	l := make([][]Field, len(tabInfo.unis))
+// 	for i, key := range tabInfo.unis {
+// 		subL := make([]Field, len(key))
+// 		for j, col := range key {
+// 			subL[j] = getFieldByColumnInfo(addr, col)
+// 		}
+// 		// l[i] = getFieldByColumnInfo(addr, uniCol)
+// 		l[i] = subL
+// 	}
+// 	return l
+// }
+
+// func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []interface{} {
+// 	l := make([]interface{}, len(tabInfo.columns))
+// 	for i, colInfo := range tabInfo.columns {
+// 		l[i] = getFieldByColumnInfo(addr, colInfo)
+// 	}
+// 	return l
+// }
+
+func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+	l := make([]Field, len(tabInfo.columns))
 	for i, colInfo := range tabInfo.columns {
 		l[i] = getFieldByColumnInfo(addr, colInfo)
 	}
 	return l
 }
 
+func getValidFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+	l := make([]Field, 0, len(tabInfo.columns))
+	allFields := getAllFieldsWithTableInfo(addr, tabInfo)
+	for _, field := range allFields {
+		if field.IsValid() {
+			l = append(l, field)
+		}
+	}
+	return l
+}
+
 func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
 	fields := getAllFieldsWithTableInfo(addr, tabInfo)
-	if err := row.Scan(fields...); err != nil {
+	addrList := make([]interface{}, len(fields))
+	for i, field := range fields {
+		addrList[i] = field.(interface{})
+	}
+	if err := row.Scan(addrList); err != nil {
 		return err
 	}
 	setSync(addr, tabInfo)
@@ -620,7 +846,11 @@ func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
 func unionScanRow(addrs []uintptr, tabInfos []*tableInfo, row *sql.Row) error {
 	fields := make([]interface{}, 0, 64)
 	for i := 0; i < len(addrs); i++ {
-		fields = append(fields, getAllFieldsWithTableInfo(addrs[i], tabInfos[i])...)
+		addrList := make([]interface{}, len(fields))
+		for i, field := range getAllFieldsWithTableInfo(addrs[i], tabInfos[i]) {
+			addrList[i] = field.(interface{})
+		}
+		fields = append(fields, addrList...)
 	}
 	if err := row.Scan(fields...); err != nil {
 		return err
@@ -636,7 +866,12 @@ func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 	lAddr := (*[]uintptr)(unsafe.Pointer(addr))
 	for rows.Next() {
 		modelAddr := newModelAddr(tabInfo)
-		if err := rows.Scan(getAllFieldsWithTableInfo(modelAddr, tabInfo)...); err != nil {
+		fields := getAllFieldsWithTableInfo(modelAddr, tabInfo)
+		fieldAddrList := make([]interface{}, len(fields))
+		for i, field := range fields {
+			fieldAddrList[i] = field.(interface{})
+		}
+		if err := rows.Scan(fieldAddrList...); err != nil {
 			return err
 		}
 		setSync(modelAddr, tabInfo)
@@ -659,7 +894,11 @@ func unionScanRows(addrs []uintptr, tabInfos []*tableInfo, rows *sql.Rows) error
 		fields := make([]interface{}, 0, 64)
 		for i, tabInfo := range tabInfos {
 			modelAddr := newModelAddr(tabInfo)
-			fields = append(fields, getAllFieldsWithTableInfo(modelAddr, tabInfo)...)
+			fieldAddrList := make([]interface{}, len(fields))
+			for i, field := range getAllFieldsWithTableInfo(modelAddr, tabInfo) {
+				fieldAddrList[i] = field.(interface{})
+			}
+			fields = append(fields, fieldAddrList...)
 			setSync(modelAddr, tabInfo)
 			modelList[i] = modelAddr
 			*lAddrs[i] = append(*lAddrs[i], *(*uintptr)(unsafe.Pointer(&modelList[i])))

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/wangjun861205/nborm"
@@ -16,14 +17,16 @@ func main() {
 		return
 	}
 	path := flag.Args()[0]
+	os.Remove(filepath.Join(path, "modelMethods.go"))
 	if err := nborm.ParseComment(path); err != nil {
 		panic(err)
 	}
 	for _, f := range flag.Args()[1:] {
 		err := nborm.ParseAndCreate(filepath.Join(path, f))
 		if err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
 	}
 	nborm.CreateMethodFile(path)
+	nborm.CreateSchemaJSON(path)
 }

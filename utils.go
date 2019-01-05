@@ -1,12 +1,16 @@
 package nborm
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"regexp"
+	"io"
 	"strings"
 	"sync"
+	"unicode"
 	"unsafe"
 )
 
@@ -159,13 +163,98 @@ func toListStr(val interface{}) string {
 	return fmt.Sprintf("(%s)", strings.Join(strings.Fields(strings.Trim(fmt.Sprint(val), "[]")), ", "))
 }
 
-var snakeCaseRe = regexp.MustCompile(`[A-Z]+[0-9a-z]*`)
+// var snakeCaseRe = regexp.MustCompile(`[A-Z]+[0-9a-z]*`)
+
+// func toSnakeCase(s string) string {
+// 	newStr := snakeCaseRe.ReplaceAllStringFunc(s, func(v string) string {
+// 		return "_" + strings.ToLower(v)
+// 	})
+// 	return strings.TrimLeft(strings.Replace(newStr, "___", "__", -1), "_")
+// }
 
 func toSnakeCase(s string) string {
-	newStr := snakeCaseRe.ReplaceAllStringFunc(s, func(v string) string {
-		return "_" + strings.ToLower(v)
-	})
-	return strings.TrimLeft(strings.Replace(newStr, "___", "__", -1), "_")
+	if s == "" {
+		panic(errors.New("nborm.toSnakeCase() empty string"))
+	}
+	var builder strings.Builder
+	buffer := bytes.NewBuffer(make([]byte, 0, len(s)))
+	const (
+		start int = iota
+		lower
+		upper
+		other
+	)
+	var flag int
+	reader := bufio.NewReader(strings.NewReader(s))
+OUTER:
+	for {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				builder.Write(buffer.Bytes())
+				break
+			} else {
+				panic(fmt.Errorf("nborm.toSnakeCase() error: %v", err))
+			}
+		}
+		switch {
+		case unicode.IsUpper(r):
+			switch flag {
+			case start:
+				buffer.WriteRune(r)
+				flag = upper
+			case lower, other:
+				builder.Write(buffer.Bytes())
+				builder.WriteRune('_')
+				buffer.Reset()
+				buffer.WriteRune(r)
+				flag = upper
+			case upper:
+				next, err := reader.Peek(1)
+				if err != nil {
+					if err == io.EOF {
+						buffer.WriteRune(r)
+						builder.Write(buffer.Bytes())
+						buffer.Reset()
+						break OUTER
+					} else {
+						panic(fmt.Errorf("nborm.toSnakeCase() error: %v", err))
+					}
+				}
+				switch {
+				case unicode.IsUpper(rune(next[0])):
+					buffer.WriteRune(r)
+				case unicode.IsLower(rune(next[0])):
+					buffer.WriteByte('_')
+					builder.Write(buffer.Bytes())
+					buffer.Reset()
+					buffer.WriteRune(r)
+					flag = lower
+				default:
+					builder.Write(buffer.Bytes())
+					buffer.Reset()
+					buffer.WriteRune(r)
+					flag = other
+
+				}
+			}
+		case unicode.IsLower(r):
+			switch flag {
+			case start:
+				buffer.WriteRune(r)
+				flag = lower
+			case lower:
+				buffer.WriteRune(r)
+			case upper, other:
+				buffer.WriteRune(r)
+				flag = lower
+			}
+		default:
+			buffer.WriteRune(r)
+			flag = other
+		}
+	}
+	return strings.ToLower(builder.String())
 }
 
 func getTabAddr(tab table) uintptr {

@@ -105,36 +105,36 @@ func Group(w *Where) *Where {
 type whereType int
 
 const (
-	autoIncrement whereType = iota
-	primaryKey
-	uniqueKeys
-	others
+	autoIncrementType whereType = iota
+	primaryKeyType
+	uniqueKeyType
+	otherType
 )
 
 func genWhere(addr uintptr, tabInfo *tableInfo) (*Where, whereType) {
 	inc := getIncWithTableInfo(addr, tabInfo)
 	if inc != nil && inc.IsValid() {
-		return inc.where(), autoIncrement
+		return inc.where(), autoIncrementType
 	}
-	pks := getPksWithTableInfo(addr, tabInfo)
 	var where *Where
-	for _, pk := range pks {
-		if !pk.IsValid() {
-			where = nil
-			break
+	pk := getPrimaryKeyFieldsWithTableInfo(addr, tabInfo)
+	if len(pk) > 0 {
+		for _, col := range pk {
+			where = where.And(col.where())
 		}
-		where = where.And(pk.where())
+
 	}
 	if where != nil {
-		return where, primaryKey
+		return where, primaryKeyType
 	}
-	unis := getUinsWithTableInfo(addr, tabInfo)
-	if len(unis) > 0 {
-		for _, uni := range unis {
-			if uni.IsValid() {
-				return uni.where(), uniqueKeys
-			}
+	uni := getUniqueFieldsWithTableInfo(addr, tabInfo)
+	if len(uni) > 0 {
+		for _, col := range uni {
+			where = where.And(col.where())
 		}
+	}
+	if where != nil {
+		return where, uniqueKeyType
 	}
 	for _, col := range tabInfo.columns {
 		field := getFieldByColumnInfo(addr, col)
@@ -142,5 +142,5 @@ func genWhere(addr uintptr, tabInfo *tableInfo) (*Where, whereType) {
 			where = where.And(field.where())
 		}
 	}
-	return where, others
+	return where, otherType
 }

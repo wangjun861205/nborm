@@ -203,7 +203,7 @@ func lookupTableInfoByModelName(ModelName string) *TableInfo {
 func lookupTableInfoByTableName(tableName string) *TableInfo {
 	for _, dbInfo := range SchemaCache.Databases {
 		for _, tabInfo := range dbInfo.Tables {
-			if tabInfo.Tab == tableName {
+			if tabInfo.TabName == tableName {
 				return tabInfo
 			}
 		}
@@ -251,7 +251,7 @@ func parseOneToOneField(srcModelName string, field *ast.Field) *OneToOneInfo {
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
 	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
 	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	oto.SrcCol, oto.DstDB, oto.DstTab, oto.DstCol, oto.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
+	oto.SrcCol, oto.DstDB, oto.DstTab, oto.DstCol, oto.FieldName = SrcColInfo.ColName, DstTabInfo.DBName, DstTabInfo.TabName, DstColInfo.ColName, fieldName
 	return oto
 }
 
@@ -264,7 +264,7 @@ func parseForeignKeyField(srcModelName string, field *ast.Field) *ForeignKeyInfo
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
 	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
 	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol, fk.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
+	fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol, fk.FieldName = SrcColInfo.ColName, DstTabInfo.DBName, DstTabInfo.TabName, DstColInfo.ColName, fieldName
 	return fk
 }
 
@@ -277,7 +277,7 @@ func parseReverseForeignKeyField(srcModelName string, field *ast.Field) *Reverse
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
 	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
 	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	rfk.SrcCol, rfk.DstDB, rfk.DstTab, rfk.DstCol, rfk.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
+	rfk.SrcCol, rfk.DstDB, rfk.DstTab, rfk.DstCol, rfk.FieldName = SrcColInfo.ColName, DstTabInfo.DBName, DstTabInfo.TabName, DstColInfo.ColName, fieldName
 	return rfk
 }
 
@@ -294,8 +294,8 @@ func parseManyToManyField(srcModelName string, field *ast.Field) *ManyToManyInfo
 	var MidTabName1, MidTabName2 string
 	var MidTabInfo *TableInfo
 	if !ok {
-		MidTabName1 = srcTabInfo.Tab + "__" + DstTabInfo.Tab
-		MidTabName2 = DstTabInfo.Tab + "__" + srcTabInfo.Tab
+		MidTabName1 = srcTabInfo.TabName + "__" + DstTabInfo.TabName
+		MidTabName2 = DstTabInfo.TabName + "__" + srcTabInfo.TabName
 		MidTabInfo1, MidTabInfo2 := lookupTableInfoByTableName(MidTabName1), lookupTableInfoByTableName(MidTabName2)
 		switch {
 		case MidTabInfo1 != nil:
@@ -307,20 +307,20 @@ func parseManyToManyField(srcModelName string, field *ast.Field) *ManyToManyInfo
 			leftCol := &ColumnInfo{
 				Charset:   SrcColInfo.Charset,
 				Collate:   SrcColInfo.Collate,
-				ColName:   srcTabInfo.Tab + "__" + SrcColInfo.ColName,
+				ColName:   srcTabInfo.TabName + "__" + SrcColInfo.ColName,
 				SqlType:   SrcColInfo.SqlType,
 				FieldName: srcTabInfo.ModelName + "__" + SrcColInfo.FieldName,
 			}
 			rightCol := &ColumnInfo{
 				Charset:   DstColInfo.Charset,
 				Collate:   DstColInfo.Collate,
-				ColName:   DstTabInfo.Tab + "__" + DstColInfo.ColName,
+				ColName:   DstTabInfo.TabName + "__" + DstColInfo.ColName,
 				SqlType:   DstColInfo.SqlType,
 				FieldName: DstTabInfo.ModelName + "__" + DstColInfo.FieldName,
 			}
 			MidTabInfo = &TableInfo{
-				DB:        srcTabInfo.DB,
-				Tab:       MidTabName1,
+				DBName:    srcTabInfo.DBName,
+				TabName:   MidTabName1,
 				ModelName: srcModelName + "__" + dstModelName,
 				ColumnMap: map[string]*ColumnInfo{"id": IDCol, leftCol.ColName: leftCol, rightCol.ColName: rightCol},
 				Columns:   []*ColumnInfo{IDCol, leftCol, rightCol},
@@ -329,21 +329,21 @@ func parseManyToManyField(srcModelName string, field *ast.Field) *ManyToManyInfo
 				ForeignKeys: []*ForeignKeyInfo{
 					&ForeignKeyInfo{
 						SrcCol: leftCol.ColName,
-						DstDB:  srcTabInfo.DB,
-						DstTab: srcTabInfo.Tab,
+						DstDB:  srcTabInfo.DBName,
+						DstTab: srcTabInfo.TabName,
 						DstCol: SrcColInfo.ColName,
 					},
 					&ForeignKeyInfo{
 						SrcCol: rightCol.ColName,
-						DstDB:  DstTabInfo.DB,
-						DstTab: DstTabInfo.Tab,
+						DstDB:  DstTabInfo.DBName,
+						DstTab: DstTabInfo.TabName,
 						DstCol: DstColInfo.ColName,
 					},
 				},
 				IsNewMiddleTable: true,
 			}
-			SchemaCache.DatabaseMap[MidTabInfo.DB].TableMap[MidTabInfo.Tab] = MidTabInfo
-			SchemaCache.DatabaseMap[MidTabInfo.DB].Tables = append(SchemaCache.DatabaseMap[MidTabInfo.DB].Tables, MidTabInfo)
+			SchemaCache.DatabaseMap[MidTabInfo.DBName].TableMap[MidTabInfo.TabName] = MidTabInfo
+			SchemaCache.DatabaseMap[MidTabInfo.DBName].Tables = append(SchemaCache.DatabaseMap[MidTabInfo.DBName].Tables, MidTabInfo)
 		}
 	} else {
 		MidTabInfo = lookupTableInfoByTableName(MidTabName)
@@ -352,12 +352,12 @@ func parseManyToManyField(srcModelName string, field *ast.Field) *ManyToManyInfo
 		}
 	}
 	mtm.SrcCol = SrcColInfo.ColName
-	mtm.MidDB = MidTabInfo.DB
-	mtm.MidTab = MidTabInfo.Tab
-	mtm.MidLeftCol = srcTabInfo.Tab + "__" + SrcColInfo.ColName
-	mtm.MidRightCol = DstTabInfo.Tab + "__" + DstColInfo.ColName
-	mtm.DstDB = DstTabInfo.DB
-	mtm.DstTab = DstTabInfo.Tab
+	mtm.MidDB = MidTabInfo.DBName
+	mtm.MidTab = MidTabInfo.TabName
+	mtm.MidLeftCol = srcTabInfo.TabName + "__" + SrcColInfo.ColName
+	mtm.MidRightCol = DstTabInfo.TabName + "__" + DstColInfo.ColName
+	mtm.DstDB = DstTabInfo.DBName
+	mtm.DstTab = DstTabInfo.TabName
 	mtm.DstCol = DstColInfo.ColName
 	mtm.FieldName = fieldName
 	return mtm
@@ -413,7 +413,7 @@ func initKeys(tabInfo *TableInfo) {
 		for j, FieldName := range key {
 			colInfo := tabInfo.lookupColInfoByFieldName(FieldName)
 			if colInfo == nil {
-				panic(fmt.Errorf("nborm.initKey() error: key column not exists (%s.%s.%s)", tabInfo.DB, tabInfo.ModelName, FieldName))
+				panic(fmt.Errorf("nborm.initKey() error: key column not exists (%s.%s.%s)", tabInfo.DBName, tabInfo.ModelName, FieldName))
 			}
 			l[j] = colInfo
 		}
@@ -427,7 +427,7 @@ func parseModel(decl *ast.GenDecl) {
 			ModelName := typeSpec.Name.Name
 			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
 			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
-			tabInfo.DB, tabInfo.Tab, tabInfo.ModelName = dbName, tabName, ModelName
+			tabInfo.DBName, tabInfo.TabName, tabInfo.ModelName = dbName, tabName, ModelName
 			tabInfo.KeyNames = parseKeys(commentMap[ModelName])
 			tabInfo.PkNames = parsePrimaryKey(commentMap[ModelName])
 			tabInfo.UniNames = parseUniqueKeys(commentMap[ModelName])
@@ -458,8 +458,8 @@ func initSchema() {
 		}
 		tabInfo := SchemaCache.getOrCreate(info.db).getOrCreate(info.tab)
 		tabInfo.ModelName = m
-		tabInfo.DB = info.db
-		tabInfo.Tab = info.tab
+		tabInfo.DBName = info.db
+		tabInfo.TabName = info.tab
 	}
 }
 
@@ -537,7 +537,7 @@ func create() error {
 			// Unis := make([]string, len(tab.Unis))
 			for i, col := range tab.Columns {
 				l := make([]string, 0, 8)
-				l = append(l, wrap(col.ColName))
+				l = append(l, col.colName())
 				l = append(l, col.SqlType)
 				if col.Charset != "" {
 					l = append(l, fmt.Sprintf("CHARACTER SET %s", col.Charset))
@@ -598,12 +598,16 @@ func create() error {
 				}
 			}
 			for _, mtm := range tab.ManyToManys {
-				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", wrap(mtm.MidDB), wrap(mtm.MidTab), wrap(mtm.MidLeftCol),
+				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT %s_%s UNIQUE KEY(%s, %s)", wrap(mtm.MidDB), wrap(mtm.MidTab), mtm.MidLeftCol, mtm.MidRightCol, wrap(mtm.MidLeftCol),
 					wrap(mtm.MidRightCol))
 				fmt.Println(stmt)
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
-					return err
+					if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1061 {
+						fmt.Printf("warning: %v\n", e)
+						fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+						continue
+					}
 				}
 			}
 			for _, key := range tab.Keys {

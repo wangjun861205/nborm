@@ -3,8 +3,8 @@
   {
    "Tables": [
     {
-     "DB": "nborm_test",
-     "Tab": "auth",
+     "DBName": "nborm_test",
+     "TabName": "auth",
      "ModelType": null,
      "ModelName": "Auth",
      "Columns": [
@@ -365,8 +365,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book",
+     "DBName": "nborm_test",
+     "TabName": "book",
      "ModelType": null,
      "ModelName": "Book",
      "Columns": [
@@ -589,8 +589,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book_info",
+     "DBName": "nborm_test",
+     "TabName": "book_info",
      "ModelType": null,
      "ModelName": "BookInfo",
      "Columns": [
@@ -1162,8 +1162,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "tag",
+     "DBName": "nborm_test",
+     "TabName": "tag",
      "ModelType": null,
      "ModelName": "Tag",
      "Columns": [
@@ -1285,8 +1285,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book_info__tag",
+     "DBName": "nborm_test",
+     "TabName": "book_info__tag",
      "ModelType": null,
      "ModelName": "BookInfo__Tag",
      "Columns": [
@@ -1458,8 +1458,8 @@
    ],
    "TableMap": {
     "auth": {
-     "DB": "nborm_test",
-     "Tab": "auth",
+     "DBName": "nborm_test",
+     "TabName": "auth",
      "ModelType": null,
      "ModelName": "Auth",
      "Columns": [
@@ -1820,8 +1820,8 @@
      "IsNewMiddleTable": false
     },
     "book": {
-     "DB": "nborm_test",
-     "Tab": "book",
+     "DBName": "nborm_test",
+     "TabName": "book",
      "ModelType": null,
      "ModelName": "Book",
      "Columns": [
@@ -2044,8 +2044,8 @@
      "IsNewMiddleTable": false
     },
     "book_info": {
-     "DB": "nborm_test",
-     "Tab": "book_info",
+     "DBName": "nborm_test",
+     "TabName": "book_info",
      "ModelType": null,
      "ModelName": "BookInfo",
      "Columns": [
@@ -2617,8 +2617,8 @@
      "IsNewMiddleTable": false
     },
     "book_info__tag": {
-     "DB": "nborm_test",
-     "Tab": "book_info__tag",
+     "DBName": "nborm_test",
+     "TabName": "book_info__tag",
      "ModelType": null,
      "ModelName": "BookInfo__Tag",
      "Columns": [
@@ -2788,8 +2788,8 @@
      "IsNewMiddleTable": true
     },
     "tag": {
-     "DB": "nborm_test",
-     "Tab": "tag",
+     "DBName": "nborm_test",
+     "TabName": "tag",
      "ModelType": null,
      "ModelName": "Tag",
      "Columns": [
@@ -2917,8 +2917,8 @@
   "nborm_test": {
    "Tables": [
     {
-     "DB": "nborm_test",
-     "Tab": "auth",
+     "DBName": "nborm_test",
+     "TabName": "auth",
      "ModelType": null,
      "ModelName": "Auth",
      "Columns": [
@@ -3279,8 +3279,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book",
+     "DBName": "nborm_test",
+     "TabName": "book",
      "ModelType": null,
      "ModelName": "Book",
      "Columns": [
@@ -3503,8 +3503,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book_info",
+     "DBName": "nborm_test",
+     "TabName": "book_info",
      "ModelType": null,
      "ModelName": "BookInfo",
      "Columns": [
@@ -4076,8 +4076,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "tag",
+     "DBName": "nborm_test",
+     "TabName": "tag",
      "ModelType": null,
      "ModelName": "Tag",
      "Columns": [
@@ -4199,8 +4199,8 @@
      "IsNewMiddleTable": false
     },
     {
-     "DB": "nborm_test",
-     "Tab": "book_info__tag",
+     "DBName": "nborm_test",
+     "TabName": "book_info__tag",
      "ModelType": null,
      "ModelName": "BookInfo__Tag",
      "Columns": [
@@ -4372,8 +4372,8 @@
    ],
    "TableMap": {
     "auth": {
-     "DB": "nborm_test",
-     "Tab": "auth",
+     "DBName": "nborm_test",
+     "TabName": "auth",
      "ModelType": null,
      "ModelName": "Auth",
      "Columns": [
@@ -4734,8 +4734,8 @@
      "IsNewMiddleTable": false
     },
     "book": {
-     "DB": "nborm_test",
-     "Tab": "book",
+     "DBName": "nborm_test",
+     "TabName": "book",
      "ModelType": null,
      "ModelName": "Book",
      "Columns": [
@@ -4958,8 +4958,8 @@
      "IsNewMiddleTable": false
     },
     "book_info": {
-     "DB": "nborm_test",
-     "Tab": "book_info",
+     "DBName": "nborm_test",
+     "TabName": "book_info",
      "ModelType": null,
      "ModelName": "BookInfo",
      "Columns": [
@@ -5531,8 +5531,8 @@
      "IsNewMiddleTable": false
     },
     "book_info__tag": {
-     "DB": "nborm_test",
-     "Tab": "book_info__tag",
+     "DBName": "nborm_test",
+     "TabName": "book_info__tag",
      "ModelType": null,
      "ModelName": "BookInfo__Tag",
      "Columns": [
@@ -5702,8 +5702,8 @@
      "IsNewMiddleTable": true
     },
     "tag": {
-     "DB": "nborm_test",
-     "Tab": "tag",
+     "DBName": "nborm_test",
+     "TabName": "tag",
      "ModelType": null,
      "ModelName": "Tag",
      "Columns": [

@@ -54,19 +54,19 @@ func (oto OneToOne) where() *Where {
 }
 
 func (oto OneToOne) getSrcDB() string {
-	return oto.srcDB
+	return wrap(oto.srcDB)
 }
 
 func (oto OneToOne) getSrcTab() string {
-	return oto.srcTab
+	return wrap(oto.srcTab)
 }
 
 func (oto OneToOne) getDstDB() string {
-	return oto.dstDB
+	return wrap(oto.dstDB)
 }
 
 func (oto OneToOne) getDstTab() string {
-	return oto.dstTab
+	return wrap(oto.dstTab)
 }
 
 //ForeignKey represent a one point many relation
@@ -118,19 +118,19 @@ func (fk ForeignKey) where() *Where {
 }
 
 func (fk ForeignKey) getSrcDB() string {
-	return fk.srcDB
+	return wrap(fk.srcDB)
 }
 
 func (fk ForeignKey) getSrcTab() string {
-	return fk.srcTab
+	return wrap(fk.srcTab)
 }
 
 func (fk ForeignKey) getDstDB() string {
-	return fk.dstDB
+	return wrap(fk.dstDB)
 }
 
 func (fk ForeignKey) getDstTab() string {
-	return fk.dstTab
+	return wrap(fk.dstTab)
 }
 
 //ReverseForeignKey represent many point one relation
@@ -420,19 +420,19 @@ func (rfk ReverseForeignKey) where() *Where {
 }
 
 func (rfk ReverseForeignKey) getSrcDB() string {
-	return rfk.srcDB
+	return wrap(rfk.srcDB)
 }
 
 func (rfk ReverseForeignKey) getSrcTab() string {
-	return rfk.srcTab
+	return wrap(rfk.srcTab)
 }
 
 func (rfk ReverseForeignKey) getDstDB() string {
-	return rfk.dstDB
+	return wrap(rfk.dstDB)
 }
 
 func (rfk ReverseForeignKey) getDstTab() string {
-	return rfk.dstTab
+	return wrap(rfk.dstTab)
 }
 
 //ManyToMany represent many point many relation
@@ -878,17 +878,17 @@ func (mtm ManyToMany) where() *Where {
 }
 
 func (mtm ManyToMany) getSrcDB() string {
-	return mtm.srcDB
+	return wrap(mtm.srcDB)
 }
 
 func (mtm ManyToMany) getSrcTab() string {
-	return mtm.srcTab
+	return wrap(mtm.srcTab)
 }
 
 func (mtm ManyToMany) getDstDB() string {
-	return mtm.dstDB
+	return wrap(mtm.dstDB)
 }
 
 func (mtm ManyToMany) getDstTab() string {
-	return mtm.dstTab
+	return wrap(mtm.dstTab)
 }

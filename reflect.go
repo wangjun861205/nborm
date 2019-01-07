@@ -47,6 +47,10 @@ type ColumnInfo struct {
 	Collate   string
 }
 
+func (ci *ColumnInfo) colName() string {
+	return wrap(ci.ColName)
+}
+
 type OneToOneInfo struct {
 	SrcCol    string
 	DstDB     string
@@ -116,7 +120,7 @@ func (Pk PrimaryKey) getFields(addr uintptr) []Field {
 func (Pk PrimaryKey) genCreateClause() string {
 	l := make([]string, len(Pk))
 	for i, col := range Pk {
-		l[i] = wrap(col.ColName)
+		l[i] = col.colName()
 	}
 	return fmt.Sprintf(", PRIMARY KEY (%s)", strings.Join(l, ", "))
 }
@@ -168,11 +172,11 @@ func (uks UniqueKeys) genCreateClause() string {
 	for i, key := range uks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = wrap(col.ColName)
+			colList[j] = col.colName()
 		}
 		keyList[i] = fmt.Sprintf(", UNIQUE KEY (%s)", strings.Join(colList, ", "))
 	}
-	return strings.Join(keyList, ", ")
+	return strings.Join(keyList, "")
 }
 
 func (uks UniqueKeys) methodString() string {
@@ -186,7 +190,7 @@ func (uks UniqueKeys) methodString() string {
 	}
 	return fmt.Sprintf(`return [][]string{ 
 		%s 
-	}`, strings.Join(keyList, ", "))
+	}`, strings.Join(keyList, ""))
 }
 
 type Keys [][]*ColumnInfo
@@ -196,11 +200,11 @@ func (ks Keys) genCreateClause() string {
 	for i, key := range ks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = wrap(col.ColName)
+			colList[j] = col.colName()
 		}
 		keyList[i] = fmt.Sprintf(", KEY (%s)", strings.Join(colList, ", "))
 	}
-	return strings.Join(keyList, ", ")
+	return strings.Join(keyList, "")
 }
 
 func (ks Keys) methodString() string {
@@ -214,12 +218,12 @@ func (ks Keys) methodString() string {
 	}
 	return fmt.Sprintf(`return [][]string{ 
 		%s 
-	}`, strings.Join(keyList, ", "))
+	}`, strings.Join(keyList, ""))
 }
 
 type TableInfo struct {
-	DB                 string
-	Tab                string
+	DBName             string
+	TabName            string
 	ModelType          reflect.Type
 	ModelName          string
 	Columns            []*ColumnInfo
@@ -343,6 +347,14 @@ func (ti *TableInfo) complement(tab table) {
 		panic(fmt.Errorf("nborm.TabInfo.complement() error: ModelStatus field not exists (%s)", modelType.String()))
 	}
 	ti.IsComplete = true
+}
+
+func (ti *TableInfo) dbName() string {
+	return wrap(ti.DBName)
+}
+
+func (ti *TableInfo) tabName() string {
+	return wrap(ti.TabName)
 }
 
 type DatabaseInfo struct {
@@ -794,7 +806,7 @@ func InitSlice(slice table) {
 func getFieldByName(addr uintptr, ColName string, tabInfo *TableInfo) Field {
 	colInfo, ok := tabInfo.ColumnMap[ColName]
 	if !ok {
-		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.DB, tabInfo.Tab, ColName))
+		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.DBName, tabInfo.TabName, ColName))
 	}
 	switch colInfo.OrmType {
 	case TypeStringField:

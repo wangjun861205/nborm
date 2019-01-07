@@ -17,11 +17,11 @@ func (model *Auth) PrimaryKey() []string {
 }
 
 func (model *Auth) UniqueKeys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func (model *Auth) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func NewAuth() *Auth {
@@ -45,11 +45,11 @@ func (model *AuthSlice) PrimaryKey() []string {
 }
 
 func (model *AuthSlice) UniqueKeys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func (model *AuthSlice) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func MakeAuthSlice(length, cap int) AuthSlice {
@@ -70,13 +70,13 @@ func (model *Book) PrimaryKey() []string {
 }
 
 func (model *Book) UniqueKeys() [][]string {
-	[][]string{
+	return [][]string{
 		[]string{"unique_code"},
 	}
 }
 
 func (model *Book) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func NewBook() *Book {
@@ -100,74 +100,17 @@ func (model *BookSlice) PrimaryKey() []string {
 }
 
 func (model *BookSlice) UniqueKeys() [][]string {
-	[][]string{
+	return [][]string{
 		[]string{"unique_code"},
 	}
 }
 
 func (model *BookSlice) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func MakeBookSlice(length, cap int) BookSlice {
 	slice := make(BookSlice, length, cap)
-	nborm.InitSlice(&slice)
-	return slice
-}
-func (model *BookInfo__Tag) DB() string {
-	return "nborm_test"
-}
-
-func (model *BookInfo__Tag) Tab() string {
-	return "book_info__tag"
-}
-
-func (model *BookInfo__Tag) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *BookInfo__Tag) UniqueKeys() [][]string {
-	[][]string{
-		[]string{"book_info__isbn", "tag__id"},
-	}
-}
-
-func (model *BookInfo__Tag) Keys() [][]string {
-	[][]string{}
-}
-
-func NewBookInfo__Tag() *BookInfo__Tag {
-	model := new(BookInfo__Tag)
-	nborm.InitModel(model)
-	return model
-}
-
-type BookInfo__TagSlice []*BookInfo__Tag
-
-func (slice *BookInfo__TagSlice) DB() string {
-	return "nborm_test"
-}
-
-func (slice *BookInfo__TagSlice) Tab() string {
-	return "book_info__tag"
-}
-
-func (model *BookInfo__TagSlice) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *BookInfo__TagSlice) UniqueKeys() [][]string {
-	[][]string{
-		[]string{"book_info__isbn", "tag__id"},
-	}
-}
-
-func (model *BookInfo__TagSlice) Keys() [][]string {
-	[][]string{}
-}
-
-func MakeBookInfo__TagSlice(length, cap int) BookInfo__TagSlice {
-	slice := make(BookInfo__TagSlice, length, cap)
 	nborm.InitSlice(&slice)
 	return slice
 }
@@ -184,13 +127,13 @@ func (model *BookInfo) PrimaryKey() []string {
 }
 
 func (model *BookInfo) UniqueKeys() [][]string {
-	[][]string{
+	return [][]string{
 		[]string{"isbn"},
 	}
 }
 
 func (model *BookInfo) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func NewBookInfo() *BookInfo {
@@ -214,13 +157,13 @@ func (model *BookInfoSlice) PrimaryKey() []string {
 }
 
 func (model *BookInfoSlice) UniqueKeys() [][]string {
-	[][]string{
+	return [][]string{
 		[]string{"isbn"},
 	}
 }
 
 func (model *BookInfoSlice) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func MakeBookInfoSlice(length, cap int) BookInfoSlice {
@@ -241,11 +184,11 @@ func (model *Tag) PrimaryKey() []string {
 }
 
 func (model *Tag) UniqueKeys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func (model *Tag) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func NewTag() *Tag {
@@ -269,11 +212,11 @@ func (model *TagSlice) PrimaryKey() []string {
 }
 
 func (model *TagSlice) UniqueKeys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func (model *TagSlice) Keys() [][]string {
-	[][]string{}
+	return [][]string{}
 }
 
 func MakeTagSlice(length, cap int) TagSlice {

@@ -30,151 +30,157 @@ var goToSQLMap = map[string]string{
 	"DatetimeField": "datetime",
 }
 
-var defValRe = regexp.MustCompile(`'(.*)'`)
+var DefValRe = regexp.MustCompile(`'(.*)'`)
 var tagFieldRe = regexp.MustCompile(`\w+:".*?"`)
 
-func parseFieldTag(tag string) *columnInfo {
-	colInfo := &columnInfo{}
+func parseFieldTag(tag string) *ColumnInfo {
+	colInfo := &ColumnInfo{}
 	infoMap := make(map[string]string)
 	fields := tagFieldRe.FindAllString(tag, -1)
 	for _, f := range fields {
 		l := strings.Split(f, ":")
 		infoMap[l[0]] = l[1]
 	}
-	if sqlType, ok := infoMap["sql_type"]; ok {
-		colInfo.sqlType = strings.Trim(sqlType, "\"")
+	if SqlType, ok := infoMap["sql_type"]; ok {
+		colInfo.SqlType = strings.Trim(SqlType, "\"")
 	}
-	if colName, ok := infoMap["column"]; ok {
-		colInfo.colName = strings.Trim(colName, "\"")
+	if ColName, ok := infoMap["column"]; ok {
+		colInfo.ColName = strings.Trim(ColName, "\"")
 	}
-	if nullable, ok := infoMap["nullable"]; ok {
-		b, err := strconv.ParseBool(strings.Trim(nullable, "\""))
+	if Nullable, ok := infoMap["Nullable"]; ok {
+		b, err := strconv.ParseBool(strings.Trim(Nullable, "\""))
 		if err != nil {
 			panic(err)
 		}
-		colInfo.nullable = b
+		colInfo.Nullable = b
 	} else {
-		colInfo.nullable = false
+		colInfo.Nullable = false
 	}
-	// if isPk, ok := infoMap["primary_key"]; ok {
-	// 	b, err := strconv.ParseBool(strings.Trim(isPk, "\""))
+	// if IsPk, ok := infoMap["primary_key"]; ok {
+	// 	b, err := strconv.ParseBool(strings.Trim(IsPk, "\""))
 	// 	if err != nil {
 	// 		panic(err)
 	// 	}
-	// 	colInfo.isPk = b
+	// 	colInfo.IsPk = b
 	// }
-	if isInc, ok := infoMap["auto_increment"]; ok {
-		b, err := strconv.ParseBool(strings.Trim(isInc, "\""))
+	if IsInc, ok := infoMap["auto_increment"]; ok {
+		b, err := strconv.ParseBool(strings.Trim(IsInc, "\""))
 		if err != nil {
 			panic(err)
 		}
 		if b {
-			colInfo.isInc = b
-			colInfo.isUni = true
+			colInfo.IsInc = b
+			colInfo.IsUni = true
 		}
 	}
-	// if isUni, ok := infoMap["unique"]; ok {
-	// 	b, err := strconv.ParseBool(strings.Trim(isUni, "\""))
+	// if IsUni, ok := infoMap["unique"]; ok {
+	// 	b, err := strconv.ParseBool(strings.Trim(IsUni, "\""))
 	// 	if err != nil {
 	// 		panic(err)
 	// 	}
-	// 	colInfo.isUni = b
+	// 	colInfo.IsUni = b
 	// }
-	if defVal, ok := infoMap["default_value"]; ok {
-		expr := strings.Trim(defVal, "\"")
+	if DefVal, ok := infoMap["default_value"]; ok {
+		expr := strings.Trim(DefVal, "\"")
 		switch {
 		case sqlConstRe.MatchString(expr):
-			colInfo.defVal = defValRe.FindStringSubmatch(expr)[1]
+			colInfo.DefVal = DefValRe.FindStringSubmatch(expr)[1]
 		case sqlStringRe.MatchString(expr):
-			colInfo.defVal = fmt.Sprintf("%q", defValRe.FindStringSubmatch(expr)[1])
+			colInfo.DefVal = fmt.Sprintf("%q", DefValRe.FindStringSubmatch(expr)[1])
 		case sqlIntRe.MatchString(expr):
-			d, err := strconv.ParseInt(defValRe.FindStringSubmatch(expr)[1], 10, 64)
+			d, err := strconv.ParseInt(DefValRe.FindStringSubmatch(expr)[1], 10, 64)
 			if err != nil {
 				panic(err)
 			}
-			colInfo.defVal = d
+			colInfo.DefVal = d
 		case sqlFloatRe.MatchString(expr):
-			f, err := strconv.ParseFloat(defValRe.FindStringSubmatch(expr)[1], 64)
+			f, err := strconv.ParseFloat(DefValRe.FindStringSubmatch(expr)[1], 64)
 			if err != nil {
 				panic(err)
 			}
-			colInfo.defVal = f
+			colInfo.DefVal = f
 		case sqlBoolRe.MatchString(expr):
-			b, err := strconv.ParseBool(defValRe.FindStringSubmatch(expr)[1])
+			b, err := strconv.ParseBool(DefValRe.FindStringSubmatch(expr)[1])
 			if err != nil {
 				panic(err)
 			}
-			colInfo.defVal = b
+			colInfo.DefVal = b
 		case sqlBinaryRe.MatchString(expr):
-			colInfo.defVal = expr
+			colInfo.DefVal = expr
 		default:
 			panic(fmt.Errorf("nborm.parseFieldTag() error: invalid default value (%s)", expr))
 		}
 	}
-	if charset, ok := infoMap["charset"]; ok {
-		colInfo.charset = charset
+	if Charset, ok := infoMap["Charset"]; ok {
+		colInfo.Charset = Charset
 	}
-	if collate, ok := infoMap["collate"]; ok {
-		colInfo.collate = collate
+	if Collate, ok := infoMap["Collate"]; ok {
+		colInfo.Collate = Collate
 	}
 	return colInfo
 }
 
-func parseField(field *ast.Field) *columnInfo {
-	var colInfo *columnInfo
+func parseField(field *ast.Field) *ColumnInfo {
+	var colInfo *ColumnInfo
 	if field.Tag != nil {
 		colInfo = parseFieldTag(field.Tag.Value)
 	} else {
-		colInfo = &columnInfo{}
+		colInfo = &ColumnInfo{}
 	}
 	name := field.Names[0].String()
-	colInfo.fieldName = name
-	if colInfo.colName == "" {
-		colInfo.colName = toSnakeCase(name)
+	colInfo.FieldName = name
+	if colInfo.ColName == "" {
+		colInfo.ColName = toSnakeCase(name)
 	}
-	if colInfo.sqlType == "" {
+	if colInfo.SqlType == "" {
 		typ := field.Type.(*ast.SelectorExpr).Sel.Name
-		if sqlType, ok := goToSQLMap[typ]; !ok {
+		if SqlType, ok := goToSQLMap[typ]; !ok {
 			panic(fmt.Errorf("nborm.parseField() error: unsupported field type (%s)", typ))
 		} else {
-			colInfo.sqlType = sqlType
+			colInfo.SqlType = SqlType
 		}
 	}
+	typ := field.Type.(*ast.SelectorExpr).Sel.Name
+	ormType, ok := OrmTypeMap[typ]
+	if !ok {
+		panic(fmt.Errorf("nborm.parseField() error: unsupported field type (%s)", typ))
+	}
+	colInfo.OrmType = ormType
 	return colInfo
 }
 
 type relInfo struct {
-	srcCol      string
-	midDB       string
-	midTab      string
-	midLeftCol  string
-	midRightCol string
-	dstDB       string
-	dstTab      string
-	dstCol      string
+	SrcCol      string
+	MidDB       string
+	MidTab      string
+	MidLeftCol  string
+	MidRightCol string
+	DstDB       string
+	DstTab      string
+	DstCol      string
 }
 
 func parseRelationInfo(decl *ast.GenDecl) (relInfo relInfo) {
 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
-			modelName := typeSpec.Name.Name
-			dbName, tabName := dbTabMap[modelName].db, dbTabMap[modelName].tab
-			tabInfo := schemaCache.databaseMap[dbName].tableMap[tabName]
+			ModelName := typeSpec.Name.Name
+			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
+			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
 			for _, field := range stctType.Fields.List {
 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
 					switch expr.Sel.Name {
 					case "OneToOne":
-						otoInfo := parseOneToOneField(modelName, field)
-						tabInfo.oneToOnes = append(tabInfo.oneToOnes, otoInfo)
+						otoInfo := parseOneToOneField(ModelName, field)
+						tabInfo.OneToOnes = append(tabInfo.OneToOnes, otoInfo)
 					case "ForeignKey":
-						fkInfo := parseForeignKeyField(modelName, field)
-						tabInfo.foreignKeys = append(tabInfo.foreignKeys, fkInfo)
+						fkInfo := parseForeignKeyField(ModelName, field)
+						tabInfo.ForeignKeys = append(tabInfo.ForeignKeys, fkInfo)
 					case "ReverseForeignKey":
-						rfkInfo := parseReverseForeignKeyField(modelName, field)
-						tabInfo.reverseForeignKeys = append(tabInfo.reverseForeignKeys, rfkInfo)
+						rfkInfo := parseReverseForeignKeyField(ModelName, field)
+						tabInfo.ReverseForeignKeys = append(tabInfo.ReverseForeignKeys, rfkInfo)
 					case "ManyToMany":
-						mtmInfo := parseManyToManyField(modelName, field)
-						tabInfo.manyToManys = append(tabInfo.manyToManys, mtmInfo)
+						mtmInfo := parseManyToManyField(ModelName, field)
+						tabInfo.ManyToManys = append(tabInfo.ManyToManys, mtmInfo)
 					}
 				}
 			}
@@ -183,10 +189,10 @@ func parseRelationInfo(decl *ast.GenDecl) (relInfo relInfo) {
 	return
 }
 
-func lookupTableInfoByModelName(modelName string) *tableInfo {
-	for _, dbInfo := range schemaCache.databases {
-		for _, tabInfo := range dbInfo.tables {
-			if tabInfo.modelName == modelName {
+func lookupTableInfoByModelName(ModelName string) *TableInfo {
+	for _, dbInfo := range SchemaCache.Databases {
+		for _, tabInfo := range dbInfo.Tables {
+			if tabInfo.ModelName == ModelName {
 				return tabInfo
 			}
 		}
@@ -194,10 +200,10 @@ func lookupTableInfoByModelName(modelName string) *tableInfo {
 	return nil
 }
 
-func lookupTableInfoByTableName(tableName string) *tableInfo {
-	for _, dbInfo := range schemaCache.databases {
-		for _, tabInfo := range dbInfo.tables {
-			if tabInfo.tab == tableName {
+func lookupTableInfoByTableName(tableName string) *TableInfo {
+	for _, dbInfo := range SchemaCache.Databases {
+		for _, tabInfo := range dbInfo.Tables {
+			if tabInfo.Tab == tableName {
 				return tabInfo
 			}
 		}
@@ -216,7 +222,7 @@ func parseOn(tag string) (srcFieldName, dstModelName, dstFieldName string) {
 	return group[1], group[2], group[3]
 }
 
-func parseBy(tag string) (midTabName string, ok bool) {
+func parseBy(tag string) (MidTabName string, ok bool) {
 	group := byRe.FindStringSubmatch(tag)
 	if len(group) < 2 {
 		return "", false
@@ -224,130 +230,136 @@ func parseBy(tag string) (midTabName string, ok bool) {
 	return group[1], true
 }
 
-func findTableAndColumnInfo(modelName, fieldName string) (*tableInfo, *columnInfo) {
-	tabInfo := lookupTableInfoByModelName(modelName)
+func findTableAndColumnInfo(ModelName, FieldName string) (*TableInfo, *ColumnInfo) {
+	tabInfo := lookupTableInfoByModelName(ModelName)
 	if tabInfo == nil {
-		panic(fmt.Errorf("nborm.findTableAndColumnInfo() error: cannot find table information (%s)", modelName))
+		panic(fmt.Errorf("nborm.findTableAndColumnInfo() error: cannot find table information (%s)", ModelName))
 	}
-	colInfo := tabInfo.lookupColInfoByFieldName(fieldName)
+	colInfo := tabInfo.lookupColInfoByFieldName(FieldName)
 	if colInfo == nil {
-		panic(fmt.Errorf("nborm.findTableAndColumnInfo() error: cannot find column information (%s.%s)", modelName, fieldName))
+		panic(fmt.Errorf("nborm.findTableAndColumnInfo() error: cannot find column information (%s.%s)", ModelName, FieldName))
 	}
 	return tabInfo, colInfo
 }
 
-func parseOneToOneField(srcModelName string, field *ast.Field) *oneToOneInfo {
-	oto := &oneToOneInfo{}
+func parseOneToOneField(srcModelName string, field *ast.Field) *OneToOneInfo {
+	oto := &OneToOneInfo{}
 	if field.Tag == nil {
 		panic(fmt.Errorf("nborm.parseOneToOneField() error: no relation information tag (%s)", field.Names[0].Name))
 	}
+	fieldName := field.Names[0].String()
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
-	_, srcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
-	dstTabInfo, dstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	oto.srcCol, oto.dstDB, oto.dstTab, oto.dstCol = srcColInfo.colName, dstTabInfo.db, dstTabInfo.tab, dstColInfo.colName
+	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
+	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
+	oto.SrcCol, oto.DstDB, oto.DstTab, oto.DstCol, oto.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
 	return oto
 }
 
-func parseForeignKeyField(srcModelName string, field *ast.Field) *foreignKeyInfo {
-	fk := &foreignKeyInfo{}
+func parseForeignKeyField(srcModelName string, field *ast.Field) *ForeignKeyInfo {
+	fk := &ForeignKeyInfo{}
 	if field.Tag == nil {
 		panic(fmt.Errorf("nborm.parseForeignKeyField() error: no relation information tag (%s)", field.Names[0].Name))
 	}
+	fieldName := field.Names[0].String()
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
-	_, srcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
-	dstTabInfo, dstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol = srcColInfo.colName, dstTabInfo.db, dstTabInfo.tab, dstColInfo.colName
+	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
+	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
+	fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol, fk.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
 	return fk
 }
 
-func parseReverseForeignKeyField(srcModelName string, field *ast.Field) *reverseForeignKeyInfo {
-	rfk := &reverseForeignKeyInfo{}
+func parseReverseForeignKeyField(srcModelName string, field *ast.Field) *ReverseForeignKeyInfo {
+	rfk := &ReverseForeignKeyInfo{}
 	if field.Tag == nil {
 		panic(fmt.Errorf("nborm.parseReverseForeignKeyField() error: no relation information tag (%s)", field.Names[0].Name))
 	}
+	fieldName := field.Names[0].String()
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
-	_, srcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
-	dstTabInfo, dstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	rfk.srcCol, rfk.dstDB, rfk.dstTab, rfk.dstCol = srcColInfo.colName, dstTabInfo.db, dstTabInfo.tab, dstColInfo.colName
+	_, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
+	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
+	rfk.SrcCol, rfk.DstDB, rfk.DstTab, rfk.DstCol, rfk.FieldName = SrcColInfo.ColName, DstTabInfo.DB, DstTabInfo.Tab, DstColInfo.ColName, fieldName
 	return rfk
 }
 
-func parseManyToManyField(srcModelName string, field *ast.Field) *manyToManyInfo {
-	mtm := &manyToManyInfo{}
+func parseManyToManyField(srcModelName string, field *ast.Field) *ManyToManyInfo {
+	mtm := &ManyToManyInfo{}
 	if field.Tag == nil {
 		panic(fmt.Errorf("nborm.parseManyToManyField() error: no relation information tag (%s)", field.Names[0].Name))
 	}
+	fieldName := field.Names[0].String()
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
-	srcTabInfo, srcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
-	dstTabInfo, dstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
-	midTabName, ok := parseBy(field.Tag.Value)
-	var midTabName1, midTabName2 string
-	var midTabInfo *tableInfo
+	srcTabInfo, SrcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
+	DstTabInfo, DstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
+	MidTabName, ok := parseBy(field.Tag.Value)
+	var MidTabName1, MidTabName2 string
+	var MidTabInfo *TableInfo
 	if !ok {
-		midTabName1 = srcTabInfo.tab + "__" + dstTabInfo.tab
-		midTabName2 = dstTabInfo.tab + "__" + srcTabInfo.tab
-		midTabInfo1, midTabInfo2 := lookupTableInfoByTableName(midTabName1), lookupTableInfoByTableName(midTabName2)
+		MidTabName1 = srcTabInfo.Tab + "__" + DstTabInfo.Tab
+		MidTabName2 = DstTabInfo.Tab + "__" + srcTabInfo.Tab
+		MidTabInfo1, MidTabInfo2 := lookupTableInfoByTableName(MidTabName1), lookupTableInfoByTableName(MidTabName2)
 		switch {
-		case midTabInfo1 != nil:
-			midTabInfo = midTabInfo1
-		case midTabInfo2 != nil:
-			midTabInfo = midTabInfo2
+		case MidTabInfo1 != nil:
+			MidTabInfo = MidTabInfo1
+		case MidTabInfo2 != nil:
+			MidTabInfo = MidTabInfo2
 		default:
-			IDCol := &columnInfo{colName: "id", isInc: true, isPk: true, sqlType: "INT", fieldName: "ID"}
-			leftCol := &columnInfo{
-				charset:   srcColInfo.charset,
-				collate:   srcColInfo.collate,
-				colName:   srcTabInfo.tab + "__" + srcColInfo.colName,
-				sqlType:   srcColInfo.sqlType,
-				fieldName: srcTabInfo.modelName + "__" + srcColInfo.fieldName,
+			IDCol := &ColumnInfo{ColName: "id", IsInc: true, IsPk: true, SqlType: "INT", FieldName: "ID"}
+			leftCol := &ColumnInfo{
+				Charset:   SrcColInfo.Charset,
+				Collate:   SrcColInfo.Collate,
+				ColName:   srcTabInfo.Tab + "__" + SrcColInfo.ColName,
+				SqlType:   SrcColInfo.SqlType,
+				FieldName: srcTabInfo.ModelName + "__" + SrcColInfo.FieldName,
 			}
-			rightCol := &columnInfo{
-				charset:   dstColInfo.charset,
-				collate:   dstColInfo.collate,
-				colName:   dstTabInfo.tab + "__" + dstColInfo.colName,
-				sqlType:   dstColInfo.sqlType,
-				fieldName: dstTabInfo.modelName + "__" + dstColInfo.fieldName,
+			rightCol := &ColumnInfo{
+				Charset:   DstColInfo.Charset,
+				Collate:   DstColInfo.Collate,
+				ColName:   DstTabInfo.Tab + "__" + DstColInfo.ColName,
+				SqlType:   DstColInfo.SqlType,
+				FieldName: DstTabInfo.ModelName + "__" + DstColInfo.FieldName,
 			}
-			midTabInfo = &tableInfo{
-				db:        srcTabInfo.db,
-				tab:       midTabName1,
-				modelName: srcModelName + "__" + dstModelName,
-				columnMap: map[string]*columnInfo{"id": IDCol, leftCol.colName: leftCol, rightCol.colName: rightCol},
-				columns:   []*columnInfo{IDCol, leftCol, rightCol},
-				pk:        primaryKey{IDCol},
-				unis:      uniqueKeys{[]*columnInfo{leftCol, rightCol}},
-				foreignKeys: []*foreignKeyInfo{
-					&foreignKeyInfo{
-						srcCol: leftCol.colName,
-						dstDB:  srcTabInfo.db,
-						dstTab: srcTabInfo.tab,
-						dstCol: srcColInfo.colName,
+			MidTabInfo = &TableInfo{
+				DB:        srcTabInfo.DB,
+				Tab:       MidTabName1,
+				ModelName: srcModelName + "__" + dstModelName,
+				ColumnMap: map[string]*ColumnInfo{"id": IDCol, leftCol.ColName: leftCol, rightCol.ColName: rightCol},
+				Columns:   []*ColumnInfo{IDCol, leftCol, rightCol},
+				Pk:        PrimaryKey{IDCol},
+				Unis:      UniqueKeys{[]*ColumnInfo{leftCol, rightCol}},
+				ForeignKeys: []*ForeignKeyInfo{
+					&ForeignKeyInfo{
+						SrcCol: leftCol.ColName,
+						DstDB:  srcTabInfo.DB,
+						DstTab: srcTabInfo.Tab,
+						DstCol: SrcColInfo.ColName,
 					},
-					&foreignKeyInfo{
-						srcCol: rightCol.colName,
-						dstDB:  dstTabInfo.db,
-						dstTab: dstTabInfo.tab,
-						dstCol: dstColInfo.colName,
+					&ForeignKeyInfo{
+						SrcCol: rightCol.ColName,
+						DstDB:  DstTabInfo.DB,
+						DstTab: DstTabInfo.Tab,
+						DstCol: DstColInfo.ColName,
 					},
 				},
+				IsNewMiddleTable: true,
 			}
-			schemaCache.databaseMap[midTabInfo.db].tableMap[midTabInfo.tab] = midTabInfo
-			schemaCache.databaseMap[midTabInfo.db].tables = append(schemaCache.databaseMap[midTabInfo.db].tables, midTabInfo)
+			SchemaCache.DatabaseMap[MidTabInfo.DB].TableMap[MidTabInfo.Tab] = MidTabInfo
+			SchemaCache.DatabaseMap[MidTabInfo.DB].Tables = append(SchemaCache.DatabaseMap[MidTabInfo.DB].Tables, MidTabInfo)
 		}
 	} else {
-		midTabInfo = lookupTableInfoByTableName(midTabName)
-		if midTabInfo == nil {
-			panic(fmt.Errorf("nborm.parseManyToMany() error: cannot find table (%s)", midTabName))
+		MidTabInfo = lookupTableInfoByTableName(MidTabName)
+		if MidTabInfo == nil {
+			panic(fmt.Errorf("nborm.parseManyToMany() error: cannot find table (%s)", MidTabName))
 		}
 	}
-	mtm.srcCol = srcColInfo.colName
-	mtm.midDB = midTabInfo.db
-	mtm.midTab = midTabInfo.tab
-	mtm.midLeftCol = srcTabInfo.tab + "__" + srcColInfo.colName
-	mtm.midRightCol = dstTabInfo.tab + "__" + dstColInfo.colName
-	mtm.dstDB = dstTabInfo.db
-	mtm.dstTab = dstTabInfo.tab
-	mtm.dstCol = dstColInfo.colName
+	mtm.SrcCol = SrcColInfo.ColName
+	mtm.MidDB = MidTabInfo.DB
+	mtm.MidTab = MidTabInfo.Tab
+	mtm.MidLeftCol = srcTabInfo.Tab + "__" + SrcColInfo.ColName
+	mtm.MidRightCol = DstTabInfo.Tab + "__" + DstColInfo.ColName
+	mtm.DstDB = DstTabInfo.DB
+	mtm.DstTab = DstTabInfo.Tab
+	mtm.DstCol = DstColInfo.ColName
+	mtm.FieldName = fieldName
 	return mtm
 }
 
@@ -358,76 +370,76 @@ type dbAndTab struct {
 
 var dbTabMap = map[string]*dbAndTab{}
 
-func initPrimaryKey(tabInfo *tableInfo) {
-	for _, name := range tabInfo.pkNames {
-		var pkInfo *columnInfo
-		for _, col := range tabInfo.columns {
-			if col.fieldName == name {
-				pkInfo = col
+func initPrimaryKey(tabInfo *TableInfo) {
+	for _, name := range tabInfo.PkNames {
+		var PkInfo *ColumnInfo
+		for _, col := range tabInfo.Columns {
+			if col.FieldName == name {
+				PkInfo = col
 				break
 			}
 		}
-		if pkInfo == nil {
-			panic(fmt.Errorf("nborm.initPrimaryKey() error: primary key field not exists (%s.%s)", tabInfo.modelName, name))
+		if PkInfo == nil {
+			panic(fmt.Errorf("nborm.initPrimaryKey() error: primary key field not exists (%s.%s)", tabInfo.ModelName, name))
 		}
-		tabInfo.pk = append(tabInfo.pk, pkInfo)
+		tabInfo.Pk = append(tabInfo.Pk, PkInfo)
 	}
 }
 
-func initUniqueKeys(tabInfo *tableInfo) {
-	for _, key := range tabInfo.uniNames {
-		l := make([]*columnInfo, 0, 4)
+func initUniqueKeys(tabInfo *TableInfo) {
+	for _, key := range tabInfo.UniNames {
+		l := make([]*ColumnInfo, 0, 4)
 		for _, name := range key {
-			var uni *columnInfo
-			for _, col := range tabInfo.columns {
-				if col.fieldName == name {
+			var uni *ColumnInfo
+			for _, col := range tabInfo.Columns {
+				if col.FieldName == name {
 					uni = col
 					break
 				}
 			}
 			if uni == nil {
-				panic(fmt.Errorf("nborm.initUniqueKey() error: unique key field not exists (%s.%s)", tabInfo.modelName, name))
+				panic(fmt.Errorf("nborm.initUniqueKey() error: unique key field not exists (%s.%s)", tabInfo.ModelName, name))
 			}
 			l = append(l, uni)
 		}
-		tabInfo.unis = append(tabInfo.unis, l)
+		tabInfo.Unis = append(tabInfo.Unis, l)
 	}
 }
 
-func initKeys(tabInfo *tableInfo) {
-	tabInfo.keys = make(keys, len(tabInfo.keyNames))
-	for i, key := range tabInfo.keyNames {
-		l := make([]*columnInfo, len(key))
-		for j, fieldName := range key {
-			colInfo := tabInfo.lookupColInfoByFieldName(fieldName)
+func initKeys(tabInfo *TableInfo) {
+	tabInfo.Keys = make(Keys, len(tabInfo.KeyNames))
+	for i, key := range tabInfo.KeyNames {
+		l := make([]*ColumnInfo, len(key))
+		for j, FieldName := range key {
+			colInfo := tabInfo.lookupColInfoByFieldName(FieldName)
 			if colInfo == nil {
-				panic(fmt.Errorf("nborm.initKey() error: key column not exists (%s.%s.%s)", tabInfo.db, tabInfo.modelName, fieldName))
+				panic(fmt.Errorf("nborm.initKey() error: key column not exists (%s.%s.%s)", tabInfo.DB, tabInfo.ModelName, FieldName))
 			}
 			l[j] = colInfo
 		}
-		tabInfo.keys[i] = l
+		tabInfo.Keys[i] = l
 	}
 }
 
 func parseModel(decl *ast.GenDecl) {
 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
-			modelName := typeSpec.Name.Name
-			dbName, tabName := dbTabMap[modelName].db, dbTabMap[modelName].tab
-			tabInfo := schemaCache.databaseMap[dbName].tableMap[tabName]
-			tabInfo.db, tabInfo.tab, tabInfo.modelName = dbName, tabName, modelName
-			tabInfo.keyNames = parseKeys(commentMap[modelName])
-			tabInfo.pkNames = parsePrimaryKey(commentMap[modelName])
-			tabInfo.uniNames = parseUniqueKeys(commentMap[modelName])
+			ModelName := typeSpec.Name.Name
+			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
+			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
+			tabInfo.DB, tabInfo.Tab, tabInfo.ModelName = dbName, tabName, ModelName
+			tabInfo.KeyNames = parseKeys(commentMap[ModelName])
+			tabInfo.PkNames = parsePrimaryKey(commentMap[ModelName])
+			tabInfo.UniNames = parseUniqueKeys(commentMap[ModelName])
 			for _, field := range stctType.Fields.List {
 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
 					switch expr.Sel.Name {
 					case "StringField", "IntField", "FloatField", "BoolField", "BinaryField", "DateField", "DatetimeField":
 						colInfo := parseField(field)
-						tabInfo.columns = append(tabInfo.columns, colInfo)
-						tabInfo.columnMap[colInfo.colName] = colInfo
-						if colInfo.isInc {
-							tabInfo.inc = colInfo
+						tabInfo.Columns = append(tabInfo.Columns, colInfo)
+						tabInfo.ColumnMap[colInfo.ColName] = colInfo
+						if colInfo.IsInc {
+							tabInfo.Inc = colInfo
 						}
 					}
 				}
@@ -444,10 +456,10 @@ func initSchema() {
 		if info.db == "" || info.tab == "" {
 			panic(fmt.Errorf("nborm.initSchema() error: no database name or no table name (model %s)", m))
 		}
-		tabInfo := schemaCache.getOrCreate(info.db).getOrCreate(info.tab)
-		tabInfo.modelName = m
-		tabInfo.db = info.db
-		tabInfo.tab = info.tab
+		tabInfo := SchemaCache.getOrCreate(info.db).getOrCreate(info.tab)
+		tabInfo.ModelName = m
+		tabInfo.DB = info.db
+		tabInfo.Tab = info.tab
 	}
 }
 
@@ -470,36 +482,36 @@ func parseDB(filename string) error {
 		}
 		return true
 	})
-	for dname, db := range schemaCache.databaseMap {
-		for tname, tab := range db.tableMap {
-			for _, oto := range tab.oneToOnes {
-				schemaCache.databaseMap[oto.dstDB].tableMap[oto.dstTab].columnMap[oto.dstCol].isUni = true
-				tab.columnMap[oto.srcCol].isUni = true
+	for dname, db := range SchemaCache.DatabaseMap {
+		for tname, tab := range db.TableMap {
+			for _, oto := range tab.OneToOnes {
+				SchemaCache.DatabaseMap[oto.DstDB].TableMap[oto.DstTab].ColumnMap[oto.DstCol].IsUni = true
+				tab.ColumnMap[oto.SrcCol].IsUni = true
 			}
-			for _, fk := range tab.foreignKeys {
-				schemaCache.databaseMap[fk.dstDB].tableMap[fk.dstTab].columnMap[fk.dstCol].isUni = true
+			for _, fk := range tab.ForeignKeys {
+				SchemaCache.DatabaseMap[fk.DstDB].TableMap[fk.DstTab].ColumnMap[fk.DstCol].IsUni = true
 			}
-			for _, rfk := range tab.reverseForeignKeys {
-				tab.columnMap[rfk.srcCol].isUni = true
+			for _, rfk := range tab.ReverseForeignKeys {
+				tab.ColumnMap[rfk.SrcCol].IsUni = true
 			}
-			for _, mtm := range tab.manyToManys {
-				midTab := schemaCache.databaseMap[mtm.midDB].tableMap[mtm.midTab]
-				if _, ok := midTab.columnMap[mtm.midLeftCol]; !ok {
-					colInfo := *tab.columnMap[mtm.srcCol]
-					colInfo.colName, colInfo.isInc, colInfo.isPk, colInfo.isUni, colInfo.nullable = mtm.midLeftCol, false, false, false, false
-					midTab.columnMap[mtm.midLeftCol] = &colInfo
-					midTab.columns = append(midTab.columns, &colInfo)
+			for _, mtm := range tab.ManyToManys {
+				MidTab := SchemaCache.DatabaseMap[mtm.MidDB].TableMap[mtm.MidTab]
+				if _, ok := MidTab.ColumnMap[mtm.MidLeftCol]; !ok {
+					colInfo := *tab.ColumnMap[mtm.SrcCol]
+					colInfo.ColName, colInfo.IsInc, colInfo.IsPk, colInfo.IsUni, colInfo.Nullable = mtm.MidLeftCol, false, false, false, false
+					MidTab.ColumnMap[mtm.MidLeftCol] = &colInfo
+					MidTab.Columns = append(MidTab.Columns, &colInfo)
 				}
-				if _, ok := midTab.columnMap[mtm.midRightCol]; !ok {
-					colInfo := *schemaCache.databaseMap[mtm.dstDB].tableMap[mtm.dstTab].columnMap[mtm.dstCol]
-					colInfo.colName, colInfo.isInc, colInfo.isPk, colInfo.isUni, colInfo.nullable = mtm.midRightCol, false, false, false, false
-					midTab.columnMap[mtm.midRightCol] = &colInfo
-					midTab.columns = append(midTab.columns, &colInfo)
+				if _, ok := MidTab.ColumnMap[mtm.MidRightCol]; !ok {
+					colInfo := *SchemaCache.DatabaseMap[mtm.DstDB].TableMap[mtm.DstTab].ColumnMap[mtm.DstCol]
+					colInfo.ColName, colInfo.IsInc, colInfo.IsPk, colInfo.IsUni, colInfo.Nullable = mtm.MidRightCol, false, false, false, false
+					MidTab.ColumnMap[mtm.MidRightCol] = &colInfo
+					MidTab.Columns = append(MidTab.Columns, &colInfo)
 				}
-				if len(midTab.foreignKeys) == 0 {
-					leftForeignKey := &foreignKeyInfo{srcCol: mtm.midLeftCol, dstDB: dname, dstTab: tname, dstCol: mtm.srcCol}
-					rightForeignKey := &foreignKeyInfo{srcCol: mtm.midRightCol, dstDB: mtm.dstDB, dstTab: mtm.dstTab, dstCol: mtm.dstCol}
-					midTab.foreignKeys = append(midTab.foreignKeys, leftForeignKey, rightForeignKey)
+				if len(MidTab.ForeignKeys) == 0 {
+					leftForeignKey := &ForeignKeyInfo{SrcCol: mtm.MidLeftCol, DstDB: dname, DstTab: tname, DstCol: mtm.SrcCol}
+					rightForeignKey := &ForeignKeyInfo{SrcCol: mtm.MidRightCol, DstDB: mtm.DstDB, DstTab: mtm.DstTab, DstCol: mtm.DstCol}
+					MidTab.ForeignKeys = append(MidTab.ForeignKeys, leftForeignKey, rightForeignKey)
 				}
 			}
 		}
@@ -512,68 +524,68 @@ func create() error {
 	if err != nil {
 		return err
 	}
-	for dname, db := range schemaCache.databaseMap {
+	for dname, db := range SchemaCache.DatabaseMap {
 		if _, err := conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", wrap(dname))); err != nil {
 			return err
 		}
 		if _, err := conn.Exec(fmt.Sprintf("USE %s", wrap(dname))); err != nil {
 			return err
 		}
-		for tname, tab := range db.tableMap {
-			cols := make([]string, len(tab.columns))
-			// pks := make([]string, len(tab.pk))
-			// unis := make([]string, len(tab.unis))
-			for i, col := range tab.columns {
+		for tname, tab := range db.TableMap {
+			cols := make([]string, len(tab.Columns))
+			// Pks := make([]string, len(tab.Pk))
+			// Unis := make([]string, len(tab.Unis))
+			for i, col := range tab.Columns {
 				l := make([]string, 0, 8)
-				l = append(l, wrap(col.colName))
-				l = append(l, col.sqlType)
-				if col.charset != "" {
-					l = append(l, fmt.Sprintf("CHARACTER SET %s", col.charset))
+				l = append(l, wrap(col.ColName))
+				l = append(l, col.SqlType)
+				if col.Charset != "" {
+					l = append(l, fmt.Sprintf("CHARACTER SET %s", col.Charset))
 				}
-				if col.collate != "" {
-					l = append(l, fmt.Sprintf("COLLATE %s", col.collate))
+				if col.Collate != "" {
+					l = append(l, fmt.Sprintf("COLLATE %s", col.Collate))
 				}
-				if !col.nullable {
+				if !col.Nullable {
 					l = append(l, "NOT NULL")
 				}
-				if col.isInc {
+				if col.IsInc {
 					l = append(l, "AUTO_INCREMENT")
 				}
-				if col.defVal != nil {
-					l = append(l, fmt.Sprintf("DEFAULT %v", col.defVal))
+				if col.DefVal != nil {
+					l = append(l, fmt.Sprintf("DEFAULT %v", col.DefVal))
 				}
 				cols[i] = strings.Join(l, " ")
 			}
-			// for i, pk := range tab.pks {
-			// 	pks[i] = wrap(pk.colName)
+			// for i, Pk := range tab.Pks {
+			// 	Pks[i] = wrap(Pk.ColName)
 			// }
-			// for i, uni := range tab.unis {
+			// for i, uni := range tab.Unis {
 			// 	l := make([]string, len(uni))
 			// 	for i, col := range uni {
-			// 		l[i] = wrap(col.colName)
+			// 		l[i] = wrap(col.ColName)
 			// 	}
-			// 	unis[i] = fmt.Sprintf("UNIQUE KEY (%s)", strings.Join(l, ", "))
+			// 	Unis[i] = fmt.Sprintf("UNIQUE KEY (%s)", strings.Join(l, ", "))
 			// }
 			// var uniClause string
-			// if len(unis) > 0 {
-			// 	uniClause = ", " + strings.Join(unis, ", ")
+			// if len(Unis) > 0 {
+			// 	uniClause = ", " + strings.Join(Unis, ", ")
 			// }
 			// stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s, PRIMARY KEY(%s) %s) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
-			// 	wrap(tname), strings.Join(cols, ", "), strings.Join(pks, ", "), uniClause)
+			// 	wrap(tname), strings.Join(cols, ", "), strings.Join(Pks, ", "), uniClause)
 			stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s%s%s%s) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
-				wrap(tname), strings.Join(cols, ", "), tab.pk.genCreateClause(), tab.unis.genCreateClause(), tab.keys.genCreateClause())
+				wrap(tname), strings.Join(cols, ", "), tab.Pk.genCreateClause(), tab.Unis.genCreateClause(), tab.Keys.genCreateClause())
 			fmt.Println(stmt)
 			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 			if _, err := conn.Exec(stmt); err != nil {
 				return err
 			}
 		}
-		for tname, tab := range db.tableMap {
-			for _, fk := range tab.foreignKeys {
+		for tname, tab := range db.TableMap {
+			for _, fk := range tab.ForeignKeys {
 				stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", wrap(tname),
-					// wrap(fmt.Sprintf("%s_%s_%s__%s_%s_%s", dname, tname, fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol)), wrap(fk.srcCol), wrap(fk.dstDB),
-					wrap(fmt.Sprintf("%s_%s__%s_%s", tname, fk.srcCol, fk.dstTab, fk.dstCol)), wrap(fk.srcCol), wrap(fk.dstDB),
-					wrap(fk.dstTab), wrap(fk.dstCol))
+					// wrap(fmt.Sprintf("%s_%s_%s__%s_%s_%s", dname, tname, fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol)), wrap(fk.SrcCol), wrap(fk.DstDB),
+					wrap(fmt.Sprintf("%s_%s__%s_%s", tname, fk.SrcCol, fk.DstTab, fk.DstCol)), wrap(fk.SrcCol), wrap(fk.DstDB),
+					wrap(fk.DstTab), wrap(fk.DstCol))
 				fmt.Println(stmt)
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
@@ -585,16 +597,16 @@ func create() error {
 					return err
 				}
 			}
-			for _, mtm := range tab.manyToManys {
-				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", wrap(mtm.midDB), wrap(mtm.midTab), wrap(mtm.midLeftCol),
-					wrap(mtm.midRightCol))
+			for _, mtm := range tab.ManyToManys {
+				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT UNIQUE KEY(%s, %s)", wrap(mtm.MidDB), wrap(mtm.MidTab), wrap(mtm.MidLeftCol),
+					wrap(mtm.MidRightCol))
 				fmt.Println(stmt)
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
 					return err
 				}
 			}
-			for _, key := range tab.keys {
+			for _, key := range tab.Keys {
 				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD KEY %s", wrap(dname), wrap(tname), key)
 				fmt.Println(stmt)
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -622,7 +634,7 @@ func ParseAndCreate(filename string) error {
 	return nil
 }
 
-var pkg string
+var Pkg string
 var commentMap = make(map[string]string)
 
 //ParseComment parse package comments
@@ -633,8 +645,8 @@ func ParseComment(path string) error {
 		return err
 	}
 	for _, f := range d {
-		if pkg == "" {
-			pkg = f.Name
+		if Pkg == "" {
+			Pkg = f.Name
 		}
 		p := doc.New(f, path, 0)
 		for _, t := range p.Types {
@@ -646,19 +658,19 @@ func ParseComment(path string) error {
 }
 
 func initDBTabMap() {
-	for modelName, comment := range commentMap {
+	for ModelName, comment := range commentMap {
 		db, tab := parseDBName(comment), parseTabName(comment)
 		if db == "" || tab == "" {
-			panic(fmt.Errorf("nborm.initDBTabMap() error: no database name or table name (%s:%s.%s, %s)", modelName, db, tab, comment))
+			panic(fmt.Errorf("nborm.initDBTabMap() error: no database name or table name (%s:%s.%s, %s)", ModelName, db, tab, comment))
 		}
-		dbTabMap[modelName] = &dbAndTab{db, tab}
+		dbTabMap[ModelName] = &dbAndTab{db, tab}
 	}
 }
 
 var dbRe = regexp.MustCompile(`DB:([\w_]+)`)
 var tabRe = regexp.MustCompile(`Tab:([\w_]+)`)
-var primaryKeyRe = regexp.MustCompile(`PrimaryKey:([\w_]+)`)
-var keysRe = regexp.MustCompile(`Index:([\w_]+)`)
+var PrimaryKeyRe = regexp.MustCompile(`PrimaryKey:([\w_]+)`)
+var KeysRe = regexp.MustCompile(`Index:([\w_]+)`)
 var uniqueKeyRe = regexp.MustCompile(`UniqueKey:([\w_]+)`)
 
 func parseDBName(comment string) string {
@@ -678,7 +690,7 @@ func parseTabName(comment string) string {
 }
 
 func parsePrimaryKey(comment string) []string {
-	group := primaryKeyRe.FindStringSubmatch(comment)
+	group := PrimaryKeyRe.FindStringSubmatch(comment)
 	if len(group) < 2 {
 		panic(fmt.Errorf("nborm.parsePrimaryKey() error: primary key not exist (%s)", comment))
 	}
@@ -691,8 +703,8 @@ func parsePrimaryKey(comment string) []string {
 
 func parseKeys(comment string) [][]string {
 	l := make([][]string, 0, 8)
-	keys := keysRe.FindAllStringSubmatch(comment, -1)
-	for _, key := range keys {
+	Keys := KeysRe.FindAllStringSubmatch(comment, -1)
+	for _, key := range Keys {
 		keyStr := strings.Replace(key[1], " ", "", -1)
 		cols := strings.Split(keyStr, ",")
 		l = append(l, cols)
@@ -727,13 +739,15 @@ func CreateMethodFile(path string) {
 	}
 	defer f.Close()
 	infos := make(map[string]map[string]MethodInfo)
-	for dbName, db := range schemaCache.databaseMap {
+	for dbName, db := range SchemaCache.DatabaseMap {
 		infos[dbName] = make(map[string]MethodInfo)
-		for tabName, tab := range db.tableMap {
-			infos[dbName][tabName] = MethodInfo{tab.modelName, tab.pk.methodString(), tab.unis.methodString(), tab.keys.methodString()}
+		for tabName, tab := range db.TableMap {
+			if !tab.IsNewMiddleTable {
+				infos[dbName][tabName] = MethodInfo{tab.ModelName, tab.Pk.methodString(), tab.Unis.methodString(), tab.Keys.methodString()}
+			}
 		}
 	}
-	content, err := nbfmt.Fmt(methodTemplate, map[string]interface{}{"package": pkg, "infos": infos})
+	content, err := nbfmt.Fmt(methodTemplate, map[string]interface{}{"package": Pkg, "infos": infos})
 	if err != nil {
 		panic(fmt.Errorf("nborm.CreateMethodFile error(): %s", err.Error()))
 	}
@@ -744,12 +758,12 @@ func CreateMethodFile(path string) {
 }
 
 func CreateSchemaJSON(path string) {
-	f, err := os.OpenFile(filepath.Join(path, "schema.json"), os.O_CREATE|os.O_WRONLY, 0666)
+	f, err := os.OpenFile(config.SchemaFile, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic(fmt.Errorf("nborm.CreateSchemaJSON() error: %v", err))
 	}
 	defer f.Close()
-	b, err := json.Marshal(schemaCache)
+	b, err := json.MarshalIndent(SchemaCache, "", " ")
 	if err != nil {
 		panic(fmt.Errorf("nborm.CreateSchemaJSON() error: %v", err))
 	}

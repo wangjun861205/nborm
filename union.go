@@ -14,8 +14,8 @@ func (u Union) addrs() []uintptr {
 	return addrs
 }
 
-func (u Union) tabInfos() []*tableInfo {
-	tabInfos := make([]*tableInfo, len(u))
+func (u Union) tabInfos() []*TableInfo {
+	tabInfos := make([]*TableInfo, len(u))
 	for i, tab := range u {
 		tabInfos[i] = getTabInfo(tab)
 	}

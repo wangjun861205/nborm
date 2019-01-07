@@ -18,31 +18,31 @@ func (s *ModelStatus) IsSync() bool {
 	return s.isSync
 }
 
-func getStatus(addr uintptr, tabInfo *tableInfo) *ModelStatus {
-	return (*ModelStatus)(unsafe.Pointer(addr + tabInfo.modelStatus))
+func getStatus(addr uintptr, tabInfo *TableInfo) *ModelStatus {
+	return (*ModelStatus)(unsafe.Pointer(addr + tabInfo.ModelStatus))
 }
 
-func setSync(addr uintptr, tabInfo *tableInfo) {
+func setSync(addr uintptr, tabInfo *TableInfo) {
 	status := getStatus(addr, tabInfo)
 	status.isSync = true
 }
 
-func unsetSync(addr uintptr, tabInfo *tableInfo) {
+func unsetSync(addr uintptr, tabInfo *TableInfo) {
 	status := getStatus(addr, tabInfo)
 	status.isSync = false
 }
 
-func getSync(addr uintptr, tabInfo *tableInfo) bool {
+func getSync(addr uintptr, tabInfo *TableInfo) bool {
 	status := getStatus(addr, tabInfo)
 	return status.isSync
 }
 
-func setInit(addr uintptr, tabInfo *tableInfo) {
+func setInit(addr uintptr, tabInfo *TableInfo) {
 	status := getStatus(addr, tabInfo)
 	status.isInit = true
 }
 
-func getInit(addr uintptr, tabInfo *tableInfo) bool {
+func getInit(addr uintptr, tabInfo *TableInfo) bool {
 	status := getStatus(addr, tabInfo)
 	return status.isInit
 }

@@ -261,18 +261,18 @@ func getTabAddr(tab table) uintptr {
 	return *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&tab)) + uintptr(8)))
 }
 
-func setInc(addr uintptr, tabInfo *tableInfo, lastInsertId int64) {
-	if tabInfo.inc != nil {
+func setInc(addr uintptr, tabInfo *TableInfo, lastInsertId int64) {
+	if tabInfo.Inc != nil {
 		inc := getIncWithTableInfo(addr, tabInfo)
 		inc.setVal(lastInsertId, false)
 	}
 }
 
-func genUpdVals(addr uintptr, tabInfo *tableInfo) []*UpdateValue {
-	updVals := make([]*UpdateValue, 0, len(tabInfo.columns))
-	for _, colInfo := range tabInfo.columns {
+func genUpdVals(addr uintptr, tabInfo *TableInfo) []*UpdateValue {
+	updVals := make([]*UpdateValue, 0, len(tabInfo.Columns))
+	for _, colInfo := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, colInfo)
-		if !colInfo.isInc && field.IsValid() {
+		if !colInfo.IsInc && field.IsValid() {
 			updVals = append(updVals, field.updateValue())
 		}
 	}

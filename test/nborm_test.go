@@ -22,7 +22,7 @@ var tests = []struct {
 		return nborm.InsertOne(auth)
 	}},
 	{"insert many", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 0; i < 100; i++ {
 			bi := NewBookInfo()
 			bi.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -62,7 +62,7 @@ var tests = []struct {
 		return nborm.GetOne(bookInfo)
 	}},
 	{"get multiple rows", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 20; i < 80; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -106,7 +106,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"join query multiple", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		for i := 0; i < 50; i++ {
 			book := NewBook()
 			book.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -116,7 +116,7 @@ var tests = []struct {
 		if err := nborm.InsertMul(&books); err != nil {
 			return err
 		}
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		if err := nborm.JoinQuery(&bookInfos, nil, nil, nil, true, bookInfos[0].Book); err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"join query multiple and found rows", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		num, err := nborm.JoinQueryWithFoundRows(&bookInfos, nil, nil, nil, true, bookInfos[0].Book)
 		if err != nil {
 			return err
@@ -137,7 +137,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"all", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		if err := nborm.All(&bookInfos, nil, nil); err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"all and found rows", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		num, err := nborm.AllWithFoundRows(&bookInfos, nil, nil)
 		if err != nil {
 			return err
@@ -168,7 +168,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"query", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		if err := nborm.Query(&bookInfos, bookInfos[0].Isbn.Eq(fmt.Sprintf("%011d", 50)), nil, nil); err != nil {
 			return err
 		}
@@ -181,7 +181,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"query with found rows", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		num, err := nborm.QueryWithFoundRows(&bookInfos, bookInfos[0].Isbn.Eq(fmt.Sprintf("%011d", 50)), nil, nil)
 		if err != nil {
 			return err
@@ -207,7 +207,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"insert or update multiple", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -239,7 +239,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"insert or get multiple", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -271,7 +271,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"update multiple", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 10; i < 20; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -305,7 +305,7 @@ var tests = []struct {
 	}},
 	{"delete multiple", func() error {
 		checkMap := make(map[string]bool)
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 0; i < 30; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -335,7 +335,7 @@ var tests = []struct {
 		if err := nborm.BulkDelete(bookInfo, bookInfo.Author.Eq("王君")); err != nil {
 			return err
 		}
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for _, bookInfo := range bookInfos {
 			if author, _, _ := bookInfo.Author.Get(); author == "王君" {
 				return errors.New("author ('王君') still exists")
@@ -344,7 +344,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"delete all", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		if err := nborm.All(&books, nil, nil); err != nil {
 			return err
 		}
@@ -365,7 +365,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"truncate table", func() error {
-		auths := MakeAuthList()
+		auths := MakeAuthSlice(0, 128)
 		if err := nborm.All(&auths, nil, nil); err != nil {
 			return err
 		}
@@ -385,7 +385,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"count", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 100; i < 150; i++ {
 			bookInfo := NewBookInfo()
 			bookInfo.Isbn.Set(fmt.Sprintf("%011d", i))
@@ -407,7 +407,7 @@ var tests = []struct {
 		for i := 149; i >= 100; i-- {
 			checkList = append(checkList, fmt.Sprintf("%011d", i))
 		}
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		if err := nborm.Query(&bookInfos, bookInfos[0].Author.Eq("不熊"), nil, nil); err != nil {
 			return err
 		}
@@ -421,7 +421,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"distinct", func() error {
-		bookInfos := MakeBookInfoList()
+		bookInfos := MakeBookInfoSlice(0, 128)
 		if err := nborm.Query(&bookInfos, bookInfos[0].Author.Eq("不熊"), nil, nil); err != nil {
 			return err
 		}
@@ -453,7 +453,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"reverse foreign key all", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		for i := 0; i < 20; i++ {
 			book := NewBook()
 			book.Isbn.Set(fmt.Sprintf("%011d", 91))
@@ -475,7 +475,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"reverse foreign key all and found rows", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		bookInfo := NewBookInfo()
 		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
 		if num, err := bookInfo.Book.AllWithFoundRows(&books, nil, nil); err != nil {
@@ -486,7 +486,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"reverse foreign key query", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		bookInfo := NewBookInfo()
 		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
 		if err := bookInfo.Book.Query(&books, books[0].UniqueCode.Eq("100"), nil, nil); err != nil {
@@ -498,7 +498,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"reverse foreign key query and found rows", func() error {
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		bookInfo := NewBookInfo()
 		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 91))
 		if num, err := bookInfo.Book.QueryWithFoundRows(&books, books[0].UniqueCode.Eq("200"), nil, nil); err != nil {
@@ -536,7 +536,7 @@ var tests = []struct {
 		if err := nborm.InsertOne(bookInfo); err != nil {
 			return err
 		}
-		books := MakeBookList()
+		books := MakeBookSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			book := NewBook()
 			book.UniqueCode.Set(fmt.Sprintf("%08d", i))
@@ -555,7 +555,7 @@ var tests = []struct {
 		return nil
 	}},
 	{"many to many all", func() error {
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			tag := NewTag()
 			tag.Tag.Set("test")
@@ -587,7 +587,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		if num, err := bookInfo.Tag.AllWithFoundRows(&tags, nil, nil); err != nil {
 			return err
 		} else if num != 10 {
@@ -601,7 +601,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		if err := bookInfo.Tag.Query(&tags, tags[0].Tag.Eq("test"), nil, nil); err != nil {
 			return err
 		}
@@ -616,7 +616,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		if num, err := bookInfo.Tag.QueryWithFoundRows(&tags, tags[0].Tag.Eq("test"), nil, nil); err != nil {
 			return err
 		} else if num != 10 {
@@ -651,7 +651,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			tag := NewTag()
 			tag.Tag.Set("add many")
@@ -694,7 +694,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			tag := NewTag()
 			tag.Tag.Set("insert many")
@@ -716,7 +716,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return nil
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
 			return err
 		}
@@ -736,7 +736,7 @@ var tests = []struct {
 		if err := nborm.GetOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		if err := bookInfo.Tag.All(&tags, nil, nil); err != nil {
 			return err
 		}
@@ -757,7 +757,7 @@ var tests = []struct {
 		if err := nborm.InsertOne(bookInfo); err != nil {
 			return err
 		}
-		tags := MakeTagList()
+		tags := MakeTagSlice(0, 128)
 		for i := 0; i < 10; i++ {
 			tag1 := NewTag()
 			tag1.Tag.Set("bulk remove")

@@ -1,6 +1,6 @@
 package nborm
 
-var dbInfo = make(map[string]map[string]*tableInfo)
+var dbInfo = make(map[string]map[string]*TableInfo)
 
 // //OneToOneInfo OneToOne relation information in database
 // type OneToOneInfo struct {

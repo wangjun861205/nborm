@@ -41,7 +41,7 @@ func GetOne(model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.GetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.GetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	row := queryRow(tabInfo, where)
 	return scanRow(modAddr, tabInfo, row)
@@ -52,7 +52,7 @@ func GetOneInTx(tx *sql.Tx, model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.GetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.GetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	row := queryRowInTx(tx, tabInfo, where)
 	return scanRow(modAddr, tabInfo, row)
@@ -64,7 +64,7 @@ func GetMul(slice table) error {
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.GetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.GetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		row := queryRowContext(ctx, tabInfo, where)
 		return scanRow(addr, tabInfo, row)
@@ -76,7 +76,7 @@ func GetMulInTx(tx *sql.Tx, slice table) error {
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.GetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.GetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		row := queryRowContextInTx(tx, ctx, tabInfo, where)
 		return scanRow(addr, tabInfo, row)
@@ -502,7 +502,7 @@ func InsertOrGetOne(model table) error {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
 			where, typ := genWhere(modAddr, tabInfo)
 			if typ == otherType {
-				return fmt.Errorf("nborm.InsertOrGetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+				return fmt.Errorf("nborm.InsertOrGetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 			}
 			row := queryRow(tabInfo, where)
 			err := scanRow(modAddr, tabInfo, row)
@@ -526,7 +526,7 @@ func InsertOrGetOneInTx(tx *sql.Tx, model table) error {
 		if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
 			where, typ := genWhere(modAddr, tabInfo)
 			if typ == otherType {
-				return fmt.Errorf("nborm.InsertOrGetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+				return fmt.Errorf("nborm.InsertOrGetOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 			}
 			row := queryRowInTx(tx, tabInfo, where)
 			err := scanRow(modAddr, tabInfo, row)
@@ -551,7 +551,7 @@ func InsertOrGetMul(slice table) error {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
 				where, typ := genWhere(addr, tabInfo)
 				if typ == otherType {
-					return fmt.Errorf("nborm.InsertOrGetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+					return fmt.Errorf("nborm.InsertOrGetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 				}
 				row := queryRowContext(ctx, tabInfo, where)
 				err := scanRow(addr, tabInfo, row)
@@ -575,7 +575,7 @@ func InsertOrGetMulInTx(tx *sql.Tx, slice table) error {
 			if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
 				where, typ := genWhere(addr, tabInfo)
 				if typ == otherType {
-					return fmt.Errorf("nborm.InsertOrGetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+					return fmt.Errorf("nborm.InsertOrGetMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 				}
 				row := queryRowContextInTx(tx, ctx, tabInfo, where)
 				err := scanRow(addr, tabInfo, row)
@@ -597,7 +597,7 @@ func UpdateOne(model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.UpdateOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.UpdateOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	updVals := genUpdVals(modAddr, tabInfo)
 	_, err := update(tabInfo, where, updVals...)
@@ -613,7 +613,7 @@ func UpdateOneInTx(tx *sql.Tx, model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.UpdateOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.UpdateOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	updVals := genUpdVals(modAddr, tabInfo)
 	_, err := updateInTx(tx, tabInfo, where, updVals...)
@@ -631,7 +631,7 @@ func UpdateMul(slice table) error {
 		updVals := genUpdVals(addr, tabInfo)
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.UpdateMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.UpdateMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		_, err := update(tabInfo, where, updVals...)
 		if err != nil {
@@ -648,7 +648,7 @@ func UpdateMulInTx(tx *sql.Tx, slice table) error {
 		updVals := genUpdVals(addr, tabInfo)
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.UpdateMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.UpdateMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		_, err := updateInTx(tx, tabInfo, where, updVals...)
 		if err != nil {
@@ -678,7 +678,7 @@ func DeleteOne(model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.DeleteOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.DeleteOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	if _, err := delete(tabInfo, where); err != nil {
 		return err
@@ -692,7 +692,7 @@ func DeleteOneInTx(tx *sql.Tx, model table) error {
 	modAddr := getTabAddr(model)
 	where, typ := genWhere(modAddr, tabInfo)
 	if typ == otherType {
-		return fmt.Errorf("nborm.DeleteOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+		return fmt.Errorf("nborm.DeleteOne() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 	}
 	if _, err := deleteInTx(tx, tabInfo, where); err != nil {
 		return err
@@ -707,7 +707,7 @@ func DeleteMul(slice table) error {
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.DeleteMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.DeleteMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		if _, err := delete(tabInfo, where); err != nil {
 			return err
@@ -722,7 +722,7 @@ func DeleteMulInTx(tx *sql.Tx, slice table) error {
 	return iterList(slice, func(ctx context.Context, addr uintptr) error {
 		where, typ := genWhere(addr, tabInfo)
 		if typ == otherType {
-			return fmt.Errorf("nborm.DeleteMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.db, tabInfo.tab)
+			return fmt.Errorf("nborm.DeleteMul() error: no valid unique field value for locating record (%s.%s)", tabInfo.DB, tabInfo.Tab)
 		}
 		if _, err := deleteInTx(tx, tabInfo, where); err != nil {
 			return err
@@ -789,7 +789,7 @@ func Sort(slice table, funcs ...func(iaddr, jaddr uintptr) int) {
 
 //Distinct distinct Models in a ModelList by selected Fields
 func Distinct(slice table, fields ...Field) {
-	tabInfo := getTabInfoByName(slice.DB(), slice.Tab())
+	tabInfo := getTabInfo(slice)
 	distMap := make(map[string]bool)
 	f := func(addr uintptr) bool {
 		builder := strings.Builder{}

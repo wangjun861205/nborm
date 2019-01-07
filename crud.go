@@ -7,36 +7,36 @@ import (
 	"strings"
 )
 
-func insert(addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insert(addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.db, tabInfo.tab, strings.Join(colList, ", "),
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.DB, tabInfo.Tab, strings.Join(colList, ", "),
 		strings.TrimRight(strings.Repeat("?,", len(colList)), ","))
-	res, err := getConn(tabInfo.db).Exec(stmt, valList...)
+	res, err := getConn(tabInfo.DB).Exec(stmt, valList...)
 	if err != nil {
 		return -1, err
 	}
 	return res.LastInsertId()
 }
 
-func insertInTx(tx *sql.Tx, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertInTx(tx *sql.Tx, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.db, tabInfo.tab, strings.Join(colList, ", "),
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.DB, tabInfo.Tab, strings.Join(colList, ", "),
 		strings.TrimRight(strings.Repeat("?,", len(colList)), ","))
 	res, err := tx.Exec(stmt, valList...)
 	if err != nil {
@@ -45,36 +45,36 @@ func insertInTx(tx *sql.Tx, addr uintptr, tabInfo *tableInfo) (int64, error) {
 	return res.LastInsertId()
 }
 
-func insertContext(ctx context.Context, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertContext(ctx context.Context, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.db, tabInfo.tab, strings.Join(colList, ", "),
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.DB, tabInfo.Tab, strings.Join(colList, ", "),
 		strings.TrimRight(strings.Repeat("?,", len(colList)), ","))
-	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, valList...)
+	res, err := getConn(tabInfo.DB).ExecContext(ctx, stmt, valList...)
 	if err != nil {
 		return -1, err
 	}
 	return res.LastInsertId()
 }
 
-func insertContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.db, tabInfo.tab, strings.Join(colList, ", "),
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s)", tabInfo.DB, tabInfo.Tab, strings.Join(colList, ", "),
 		strings.TrimRight(strings.Repeat("?,", len(colList)), ","))
 	res, err := tx.ExecContext(ctx, stmt, valList...)
 	if err != nil {
@@ -83,42 +83,42 @@ func insertContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *t
 	return res.LastInsertId()
 }
 
-func insertOrUpdate(addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	updList := make([]string, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertOrUpdate(addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	updList := make([]string, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
-			updList = append(updList, fmt.Sprintf("%s = ?", info.colName))
+			updList = append(updList, fmt.Sprintf("%s = ?", info.ColName))
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.DB, tabInfo.Tab,
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.Inc.ColName, tabInfo.Inc.ColName,
 		strings.Join(updList, ", "))
-	res, err := getConn(tabInfo.db).Exec(stmt, append(valList, valList...)...)
+	res, err := getConn(tabInfo.DB).Exec(stmt, append(valList, valList...)...)
 	if err != nil {
 		return -1, err
 	}
 	return res.LastInsertId()
 }
 
-func insertOrUpdateInTx(tx *sql.Tx, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	updList := make([]string, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertOrUpdateInTx(tx *sql.Tx, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	updList := make([]string, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
-			updList = append(updList, fmt.Sprintf("%s = ?", info.colName))
+			updList = append(updList, fmt.Sprintf("%s = ?", info.ColName))
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.DB, tabInfo.Tab,
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.Inc.ColName, tabInfo.Inc.ColName,
 		strings.Join(updList, ", "))
 	res, err := tx.Exec(stmt, append(valList, valList...)...)
 	if err != nil {
@@ -127,42 +127,42 @@ func insertOrUpdateInTx(tx *sql.Tx, addr uintptr, tabInfo *tableInfo) (int64, er
 	return res.LastInsertId()
 }
 
-func insertOrUpdateContext(ctx context.Context, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	updList := make([]string, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertOrUpdateContext(ctx context.Context, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	updList := make([]string, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
-			updList = append(updList, fmt.Sprintf("%s = ?", info.colName))
+			updList = append(updList, fmt.Sprintf("%s = ?", info.ColName))
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.DB, tabInfo.Tab,
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.Inc.ColName, tabInfo.Inc.ColName,
 		strings.Join(updList, ", "))
-	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, append(valList, valList...)...)
+	res, err := getConn(tabInfo.DB).ExecContext(ctx, stmt, append(valList, valList...)...)
 	if err != nil {
 		return -1, err
 	}
 	return res.LastInsertId()
 }
 
-func insertOrUpdateContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *tableInfo) (int64, error) {
-	colList := make([]string, 0, len(tabInfo.columns))
-	valList := make([]interface{}, 0, len(tabInfo.columns))
-	updList := make([]string, 0, len(tabInfo.columns))
-	for _, info := range tabInfo.columns {
+func insertOrUpdateContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *TableInfo) (int64, error) {
+	colList := make([]string, 0, len(tabInfo.Columns))
+	valList := make([]interface{}, 0, len(tabInfo.Columns))
+	updList := make([]string, 0, len(tabInfo.Columns))
+	for _, info := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, info)
-		if !info.isInc && field.IsValid() {
-			colList = append(colList, info.colName)
+		if !info.IsInc && field.IsValid() {
+			colList = append(colList, info.ColName)
 			valList = append(valList, field.value())
-			updList = append(updList, fmt.Sprintf("%s = ?", info.colName))
+			updList = append(updList, fmt.Sprintf("%s = ?", info.ColName))
 		}
 	}
-	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.db, tabInfo.tab,
-		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.inc.colName, tabInfo.inc.colName,
+	stmt := fmt.Sprintf("INSERT INTO %s.%s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.DB, tabInfo.Tab,
+		strings.Join(colList, ", "), strings.Trim(strings.Repeat("?, ", len(colList)), ", "), tabInfo.Inc.ColName, tabInfo.Inc.ColName,
 		strings.Join(updList, ", "))
 	res, err := tx.ExecContext(ctx, stmt, append(valList, valList...)...)
 	if err != nil {
@@ -171,46 +171,46 @@ func insertOrUpdateContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, ta
 	return res.LastInsertId()
 }
 
-func queryRow(tabInfo *tableInfo, where *Where) *sql.Row {
+func queryRow(tabInfo *TableInfo, where *Where) *sql.Row {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
-	return getConn(tabInfo.db).QueryRow(stmt, valueList...)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
+	return getConn(tabInfo.DB).QueryRow(stmt, valueList...)
 }
 
-func queryRowInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where) *sql.Row {
+func queryRowInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where) *sql.Row {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause)
 	return tx.QueryRow(stmt, valueList...)
 }
 
-func queryRowContext(ctx context.Context, tabInfo *tableInfo, where *Where) *sql.Row {
+func queryRowContext(ctx context.Context, tabInfo *TableInfo, where *Where) *sql.Row {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
-	return getConn(tabInfo.db).QueryRowContext(ctx, stmt, valueList...)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
+	return getConn(tabInfo.DB).QueryRowContext(ctx, stmt, valueList...)
 }
 
-func queryRowContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, where *Where) *sql.Row {
+func queryRowContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, where *Where) *sql.Row {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause)
 	return tx.QueryRowContext(ctx, stmt, valueList...)
 }
 
-func queryRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
+func queryRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
-	return getConn(tabInfo.db).Query(stmt, valueList...)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
+	return getConn(tabInfo.DB).Query(stmt, valueList...)
 }
 
-func queryRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
+func queryRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
 	return tx.Query(stmt, valueList...)
 }
 
-func queryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
+func queryRowsAndFoundRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
-	tx, err := getConn(tabInfo.db).Begin()
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
+	tx, err := getConn(tabInfo.DB).Begin()
 	if err != nil {
 		tx.Rollback()
 		return nil, nil, err
@@ -223,9 +223,9 @@ func queryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pag
 	return rows, tx, nil
 }
 
-func queryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
+func queryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause,
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause,
 		sorter.toSQL(), pager.toSQL())
 	rows, err := tx.Query(stmt, valueList...)
 	if err != nil {
@@ -234,22 +234,22 @@ func queryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sor
 	return rows, tx, nil
 }
 
-func queryRowsContext(ctx context.Context, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
+func queryRowsContext(ctx context.Context, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
-	return getConn(tabInfo.db).QueryContext(ctx, stmt, valueList...)
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
+	return getConn(tabInfo.DB).QueryContext(ctx, stmt, valueList...)
 }
 
-func queryRowsContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
+func queryRowsContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
 	return tx.QueryContext(ctx, stmt, valueList...)
 }
 
-func queryRowsAndFoundRowsContext(ctx context.Context, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
+func queryRowsAndFoundRowsContext(ctx context.Context, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
-	tx, err := getConn(tabInfo.db).Begin()
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
+	tx, err := getConn(tabInfo.DB).Begin()
 	if err != nil {
 		tx.Rollback()
 		return nil, nil, err
@@ -263,9 +263,9 @@ func queryRowsAndFoundRowsContext(ctx context.Context, tabInfo *tableInfo, where
 
 }
 
-func queryRowsAndFoundRowsContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
+func queryRowsAndFoundRowsContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.db, tabInfo.tab, whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS * FROM %s.%s %s %s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, whereClause, sorter.toSQL(), pager.toSQL())
 	rows, err := tx.QueryContext(ctx, stmt, valueList...)
 	if err != nil {
 		return nil, nil, err
@@ -273,19 +273,19 @@ func queryRowsAndFoundRowsContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *
 	return rows, tx, nil
 }
 
-func delete(tabInfo *tableInfo, where *Where) (int64, error) {
+func delete(tabInfo *TableInfo, where *Where) (int64, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
-	res, err := getConn(tabInfo.db).Exec(stmt, valueList...)
+	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
+	res, err := getConn(tabInfo.DB).Exec(stmt, valueList...)
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func deleteInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where) (int64, error) {
+func deleteInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where) (int64, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
+	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
 	res, err := tx.Exec(stmt, valueList...)
 	if err != nil {
 		return -1, err
@@ -293,19 +293,19 @@ func deleteInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where) (int64, error) {
 	return res.RowsAffected()
 }
 
-func deleteContext(ctx context.Context, tabInfo *tableInfo, where *Where) (int64, error) {
+func deleteContext(ctx context.Context, tabInfo *TableInfo, where *Where) (int64, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
-	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, valueList...)
+	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
+	res, err := getConn(tabInfo.DB).ExecContext(ctx, stmt, valueList...)
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func deleteContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, where *Where) (int64, error) {
+func deleteContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, where *Where) (int64, error) {
 	whereClause, valueList := where.toClause()
-	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause)
+	stmt := fmt.Sprintf("DELETE FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause)
 	res, err := tx.ExecContext(ctx, stmt, valueList...)
 	if err != nil {
 		return -1, err
@@ -313,29 +313,29 @@ func deleteContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, wher
 	return res.RowsAffected()
 }
 
-func update(tabInfo *tableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
+func update(tabInfo *TableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
 	whereClause, valueList := where.toClause()
 	updColList := make([]string, len(updVals))
 	updValList := make([]interface{}, len(updVals))
 	for i, v := range updVals {
 		updColList[i], updValList[i] = v.toSQL()
 	}
-	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.db, tabInfo.tab, strings.Join(updColList, ", "), whereClause)
-	res, err := getConn(tabInfo.db).Exec(stmt, append(updValList, valueList...)...)
+	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.DB, tabInfo.Tab, strings.Join(updColList, ", "), whereClause)
+	res, err := getConn(tabInfo.DB).Exec(stmt, append(updValList, valueList...)...)
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func updateInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
+func updateInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
 	whereClause, valueList := where.toClause()
 	updColList := make([]string, len(updVals))
 	updValList := make([]interface{}, len(updVals))
 	for i, v := range updVals {
 		updColList[i], updValList[i] = v.toSQL()
 	}
-	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.db, tabInfo.tab, strings.Join(updColList, ", "), whereClause)
+	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.DB, tabInfo.Tab, strings.Join(updColList, ", "), whereClause)
 	res, err := tx.Exec(stmt, append(updValList, valueList...)...)
 	if err != nil {
 		return -1, err
@@ -343,29 +343,29 @@ func updateInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, updVals ...*Update
 	return res.RowsAffected()
 }
 
-func updateContext(ctx context.Context, tabInfo *tableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
+func updateContext(ctx context.Context, tabInfo *TableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
 	whereClause, valueList := where.toClause()
 	updColList := make([]string, len(updVals))
 	updValList := make([]interface{}, len(updVals))
 	for i, v := range updVals {
 		updColList[i], updValList[i] = v.toSQL()
 	}
-	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.db, tabInfo.tab, strings.Join(updColList, ", "), whereClause)
-	res, err := getConn(tabInfo.db).ExecContext(ctx, stmt, append(updValList, valueList...)...)
+	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.DB, tabInfo.Tab, strings.Join(updColList, ", "), whereClause)
+	res, err := getConn(tabInfo.DB).ExecContext(ctx, stmt, append(updValList, valueList...)...)
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func updateContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *tableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
+func updateContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, where *Where, updVals ...*UpdateValue) (int64, error) {
 	whereClause, valueList := where.toClause()
 	updColList := make([]string, len(updVals))
 	updValList := make([]interface{}, len(updVals))
 	for i, v := range updVals {
 		updColList[i], updValList[i] = v.toSQL()
 	}
-	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.db, tabInfo.tab, strings.Join(updColList, ", "), whereClause)
+	stmt := fmt.Sprintf("UPDATE %s.%s SET %s %s", tabInfo.DB, tabInfo.Tab, strings.Join(updColList, ", "), whereClause)
 	res, err := tx.ExecContext(ctx, stmt, append(updValList, valueList...)...)
 	if err != nil {
 		return -1, err
@@ -454,32 +454,32 @@ func relationCountInTx(tx *sql.Tx, relation relation, where *Where) (int, error)
 	return num, nil
 }
 
-func joinQueryRow(tabInfo *tableInfo, where *Where, relations ...relation) *sql.Row {
+func joinQueryRow(tabInfo *TableInfo, where *Where, relations ...relation) *sql.Row {
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s", tabInfo.db, tabInfo.tab, relations[0].getSrcDB(), relations[0].getSrcTab(),
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s", tabInfo.DB, tabInfo.Tab, relations[0].getSrcDB(), relations[0].getSrcTab(),
 		strings.Join(joinClauses, " "), whereClause)
-	return getConn(tabInfo.db).QueryRow(stmt, whereValues...)
+	return getConn(tabInfo.DB).QueryRow(stmt, whereValues...)
 }
 
-func joinQueryRowInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, relations ...relation) *sql.Row {
+func joinQueryRowInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, relations ...relation) *sql.Row {
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s FOR UPDATE", tabInfo.db, tabInfo.tab, relations[0].getSrcDB(), relations[0].getSrcTab(),
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s FOR UPDATE", tabInfo.DB, tabInfo.Tab, relations[0].getSrcDB(), relations[0].getSrcTab(),
 		strings.Join(joinClauses, " "), whereClause)
 	return tx.QueryRow(stmt, whereValues...)
 }
 
-func unionQueryRow(tabInfos []*tableInfo, where *Where, relations ...relation) *sql.Row {
+func unionQueryRow(tabInfos []*TableInfo, where *Where, relations ...relation) *sql.Row {
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClause := make([]string, len(relations))
 	for i, rel := range relations {
@@ -488,13 +488,13 @@ func unionQueryRow(tabInfos []*tableInfo, where *Where, relations ...relation) *
 	whereClause, whereValues := where.toClause()
 	stmt := fmt.Sprintf("SELECT %s FROM %s.%s %s %s", strings.Join(tabClause, ", "), relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClause, " "), whereClause)
-	return getConn(tabInfos[0].db).QueryRow(stmt, whereValues...)
+	return getConn(tabInfos[0].DB).QueryRow(stmt, whereValues...)
 }
 
-func unionQueryRowInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, relations ...relation) *sql.Row {
+func unionQueryRowInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, relations ...relation) *sql.Row {
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClause := make([]string, len(relations))
 	for i, rel := range relations {
@@ -506,7 +506,7 @@ func unionQueryRowInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, relation
 	return tx.QueryRow(stmt, whereValues...)
 }
 
-func joinQueryRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
+func joinQueryRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
@@ -516,12 +516,12 @@ func joinQueryRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Page
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.db, tabInfo.tab, relations[0].getSrcDB(),
+	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.DB, tabInfo.Tab, relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
-	return getConn(tabInfo.db).Query(stmt, whereValues...)
+	return getConn(tabInfo.DB).Query(stmt, whereValues...)
 }
 
-func joinQueryRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
+func joinQueryRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
@@ -531,19 +531,19 @@ func joinQueryRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sorter *Sor
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.db, tabInfo.tab, relations[0].getSrcDB(),
+	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.DB, tabInfo.Tab, relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
 	return tx.Query(stmt, whereValues...)
 }
 
-func unionQueryRows(tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
+func unionQueryRows(tabInfos []*TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
 	}
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
@@ -552,17 +552,17 @@ func unionQueryRows(tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *
 	whereClause, whereValues := where.toClause()
 	stmt := fmt.Sprintf("SELECT %s %s FROM %s.%s %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "), relations[0].getSrcDB(),
 		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
-	return getConn(tabInfos[0].db).Query(stmt, whereValues...)
+	return getConn(tabInfos[0].DB).Query(stmt, whereValues...)
 }
 
-func unionQueryRowsInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
+func unionQueryRowsInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
 	}
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
@@ -574,7 +574,7 @@ func unionQueryRowsInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, sorter 
 	return tx.Query(stmt, whereValues...)
 }
 
-func joinQueryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
+func joinQueryRowsAndFoundRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
@@ -584,9 +584,9 @@ func joinQueryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter,
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.db, tabInfo.tab,
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.DB, tabInfo.Tab,
 		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
-	tx, err := getConn(tabInfo.db).Begin()
+	tx, err := getConn(tabInfo.DB).Begin()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -598,14 +598,14 @@ func joinQueryRowsAndFoundRows(tabInfo *tableInfo, where *Where, sorter *Sorter,
 	return rows, tx, nil
 }
 
-func unionQueryRowsAndFoundRows(tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
+func unionQueryRowsAndFoundRows(tabInfos []*TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
 	}
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
@@ -614,7 +614,7 @@ func unionQueryRowsAndFoundRows(tabInfos []*tableInfo, where *Where, sorter *Sor
 	whereClause, whereValues := where.toClause()
 	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s FROM %s.%s %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "),
 		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
-	tx, err := getConn(tabInfos[0].db).Begin()
+	tx, err := getConn(tabInfos[0].DB).Begin()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -626,7 +626,7 @@ func unionQueryRowsAndFoundRows(tabInfos []*tableInfo, where *Where, sorter *Sor
 	return rows, tx, nil
 }
 
-func joinQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
+func joinQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
@@ -636,7 +636,7 @@ func joinQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where,
 		joinClauses[i] = rel.joinClause()
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.db, tabInfo.tab,
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.DB, tabInfo.Tab,
 		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
 	rows, err := tx.Query(stmt, whereValues...)
 	if err != nil {
@@ -645,14 +645,14 @@ func joinQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where,
 	return rows, tx, nil
 }
 
-func unionQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
+func unionQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, *sql.Tx, error) {
 	distMap := map[bool]string{
 		true:  "DISTINCT",
 		false: "",
 	}
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
-		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.db, tabInfo.tab)
+		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.DB, tabInfo.Tab)
 	}
 	joinClauses := make([]string, len(relations))
 	for i, rel := range relations {
@@ -668,41 +668,41 @@ func unionQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfos []*tableInfo, where *Wh
 	return rows, tx, nil
 }
 
-func deleteAll(tabInfo *tableInfo) (int64, error) {
-	res, err := getConn(tabInfo.db).Exec(fmt.Sprintf("DELETE FROM %s.%s", tabInfo.db, tabInfo.tab))
+func deleteAll(tabInfo *TableInfo) (int64, error) {
+	res, err := getConn(tabInfo.DB).Exec(fmt.Sprintf("DELETE FROM %s.%s", tabInfo.DB, tabInfo.Tab))
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func deleteAllInTx(tx *sql.Tx, tabInfo *tableInfo) (int64, error) {
-	res, err := tx.Exec(fmt.Sprintf("DELETE FROM %s.%s", tabInfo.db, tabInfo.tab))
+func deleteAllInTx(tx *sql.Tx, tabInfo *TableInfo) (int64, error) {
+	res, err := tx.Exec(fmt.Sprintf("DELETE FROM %s.%s", tabInfo.DB, tabInfo.Tab))
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func truncateTable(tabInfo *tableInfo) (int64, error) {
-	res, err := getConn(tabInfo.db).Exec(fmt.Sprintf("TRUNCATE TABLE %s.%s", tabInfo.db, tabInfo.tab))
+func truncateTable(tabInfo *TableInfo) (int64, error) {
+	res, err := getConn(tabInfo.DB).Exec(fmt.Sprintf("TRUNCATE TABLE %s.%s", tabInfo.DB, tabInfo.Tab))
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func truncateTableInTx(tx *sql.Tx, tabInfo *tableInfo) (int64, error) {
-	res, err := tx.Exec(fmt.Sprintf("TRUNCATE TABLE %s.%s", tabInfo.db, tabInfo.tab))
+func truncateTableInTx(tx *sql.Tx, tabInfo *TableInfo) (int64, error) {
+	res, err := tx.Exec(fmt.Sprintf("TRUNCATE TABLE %s.%s", tabInfo.DB, tabInfo.Tab))
 	if err != nil {
 		return -1, err
 	}
 	return res.RowsAffected()
 }
 
-func count(tabInfo *tableInfo, where *Where) (int, error) {
+func count(tabInfo *TableInfo, where *Where) (int, error) {
 	whereClause, whereValues := where.toClause()
-	row := getConn(tabInfo.db).QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause), whereValues...)
+	row := getConn(tabInfo.DB).QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause), whereValues...)
 	var num int
 	if err := row.Scan(&num); err != nil {
 		return -1, err
@@ -710,9 +710,9 @@ func count(tabInfo *tableInfo, where *Where) (int, error) {
 	return num, nil
 }
 
-func countInTx(tx *sql.Tx, tabInfo *tableInfo, where *Where) (int, error) {
+func countInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where) (int, error) {
 	whereClause, whereValues := where.toClause()
-	row := tx.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", tabInfo.db, tabInfo.tab, whereClause), whereValues...)
+	row := tx.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s", tabInfo.DB, tabInfo.Tab, whereClause), whereValues...)
 	var num int
 	if err := row.Scan(&num); err != nil {
 		return -1, err

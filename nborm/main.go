@@ -18,6 +18,7 @@ func main() {
 	}
 	path := flag.Args()[0]
 	os.Remove(filepath.Join(path, "modelMethods.go"))
+	nborm.CleanSchemaCache()
 	if err := nborm.ParseComment(path); err != nil {
 		panic(err)
 	}

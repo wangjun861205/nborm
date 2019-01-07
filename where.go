@@ -54,12 +54,6 @@ func (w *Where) toSQL() (string, []interface{}) {
 			builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", w.db, w.table, w.column, w.operator))
 			valueList = append(valueList, w.value)
 		}
-		// if w.value == "NULL" {
-		// 	builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", w.db, w.table, w.column, w.operator))
-		// } else {
-		// 	builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", w.db, w.table, w.column, w.operator))
-		// 	valueList = append(valueList, w.value)
-		// }
 	}
 	if w.next != nil {
 		nextStr, l := w.next.toSQL()
@@ -111,7 +105,7 @@ const (
 	otherType
 )
 
-func genWhere(addr uintptr, tabInfo *tableInfo) (*Where, whereType) {
+func genWhere(addr uintptr, tabInfo *TableInfo) (*Where, whereType) {
 	inc := getIncWithTableInfo(addr, tabInfo)
 	if inc != nil && inc.IsValid() {
 		return inc.where(), autoIncrementType
@@ -136,7 +130,7 @@ func genWhere(addr uintptr, tabInfo *tableInfo) (*Where, whereType) {
 	if where != nil {
 		return where, uniqueKeyType
 	}
-	for _, col := range tabInfo.columns {
+	for _, col := range tabInfo.Columns {
 		field := getFieldByColumnInfo(addr, col)
 		if field.IsValid() {
 			where = where.And(field.where())

@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"unsafe"
 )
 
-type ormType int
+type OrmType int
 
 const (
-	TypeStringField ormType = iota
+	TypeStringField OrmType = iota
 	TypeIntField
 	TypeFloatField
 	TypeBoolField
@@ -23,74 +22,78 @@ const (
 	TypeDatetimeField
 )
 
-var ormTypeMap = map[string]ormType{
-	"nborm.StringField":   TypeStringField,
-	"nborm.IntField":      TypeIntField,
-	"nborm.FloatField":    TypeFloatField,
-	"nborm.BoolField":     TypeBoolField,
-	"nborm.BinaryField":   TypeBinaryField,
-	"nborm.DateField":     TypeDateField,
-	"nborm.DatetimeField": TypeDatetimeField,
+var OrmTypeMap = map[string]OrmType{
+	"StringField":   TypeStringField,
+	"IntField":      TypeIntField,
+	"FloatField":    TypeFloatField,
+	"BoolField":     TypeBoolField,
+	"BinaryField":   TypeBinaryField,
+	"DateField":     TypeDateField,
+	"DatetimeField": TypeDatetimeField,
 }
 
-type columnInfo struct {
-	ormType   ormType
-	colName   string
-	fieldName string
-	nullable  bool
-	isInc     bool
-	isPk      bool
-	isUni     bool
-	defVal    interface{}
-	offset    uintptr
-	sqlType   string
-	charset   string
-	collate   string
+type ColumnInfo struct {
+	OrmType   OrmType
+	ColName   string
+	FieldName string
+	Nullable  bool
+	IsInc     bool
+	IsPk      bool
+	IsUni     bool
+	DefVal    interface{}
+	Offset    uintptr
+	SqlType   string
+	Charset   string
+	Collate   string
 }
 
-type oneToOneInfo struct {
-	srcCol string
-	dstDB  string
-	dstTab string
-	dstCol string
-	offset uintptr
+type OneToOneInfo struct {
+	SrcCol    string
+	DstDB     string
+	DstTab    string
+	DstCol    string
+	Offset    uintptr
+	FieldName string
 }
 
-type foreignKeyInfo struct {
-	srcCol string
-	dstDB  string
-	dstTab string
-	dstCol string
-	offset uintptr
+type ForeignKeyInfo struct {
+	SrcCol    string
+	DstDB     string
+	DstTab    string
+	DstCol    string
+	Offset    uintptr
+	FieldName string
 }
 
-type reverseForeignKeyInfo struct {
-	srcCol string
-	dstDB  string
-	dstTab string
-	dstCol string
-	offset uintptr
+type ReverseForeignKeyInfo struct {
+	SrcCol    string
+	DstDB     string
+	DstTab    string
+	DstCol    string
+	Offset    uintptr
+	FieldName string
 }
 
-type manyToManyInfo struct {
-	srcCol      string
-	midDB       string
-	midTab      string
-	midLeftCol  string
-	midRightCol string
-	dstDB       string
-	dstTab      string
-	dstCol      string
-	offset      uintptr
+type ManyToManyInfo struct {
+	SrcCol      string
+	MidDB       string
+	MidTab      string
+	MidLeftCol  string
+	MidRightCol string
+	DstDB       string
+	DstTab      string
+	DstCol      string
+	Offset      uintptr
+	FieldName   string
 }
 
-type primaryKey []*columnInfo
+type PrimaryKey []*ColumnInfo
 
-func (pk primaryKey) match(fields ...Field) bool {
-	for _, pkCol := range pk {
+func (Pk PrimaryKey) match(fields ...Field) bool {
+	for _, PkCol := range Pk {
 		get := false
 		for _, field := range fields {
-			if field.columnName() == pkCol.colName {
+			if field.columnName() == PkCol.ColName {
 				get = true
 				break
 			}
@@ -102,39 +105,39 @@ func (pk primaryKey) match(fields ...Field) bool {
 	return true
 }
 
-func (pk primaryKey) getFields(addr uintptr) []Field {
-	fields := make([]Field, len(pk))
-	for i, pkCol := range pk {
-		fields[i] = getFieldByColumnInfo(addr, pkCol)
+func (Pk PrimaryKey) getFields(addr uintptr) []Field {
+	fields := make([]Field, len(Pk))
+	for i, PkCol := range Pk {
+		fields[i] = getFieldByColumnInfo(addr, PkCol)
 	}
 	return fields
 }
 
-func (pk primaryKey) genCreateClause() string {
-	l := make([]string, len(pk))
-	for i, col := range pk {
-		l[i] = wrap(col.colName)
+func (Pk PrimaryKey) genCreateClause() string {
+	l := make([]string, len(Pk))
+	for i, col := range Pk {
+		l[i] = wrap(col.ColName)
 	}
 	return fmt.Sprintf(", PRIMARY KEY (%s)", strings.Join(l, ", "))
 }
 
-func (pk primaryKey) methodString() string {
-	l := make([]string, len(pk))
-	for i, col := range pk {
-		l[i] = fmt.Sprintf("%q", col.colName)
+func (Pk PrimaryKey) methodString() string {
+	l := make([]string, len(Pk))
+	for i, col := range Pk {
+		l[i] = fmt.Sprintf("%q", col.ColName)
 	}
 	return fmt.Sprintf("return []string{ %s }", strings.Join(l, ", "))
 }
 
-type uniqueKeys [][]*columnInfo
+type UniqueKeys [][]*ColumnInfo
 
-func (uks uniqueKeys) match(fields ...Field) (int, bool) {
+func (uks UniqueKeys) match(fields ...Field) (int, bool) {
 	for i, uk := range uks {
 		fit := true
 		for _, col := range uk {
 			get := false
 			for _, field := range fields {
-				if col.colName == field.columnName() {
+				if col.ColName == field.columnName() {
 					get = true
 					break
 				}
@@ -151,7 +154,7 @@ func (uks uniqueKeys) match(fields ...Field) (int, bool) {
 	return -1, false
 }
 
-func (uks uniqueKeys) getFields(addr uintptr, ukIndex int) []Field {
+func (uks UniqueKeys) getFields(addr uintptr, ukIndex int) []Field {
 	uk := uks[ukIndex]
 	fields := make([]Field, len(uk))
 	for i, ukCol := range uk {
@@ -160,136 +163,259 @@ func (uks uniqueKeys) getFields(addr uintptr, ukIndex int) []Field {
 	return fields
 }
 
-func (uks uniqueKeys) genCreateClause() string {
+func (uks UniqueKeys) genCreateClause() string {
 	keyList := make([]string, len(uks))
 	for i, key := range uks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = wrap(col.colName)
+			colList[j] = wrap(col.ColName)
 		}
 		keyList[i] = fmt.Sprintf(", UNIQUE KEY (%s)", strings.Join(colList, ", "))
 	}
 	return strings.Join(keyList, ", ")
 }
 
-func (uks uniqueKeys) methodString() string {
+func (uks UniqueKeys) methodString() string {
 	keyList := make([]string, len(uks))
 	for i, key := range uks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = fmt.Sprintf("%q", col.colName)
+			colList[j] = fmt.Sprintf("%q", col.ColName)
 		}
 		keyList[i] = fmt.Sprintf("[]string{ %s },\n", strings.Join(colList, ", "))
 	}
-	return fmt.Sprintf(`[][]string{ 
+	return fmt.Sprintf(`return [][]string{ 
 		%s 
 	}`, strings.Join(keyList, ", "))
 }
 
-type keys [][]*columnInfo
+type Keys [][]*ColumnInfo
 
-func (ks keys) genCreateClause() string {
+func (ks Keys) genCreateClause() string {
 	keyList := make([]string, len(ks))
 	for i, key := range ks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = wrap(col.colName)
+			colList[j] = wrap(col.ColName)
 		}
 		keyList[i] = fmt.Sprintf(", KEY (%s)", strings.Join(colList, ", "))
 	}
 	return strings.Join(keyList, ", ")
 }
 
-func (ks keys) methodString() string {
+func (ks Keys) methodString() string {
 	keyList := make([]string, len(ks))
 	for i, key := range ks {
 		colList := make([]string, len(key))
 		for j, col := range key {
-			colList[j] = fmt.Sprintf("%q", col.colName)
+			colList[j] = fmt.Sprintf("%q", col.ColName)
 		}
 		keyList[i] = fmt.Sprintf("[]string{ %s },\n", strings.Join(colList, ", "))
 	}
-	return fmt.Sprintf(`[][]string{ 
+	return fmt.Sprintf(`return [][]string{ 
 		%s 
 	}`, strings.Join(keyList, ", "))
 }
 
-type tableInfo struct {
-	db                 string
-	tab                string
-	modelType          reflect.Type
-	modelName          string
-	columns            []*columnInfo
-	columnMap          map[string]*columnInfo
-	oneToOnes          []*oneToOneInfo
-	foreignKeys        []*foreignKeyInfo
-	reverseForeignKeys []*reverseForeignKeyInfo
-	manyToManys        []*manyToManyInfo
-	inc                *columnInfo
-	pk                 primaryKey
-	pkNames            []string
-	unis               uniqueKeys
-	uniNames           [][]string
-	keys               keys
-	keyNames           [][]string
-	modelStatus        uintptr
-	isComplete         bool
-	isNewMiddleTable   bool
+type TableInfo struct {
+	DB                 string
+	Tab                string
+	ModelType          reflect.Type
+	ModelName          string
+	Columns            []*ColumnInfo
+	ColumnMap          map[string]*ColumnInfo
+	OneToOnes          []*OneToOneInfo
+	ForeignKeys        []*ForeignKeyInfo
+	ReverseForeignKeys []*ReverseForeignKeyInfo
+	ManyToManys        []*ManyToManyInfo
+	Inc                *ColumnInfo
+	Pk                 PrimaryKey
+	PkNames            []string
+	Unis               UniqueKeys
+	UniNames           [][]string
+	Keys               Keys
+	KeyNames           [][]string
+	ModelStatus        uintptr
+	IsComplete         bool
+	IsNewMiddleTable   bool
 }
 
-func (ti *tableInfo) lookupColInfoByFieldName(fieldName string) *columnInfo {
-	for _, colInfo := range ti.columns {
-		if colInfo.fieldName == fieldName {
+func (ti *TableInfo) lookupColInfoByFieldName(FieldName string) *ColumnInfo {
+	for _, colInfo := range ti.Columns {
+		if colInfo.FieldName == FieldName {
 			return colInfo
 		}
 	}
 	return nil
 }
 
-type databaseInfo struct {
-	tables   []*tableInfo
-	tableMap map[string]*tableInfo
+func (ti *TableInfo) complement(tab table) {
+	modelType := reflect.TypeOf(tab).Elem()
+	if modelType.Kind() == reflect.Slice || modelType.Kind() == reflect.Array {
+		modelType = modelType.Elem().Elem()
+	}
+	ti.ModelType = modelType
+	for _, col := range ti.Columns {
+		field, ok := modelType.FieldByName(col.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find field (%s.%s)", modelType.String(), col.FieldName))
+		}
+		col.Offset = field.Offset
+	}
+	for _, col := range ti.ColumnMap {
+		field, ok := modelType.FieldByName(col.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find field (%s.%s)", modelType.String(), col.FieldName))
+		}
+		col.Offset = field.Offset
+	}
+	for _, oto := range ti.OneToOnes {
+		field, ok := modelType.FieldByName(oto.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find one to one field (%s.%s)", modelType.String(), oto.FieldName))
+		}
+		oto.Offset = field.Offset
+	}
+	for _, fk := range ti.ForeignKeys {
+		field, ok := modelType.FieldByName(fk.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find foreign key field (%s.%s)", modelType.String(), fk.FieldName))
+		}
+		fk.Offset = field.Offset
+	}
+	for _, rfk := range ti.ReverseForeignKeys {
+		field, ok := modelType.FieldByName(rfk.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find reverse foreign key field (%s.%s)", modelType.String(), rfk.FieldName))
+		}
+		rfk.Offset = field.Offset
+
+	}
+	for _, mtm := range ti.ManyToManys {
+		field, ok := modelType.FieldByName(mtm.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find many to many field (%s.%s)", modelType.String(), mtm.FieldName))
+		}
+		mtm.Offset = field.Offset
+	}
+	for _, col := range ti.Pk {
+		field, ok := modelType.FieldByName(col.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find primary key field (%s.%s)", modelType.String(), col.FieldName))
+		}
+		col.Offset = field.Offset
+	}
+	for _, uniqueKey := range ti.Unis {
+		for _, col := range uniqueKey {
+			field, ok := modelType.FieldByName(col.FieldName)
+			if !ok {
+				panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find unique key field (%s.%s)", modelType.String(), col.FieldName))
+			}
+			col.Offset = field.Offset
+		}
+	}
+	for _, key := range ti.Keys {
+		for _, col := range key {
+			field, ok := modelType.FieldByName(col.FieldName)
+			if !ok {
+				panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find key field (%s.%s)", modelType.String(), col.FieldName))
+			}
+			col.Offset = field.Offset
+		}
+	}
+	if ti.Inc != nil {
+		field, ok := modelType.FieldByName(ti.Inc.FieldName)
+		if !ok {
+			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find auto increment field (%s.%s)", modelType.String(), ti.Inc.FieldName))
+		}
+		ti.Inc.Offset = field.Offset
+	}
+	var gotModelStatus bool
+	for i := 0; i < modelType.NumField(); i++ {
+		field := modelType.Field(i)
+		if field.Type.String() == "nborm.ModelStatus" {
+			ti.ModelStatus = field.Offset
+			gotModelStatus = true
+			break
+		}
+	}
+	if !gotModelStatus {
+		panic(fmt.Errorf("nborm.TabInfo.complement() error: ModelStatus field not exists (%s)", modelType.String()))
+	}
+	ti.IsComplete = true
 }
 
-func (si *databaseInfo) getOrCreate(tabName string) *tableInfo {
-	if info, ok := si.tableMap[tabName]; ok {
+type DatabaseInfo struct {
+	Tables   []*TableInfo
+	TableMap map[string]*TableInfo
+}
+
+func (si *DatabaseInfo) getOrCreate(tabName string) *TableInfo {
+	if info, ok := si.TableMap[tabName]; ok {
 		return info
 	} else {
-		info = &tableInfo{
-			columns:            make([]*columnInfo, 0, 32),
-			columnMap:          make(map[string]*columnInfo),
-			oneToOnes:          make([]*oneToOneInfo, 0, 8),
-			foreignKeys:        make([]*foreignKeyInfo, 0, 8),
-			reverseForeignKeys: make([]*reverseForeignKeyInfo, 0, 8),
-			manyToManys:        make([]*manyToManyInfo, 0, 8),
-			pk:                 make(primaryKey, 0, 8),
-			unis:               make(uniqueKeys, 0, 8),
-			keys:               make(keys, 0, 8),
+		info = &TableInfo{
+			Columns:            make([]*ColumnInfo, 0, 32),
+			ColumnMap:          make(map[string]*ColumnInfo),
+			OneToOnes:          make([]*OneToOneInfo, 0, 8),
+			ForeignKeys:        make([]*ForeignKeyInfo, 0, 8),
+			ReverseForeignKeys: make([]*ReverseForeignKeyInfo, 0, 8),
+			ManyToManys:        make([]*ManyToManyInfo, 0, 8),
+			Pk:                 make(PrimaryKey, 0, 8),
+			Unis:               make(UniqueKeys, 0, 8),
+			Keys:               make(Keys, 0, 8),
 		}
-		si.tables = append(si.tables, info)
-		si.tableMap[tabName] = info
+		si.Tables = append(si.Tables, info)
+		si.TableMap[tabName] = info
 		return info
 	}
 }
 
-type schemaInfo struct {
-	databases   []*databaseInfo
-	databaseMap map[string]*databaseInfo
+type SchemaInfo struct {
+	Databases   []*DatabaseInfo
+	DatabaseMap map[string]*DatabaseInfo
+	mux         sync.RWMutex
 }
 
-func (si *schemaInfo) getOrCreate(dbName string) *databaseInfo {
-	if db, ok := si.databaseMap[dbName]; ok {
+func (si *SchemaInfo) getOrCreate(dbName string) *DatabaseInfo {
+	if db, ok := si.DatabaseMap[dbName]; ok {
 		return db
 	} else {
-		dbInfo := &databaseInfo{make([]*tableInfo, 0, 16), make(map[string]*tableInfo)}
-		si.databases = append(si.databases, dbInfo)
-		si.databaseMap[dbName] = dbInfo
+		dbInfo := &DatabaseInfo{make([]*TableInfo, 0, 16), make(map[string]*TableInfo)}
+		si.Databases = append(si.Databases, dbInfo)
+		si.DatabaseMap[dbName] = dbInfo
 		return dbInfo
 	}
 }
 
-var schemaCache = schemaInfo{make([]*databaseInfo, 0, 16), make(map[string]*databaseInfo)}
-var schemaLock sync.RWMutex
+func (si *SchemaInfo) getTabInfo(tab table) *TableInfo {
+	si.mux.RLock()
+	defer si.mux.RUnlock()
+	dbName, tabName := tab.DB(), tab.Tab()
+	dbInfo, ok := si.DatabaseMap[dbName]
+	if !ok {
+		panic(fmt.Errorf("nborm.SchemaInfo.getTabInfo() error: database not exist (%s)", dbName))
+	}
+	tabInfo, ok := dbInfo.TableMap[tabName]
+	if !ok {
+		panic(fmt.Errorf("nborm.SchemaInfo.getTabInfo() error: table not exists (%s.%s)", dbName, tabName))
+	}
+	return tabInfo
+}
+
+var SchemaCache = SchemaInfo{
+	make([]*DatabaseInfo, 0, 16),
+	make(map[string]*DatabaseInfo),
+	sync.RWMutex{},
+}
+
+func CleanSchemaCache() {
+	SchemaCache = SchemaInfo{
+		make([]*DatabaseInfo, 0, 16),
+		make(map[string]*DatabaseInfo),
+		sync.RWMutex{},
+	}
+}
 
 var sqlConstRe = regexp.MustCompile(`^@'(.+)'$`)
 var sqlStringRe = regexp.MustCompile(`^s'(.*)'$`)
@@ -298,384 +424,356 @@ var sqlFloatRe = regexp.MustCompile(`^f'(.*)'$`)
 var sqlBoolRe = regexp.MustCompile(`^b'(true|false)'$`)
 var sqlBinaryRe = regexp.MustCompile(`^x'.*'$`)
 
-func parseColumn(field reflect.StructField) *columnInfo {
-	c := &columnInfo{}
-	c.offset = field.Offset
-	var ok bool
-	c.ormType, ok = ormTypeMap[field.Type.String()]
-	if !ok {
-		panic(fmt.Errorf("nborm.parseColumn() error: unsupported field type (%s)", field.Type.Name()))
-	}
-	if colName, ok := field.Tag.Lookup("column"); !ok {
-		c.colName = wrap(toSnakeCase(field.Name))
-	} else {
-		c.colName = wrap(colName)
-	}
-	// if c.colName, ok = field.Tag.Lookup("column"); !ok {
-	// 	c.colName = toSnakeCase(field.Name)
-	// }
-	if nullable, ok := field.Tag.Lookup("nullable"); ok && nullable == "true" {
-		c.nullable = true
-	}
-	if isInc, ok := field.Tag.Lookup("auto_increment"); ok && c.ormType == TypeIntField && isInc == "true" {
-		c.isInc = true
-	}
-	if isPk, ok := field.Tag.Lookup("primary_key"); ok && isPk == "true" {
-		c.isPk = true
-	}
-	if isUni, ok := field.Tag.Lookup("unique"); ok && isUni == "true" {
-		c.isUni = true
-	}
-	if defVal, ok := field.Tag.Lookup("default_value"); ok {
-		if group := sqlConstRe.FindStringSubmatch(defVal); len(group) > 1 {
-			c.defVal = group[1]
-		} else {
-			var err error
-			errInvalidDefaultValue := fmt.Errorf("nborm.parseColumn() error: invalid default value (%s) for field (%s)", defVal, field.Name)
-			switch c.ormType {
-			case TypeStringField, TypeDateField, TypeDatetimeField:
-				if group := sqlStringRe.FindStringSubmatch(defVal); len(group) > 1 {
-					c.defVal = fmt.Sprintf("%q", group[1])
-				} else {
-					panic(errInvalidDefaultValue)
-				}
-			case TypeIntField:
-				if group := sqlIntRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseInt(group[1], 10, 64); err != nil {
-						panic(err)
-					}
-				} else {
-					panic(errInvalidDefaultValue)
-				}
-			case TypeFloatField:
-				if group := sqlFloatRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseFloat(group[1], 64); err != nil {
-						panic(err)
-					}
-				} else {
-					panic(errInvalidDefaultValue)
-				}
-			case TypeBoolField:
-				if group := sqlBoolRe.FindStringSubmatch(defVal); len(group) > 1 {
-					if c.defVal, err = strconv.ParseBool(group[1]); err != nil {
-						panic(err)
-					}
-				} else {
-					panic(errInvalidDefaultValue)
-				}
-			case TypeBinaryField:
-				if sqlBinaryRe.MatchString(defVal) {
-					c.defVal = defVal
-				} else {
-					panic(errInvalidDefaultValue)
-				}
-			}
-		}
-	}
-	return c
-}
+// func parseColumn(field reflect.StructField) *ColumnInfo {
+// 	c := &ColumnInfo{}
+// 	c.Offset = field.Offset
+// 	var ok bool
+// 	c.OrmType, ok = OrmTypeMap[field.Type.String()]
+// 	if !ok {
+// 		panic(fmt.Errorf("nborm.parseColumn() error: unsupported field type (%s)", field.Type.Name()))
+// 	}
+// 	if ColName, ok := field.Tag.Lookup("column"); !ok {
+// 		c.ColName = wrap(toSnakeCase(field.Name))
+// 	} else {
+// 		c.ColName = wrap(ColName)
+// 	}
+// 	if Nullable, ok := field.Tag.Lookup("Nullable"); ok && Nullable == "true" {
+// 		c.Nullable = true
+// 	}
+// 	if IsInc, ok := field.Tag.Lookup("auto_Increment"); ok && c.OrmType == TypeIntField && IsInc == "true" {
+// 		c.IsInc = true
+// 	}
+// 	if IsPk, ok := field.Tag.Lookup("primary_key"); ok && IsPk == "true" {
+// 		c.IsPk = true
+// 	}
+// 	if IsUni, ok := field.Tag.Lookup("unique"); ok && IsUni == "true" {
+// 		c.IsUni = true
+// 	}
+// 	if DefVal, ok := field.Tag.Lookup("default_value"); ok {
+// 		if group := sqlConstRe.FindStringSubmatch(DefVal); len(group) > 1 {
+// 			c.DefVal = group[1]
+// 		} else {
+// 			var err error
+// 			errInvalidDefaultValue := fmt.Errorf("nborm.parseColumn() error: invalid default value (%s) for field (%s)", DefVal, field.Name)
+// 			switch c.OrmType {
+// 			case TypeStringField, TypeDateField, TypeDatetimeField:
+// 				if group := sqlStringRe.FindStringSubmatch(DefVal); len(group) > 1 {
+// 					c.DefVal = fmt.Sprintf("%q", group[1])
+// 				} else {
+// 					panic(errInvalidDefaultValue)
+// 				}
+// 			case TypeIntField:
+// 				if group := sqlIntRe.FindStringSubmatch(DefVal); len(group) > 1 {
+// 					if c.DefVal, err = strconv.ParseInt(group[1], 10, 64); err != nil {
+// 						panic(err)
+// 					}
+// 				} else {
+// 					panic(errInvalidDefaultValue)
+// 				}
+// 			case TypeFloatField:
+// 				if group := sqlFloatRe.FindStringSubmatch(DefVal); len(group) > 1 {
+// 					if c.DefVal, err = strconv.ParseFloat(group[1], 64); err != nil {
+// 						panic(err)
+// 					}
+// 				} else {
+// 					panic(errInvalidDefaultValue)
+// 				}
+// 			case TypeBoolField:
+// 				if group := sqlBoolRe.FindStringSubmatch(DefVal); len(group) > 1 {
+// 					if c.DefVal, err = strconv.ParseBool(group[1]); err != nil {
+// 						panic(err)
+// 					}
+// 				} else {
+// 					panic(errInvalidDefaultValue)
+// 				}
+// 			case TypeBinaryField:
+// 				if sqlBinaryRe.MatchString(DefVal) {
+// 					c.DefVal = DefVal
+// 				} else {
+// 					panic(errInvalidDefaultValue)
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return c
+// }
 
 // func getSrcCol(field reflect.StructField) string {
-// 	if srcCol, ok := field.Tag.Lookup("source_column"); !ok {
+// 	if SrcCol, ok := field.Tag.Lookup("src_col"); !ok {
 // 		panic(fmt.Errorf("nborm.getSrcCol() error: no source column tag for field (%s)", field.Name))
 // 	} else {
-// 		return srcCol
+// 		return wrap(SrcCol)
 // 	}
 // }
 
-func getSrcCol(field reflect.StructField) string {
-	if srcCol, ok := field.Tag.Lookup("src_col"); !ok {
-		panic(fmt.Errorf("nborm.getSrcCol() error: no source column tag for field (%s)", field.Name))
-	} else {
-		return wrap(srcCol)
-	}
-}
-
-// func getDstCol(field reflect.StructField) (dstDB, dstTab, dstCol string) {
-// 	if dstCol, ok := field.Tag.Lookup("destination_column"); !ok {
-// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
-// 	} else {
-// 		l := strings.Split(dstCol, ".")
-// 		if len(l) != 3 {
-// 			panic(fmt.Errorf("nborm.getDstCol() error: invalid destination column tag (%s) for field (%s)", dstCol, field.Name))
-// 		}
-// 		return l[0], l[1], l[2]
-// 	}
-// }
-
-func getDstCol(field reflect.StructField) (dstDB, dstTab, dstCol string) {
-	var ok bool
-	if dstDB, ok = field.Tag.Lookup("dst_db"); !ok {
-		panic(fmt.Errorf("nborm.getDstCol() error: no destination database tag for field (%s)", field.Name))
-	}
-	if dstTab, ok = field.Tag.Lookup("dst_tab"); !ok {
-		panic(fmt.Errorf("nborm.getDstCol() error: no destination table tag for field (%s)", field.Name))
-	}
-	if dstCol, ok = field.Tag.Lookup("dst_col"); !ok {
-		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
-	}
-	dstDB, dstTab, dstCol = wrap(dstDB), wrap(dstTab), wrap(dstCol)
-	return
-}
-
-// func getMidCol(field reflect.StructField) (midDB, midTab, midLeftCol, midRightCol string) {
+// func getDstCol(field reflect.StructField) (DstDB, DstTab, DstCol string) {
 // 	var ok bool
-// 	if midDB, ok = field.Tag.Lookup("middle_database"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
+// 	if DstDB, ok = field.Tag.Lookup("dst_db"); !ok {
+// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination database tag for field (%s)", field.Name))
 // 	}
-// 	if midTab, ok = field.Tag.Lookup("middle_table"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
+// 	if DstTab, ok = field.Tag.Lookup("dst_tab"); !ok {
+// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination table tag for field (%s)", field.Name))
 // 	}
-// 	if midLeftCol, ok = field.Tag.Lookup("middle_left_column"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
+// 	if DstCol, ok = field.Tag.Lookup("dst_col"); !ok {
+// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
 // 	}
-// 	if midRightCol, ok = field.Tag.Lookup("middle_right_column"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
-// 	}
+// 	DstDB, DstTab, DstCol = wrap(DstDB), wrap(DstTab), wrap(DstCol)
 // 	return
 // }
 
-func getMidCol(field reflect.StructField) (midDB, midTab, midLeftCol, midRightCol string) {
-	var ok bool
-	if midDB, ok = field.Tag.Lookup("mid_db"); !ok {
-		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
+// func getMidCol(field reflect.StructField) (MidDB, MidTab, MidLeftCol, MidRightCol string) {
+// 	var ok bool
+// 	if MidDB, ok = field.Tag.Lookup("mid_db"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
+// 	}
+// 	if MidTab, ok = field.Tag.Lookup("mid_tab"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
+// 	}
+// 	if MidLeftCol, ok = field.Tag.Lookup("mid_left_col"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
+// 	}
+// 	if MidRightCol, ok = field.Tag.Lookup("mid_right_col"); !ok {
+// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
+// 	}
+// 	MidDB, MidTab, MidLeftCol, MidRightCol = wrap(MidDB), wrap(MidTab), wrap(MidLeftCol), wrap(MidRightCol)
+// 	return
+// }
+
+// func parseOneToOne(field reflect.StructField) *OneToOneInfo {
+// 	o := &OneToOneInfo{}
+// 	o.SrcCol = getSrcCol(field)
+// 	o.DstDB, o.DstTab, o.DstCol = getDstCol(field)
+// 	o.Offset = field.Offset
+// 	return o
+// }
+
+// func parseForeignKey(field reflect.StructField) *ForeignKeyInfo {
+// 	f := &ForeignKeyInfo{}
+// 	f.SrcCol = getSrcCol(field)
+// 	f.DstDB, f.DstTab, f.DstCol = getDstCol(field)
+// 	f.Offset = field.Offset
+// 	return f
+// }
+
+// func parseReverseForeignKey(field reflect.StructField) *ReverseForeignKeyInfo {
+// 	r := &ReverseForeignKeyInfo{}
+// 	r.SrcCol = getSrcCol(field)
+// 	r.DstDB, r.DstTab, r.DstCol = getDstCol(field)
+// 	r.Offset = field.Offset
+// 	return r
+// }
+
+// func parseManyToMany(field reflect.StructField) *ManyToManyInfo {
+// 	m := &ManyToManyInfo{}
+// 	m.SrcCol = getSrcCol(field)
+// 	m.MidDB, m.MidTab, m.MidLeftCol, m.MidRightCol = getMidCol(field)
+// 	m.DstDB, m.DstTab, m.DstCol = getDstCol(field)
+// 	m.Offset = field.Offset
+// 	return m
+// }
+
+// func parseTable(table table) *TableInfo {
+// 	dbName, tabName := wrap(table.DB()), wrap(table.Tab())
+// 	tabInfo := &TableInfo{DB: dbName, Tab: tabName, ColumnMap: make(map[string]*ColumnInfo)}
+// 	var haveModelStatus bool
+// 	typ := reflect.TypeOf(table)
+// 	if typ.Kind() != reflect.Ptr {
+// 		panic(fmt.Errorf("nborm.parseTable() error: require a pointer but supported (%s)", typ.Name()))
+// 	}
+// 	elem := typ.Elem()
+// 	kind := elem.Kind()
+// 	var stct reflect.Type
+// 	switch kind {
+// 	case reflect.Struct:
+// 		stct = elem
+// 	case reflect.Array, reflect.Slice:
+// 		sElem := elem.Elem()
+// 		if sElem.Kind() != reflect.Ptr {
+// 			panic(fmt.Errorf("nborm.parseTable() error: require a array of struct pointer (%s)", typ.Name()))
+// 		}
+// 		stct = sElem.Elem()
+// 		if stct.Kind() != reflect.Struct {
+// 			panic(fmt.Errorf("nborm.parseTable() error: the type of element of slice(array) is not a struct pointer (%s)", typ.Name()))
+// 		}
+// 	default:
+// 		panic(fmt.Errorf("nborm.parseTable() error: object must be a struct or array of struct pointer (%s)", typ.Name()))
+// 	}
+// 	tabInfo.ModelType = stct
+// 	for i := 0; i < stct.NumField(); i++ {
+// 		field := stct.Field(i)
+// 		switch field.Type.String() {
+// 		case "nborm.StringField", "nborm.IntField", "nborm.FloatField", "nborm.BoolField", "nborm.BinaryField", "nborm.DateField",
+// 			"nborm.DatetimeField":
+// 			colInfo := parseColumn(field)
+// 			tabInfo.ColumnMap[colInfo.ColName] = colInfo
+// 			tabInfo.Columns = append(tabInfo.Columns, colInfo)
+// 			if colInfo.IsInc {
+// 				if tabInfo.Inc != nil {
+// 					panic(fmt.Errorf("nborm.parseTable() error: multiple auto Increment Columns (%s)", typ.Name()))
+// 				}
+// 				tabInfo.Inc = colInfo
+// 			}
+// 			if colInfo.IsPk {
+// 				tabInfo.Pk = append(tabInfo.Pk, colInfo)
+// 			}
+// 		case "nborm.OneToOne":
+// 			otoInfo := parseOneToOne(field)
+// 			tabInfo.OneToOnes = append(tabInfo.OneToOnes, otoInfo)
+// 		case "nborm.ForeignKey":
+// 			fkInfo := parseForeignKey(field)
+// 			tabInfo.ForeignKeys = append(tabInfo.ForeignKeys, fkInfo)
+// 		case "nborm.ReverseForeignKey":
+// 			rfkInfo := parseReverseForeignKey(field)
+// 			tabInfo.ReverseForeignKeys = append(tabInfo.ReverseForeignKeys, rfkInfo)
+// 		case "nborm.ManyToMany":
+// 			mtmInfo := parseManyToMany(field)
+// 			tabInfo.ManyToManys = append(tabInfo.ManyToManys, mtmInfo)
+// 		case "nborm.ModelStatus":
+// 			if haveModelStatus {
+// 				panic(fmt.Errorf("nborm.parseTable() error: multiple ModelStatus field (%s)", typ.Name()))
+// 			}
+// 			tabInfo.ModelStatus = field.Offset
+// 			haveModelStatus = true
+// 		}
+// 	}
+// 	if len(tabInfo.Pk) == 0 {
+// 		panic(fmt.Errorf("nborm.parseTable() error: no primary key in %s.%s", dbName, tabName))
+// 	}
+// 	if !haveModelStatus {
+// 		panic(fmt.Errorf("nborm.parseTable() error: no ModelStatus field in %s.%s", dbName, tabName))
+// 	}
+// 	return tabInfo
+// }
+
+// func getTabInfo(table table) *TableInfo {
+// 	db, tab := wrap(table.DB()), wrap(table.Tab())
+// 	schemaLock.RLock()
+// 	dbInfo, ok := SchemaCache.DatabaseMap[db]
+// 	if !ok {
+// 		schemaLock.RUnlock()
+// 		tInfo := parseTable(table)
+// 		dInfo := &DatabaseInfo{Tables: []*TableInfo{tInfo}, TableMap: map[string]*TableInfo{tab: tInfo}}
+// 		schemaLock.Lock()
+// 		SchemaCache.Databases = append(SchemaCache.Databases, dInfo)
+// 		SchemaCache.DatabaseMap[db] = dInfo
+// 		schemaLock.Unlock()
+// 		return tInfo
+// 	}
+// 	tabInfo, ok := dbInfo.TableMap[tab]
+// 	if !ok {
+// 		schemaLock.RUnlock()
+// 		tInfo := parseTable(table)
+// 		schemaLock.Lock()
+// 		dbInfo.Tables = append(dbInfo.Tables, tInfo)
+// 		dbInfo.TableMap[tab] = tInfo
+// 		schemaLock.Unlock()
+// 		return tInfo
+// 	}
+// 	schemaLock.RUnlock()
+// 	return tabInfo
+// }
+
+// func getTabInfoByName(db, tab string) *TableInfo {
+// 	SchemaCache.mux.RLock()
+// 	if dbInfo, ok := SchemaCache.DatabaseMap[db]; !ok {
+// 		SchemaCache.mux.RUnlock()
+// 		panic(fmt.Errorf("nborm.getTabInfoByName() error: database not exists (%s)", db))
+// 	} else {
+// 		if tabInfo, ok := dbInfo.TableMap[tab]; !ok {
+// 			SchemaCache.mux.RUnlock()
+// 			panic(fmt.Errorf("nborm.getTabInfoByName() error: table not exists (%s.%s)", db, tab))
+// 		} else {
+// 			if !tabInfo.IsComplete {
+// 				SchemaCache.mux.RUnlock()
+// 				SchemaCache.mux.Lock()
+// 				info.
+// 			}
+// 		}
+// 	}
+// }
+
+func getTabInfo(tab table) *TableInfo {
+	info := SchemaCache.getTabInfo(tab)
+	if !info.IsComplete {
+		SchemaCache.mux.Lock()
+		info.complement(tab)
+		SchemaCache.mux.Unlock()
 	}
-	if midTab, ok = field.Tag.Lookup("mid_tab"); !ok {
-		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
-	}
-	if midLeftCol, ok = field.Tag.Lookup("mid_left_col"); !ok {
-		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
-	}
-	if midRightCol, ok = field.Tag.Lookup("mid_right_col"); !ok {
-		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
-	}
-	midDB, midTab, midLeftCol, midRightCol = wrap(midDB), wrap(midTab), wrap(midLeftCol), wrap(midRightCol)
-	return
+	return info
 }
 
-func parseOneToOne(field reflect.StructField) *oneToOneInfo {
-	o := &oneToOneInfo{}
-	o.srcCol = getSrcCol(field)
-	o.dstDB, o.dstTab, o.dstCol = getDstCol(field)
-	o.offset = field.Offset
-	return o
-}
-
-func parseForeignKey(field reflect.StructField) *foreignKeyInfo {
-	f := &foreignKeyInfo{}
-	f.srcCol = getSrcCol(field)
-	f.dstDB, f.dstTab, f.dstCol = getDstCol(field)
-	f.offset = field.Offset
-	return f
-}
-
-func parseReverseForeignKey(field reflect.StructField) *reverseForeignKeyInfo {
-	r := &reverseForeignKeyInfo{}
-	r.srcCol = getSrcCol(field)
-	r.dstDB, r.dstTab, r.dstCol = getDstCol(field)
-	r.offset = field.Offset
-	return r
-}
-
-func parseManyToMany(field reflect.StructField) *manyToManyInfo {
-	m := &manyToManyInfo{}
-	m.srcCol = getSrcCol(field)
-	m.midDB, m.midTab, m.midLeftCol, m.midRightCol = getMidCol(field)
-	m.dstDB, m.dstTab, m.dstCol = getDstCol(field)
-	m.offset = field.Offset
-	return m
-}
-
-func parseTable(table table) *tableInfo {
-	dbName, tabName := wrap(table.DB()), wrap(table.Tab())
-	tabInfo := &tableInfo{db: dbName, tab: tabName, columnMap: make(map[string]*columnInfo)}
-	var haveModelStatus bool
-	typ := reflect.TypeOf(table)
-	if typ.Kind() != reflect.Ptr {
-		panic(fmt.Errorf("nborm.parseTable() error: require a pointer but supported (%s)", typ.Name()))
-	}
-	elem := typ.Elem()
-	kind := elem.Kind()
-	var stct reflect.Type
-	switch kind {
-	case reflect.Struct:
-		stct = elem
-	case reflect.Array, reflect.Slice:
-		sElem := elem.Elem()
-		if sElem.Kind() != reflect.Ptr {
-			panic(fmt.Errorf("nborm.parseTable() error: require a array of struct pointer (%s)", typ.Name()))
-		}
-		stct = sElem.Elem()
-		if stct.Kind() != reflect.Struct {
-			panic(fmt.Errorf("nborm.parseTable() error: the type of element of slice(array) is not a struct pointer (%s)", typ.Name()))
-		}
-	default:
-		panic(fmt.Errorf("nborm.parseTable() error: object must be a struct or array of struct pointer (%s)", typ.Name()))
-	}
-	tabInfo.modelType = stct
-	for i := 0; i < stct.NumField(); i++ {
-		field := stct.Field(i)
-		switch field.Type.String() {
-		case "nborm.StringField", "nborm.IntField", "nborm.FloatField", "nborm.BoolField", "nborm.BinaryField", "nborm.DateField",
-			"nborm.DatetimeField":
-			colInfo := parseColumn(field)
-			tabInfo.columnMap[colInfo.colName] = colInfo
-			tabInfo.columns = append(tabInfo.columns, colInfo)
-			if colInfo.isInc {
-				if tabInfo.inc != nil {
-					panic(fmt.Errorf("nborm.parseTable() error: multiple auto increment columns (%s)", typ.Name()))
-				}
-				tabInfo.inc = colInfo
-			}
-			if colInfo.isPk {
-				tabInfo.pk = append(tabInfo.pk, colInfo)
-			}
-			// if colInfo.isUni {
-			// 	tabInfo.unis = append(tabInfo.unis, colInfo)
-			// }
-		case "nborm.OneToOne":
-			otoInfo := parseOneToOne(field)
-			tabInfo.oneToOnes = append(tabInfo.oneToOnes, otoInfo)
-		case "nborm.ForeignKey":
-			fkInfo := parseForeignKey(field)
-			tabInfo.foreignKeys = append(tabInfo.foreignKeys, fkInfo)
-		case "nborm.ReverseForeignKey":
-			rfkInfo := parseReverseForeignKey(field)
-			tabInfo.reverseForeignKeys = append(tabInfo.reverseForeignKeys, rfkInfo)
-		case "nborm.ManyToMany":
-			mtmInfo := parseManyToMany(field)
-			tabInfo.manyToManys = append(tabInfo.manyToManys, mtmInfo)
-		case "nborm.ModelStatus":
-			if haveModelStatus {
-				panic(fmt.Errorf("nborm.parseTable() error: multiple ModelStatus field (%s)", typ.Name()))
-			}
-			tabInfo.modelStatus = field.Offset
-			haveModelStatus = true
-		}
-	}
-	if len(tabInfo.pk) == 0 {
-		panic(fmt.Errorf("nborm.parseTable() error: no primary key in %s.%s", dbName, tabName))
-	}
-	if !haveModelStatus {
-		panic(fmt.Errorf("nborm.parseTable() error: no ModelStatus field in %s.%s", dbName, tabName))
-	}
-	return tabInfo
-}
-
-func getTabInfo(table table) *tableInfo {
-	db, tab := wrap(table.DB()), wrap(table.Tab())
-	schemaLock.RLock()
-	dbInfo, ok := schemaCache.databaseMap[db]
-	if !ok {
-		schemaLock.RUnlock()
-		tInfo := parseTable(table)
-		dInfo := &databaseInfo{tables: []*tableInfo{tInfo}, tableMap: map[string]*tableInfo{tab: tInfo}}
-		schemaLock.Lock()
-		schemaCache.databases = append(schemaCache.databases, dInfo)
-		schemaCache.databaseMap[db] = dInfo
-		schemaLock.Unlock()
-		return tInfo
-	}
-	tabInfo, ok := dbInfo.tableMap[tab]
-	if !ok {
-		schemaLock.RUnlock()
-		tInfo := parseTable(table)
-		schemaLock.Lock()
-		dbInfo.tables = append(dbInfo.tables, tInfo)
-		dbInfo.tableMap[tab] = tInfo
-		schemaLock.Unlock()
-		return tInfo
-	}
-	schemaLock.RUnlock()
-	return tabInfo
-}
-
-func getTabInfoByName(db, tab string) *tableInfo {
-	schemaLock.RLock()
-	defer schemaLock.RUnlock()
-	if dbInfo, ok := schemaCache.databaseMap[wrap(db)]; !ok {
-		panic(fmt.Errorf("nborm.getTabInfoByName() error: database not exists (%s)", db))
-	} else {
-		if tabInfo, ok := dbInfo.tableMap[wrap(tab)]; !ok {
-			panic(fmt.Errorf("nborm.getTabInfoByName() error: table not exists (%s.%s)", db, tab))
-		} else {
-			return tabInfo
-		}
-	}
-}
-
-func initModelWithTableInfo(model table, tabInfo *tableInfo) {
-	db, tab := wrap(model.DB()), wrap(model.Tab())
+func initModelWithTableInfo(model table, tabInfo *TableInfo) {
+	db, tab := model.DB(), model.Tab()
 	baseAddr := *(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(&model)) + uintptr(8)))
-	for _, col := range tabInfo.columns {
-		switch col.ormType {
+	for _, col := range tabInfo.Columns {
+		switch col.OrmType {
 		case TypeStringField:
-			field := (*StringField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*StringField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeIntField:
-			field := (*IntField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isInc, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*IntField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsInc, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeFloatField:
-			field := (*FloatField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*FloatField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeBoolField:
-			field := (*BoolField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*BoolField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeBinaryField:
-			field := (*BinaryField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*BinaryField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeDateField:
-			field := (*DateField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*DateField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 		case TypeDatetimeField:
-			field := (*DatetimeField)(unsafe.Pointer(baseAddr + col.offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.colName,
-				col.nullable, col.isPk, col.isUni, col.defVal, col.offset
+			field := (*DatetimeField)(unsafe.Pointer(baseAddr + col.Offset))
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
+				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
 
 		}
 	}
-	for _, oto := range tabInfo.oneToOnes {
-		srcField := getFieldByName(baseAddr, oto.srcCol, tabInfo)
-		relField := (*OneToOne)(unsafe.Pointer(baseAddr + oto.offset))
+	for _, oto := range tabInfo.OneToOnes {
+		srcField := getFieldByName(baseAddr, oto.SrcCol, tabInfo)
+		relField := (*OneToOne)(unsafe.Pointer(baseAddr + oto.Offset))
 		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			oto.srcCol, oto.dstDB, oto.dstTab, oto.dstCol, srcField.value
+			oto.SrcCol, oto.DstDB, oto.DstTab, oto.DstCol, srcField.value
 	}
-	for _, fk := range tabInfo.foreignKeys {
-		srcField := getFieldByName(baseAddr, fk.srcCol, tabInfo)
-		relField := (*ForeignKey)(unsafe.Pointer(baseAddr + fk.offset))
+	for _, fk := range tabInfo.ForeignKeys {
+		srcField := getFieldByName(baseAddr, fk.SrcCol, tabInfo)
+		relField := (*ForeignKey)(unsafe.Pointer(baseAddr + fk.Offset))
 		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			fk.srcCol, fk.dstDB, fk.dstTab, fk.dstCol, srcField.value
+			fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol, srcField.value
 	}
-	for _, rfk := range tabInfo.reverseForeignKeys {
-		srcField := getFieldByName(baseAddr, rfk.srcCol, tabInfo)
-		relField := (*ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.offset))
+	for _, rfk := range tabInfo.ReverseForeignKeys {
+		srcField := getFieldByName(baseAddr, rfk.SrcCol, tabInfo)
+		relField := (*ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.Offset))
 		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			rfk.srcCol, rfk.dstDB, rfk.dstTab, rfk.dstCol, srcField.value
+			rfk.SrcCol, rfk.DstDB, rfk.DstTab, rfk.DstCol, srcField.value
 	}
-	for _, mtm := range tabInfo.manyToManys {
-		srcField := getFieldByName(baseAddr, mtm.srcCol, tabInfo)
-		relField := (*ManyToMany)(unsafe.Pointer(baseAddr + mtm.offset))
+	for _, mtm := range tabInfo.ManyToManys {
+		srcField := getFieldByName(baseAddr, mtm.SrcCol, tabInfo)
+		relField := (*ManyToMany)(unsafe.Pointer(baseAddr + mtm.Offset))
 		relField.srcDB, relField.srcTab, relField.srcCol, relField.midDB, relField.midTab, relField.midLeftCol, relField.midRightCol,
-			relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab, mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol,
-			mtm.midRightCol, mtm.dstDB, mtm.dstTab, mtm.dstCol, srcField.value
+			relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab, mtm.SrcCol, mtm.MidDB, mtm.MidTab, mtm.MidLeftCol,
+			mtm.MidRightCol, mtm.DstDB, mtm.DstTab, mtm.DstCol, srcField.value
 	}
 	setInit(baseAddr, tabInfo)
 }
 
-func newModelAddr(tabInfo *tableInfo) uintptr {
-	model := reflect.New(tabInfo.modelType)
+func newModelAddr(tabInfo *TableInfo) uintptr {
+	model := reflect.New(tabInfo.ModelType)
 	initModelWithTableInfo(model.Interface().(table), tabInfo)
 	return model.Pointer()
 }
 
-func newModel(tabInfo *tableInfo) table {
-	model := reflect.New(tabInfo.modelType).Interface().(table)
+func newModel(tabInfo *TableInfo) table {
+	model := reflect.New(tabInfo.ModelType).Interface().(table)
 	initModelWithTableInfo(model, tabInfo)
 	return model
 }
@@ -693,34 +791,34 @@ func InitSlice(slice table) {
 	*(*uintptr)(unsafe.Pointer(underArrayAddr)) = newModelAddr(tabInfo)
 }
 
-func getFieldByName(addr uintptr, colName string, tabInfo *tableInfo) Field {
-	colInfo, ok := tabInfo.columnMap[colName]
+func getFieldByName(addr uintptr, ColName string, tabInfo *TableInfo) Field {
+	colInfo, ok := tabInfo.ColumnMap[ColName]
 	if !ok {
-		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.db, tabInfo.tab, colName))
+		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.DB, tabInfo.Tab, ColName))
 	}
-	switch colInfo.ormType {
+	switch colInfo.OrmType {
 	case TypeStringField:
-		return (*StringField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*StringField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeIntField:
-		return (*IntField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*IntField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeFloatField:
-		return (*FloatField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*FloatField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeBoolField:
-		return (*BoolField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*BoolField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeBinaryField:
-		return (*BinaryField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*BinaryField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeDateField:
-		return (*DateField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*DateField)(unsafe.Pointer(addr + colInfo.Offset))
 	case TypeDatetimeField:
-		return (*DatetimeField)(unsafe.Pointer(addr + colInfo.offset))
+		return (*DatetimeField)(unsafe.Pointer(addr + colInfo.Offset))
 	default:
-		panic(fmt.Errorf("nborm.getFieldByName() error: unknown field type (%d)", colInfo.ormType))
+		panic(fmt.Errorf("nborm.getFieldByName() error: unknown field type (%d)", colInfo.OrmType))
 	}
 }
 
-func getFieldByColumnInfo(addr uintptr, colInfo *columnInfo) Field {
-	fieldAddr := unsafe.Pointer(addr + colInfo.offset)
-	switch colInfo.ormType {
+func getFieldByColumnInfo(addr uintptr, colInfo *ColumnInfo) Field {
+	fieldAddr := unsafe.Pointer(addr + colInfo.Offset)
+	switch colInfo.OrmType {
 	case TypeStringField:
 		return (*StringField)(fieldAddr)
 	case TypeIntField:
@@ -736,38 +834,30 @@ func getFieldByColumnInfo(addr uintptr, colInfo *columnInfo) Field {
 	case TypeDatetimeField:
 		return (*DatetimeField)(fieldAddr)
 	default:
-		panic(fmt.Errorf("nborm.getFieldByColumnInfo() error: unknown field type (%d)", colInfo.ormType))
+		panic(fmt.Errorf("nborm.getFieldByColumnInfo() error: unknown field type (%d)", colInfo.OrmType))
 	}
 
 }
 
-// func getPksWithTableInfo(addr uintptr, info *tableInfo) []Field {
-// 	l := make([]Field, len(info.pks))
-// 	for i, pkCol := range info.pks {
-// 		l[i] = getFieldByColumnInfo(addr, pkCol)
-// 	}
-// 	return l
-// }
-
-func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
+func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
 	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
-	if tabInfo.pk.match(validFields...) {
-		return tabInfo.pk.getFields(addr)
+	if tabInfo.Pk.match(validFields...) {
+		return tabInfo.Pk.getFields(addr)
 	}
 	return nil
 }
 
-func getIncWithTableInfo(addr uintptr, info *tableInfo) Field {
-	if info.inc == nil {
+func getIncWithTableInfo(addr uintptr, info *TableInfo) Field {
+	if info.Inc == nil {
 		return nil
 	}
-	return (*IntField)(unsafe.Pointer(addr + info.inc.offset))
+	return (*IntField)(unsafe.Pointer(addr + info.Inc.Offset))
 }
 
-func getIncAndOthers(addr uintptr, tabInfo *tableInfo) (inc Field, others []Field) {
-	for _, col := range tabInfo.columns {
-		if col.isInc {
-			inc = getFieldByColumnInfo(addr, col)
+func getIncAndOthers(addr uintptr, tabInfo *TableInfo) (Inc Field, others []Field) {
+	for _, col := range tabInfo.Columns {
+		if col.IsInc {
+			Inc = getFieldByColumnInfo(addr, col)
 		} else {
 			others = append(others, getFieldByColumnInfo(addr, col))
 		}
@@ -775,24 +865,24 @@ func getIncAndOthers(addr uintptr, tabInfo *tableInfo) (inc Field, others []Fiel
 	return
 }
 
-func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
-	if len(tabInfo.unis) == 0 {
+func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
+	if len(tabInfo.Unis) == 0 {
 		return nil
 	}
 	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
-	if idx, match := tabInfo.unis.match(validFields...); match {
-		return tabInfo.unis.getFields(addr, idx)
+	if idx, match := tabInfo.Unis.match(validFields...); match {
+		return tabInfo.Unis.getFields(addr, idx)
 	}
 	return nil
 }
 
-// func getUinsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
-// 	if tabInfo.unis == nil {
+// func getUinsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
+// 	if tabInfo.Unis == nil {
 // 		return nil
 // 	}
 
-// 	l := make([][]Field, len(tabInfo.unis))
-// 	for i, key := range tabInfo.unis {
+// 	l := make([][]Field, len(tabInfo.Unis))
+// 	for i, key := range tabInfo.Unis {
 // 		subL := make([]Field, len(key))
 // 		for j, col := range key {
 // 			subL[j] = getFieldByColumnInfo(addr, col)
@@ -803,24 +893,24 @@ func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
 // 	return l
 // }
 
-// func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []interface{} {
-// 	l := make([]interface{}, len(tabInfo.columns))
-// 	for i, colInfo := range tabInfo.columns {
+// func getAllFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []interface{} {
+// 	l := make([]interface{}, len(tabInfo.Columns))
+// 	for i, colInfo := range tabInfo.Columns {
 // 		l[i] = getFieldByColumnInfo(addr, colInfo)
 // 	}
 // 	return l
 // }
 
-func getAllFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
-	l := make([]Field, len(tabInfo.columns))
-	for i, colInfo := range tabInfo.columns {
+func getAllFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
+	l := make([]Field, len(tabInfo.Columns))
+	for i, colInfo := range tabInfo.Columns {
 		l[i] = getFieldByColumnInfo(addr, colInfo)
 	}
 	return l
 }
 
-func getValidFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
-	l := make([]Field, 0, len(tabInfo.columns))
+func getValidFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
+	l := make([]Field, 0, len(tabInfo.Columns))
 	allFields := getAllFieldsWithTableInfo(addr, tabInfo)
 	for _, field := range allFields {
 		if field.IsValid() {
@@ -830,20 +920,20 @@ func getValidFieldsWithTableInfo(addr uintptr, tabInfo *tableInfo) []Field {
 	return l
 }
 
-func scanRow(addr uintptr, tabInfo *tableInfo, row *sql.Row) error {
+func scanRow(addr uintptr, tabInfo *TableInfo, row *sql.Row) error {
 	fields := getAllFieldsWithTableInfo(addr, tabInfo)
 	addrList := make([]interface{}, len(fields))
 	for i, field := range fields {
 		addrList[i] = field.(interface{})
 	}
-	if err := row.Scan(addrList); err != nil {
+	if err := row.Scan(addrList...); err != nil {
 		return err
 	}
 	setSync(addr, tabInfo)
 	return nil
 }
 
-func unionScanRow(addrs []uintptr, tabInfos []*tableInfo, row *sql.Row) error {
+func unionScanRow(addrs []uintptr, tabInfos []*TableInfo, row *sql.Row) error {
 	fields := make([]interface{}, 0, 64)
 	for i := 0; i < len(addrs); i++ {
 		addrList := make([]interface{}, len(fields))
@@ -861,7 +951,7 @@ func unionScanRow(addrs []uintptr, tabInfos []*tableInfo, row *sql.Row) error {
 	return nil
 }
 
-func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
+func scanRows(addr uintptr, tabInfo *TableInfo, rows *sql.Rows) error {
 	defer rows.Close()
 	lAddr := (*[]uintptr)(unsafe.Pointer(addr))
 	for rows.Next() {
@@ -883,7 +973,7 @@ func scanRows(addr uintptr, tabInfo *tableInfo, rows *sql.Rows) error {
 	return nil
 }
 
-func unionScanRows(addrs []uintptr, tabInfos []*tableInfo, rows *sql.Rows) error {
+func unionScanRows(addrs []uintptr, tabInfos []*TableInfo, rows *sql.Rows) error {
 	defer rows.Close()
 	lAddrs := make([](*[]uintptr), len(addrs))
 	for i, addr := range addrs {

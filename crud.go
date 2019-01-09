@@ -375,37 +375,38 @@ func updateContextInTx(tx *sql.Tx, ctx context.Context, tabInfo *TableInfo, wher
 
 func relationQueryRow(relation relation, where *Where) *sql.Row {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s", relation.getDstDB(), relation.getDstTab(), joinClause, whereClause)
 	return getConn(relation.getDstDB()).QueryRow(stmt, whereValues...)
 }
 
 func relationQueryRowInTx(tx *sql.Tx, relation relation, where *Where) *sql.Row {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), joinClause, whereClause)
 	return tx.QueryRow(stmt, whereValues...)
 }
 
 func relationQueryRows(relation relation, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s %s %s", relation.getDstDB(), relation.getDstTab(), joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	return getConn(relation.getDstDB()).Query(stmt, whereValues...)
 }
 
 func relationQueryRowsInTx(tx *sql.Tx, relation relation, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, error) {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), joinClause, whereClause,
+		sorter.toSQL(), pager.toSQL())
 	return tx.Query(stmt, whereValues...)
 }
 
 func relationQueryRowsAndFoundRows(relation relation, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
-
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s %s %s %s", relation.getDstDB(), relation.getDstTab(), joinClause, whereClause,
+		sorter.toSQL(), pager.toSQL())
 	tx, err := getConn(relation.getDstDB()).Begin()
 	if err != nil {
 		return nil, nil, err
@@ -420,9 +421,9 @@ func relationQueryRowsAndFoundRows(relation relation, where *Where, sorter *Sort
 
 func relationQueryRowsAndFoundRowsInTx(tx *sql.Tx, relation relation, where *Where, sorter *Sorter, pager *Pager) (*sql.Rows, *sql.Tx, error) {
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), relation.getSrcDB(), relation.getSrcTab(),
-		relation.joinClause(), whereClause, sorter.toSQL(), pager.toSQL())
-
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s.%s.* FROM %s %s %s %s FOR UPDATE", relation.getDstDB(), relation.getDstTab(), joinClause,
+		whereClause, sorter.toSQL(), pager.toSQL())
 	rows, err := tx.Query(stmt, whereValues...)
 	if err != nil {
 		return nil, nil, err
@@ -433,7 +434,8 @@ func relationQueryRowsAndFoundRowsInTx(tx *sql.Tx, relation relation, where *Whe
 func relationCount(relation relation, where *Where) (int, error) {
 	where = relation.where().And(where)
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s %s", relation.getSrcDB(), relation.getSrcTab(), relation.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", joinClause, whereClause)
 	row := getConn(relation.getDstDB()).QueryRow(stmt, whereValues...)
 	var num int
 	if err := row.Scan(&num); err != nil {
@@ -445,7 +447,8 @@ func relationCount(relation relation, where *Where) (int, error) {
 func relationCountInTx(tx *sql.Tx, relation relation, where *Where) (int, error) {
 	where = relation.where().And(where)
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s.%s %s %s FOR UPDATE", relation.getSrcDB(), relation.getSrcTab(), relation.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(relation)
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s FOR UPDATE", relation.getSrcDB(), relation.getSrcTab(), joinClause, whereClause)
 	row := tx.QueryRow(stmt, whereValues...)
 	var num int
 	if err := row.Scan(&num); err != nil {
@@ -454,56 +457,52 @@ func relationCountInTx(tx *sql.Tx, relation relation, where *Where) (int, error)
 	return num, nil
 }
 
-func joinQueryRow(tabInfo *TableInfo, where *Where, relations ...relation) *sql.Row {
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+func joinQueryRow(tabInfo *TableInfo, where *Where, relations ...relation) (*sql.Row, error) {
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s", tabInfo.dbName(), tabInfo.tabName(), relations[0].getSrcDB(), relations[0].getSrcTab(),
-		strings.Join(joinClauses, " "), whereClause)
-	return getConn(tabInfo.dbName()).QueryRow(stmt, whereValues...)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s", tabInfo.dbName(), tabInfo.tabName(), joinClause, whereClause)
+	return getConn(tabInfo.dbName()).QueryRow(stmt, whereValues...), nil
 }
 
-func joinQueryRowInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, relations ...relation) *sql.Row {
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+func joinQueryRowInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, relations ...relation) (*sql.Row, error) {
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s.%s %s %s FOR UPDATE", tabInfo.dbName(), tabInfo.tabName(), relations[0].getSrcDB(), relations[0].getSrcTab(),
-		strings.Join(joinClauses, " "), whereClause)
-	return tx.QueryRow(stmt, whereValues...)
+	stmt := fmt.Sprintf("SELECT %s.%s.* FROM %s %s FOR UPDATE", tabInfo.dbName(), tabInfo.tabName(), joinClause, whereClause)
+	return tx.QueryRow(stmt, whereValues...), nil
 }
 
-func unionQueryRow(tabInfos []*TableInfo, where *Where, relations ...relation) *sql.Row {
+func unionQueryRow(tabInfos []*TableInfo, where *Where, relations ...relation) (*sql.Row, error) {
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClause := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClause[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s FROM %s.%s %s %s", strings.Join(tabClause, ", "), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClause, " "), whereClause)
-	return getConn(tabInfos[0].dbName()).QueryRow(stmt, whereValues...)
+	stmt := fmt.Sprintf("SELECT %s FROM %s %s", strings.Join(tabClause, ", "), joinClause, whereClause)
+	return getConn(tabInfos[0].dbName()).QueryRow(stmt, whereValues...), nil
 }
 
-func unionQueryRowInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, relations ...relation) *sql.Row {
+func unionQueryRowInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, relations ...relation) (*sql.Row, error) {
 	tabClause := make([]string, len(tabInfos))
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClause := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClause[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s FROM %s.%s %s %s FOR UPDATE", strings.Join(tabClause, ", "), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClause, " "), whereClause)
-	return tx.QueryRow(stmt, whereValues...)
+	stmt := fmt.Sprintf("SELECT %s FROM %s %s FOR UPDATE", strings.Join(tabClause, ", "), joinClause, whereClause)
+	return tx.QueryRow(stmt, whereValues...), nil
 }
 
 func joinQueryRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Pager, distinct bool, relations ...relation) (*sql.Rows, error) {
@@ -511,13 +510,12 @@ func joinQueryRows(tabInfo *TableInfo, where *Where, sorter *Sorter, pager *Page
 		true:  "DISTINCT",
 		false: "",
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s %s %s %s", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(), joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	return getConn(tabInfo.dbName()).Query(stmt, whereValues...)
 }
 
@@ -526,13 +524,12 @@ func joinQueryRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where, sorter *Sor
 		true:  "DISTINCT",
 		false: "",
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT %s %s.%s.* FROM %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(), joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	return tx.Query(stmt, whereValues...)
 }
 
@@ -545,13 +542,12 @@ func unionQueryRows(tabInfos []*TableInfo, where *Where, sorter *Sorter, pager *
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s FROM %s.%s %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT %s %s FROM %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "), joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	return getConn(tabInfos[0].dbName()).Query(stmt, whereValues...)
 }
 
@@ -564,13 +560,13 @@ func unionQueryRowsInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Where, sorter 
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT %s %s FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], strings.Join(tabClause, ", "), relations[0].getSrcDB(),
-		relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT %s %s FROM %s %s %s %s FOR UPDATE", distMap[distinct], strings.Join(tabClause, ", "), joinClause, whereClause,
+		sorter.toSQL(), pager.toSQL())
 	return tx.Query(stmt, whereValues...)
 }
 
@@ -579,13 +575,13 @@ func joinQueryRowsAndFoundRows(tabInfo *TableInfo, where *Where, sorter *Sorter,
 		true:  "DISTINCT",
 		false: "",
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(),
-		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s %s %s %s", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(),
+		joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	tx, err := getConn(tabInfo.dbName()).Begin()
 	if err != nil {
 		return nil, nil, err
@@ -607,13 +603,13 @@ func unionQueryRowsAndFoundRows(tabInfos []*TableInfo, where *Where, sorter *Sor
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s FROM %s.%s %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "),
-		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s FROM %s %s %s %s", distMap[distinct], strings.Join(tabClause, ", "),
+		joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	tx, err := getConn(tabInfos[0].dbName()).Begin()
 	if err != nil {
 		return nil, nil, err
@@ -631,13 +627,13 @@ func joinQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where,
 		true:  "DISTINCT",
 		false: "",
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(),
-		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s.%s.* FROM %s %s %s %s FOR UPDATE", distMap[distinct], tabInfo.dbName(), tabInfo.tabName(),
+		joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	rows, err := tx.Query(stmt, whereValues...)
 	if err != nil {
 		return nil, nil, err
@@ -654,13 +650,13 @@ func unionQueryRowsAndFoundRowsInTx(tx *sql.Tx, tabInfos []*TableInfo, where *Wh
 	for i, tabInfo := range tabInfos {
 		tabClause[i] = fmt.Sprintf("%s.%s.*", tabInfo.dbName(), tabInfo.tabName())
 	}
-	joinClauses := make([]string, len(relations))
-	for i, rel := range relations {
-		joinClauses[i] = rel.joinClause()
+	joinClause, err := genJoinClause(relations...)
+	if err != nil {
+		return nil, nil, err
 	}
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s FROM %s.%s %s %s %s %s FOR UPDATE", distMap[distinct], strings.Join(tabClause, ", "),
-		relations[0].getSrcDB(), relations[0].getSrcTab(), strings.Join(joinClauses, " "), whereClause, sorter.toSQL(), pager.toSQL())
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s %s FROM %s %s %s %s FOR UPDATE", distMap[distinct], strings.Join(tabClause, ", "),
+		joinClause, whereClause, sorter.toSQL(), pager.toSQL())
 	rows, err := tx.Query(stmt, whereValues...)
 	if err != nil {
 		return nil, nil, err

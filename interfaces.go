@@ -50,7 +50,7 @@ type Field interface {
 }
 
 type relation interface {
-	joinClause() string
+	// joinClause() string
 	where() *Where
 	getSrcDB() string
 	getSrcTab() string

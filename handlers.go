@@ -87,28 +87,40 @@ func GetMulInTx(tx *sql.Tx, slice table) error {
 func JoinQueryOne(model table, where *Where, relations ...relation) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	row := joinQueryRow(tabInfo, where, relations...)
+	row, err := joinQueryRow(tabInfo, where, relations...)
+	if err != nil {
+		return err
+	}
 	return scanRow(modAddr, tabInfo, row)
 }
 
 func UnionQueryOne(models Union, where *Where, relations ...relation) error {
 	tabInfos := models.tabInfos()
 	modAddrs := models.addrs()
-	row := unionQueryRow(tabInfos, where, relations...)
+	row, err := unionQueryRow(tabInfos, where, relations...)
+	if err != nil {
+		return err
+	}
 	return unionScanRow(modAddrs, tabInfos, row)
 }
 
 func JoinQueryOneInTx(tx *sql.Tx, model table, where *Where, relations ...relation) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	row := joinQueryRowInTx(tx, tabInfo, where, relations...)
+	row, err := joinQueryRowInTx(tx, tabInfo, where, relations...)
+	if err != nil {
+		return err
+	}
 	return scanRow(modAddr, tabInfo, row)
 }
 
 func UnionQueryOneInTx(tx *sql.Tx, models Union, where *Where, relations ...relation) error {
 	tabInfos := models.tabInfos()
 	modAddrs := models.addrs()
-	row := unionQueryRowInTx(tx, tabInfos, where, relations...)
+	row, err := unionQueryRowInTx(tx, tabInfos, where, relations...)
+	if err != nil {
+		return err
+	}
 	return unionScanRow(modAddrs, tabInfos, row)
 }
 

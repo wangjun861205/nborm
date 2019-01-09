@@ -319,3 +319,24 @@ func wrap(s string) string {
 func escap(s string) string {
 	return strings.Trim(s, "`")
 }
+
+func genMiddleTableName(srcModelName, srcFieldName, dstModelName, dstFieldName string) string {
+	srcFactor := srcModelName + srcFieldName
+	dstFactor := dstModelName + dstFieldName
+	var length int
+	if len(srcFactor) >= len(dstFactor) {
+		length = len(srcFactor)
+
+	} else {
+		length = len(dstFactor)
+	}
+	factorA := make([]byte, length)
+	factorB := make([]byte, length)
+	result := make([]byte, length)
+	copy(factorA, []byte(srcFactor))
+	copy(factorB, []byte(dstFactor))
+	for i := range result {
+		result[i] = factorA[i] & factorB[i]
+	}
+	return fmt.Sprintf("%x", result)
+}

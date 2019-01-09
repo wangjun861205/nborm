@@ -9,19 +9,23 @@ import (
 
 //OneToOne represent a one point on relation
 type OneToOne struct {
-	srcDB   string
-	srcTab  string
-	srcCol  string
-	dstDB   string
-	dstTab  string
-	dstCol  string
-	srcValF func() interface{}
+	srcDB       string
+	srcTab      string
+	srcCol      string
+	midDB       string
+	midTab      string
+	midLeftCol  string
+	midRightCol string
+	dstDB       string
+	dstTab      string
+	dstCol      string
+	srcValF     func() interface{}
 }
 
 //NewOneToOne create a OneToOne
-func NewOneToOne(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *OneToOne {
-	return &OneToOne{srcDB, srcTab, srcCol, dstDB, dstTab, dstCol, srcValF}
-}
+// func NewOneToOne(srcDB, srcTab, srcCol, dstDB, dstTab, dstCol string, srcValF func() interface{}) *OneToOne {
+// 	return &OneToOne{srcDB, srcTab, srcCol, dstDB, dstTab, dstCol, srcValF}
+// }
 
 //Query query related table by OneToOne relation
 func (oto OneToOne) Query(model table) error {
@@ -44,10 +48,10 @@ func (oto OneToOne) QueryInTx(tx *sql.Tx, model table) error {
 	return scanRow(modAddr, tabInfo, row)
 }
 
-func (oto OneToOne) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", oto.dstDB, oto.dstTab, oto.srcDB, oto.srcTab, oto.srcCol, oto.dstDB,
-		oto.dstTab, oto.dstCol)
-}
+// func (oto OneToOne) joinClause() string {
+// 	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", oto.dstDB, oto.dstTab, oto.srcDB, oto.srcTab, oto.srcCol, oto.dstDB,
+// 		oto.dstTab, oto.dstCol)
+// }
 
 func (oto OneToOne) where() *Where {
 	return newWhere(oto.srcDB, oto.srcTab, oto.srcCol, "=", oto.srcValF())
@@ -61,12 +65,36 @@ func (oto OneToOne) getSrcTab() string {
 	return wrap(oto.srcTab)
 }
 
+func (oto OneToOne) getSrcCol() string {
+	return wrap(oto.srcCol)
+}
+
+func (oto OneToOne) getMidDB() string {
+	return wrap(oto.midDB)
+}
+
+func (oto OneToOne) getMidTab() string {
+	return wrap(oto.midTab)
+}
+
+func (oto OneToOne) getMidLeftCol() string {
+	return wrap(oto.midLeftCol)
+}
+
+func (oto OneToOne) getMidRightCol() string {
+	return wrap(oto.midRightCol)
+}
+
 func (oto OneToOne) getDstDB() string {
 	return wrap(oto.dstDB)
 }
 
 func (oto OneToOne) getDstTab() string {
 	return wrap(oto.dstTab)
+}
+
+func (oto OneToOne) getDstCol() string {
+	return wrap(oto.dstCol)
 }
 
 //ForeignKey represent a one point many relation
@@ -108,10 +136,10 @@ func (fk ForeignKey) QueryInTx(tx *sql.Tx, model table) error {
 	return scanRow(modAddr, tabInfo, row)
 }
 
-func (fk ForeignKey) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", fk.dstDB, fk.dstTab, fk.srcDB, fk.srcTab, fk.srcCol, fk.dstDB,
-		fk.dstTab, fk.dstCol)
-}
+// func (fk ForeignKey) joinClause() string {
+// 	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", fk.dstDB, fk.dstTab, fk.srcDB, fk.srcTab, fk.srcCol, fk.dstDB,
+// 		fk.dstTab, fk.dstCol)
+// }
 
 func (fk ForeignKey) where() *Where {
 	return newWhere(fk.srcDB, fk.srcTab, fk.srcCol, "=", fk.srcValF())
@@ -125,12 +153,20 @@ func (fk ForeignKey) getSrcTab() string {
 	return wrap(fk.srcTab)
 }
 
+func (fk ForeignKey) getSrcCol() string {
+	return wrap(fk.srcCol)
+}
+
 func (fk ForeignKey) getDstDB() string {
 	return wrap(fk.dstDB)
 }
 
 func (fk ForeignKey) getDstTab() string {
 	return wrap(fk.dstTab)
+}
+
+func (fk ForeignKey) getDstCol() string {
+	return wrap(fk.dstCol)
 }
 
 //ReverseForeignKey represent many point one relation
@@ -410,10 +446,10 @@ func (rfk ReverseForeignKey) CountInTx(tx *sql.Tx, where *Where) (int, error) {
 	return relationCountInTx(tx, rfk, where)
 }
 
-func (rfk ReverseForeignKey) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB, rfk.dstTab, rfk.srcDB, rfk.srcTab, rfk.srcCol, rfk.dstDB,
-		rfk.dstTab, rfk.dstCol)
-}
+// func (rfk ReverseForeignKey) joinClause() string {
+// 	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", rfk.dstDB, rfk.dstTab, rfk.srcDB, rfk.srcTab, rfk.srcCol, rfk.dstDB,
+// 		rfk.dstTab, rfk.dstCol)
+// }
 
 func (rfk ReverseForeignKey) where() *Where {
 	return newWhere(rfk.srcDB, rfk.srcTab, rfk.srcCol, "=", rfk.srcValF())
@@ -427,12 +463,20 @@ func (rfk ReverseForeignKey) getSrcTab() string {
 	return wrap(rfk.srcTab)
 }
 
+func (rfk ReverseForeignKey) getSrcCol() string {
+	return wrap(rfk.srcCol)
+}
+
 func (rfk ReverseForeignKey) getDstDB() string {
 	return wrap(rfk.dstDB)
 }
 
 func (rfk ReverseForeignKey) getDstTab() string {
 	return wrap(rfk.dstTab)
+}
+
+func (rfk ReverseForeignKey) getDstCol() string {
+	return wrap(rfk.dstCol)
 }
 
 //ManyToMany represent many point many relation
@@ -842,7 +886,8 @@ func (mtm ManyToMany) BulkRemove(where *Where) error {
 	}
 	where = mtm.where().And(where)
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("DELETE %s.%s FROM %s.%s %s %s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(mtm)
+	stmt := fmt.Sprintf("DELETE %s.%s FROM %s %s", mtm.midDB, mtm.midTab, joinClause, whereClause)
 	_, err := getConn(mtm.midDB).Exec(stmt, whereValues...)
 	return err
 }
@@ -854,7 +899,8 @@ func (mtm ManyToMany) BulkRemoveInTx(tx *sql.Tx, where *Where) error {
 	}
 	where = mtm.where().And(where)
 	whereClause, whereValues := where.toClause()
-	stmt := fmt.Sprintf("DELETE %s.%s FROM %s.%s %s %s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab, mtm.joinClause(), whereClause)
+	joinClause, _ := genJoinClause(mtm)
+	stmt := fmt.Sprintf("DELETE %s.%s FROM %s %s", mtm.midDB, mtm.midTab, joinClause, whereClause)
 	_, err := tx.Exec(stmt, whereValues...)
 	return err
 }
@@ -867,11 +913,11 @@ func (mtm ManyToMany) CountInTx(tx *sql.Tx, where *Where) (int, error) {
 	return relationCountInTx(tx, mtm, where)
 }
 
-func (mtm ManyToMany) joinClause() string {
-	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab,
-		mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB,
-		mtm.dstTab, mtm.dstCol)
-}
+// func (mtm ManyToMany) joinClause() string {
+// 	return fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", mtm.midDB, mtm.midTab, mtm.srcDB, mtm.srcTab,
+// 		mtm.srcCol, mtm.midDB, mtm.midTab, mtm.midLeftCol, mtm.dstDB, mtm.dstTab, mtm.midDB, mtm.midTab, mtm.midRightCol, mtm.dstDB,
+// 		mtm.dstTab, mtm.dstCol)
+// }
 
 func (mtm ManyToMany) where() *Where {
 	return newWhere(mtm.srcDB, mtm.srcTab, mtm.srcCol, "=", mtm.srcValF())
@@ -885,10 +931,197 @@ func (mtm ManyToMany) getSrcTab() string {
 	return wrap(mtm.srcTab)
 }
 
+func (mtm ManyToMany) getSrcCol() string {
+	return wrap(mtm.srcCol)
+}
+
+func (mtm ManyToMany) getMidDB() string {
+	return wrap(mtm.midDB)
+}
+
+func (mtm ManyToMany) getMidTab() string {
+	return wrap(mtm.midTab)
+}
+
+func (mtm ManyToMany) getMidLeftCol() string {
+	return wrap(mtm.midLeftCol)
+}
+
+func (mtm ManyToMany) getMidRightCol() string {
+	return wrap(mtm.midRightCol)
+}
+
 func (mtm ManyToMany) getDstDB() string {
 	return wrap(mtm.dstDB)
 }
 
 func (mtm ManyToMany) getDstTab() string {
 	return wrap(mtm.dstTab)
+}
+
+func (mtm ManyToMany) getDstCol() string {
+	return wrap(mtm.dstCol)
+}
+
+func genJoinClause(relations ...relation) (string, error) {
+	if len(relations) == 0 {
+		panic(errors.New("nborm.genJoinClause() error: no relation"))
+	}
+	var firstRel relation
+	firstRel, relations = relations[0], relations[1:]
+	srcTab, dstTab := firstRel.getSrcTab(), firstRel.getDstTab()
+	chainedTables := map[string]bool{srcTab: true, dstTab: true}
+	var currentJoinStr string
+	switch r := firstRel.(type) {
+	case OneToOne:
+		currentJoinStr = fmt.Sprintf("%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(),
+			r.getMidDB(), r.getMidTab(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getDstDB(),
+			r.getDstTab(), r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+	case ManyToMany:
+		currentJoinStr = fmt.Sprintf("%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(),
+			r.getMidDB(), r.getMidTab(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getDstDB(),
+			r.getDstTab(), r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+	case ForeignKey:
+		currentJoinStr = fmt.Sprintf("%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(), r.getDstDB(), r.getDstTab(),
+			r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+	case ReverseForeignKey:
+		currentJoinStr = fmt.Sprintf("%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(), r.getDstDB(), r.getDstTab(),
+			r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+	default:
+		return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+	}
+	if len(relations) > 0 {
+		nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+		if err != nil {
+			return "", err
+		}
+		return currentJoinStr + " " + nextJoinStr, nil
+	}
+	return currentJoinStr, nil
+}
+
+func rGenJoinClause(chainedTables map[string]bool, relations ...relation) (string, error) {
+	for i, rel := range relations {
+		srcTab := rel.getSrcTab()
+		dstTab := rel.getDstTab()
+		switch {
+		case chainedTables[srcTab]:
+			switch r := rel.(type) {
+			case OneToOne:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getMidDB(), r.getMidTab(),
+					r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getDstDB(), r.getDstTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+				chainedTables[dstTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			case ManyToMany:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getMidDB(), r.getMidTab(),
+					r.getSrcDB(), r.getSrcTab(), r.getSrcCol(), r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getDstDB(), r.getDstTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+				chainedTables[dstTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			case ForeignKey:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getDstDB(), r.getDstTab(), r.getSrcDB(), r.getSrcTab(),
+					r.getSrcCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+				chainedTables[dstTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+			case ReverseForeignKey:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getDstDB(), r.getDstTab(), r.getSrcDB(), r.getSrcTab(),
+					r.getSrcCol(), r.getDstDB(), r.getDstTab(), r.getDstCol())
+				chainedTables[dstTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+			default:
+				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+			}
+		case chainedTables[dstTab]:
+			switch r := rel.(type) {
+			case OneToOne:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getMidDB(), r.getMidTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol(), r.getSrcDB(), r.getSrcTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol())
+				chainedTables[srcTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			case ManyToMany:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getMidDB(), r.getMidTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidRightCol(), r.getDstDB(), r.getDstTab(), r.getDstCol(), r.getSrcDB(), r.getSrcTab(),
+					r.getMidDB(), r.getMidTab(), r.getMidLeftCol(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol())
+				chainedTables[srcTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			case ForeignKey:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(), r.getDstDB(), r.getDstTab(),
+					r.getDstCol(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol())
+				chainedTables[srcTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			case ReverseForeignKey:
+				currentJoinStr := fmt.Sprintf("JOIN %s.%s ON %s.%s.%s = %s.%s.%s", r.getSrcDB(), r.getSrcTab(), r.getDstDB(), r.getDstTab(),
+					r.getDstCol(), r.getSrcDB(), r.getSrcTab(), r.getSrcCol())
+				chainedTables[srcTab] = true
+				if len(relations) > 1 {
+					relations = append(relations[:i], relations[i+1:]...)
+					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+					if err != nil {
+						return "", err
+					}
+					return currentJoinStr + " " + nextJoinStr, nil
+				}
+				return currentJoinStr, nil
+			default:
+				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+			}
+		}
+	}
+	return "", fmt.Errorf("nborm.rGenJoinClause() error: cannot chain relations (%v)", relations)
 }

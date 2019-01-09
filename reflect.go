@@ -51,13 +51,26 @@ func (ci *ColumnInfo) colName() string {
 	return wrap(ci.ColName)
 }
 
+// type OneToOneInfo struct {
+// 	SrcCol    string
+// 	DstDB     string
+// 	DstTab    string
+// 	DstCol    string
+// 	Offset    uintptr
+// 	FieldName string
+// }
+
 type OneToOneInfo struct {
-	SrcCol    string
-	DstDB     string
-	DstTab    string
-	DstCol    string
-	Offset    uintptr
-	FieldName string
+	SrcCol      string
+	MidDB       string
+	MidTab      string
+	MidLeftCol  string
+	MidRightCol string
+	DstDB       string
+	DstTab      string
+	DstCol      string
+	Offset      uintptr
+	FieldName   string
 }
 
 type ForeignKeyInfo struct {
@@ -753,8 +766,9 @@ func initModelWithTableInfo(model table, tabInfo *TableInfo) {
 	for _, oto := range tabInfo.OneToOnes {
 		srcField := getFieldByName(baseAddr, oto.SrcCol, tabInfo)
 		relField := (*OneToOne)(unsafe.Pointer(baseAddr + oto.Offset))
-		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			oto.SrcCol, oto.DstDB, oto.DstTab, oto.DstCol, srcField.value
+		relField.srcDB, relField.srcTab, relField.srcCol, relField.midDB, relField.midTab, relField.midLeftCol, relField.midRightCol,
+			relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab, oto.SrcCol, oto.MidDB, oto.MidTab, oto.MidLeftCol,
+			oto.MidRightCol, oto.DstDB, oto.DstTab, oto.DstCol, srcField.value
 	}
 	for _, fk := range tabInfo.ForeignKeys {
 		srcField := getFieldByName(baseAddr, fk.SrcCol, tabInfo)

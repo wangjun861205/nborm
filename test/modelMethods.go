@@ -4,6 +4,63 @@ import (
 	"github.com/wangjun861205/nborm"
 )
 
+func (model *Book) DB() string {
+	return "nborm_test"
+}
+
+func (model *Book) Tab() string {
+	return "book"
+}
+
+func (model *Book) PrimaryKey() []string {
+	return []string{"id"}
+}
+
+func (model *Book) UniqueKeys() [][]string {
+	return [][]string{
+		[]string{"unique_code"},
+	}
+}
+
+func (model *Book) Keys() [][]string {
+	return [][]string{}
+}
+
+func NewBook() *Book {
+	model := new(Book)
+	nborm.InitModel(model)
+	return model
+}
+
+type BookSlice []*Book
+
+func (slice *BookSlice) DB() string {
+	return "nborm_test"
+}
+
+func (slice *BookSlice) Tab() string {
+	return "book"
+}
+
+func (model *BookSlice) PrimaryKey() []string {
+	return []string{"id"}
+}
+
+func (model *BookSlice) UniqueKeys() [][]string {
+	return [][]string{
+		[]string{"unique_code"},
+	}
+}
+
+func (model *BookSlice) Keys() [][]string {
+	return [][]string{}
+}
+
+func MakeBookSlice(length, cap int) BookSlice {
+	slice := make(BookSlice, length, cap)
+	nborm.InitSlice(&slice)
+	return slice
+}
 func (model *BookInfo) DB() string {
 	return "nborm_test"
 }
@@ -164,63 +221,6 @@ func (model *AuthSlice) Keys() [][]string {
 
 func MakeAuthSlice(length, cap int) AuthSlice {
 	slice := make(AuthSlice, length, cap)
-	nborm.InitSlice(&slice)
-	return slice
-}
-func (model *Book) DB() string {
-	return "nborm_test"
-}
-
-func (model *Book) Tab() string {
-	return "book"
-}
-
-func (model *Book) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *Book) UniqueKeys() [][]string {
-	return [][]string{
-		[]string{"unique_code"},
-	}
-}
-
-func (model *Book) Keys() [][]string {
-	return [][]string{}
-}
-
-func NewBook() *Book {
-	model := new(Book)
-	nborm.InitModel(model)
-	return model
-}
-
-type BookSlice []*Book
-
-func (slice *BookSlice) DB() string {
-	return "nborm_test"
-}
-
-func (slice *BookSlice) Tab() string {
-	return "book"
-}
-
-func (model *BookSlice) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *BookSlice) UniqueKeys() [][]string {
-	return [][]string{
-		[]string{"unique_code"},
-	}
-}
-
-func (model *BookSlice) Keys() [][]string {
-	return [][]string{}
-}
-
-func MakeBookSlice(length, cap int) BookSlice {
-	slice := make(BookSlice, length, cap)
 	nborm.InitSlice(&slice)
 	return slice
 }

@@ -34,6 +34,8 @@ var OrmTypeMap = map[string]OrmType{
 
 type ColumnInfo struct {
 	OrmType   OrmType
+	DBName    string
+	TabName   string
 	ColName   string
 	FieldName string
 	Nullable  bool
@@ -47,59 +49,54 @@ type ColumnInfo struct {
 	Collate   string
 }
 
+func (ci *ColumnInfo) dbName() string {
+	return wrap(ci.DBName)
+}
+
+func (ci *ColumnInfo) tabName() string {
+	return wrap(ci.TabName)
+}
+
 func (ci *ColumnInfo) colName() string {
 	return wrap(ci.ColName)
 }
 
-// type OneToOneInfo struct {
-// 	SrcCol    string
-// 	DstDB     string
-// 	DstTab    string
-// 	DstCol    string
-// 	Offset    uintptr
-// 	FieldName string
-// }
+func (ci *ColumnInfo) fullTabName() string {
+	return fmt.Sprintf("%s.%s", wrap(ci.DBName), wrap(ci.TabName))
+}
+
+func (ci *ColumnInfo) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", wrap(ci.DBName), wrap(ci.TabName), wrap(ci.ColName))
+}
 
 type OneToOneInfo struct {
-	SrcCol      string
-	MidDB       string
-	MidTab      string
-	MidLeftCol  string
-	MidRightCol string
-	DstDB       string
-	DstTab      string
-	DstCol      string
+	SrcCol      *ColumnInfo
+	MidLeftCol  *ColumnInfo
+	MidRightCol *ColumnInfo
+	DstCol      *ColumnInfo
 	Offset      uintptr
 	FieldName   string
 }
 
 type ForeignKeyInfo struct {
-	SrcCol    string
-	DstDB     string
-	DstTab    string
-	DstCol    string
+	SrcCol    *ColumnInfo
+	DstCol    *ColumnInfo
 	Offset    uintptr
 	FieldName string
 }
 
 type ReverseForeignKeyInfo struct {
-	SrcCol    string
-	DstDB     string
-	DstTab    string
-	DstCol    string
+	SrcCol    *ColumnInfo
+	DstCol    *ColumnInfo
 	Offset    uintptr
 	FieldName string
 }
 
 type ManyToManyInfo struct {
-	SrcCol      string
-	MidDB       string
-	MidTab      string
-	MidLeftCol  string
-	MidRightCol string
-	DstDB       string
-	DstTab      string
-	DstCol      string
+	SrcCol      *ColumnInfo
+	MidLeftCol  *ColumnInfo
+	MidRightCol *ColumnInfo
+	DstCol      *ColumnInfo
 	Offset      uintptr
 	FieldName   string
 }
@@ -449,274 +446,6 @@ var sqlFloatRe = regexp.MustCompile(`^f'(.*)'$`)
 var sqlBoolRe = regexp.MustCompile(`^b'(true|false)'$`)
 var sqlBinaryRe = regexp.MustCompile(`^x'.*'$`)
 
-// func parseColumn(field reflect.StructField) *ColumnInfo {
-// 	c := &ColumnInfo{}
-// 	c.Offset = field.Offset
-// 	var ok bool
-// 	c.OrmType, ok = OrmTypeMap[field.Type.String()]
-// 	if !ok {
-// 		panic(fmt.Errorf("nborm.parseColumn() error: unsupported field type (%s)", field.Type.Name()))
-// 	}
-// 	if ColName, ok := field.Tag.Lookup("column"); !ok {
-// 		c.ColName = wrap(toSnakeCase(field.Name))
-// 	} else {
-// 		c.ColName = wrap(ColName)
-// 	}
-// 	if Nullable, ok := field.Tag.Lookup("Nullable"); ok && Nullable == "true" {
-// 		c.Nullable = true
-// 	}
-// 	if IsInc, ok := field.Tag.Lookup("auto_Increment"); ok && c.OrmType == TypeIntField && IsInc == "true" {
-// 		c.IsInc = true
-// 	}
-// 	if IsPk, ok := field.Tag.Lookup("primary_key"); ok && IsPk == "true" {
-// 		c.IsPk = true
-// 	}
-// 	if IsUni, ok := field.Tag.Lookup("unique"); ok && IsUni == "true" {
-// 		c.IsUni = true
-// 	}
-// 	if DefVal, ok := field.Tag.Lookup("default_value"); ok {
-// 		if group := sqlConstRe.FindStringSubmatch(DefVal); len(group) > 1 {
-// 			c.DefVal = group[1]
-// 		} else {
-// 			var err error
-// 			errInvalidDefaultValue := fmt.Errorf("nborm.parseColumn() error: invalid default value (%s) for field (%s)", DefVal, field.Name)
-// 			switch c.OrmType {
-// 			case TypeStringField, TypeDateField, TypeDatetimeField:
-// 				if group := sqlStringRe.FindStringSubmatch(DefVal); len(group) > 1 {
-// 					c.DefVal = fmt.Sprintf("%q", group[1])
-// 				} else {
-// 					panic(errInvalidDefaultValue)
-// 				}
-// 			case TypeIntField:
-// 				if group := sqlIntRe.FindStringSubmatch(DefVal); len(group) > 1 {
-// 					if c.DefVal, err = strconv.ParseInt(group[1], 10, 64); err != nil {
-// 						panic(err)
-// 					}
-// 				} else {
-// 					panic(errInvalidDefaultValue)
-// 				}
-// 			case TypeFloatField:
-// 				if group := sqlFloatRe.FindStringSubmatch(DefVal); len(group) > 1 {
-// 					if c.DefVal, err = strconv.ParseFloat(group[1], 64); err != nil {
-// 						panic(err)
-// 					}
-// 				} else {
-// 					panic(errInvalidDefaultValue)
-// 				}
-// 			case TypeBoolField:
-// 				if group := sqlBoolRe.FindStringSubmatch(DefVal); len(group) > 1 {
-// 					if c.DefVal, err = strconv.ParseBool(group[1]); err != nil {
-// 						panic(err)
-// 					}
-// 				} else {
-// 					panic(errInvalidDefaultValue)
-// 				}
-// 			case TypeBinaryField:
-// 				if sqlBinaryRe.MatchString(DefVal) {
-// 					c.DefVal = DefVal
-// 				} else {
-// 					panic(errInvalidDefaultValue)
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return c
-// }
-
-// func getSrcCol(field reflect.StructField) string {
-// 	if SrcCol, ok := field.Tag.Lookup("src_col"); !ok {
-// 		panic(fmt.Errorf("nborm.getSrcCol() error: no source column tag for field (%s)", field.Name))
-// 	} else {
-// 		return wrap(SrcCol)
-// 	}
-// }
-
-// func getDstCol(field reflect.StructField) (DstDB, DstTab, DstCol string) {
-// 	var ok bool
-// 	if DstDB, ok = field.Tag.Lookup("dst_db"); !ok {
-// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination database tag for field (%s)", field.Name))
-// 	}
-// 	if DstTab, ok = field.Tag.Lookup("dst_tab"); !ok {
-// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination table tag for field (%s)", field.Name))
-// 	}
-// 	if DstCol, ok = field.Tag.Lookup("dst_col"); !ok {
-// 		panic(fmt.Errorf("nborm.getDstCol() error: no destination column tag for field (%s)", field.Name))
-// 	}
-// 	DstDB, DstTab, DstCol = wrap(DstDB), wrap(DstTab), wrap(DstCol)
-// 	return
-// }
-
-// func getMidCol(field reflect.StructField) (MidDB, MidTab, MidLeftCol, MidRightCol string) {
-// 	var ok bool
-// 	if MidDB, ok = field.Tag.Lookup("mid_db"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle database tag for field (%s)", field.Name))
-// 	}
-// 	if MidTab, ok = field.Tag.Lookup("mid_tab"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle table tag for field (%s)", field.Name))
-// 	}
-// 	if MidLeftCol, ok = field.Tag.Lookup("mid_left_col"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle left column tag for field (%s)", field.Name))
-// 	}
-// 	if MidRightCol, ok = field.Tag.Lookup("mid_right_col"); !ok {
-// 		panic(fmt.Errorf("nborm.getMidCol() error: no middle right column tag for field (%s)", field.Name))
-// 	}
-// 	MidDB, MidTab, MidLeftCol, MidRightCol = wrap(MidDB), wrap(MidTab), wrap(MidLeftCol), wrap(MidRightCol)
-// 	return
-// }
-
-// func parseOneToOne(field reflect.StructField) *OneToOneInfo {
-// 	o := &OneToOneInfo{}
-// 	o.SrcCol = getSrcCol(field)
-// 	o.DstDB, o.DstTab, o.DstCol = getDstCol(field)
-// 	o.Offset = field.Offset
-// 	return o
-// }
-
-// func parseForeignKey(field reflect.StructField) *ForeignKeyInfo {
-// 	f := &ForeignKeyInfo{}
-// 	f.SrcCol = getSrcCol(field)
-// 	f.DstDB, f.DstTab, f.DstCol = getDstCol(field)
-// 	f.Offset = field.Offset
-// 	return f
-// }
-
-// func parseReverseForeignKey(field reflect.StructField) *ReverseForeignKeyInfo {
-// 	r := &ReverseForeignKeyInfo{}
-// 	r.SrcCol = getSrcCol(field)
-// 	r.DstDB, r.DstTab, r.DstCol = getDstCol(field)
-// 	r.Offset = field.Offset
-// 	return r
-// }
-
-// func parseManyToMany(field reflect.StructField) *ManyToManyInfo {
-// 	m := &ManyToManyInfo{}
-// 	m.SrcCol = getSrcCol(field)
-// 	m.MidDB, m.MidTab, m.MidLeftCol, m.MidRightCol = getMidCol(field)
-// 	m.DstDB, m.DstTab, m.DstCol = getDstCol(field)
-// 	m.Offset = field.Offset
-// 	return m
-// }
-
-// func parseTable(table table) *TableInfo {
-// 	dbName, tabName := wrap(table.DB()), wrap(table.Tab())
-// 	tabInfo := &TableInfo{DB: dbName, Tab: tabName, ColumnMap: make(map[string]*ColumnInfo)}
-// 	var haveModelStatus bool
-// 	typ := reflect.TypeOf(table)
-// 	if typ.Kind() != reflect.Ptr {
-// 		panic(fmt.Errorf("nborm.parseTable() error: require a pointer but supported (%s)", typ.Name()))
-// 	}
-// 	elem := typ.Elem()
-// 	kind := elem.Kind()
-// 	var stct reflect.Type
-// 	switch kind {
-// 	case reflect.Struct:
-// 		stct = elem
-// 	case reflect.Array, reflect.Slice:
-// 		sElem := elem.Elem()
-// 		if sElem.Kind() != reflect.Ptr {
-// 			panic(fmt.Errorf("nborm.parseTable() error: require a array of struct pointer (%s)", typ.Name()))
-// 		}
-// 		stct = sElem.Elem()
-// 		if stct.Kind() != reflect.Struct {
-// 			panic(fmt.Errorf("nborm.parseTable() error: the type of element of slice(array) is not a struct pointer (%s)", typ.Name()))
-// 		}
-// 	default:
-// 		panic(fmt.Errorf("nborm.parseTable() error: object must be a struct or array of struct pointer (%s)", typ.Name()))
-// 	}
-// 	tabInfo.ModelType = stct
-// 	for i := 0; i < stct.NumField(); i++ {
-// 		field := stct.Field(i)
-// 		switch field.Type.String() {
-// 		case "nborm.StringField", "nborm.IntField", "nborm.FloatField", "nborm.BoolField", "nborm.BinaryField", "nborm.DateField",
-// 			"nborm.DatetimeField":
-// 			colInfo := parseColumn(field)
-// 			tabInfo.ColumnMap[colInfo.ColName] = colInfo
-// 			tabInfo.Columns = append(tabInfo.Columns, colInfo)
-// 			if colInfo.IsInc {
-// 				if tabInfo.Inc != nil {
-// 					panic(fmt.Errorf("nborm.parseTable() error: multiple auto Increment Columns (%s)", typ.Name()))
-// 				}
-// 				tabInfo.Inc = colInfo
-// 			}
-// 			if colInfo.IsPk {
-// 				tabInfo.Pk = append(tabInfo.Pk, colInfo)
-// 			}
-// 		case "nborm.OneToOne":
-// 			otoInfo := parseOneToOne(field)
-// 			tabInfo.OneToOnes = append(tabInfo.OneToOnes, otoInfo)
-// 		case "nborm.ForeignKey":
-// 			fkInfo := parseForeignKey(field)
-// 			tabInfo.ForeignKeys = append(tabInfo.ForeignKeys, fkInfo)
-// 		case "nborm.ReverseForeignKey":
-// 			rfkInfo := parseReverseForeignKey(field)
-// 			tabInfo.ReverseForeignKeys = append(tabInfo.ReverseForeignKeys, rfkInfo)
-// 		case "nborm.ManyToMany":
-// 			mtmInfo := parseManyToMany(field)
-// 			tabInfo.ManyToManys = append(tabInfo.ManyToManys, mtmInfo)
-// 		case "nborm.ModelStatus":
-// 			if haveModelStatus {
-// 				panic(fmt.Errorf("nborm.parseTable() error: multiple ModelStatus field (%s)", typ.Name()))
-// 			}
-// 			tabInfo.ModelStatus = field.Offset
-// 			haveModelStatus = true
-// 		}
-// 	}
-// 	if len(tabInfo.Pk) == 0 {
-// 		panic(fmt.Errorf("nborm.parseTable() error: no primary key in %s.%s", dbName, tabName))
-// 	}
-// 	if !haveModelStatus {
-// 		panic(fmt.Errorf("nborm.parseTable() error: no ModelStatus field in %s.%s", dbName, tabName))
-// 	}
-// 	return tabInfo
-// }
-
-// func getTabInfo(table table) *TableInfo {
-// 	db, tab := wrap(table.DB()), wrap(table.Tab())
-// 	schemaLock.RLock()
-// 	dbInfo, ok := SchemaCache.DatabaseMap[db]
-// 	if !ok {
-// 		schemaLock.RUnlock()
-// 		tInfo := parseTable(table)
-// 		dInfo := &DatabaseInfo{Tables: []*TableInfo{tInfo}, TableMap: map[string]*TableInfo{tab: tInfo}}
-// 		schemaLock.Lock()
-// 		SchemaCache.Databases = append(SchemaCache.Databases, dInfo)
-// 		SchemaCache.DatabaseMap[db] = dInfo
-// 		schemaLock.Unlock()
-// 		return tInfo
-// 	}
-// 	tabInfo, ok := dbInfo.TableMap[tab]
-// 	if !ok {
-// 		schemaLock.RUnlock()
-// 		tInfo := parseTable(table)
-// 		schemaLock.Lock()
-// 		dbInfo.Tables = append(dbInfo.Tables, tInfo)
-// 		dbInfo.TableMap[tab] = tInfo
-// 		schemaLock.Unlock()
-// 		return tInfo
-// 	}
-// 	schemaLock.RUnlock()
-// 	return tabInfo
-// }
-
-// func getTabInfoByName(db, tab string) *TableInfo {
-// 	SchemaCache.mux.RLock()
-// 	if dbInfo, ok := SchemaCache.DatabaseMap[db]; !ok {
-// 		SchemaCache.mux.RUnlock()
-// 		panic(fmt.Errorf("nborm.getTabInfoByName() error: database not exists (%s)", db))
-// 	} else {
-// 		if tabInfo, ok := dbInfo.TableMap[tab]; !ok {
-// 			SchemaCache.mux.RUnlock()
-// 			panic(fmt.Errorf("nborm.getTabInfoByName() error: table not exists (%s.%s)", db, tab))
-// 		} else {
-// 			if !tabInfo.IsComplete {
-// 				SchemaCache.mux.RUnlock()
-// 				SchemaCache.mux.Lock()
-// 				info.
-// 			}
-// 		}
-// 	}
-// }
-
 func getTabInfo(tab table) *TableInfo {
 	info := SchemaCache.getTabInfo(tab)
 	if !info.IsComplete {
@@ -764,30 +493,56 @@ func initModelWithTableInfo(model table, tabInfo *TableInfo) {
 		}
 	}
 	for _, oto := range tabInfo.OneToOnes {
-		srcField := getFieldByName(baseAddr, oto.SrcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, oto.SrcCol.ColName, tabInfo)
 		relField := (*OneToOne)(unsafe.Pointer(baseAddr + oto.Offset))
-		relField.srcDB, relField.srcTab, relField.srcCol, relField.midDB, relField.midTab, relField.midLeftCol, relField.midRightCol,
-			relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab, oto.SrcCol, oto.MidDB, oto.MidTab, oto.MidLeftCol,
-			oto.MidRightCol, oto.DstDB, oto.DstTab, oto.DstCol, srcField.value
+		relField.srcDB = oto.SrcCol.DBName
+		relField.srcTab = oto.SrcCol.TabName
+		relField.srcCol = oto.SrcCol.ColName
+		relField.midDB = oto.MidLeftCol.DBName
+		relField.midTab = oto.MidLeftCol.TabName
+		relField.midLeftCol = oto.MidLeftCol.ColName
+		relField.midRightCol = oto.MidRightCol.ColName
+		relField.dstDB = oto.DstCol.DBName
+		relField.dstTab = oto.DstCol.TabName
+		relField.dstCol = oto.DstCol.ColName
+		relField.srcValF = srcField.value
 	}
 	for _, fk := range tabInfo.ForeignKeys {
-		srcField := getFieldByName(baseAddr, fk.SrcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, fk.SrcCol.ColName, tabInfo)
 		relField := (*ForeignKey)(unsafe.Pointer(baseAddr + fk.Offset))
-		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			fk.SrcCol, fk.DstDB, fk.DstTab, fk.DstCol, srcField.value
+		relField.srcDB = fk.SrcCol.DBName
+		relField.srcTab = fk.SrcCol.TabName
+		relField.srcCol = fk.SrcCol.ColName
+		relField.dstDB = fk.DstCol.DBName
+		relField.dstTab = fk.DstCol.TabName
+		relField.dstCol = fk.DstCol.ColName
+		relField.srcValF = srcField.value
 	}
 	for _, rfk := range tabInfo.ReverseForeignKeys {
-		srcField := getFieldByName(baseAddr, rfk.SrcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, rfk.SrcCol.ColName, tabInfo)
 		relField := (*ReverseForeignKey)(unsafe.Pointer(baseAddr + rfk.Offset))
-		relField.srcDB, relField.srcTab, relField.srcCol, relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab,
-			rfk.SrcCol, rfk.DstDB, rfk.DstTab, rfk.DstCol, srcField.value
+		relField.srcDB = rfk.SrcCol.DBName
+		relField.srcTab = rfk.SrcCol.TabName
+		relField.srcCol = rfk.SrcCol.ColName
+		relField.dstDB = rfk.DstCol.DBName
+		relField.dstTab = rfk.DstCol.TabName
+		relField.dstCol = rfk.DstCol.ColName
+		relField.srcValF = srcField.value
 	}
 	for _, mtm := range tabInfo.ManyToManys {
-		srcField := getFieldByName(baseAddr, mtm.SrcCol, tabInfo)
+		srcField := getFieldByName(baseAddr, mtm.SrcCol.ColName, tabInfo)
 		relField := (*ManyToMany)(unsafe.Pointer(baseAddr + mtm.Offset))
-		relField.srcDB, relField.srcTab, relField.srcCol, relField.midDB, relField.midTab, relField.midLeftCol, relField.midRightCol,
-			relField.dstDB, relField.dstTab, relField.dstCol, relField.srcValF = db, tab, mtm.SrcCol, mtm.MidDB, mtm.MidTab, mtm.MidLeftCol,
-			mtm.MidRightCol, mtm.DstDB, mtm.DstTab, mtm.DstCol, srcField.value
+		relField.srcDB = mtm.SrcCol.DBName
+		relField.srcTab = mtm.SrcCol.TabName
+		relField.srcCol = mtm.SrcCol.ColName
+		relField.midDB = mtm.MidLeftCol.DBName
+		relField.midTab = mtm.MidLeftCol.TabName
+		relField.midLeftCol = mtm.MidLeftCol.ColName
+		relField.midRightCol = mtm.MidRightCol.ColName
+		relField.dstDB = mtm.DstCol.DBName
+		relField.dstTab = mtm.DstCol.TabName
+		relField.dstCol = mtm.DstCol.ColName
+		relField.srcValF = srcField.value
 	}
 	setInit(baseAddr, tabInfo)
 }

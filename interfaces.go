@@ -56,4 +56,6 @@ type relation interface {
 	getSrcTab() string
 	getDstDB() string
 	getDstTab() string
+	getFullSrcTab() string
+	getFullDstTab() string
 }

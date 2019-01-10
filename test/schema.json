@@ -10,6 +10,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -24,6 +26,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -38,6 +42,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -52,6 +58,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -66,6 +74,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -82,6 +92,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -96,6 +108,8 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -110,6 +124,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -124,6 +140,8 @@
       },
       "unique_code": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -138,6 +156,8 @@
       },
       "volume": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -154,10 +174,38 @@
      "OneToOnes": [],
      "ForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
@@ -166,6 +214,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -181,6 +231,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -201,6 +253,8 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
         "ColName": "unique_code",
         "FieldName": "UniqueCode",
         "Nullable": false,
@@ -234,6 +288,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -248,6 +304,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -262,6 +320,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -276,6 +336,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -290,6 +352,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -304,6 +368,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -318,12 +384,14 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -332,6 +400,8 @@
       },
       {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -346,6 +416,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -360,6 +432,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -374,6 +448,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -388,6 +464,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -402,6 +480,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -416,6 +496,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -430,6 +512,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -444,6 +528,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -458,6 +544,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -474,6 +562,8 @@
      "ColumnMap": {
       "author": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -488,6 +578,8 @@
       },
       "author_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -502,6 +594,8 @@
       },
       "binding": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -516,6 +610,8 @@
       },
       "content_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -530,6 +626,8 @@
       },
       "format": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -544,6 +642,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -558,6 +658,8 @@
       },
       "image": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -572,6 +674,8 @@
       },
       "is_ok": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -586,12 +690,14 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -600,6 +706,8 @@
       },
       "menu": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -614,6 +722,8 @@
       },
       "pages": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -628,6 +738,8 @@
       },
       "price": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -642,6 +754,8 @@
       },
       "publish_date": {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -656,6 +770,8 @@
       },
       "publisher": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -670,6 +786,8 @@
       },
       "series": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -684,6 +802,8 @@
       },
       "title": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -698,6 +818,8 @@
       },
       "word_count": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -715,30 +837,116 @@
      "ForeignKeys": [],
      "ReverseForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Book"
       }
      ],
      "ManyToManys": [
       {
-       "SrcCol": "isbn",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "book_info__isbn",
-       "MidRightCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Tag"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book_info",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -754,6 +962,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -774,12 +984,14 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
         "ColName": "isbn",
         "FieldName": "Isbn",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
-        "IsUni": true,
+        "IsUni": false,
         "DefVal": null,
         "Offset": 0,
         "SqlType": "varchar(128)",
@@ -807,6 +1019,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -821,6 +1035,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -837,6 +1053,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -851,6 +1069,8 @@
       },
       "tag": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -869,20 +1089,78 @@
      "ReverseForeignKeys": [],
      "ManyToManys": [
       {
-       "SrcCol": "id",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "tag__id",
-       "MidRightCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "tag",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -898,6 +1176,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -930,6 +1210,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -944,6 +1226,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -958,6 +1242,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -972,6 +1258,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -986,6 +1274,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1000,6 +1290,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -1014,6 +1306,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -1028,6 +1322,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -1042,6 +1338,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -1056,6 +1354,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -1070,6 +1370,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -1086,6 +1388,8 @@
      "ColumnMap": {
       "create_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -1100,6 +1404,8 @@
       },
       "email": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -1114,6 +1420,8 @@
       },
       "expire_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -1128,6 +1436,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1142,6 +1452,8 @@
       },
       "is_super_user": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -1156,6 +1468,8 @@
       },
       "last_login_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -1170,6 +1484,8 @@
       },
       "password": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -1184,6 +1500,8 @@
       },
       "phone": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -1198,6 +1516,8 @@
       },
       "session_id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -1212,6 +1532,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1226,6 +1548,8 @@
       },
       "username": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -1245,6 +1569,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "auth",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -1260,6 +1586,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1286,28 +1614,32 @@
     },
     {
      "DBName": "nborm_test",
-     "TabName": "book_info__tag",
+     "TabName": "mtm_406167494000000000000000",
      "ModelType": null,
-     "ModelName": "BookInfo__Tag",
+     "ModelName": "",
      "Columns": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -1320,8 +1652,10 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -1336,8 +1670,10 @@
      "ColumnMap": {
       "book_info__isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -1350,22 +1686,26 @@
       },
       "id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       "tag__id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -1380,18 +1720,74 @@
      "OneToOnes": null,
      "ForeignKeys": [
       {
-       "SrcCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       },
       {
-       "SrcCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       }
@@ -1402,15 +1798,17 @@
      "Pk": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       }
@@ -1420,8 +1818,10 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
         "ColName": "book_info__isbn",
-        "FieldName": "BookInfo__Isbn",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -1434,8 +1834,10 @@
        },
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
         "ColName": "tag__id",
-        "FieldName": "Tag__ID",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -1465,6 +1867,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1479,6 +1883,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -1493,6 +1899,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -1507,6 +1915,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -1521,6 +1931,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1535,6 +1947,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -1549,6 +1963,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -1563,6 +1979,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -1577,6 +1995,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -1591,6 +2011,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -1605,6 +2027,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -1621,6 +2045,8 @@
      "ColumnMap": {
       "create_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -1635,6 +2061,8 @@
       },
       "email": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -1649,6 +2077,8 @@
       },
       "expire_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -1663,6 +2093,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1677,6 +2109,8 @@
       },
       "is_super_user": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -1691,6 +2125,8 @@
       },
       "last_login_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -1705,6 +2141,8 @@
       },
       "password": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -1719,6 +2157,8 @@
       },
       "phone": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -1733,6 +2173,8 @@
       },
       "session_id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -1747,6 +2189,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1761,6 +2205,8 @@
       },
       "username": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -1780,6 +2226,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "auth",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -1795,6 +2243,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1827,6 +2277,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1841,6 +2293,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -1855,6 +2309,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -1869,6 +2325,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -1883,6 +2341,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1899,6 +2359,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -1913,6 +2375,8 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -1927,6 +2391,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -1941,6 +2407,8 @@
       },
       "unique_code": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -1955,6 +2423,8 @@
       },
       "volume": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -1971,10 +2441,38 @@
      "OneToOnes": [],
      "ForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
@@ -1983,6 +2481,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -1998,6 +2498,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2018,6 +2520,8 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
         "ColName": "unique_code",
         "FieldName": "UniqueCode",
         "Nullable": false,
@@ -2051,6 +2555,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2065,6 +2571,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -2079,6 +2587,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -2093,6 +2603,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -2107,6 +2619,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -2121,6 +2635,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -2135,12 +2651,14 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -2149,6 +2667,8 @@
       },
       {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -2163,6 +2683,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -2177,6 +2699,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -2191,6 +2715,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -2205,6 +2731,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -2219,6 +2747,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -2233,6 +2763,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -2247,6 +2779,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -2261,6 +2795,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -2275,6 +2811,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -2291,6 +2829,8 @@
      "ColumnMap": {
       "author": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -2305,6 +2845,8 @@
       },
       "author_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -2319,6 +2861,8 @@
       },
       "binding": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -2333,6 +2877,8 @@
       },
       "content_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -2347,6 +2893,8 @@
       },
       "format": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -2361,6 +2909,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2375,6 +2925,8 @@
       },
       "image": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -2389,6 +2941,8 @@
       },
       "is_ok": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -2403,12 +2957,14 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -2417,6 +2973,8 @@
       },
       "menu": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -2431,6 +2989,8 @@
       },
       "pages": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -2445,6 +3005,8 @@
       },
       "price": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -2459,6 +3021,8 @@
       },
       "publish_date": {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -2473,6 +3037,8 @@
       },
       "publisher": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -2487,6 +3053,8 @@
       },
       "series": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -2501,6 +3069,8 @@
       },
       "title": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -2515,6 +3085,8 @@
       },
       "word_count": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -2532,30 +3104,116 @@
      "ForeignKeys": [],
      "ReverseForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Book"
       }
      ],
      "ManyToManys": [
       {
-       "SrcCol": "isbn",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "book_info__isbn",
-       "MidRightCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Tag"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book_info",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -2571,6 +3229,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2591,12 +3251,14 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
         "ColName": "isbn",
         "FieldName": "Isbn",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
-        "IsUni": true,
+        "IsUni": false,
         "DefVal": null,
         "Offset": 0,
         "SqlType": "varchar(128)",
@@ -2616,30 +3278,34 @@
      "IsComplete": false,
      "IsNewMiddleTable": false
     },
-    "book_info__tag": {
+    "mtm_406167494000000000000000": {
      "DBName": "nborm_test",
-     "TabName": "book_info__tag",
+     "TabName": "mtm_406167494000000000000000",
      "ModelType": null,
-     "ModelName": "BookInfo__Tag",
+     "ModelName": "",
      "Columns": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -2652,8 +3318,10 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -2668,8 +3336,10 @@
      "ColumnMap": {
       "book_info__isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -2682,22 +3352,26 @@
       },
       "id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       "tag__id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -2712,18 +3386,74 @@
      "OneToOnes": null,
      "ForeignKeys": [
       {
-       "SrcCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       },
       {
-       "SrcCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       }
@@ -2734,15 +3464,17 @@
      "Pk": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       }
@@ -2752,8 +3484,10 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
         "ColName": "book_info__isbn",
-        "FieldName": "BookInfo__Isbn",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -2766,8 +3500,10 @@
        },
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
         "ColName": "tag__id",
-        "FieldName": "Tag__ID",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -2795,6 +3531,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2809,6 +3547,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -2825,6 +3565,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2839,6 +3581,8 @@
       },
       "tag": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -2857,20 +3601,78 @@
      "ReverseForeignKeys": [],
      "ManyToManys": [
       {
-       "SrcCol": "id",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "tag__id",
-       "MidRightCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "tag",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -2886,6 +3688,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2924,6 +3728,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -2938,6 +3744,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -2952,6 +3760,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -2966,6 +3776,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -2980,6 +3792,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -2996,6 +3810,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3010,6 +3826,8 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -3024,6 +3842,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -3038,6 +3858,8 @@
       },
       "unique_code": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -3052,6 +3874,8 @@
       },
       "volume": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -3068,10 +3892,38 @@
      "OneToOnes": [],
      "ForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
@@ -3080,6 +3932,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -3095,6 +3949,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3115,6 +3971,8 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
         "ColName": "unique_code",
         "FieldName": "UniqueCode",
         "Nullable": false,
@@ -3148,6 +4006,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3162,6 +4022,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -3176,6 +4038,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -3190,6 +4054,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -3204,6 +4070,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -3218,6 +4086,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -3232,12 +4102,14 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -3246,6 +4118,8 @@
       },
       {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -3260,6 +4134,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -3274,6 +4150,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -3288,6 +4166,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -3302,6 +4182,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -3316,6 +4198,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -3330,6 +4214,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -3344,6 +4230,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -3358,6 +4246,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -3372,6 +4262,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -3388,6 +4280,8 @@
      "ColumnMap": {
       "author": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -3402,6 +4296,8 @@
       },
       "author_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -3416,6 +4312,8 @@
       },
       "binding": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -3430,6 +4328,8 @@
       },
       "content_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -3444,6 +4344,8 @@
       },
       "format": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -3458,6 +4360,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3472,6 +4376,8 @@
       },
       "image": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -3486,6 +4392,8 @@
       },
       "is_ok": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -3500,12 +4408,14 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -3514,6 +4424,8 @@
       },
       "menu": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -3528,6 +4440,8 @@
       },
       "pages": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -3542,6 +4456,8 @@
       },
       "price": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -3556,6 +4472,8 @@
       },
       "publish_date": {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -3570,6 +4488,8 @@
       },
       "publisher": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -3584,6 +4504,8 @@
       },
       "series": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -3598,6 +4520,8 @@
       },
       "title": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -3612,6 +4536,8 @@
       },
       "word_count": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -3629,30 +4555,116 @@
      "ForeignKeys": [],
      "ReverseForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Book"
       }
      ],
      "ManyToManys": [
       {
-       "SrcCol": "isbn",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "book_info__isbn",
-       "MidRightCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Tag"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book_info",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -3668,6 +4680,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3688,12 +4702,14 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
         "ColName": "isbn",
         "FieldName": "Isbn",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
-        "IsUni": true,
+        "IsUni": false,
         "DefVal": null,
         "Offset": 0,
         "SqlType": "varchar(128)",
@@ -3721,6 +4737,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3735,6 +4753,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -3751,6 +4771,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3765,6 +4787,8 @@
       },
       "tag": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -3783,20 +4807,78 @@
      "ReverseForeignKeys": [],
      "ManyToManys": [
       {
-       "SrcCol": "id",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "tag__id",
-       "MidRightCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "tag",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -3812,6 +4894,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3844,6 +4928,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -3858,6 +4944,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -3872,6 +4960,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -3886,6 +4976,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -3900,6 +4992,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -3914,6 +5008,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -3928,6 +5024,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -3942,6 +5040,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -3956,6 +5056,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -3970,6 +5072,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -3984,6 +5088,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -4000,6 +5106,8 @@
      "ColumnMap": {
       "create_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -4014,6 +5122,8 @@
       },
       "email": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -4028,6 +5138,8 @@
       },
       "expire_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -4042,6 +5154,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4056,6 +5170,8 @@
       },
       "is_super_user": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -4070,6 +5186,8 @@
       },
       "last_login_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -4084,6 +5202,8 @@
       },
       "password": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -4098,6 +5218,8 @@
       },
       "phone": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -4112,6 +5234,8 @@
       },
       "session_id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -4126,6 +5250,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -4140,6 +5266,8 @@
       },
       "username": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -4159,6 +5287,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "auth",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -4174,6 +5304,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4200,28 +5332,32 @@
     },
     {
      "DBName": "nborm_test",
-     "TabName": "book_info__tag",
+     "TabName": "mtm_406167494000000000000000",
      "ModelType": null,
-     "ModelName": "BookInfo__Tag",
+     "ModelName": "",
      "Columns": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -4234,8 +5370,10 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -4250,8 +5388,10 @@
      "ColumnMap": {
       "book_info__isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -4264,22 +5404,26 @@
       },
       "id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       "tag__id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -4294,18 +5438,74 @@
      "OneToOnes": null,
      "ForeignKeys": [
       {
-       "SrcCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       },
       {
-       "SrcCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       }
@@ -4316,15 +5516,17 @@
      "Pk": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       }
@@ -4334,8 +5536,10 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
         "ColName": "book_info__isbn",
-        "FieldName": "BookInfo__Isbn",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -4348,8 +5552,10 @@
        },
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
         "ColName": "tag__id",
-        "FieldName": "Tag__ID",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -4379,6 +5585,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4393,6 +5601,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -4407,6 +5617,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -4421,6 +5633,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -4435,6 +5649,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -4449,6 +5665,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -4463,6 +5681,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -4477,6 +5697,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -4491,6 +5713,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -4505,6 +5729,8 @@
       },
       {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -4519,6 +5745,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -4535,6 +5763,8 @@
      "ColumnMap": {
       "create_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "create_time",
        "FieldName": "CreateTime",
        "Nullable": false,
@@ -4549,6 +5779,8 @@
       },
       "email": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "email",
        "FieldName": "Email",
        "Nullable": false,
@@ -4563,6 +5795,8 @@
       },
       "expire_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "expire_time",
        "FieldName": "ExpireTime",
        "Nullable": false,
@@ -4577,6 +5811,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4591,6 +5827,8 @@
       },
       "is_super_user": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "is_super_user",
        "FieldName": "IsSuperUser",
        "Nullable": false,
@@ -4605,6 +5843,8 @@
       },
       "last_login_time": {
        "OrmType": 6,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "last_login_time",
        "FieldName": "LastLoginTime",
        "Nullable": false,
@@ -4619,6 +5859,8 @@
       },
       "password": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "password",
        "FieldName": "Password",
        "Nullable": false,
@@ -4633,6 +5875,8 @@
       },
       "phone": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "phone",
        "FieldName": "Phone",
        "Nullable": false,
@@ -4647,6 +5891,8 @@
       },
       "session_id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "session_id",
        "FieldName": "SessionId",
        "Nullable": false,
@@ -4661,6 +5907,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -4675,6 +5923,8 @@
       },
       "username": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "username",
        "FieldName": "Username",
        "Nullable": false,
@@ -4694,6 +5944,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "auth",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -4709,6 +5961,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "auth",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4741,6 +5995,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4755,6 +6011,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -4769,6 +6027,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -4783,6 +6043,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -4797,6 +6059,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -4813,6 +6077,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4827,6 +6093,8 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
@@ -4841,6 +6109,8 @@
       },
       "status": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "status",
        "FieldName": "Status",
        "Nullable": false,
@@ -4855,6 +6125,8 @@
       },
       "unique_code": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "unique_code",
        "FieldName": "UniqueCode",
        "Nullable": false,
@@ -4869,6 +6141,8 @@
       },
       "volume": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "volume",
        "FieldName": "Volume",
        "Nullable": false,
@@ -4885,10 +6159,38 @@
      "OneToOnes": [],
      "ForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
@@ -4897,6 +6199,8 @@
      "ManyToManys": [],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -4912,6 +6216,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4932,6 +6238,8 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
         "ColName": "unique_code",
         "FieldName": "UniqueCode",
         "Nullable": false,
@@ -4965,6 +6273,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -4979,6 +6289,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -4993,6 +6305,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -5007,6 +6321,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -5021,6 +6337,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -5035,6 +6353,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -5049,12 +6369,14 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -5063,6 +6385,8 @@
       },
       {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -5077,6 +6401,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -5091,6 +6417,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -5105,6 +6433,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -5119,6 +6449,8 @@
       },
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -5133,6 +6465,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -5147,6 +6481,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -5161,6 +6497,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -5175,6 +6513,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -5189,6 +6529,8 @@
       },
       {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -5205,6 +6547,8 @@
      "ColumnMap": {
       "author": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author",
        "FieldName": "Author",
        "Nullable": false,
@@ -5219,6 +6563,8 @@
       },
       "author_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "author_intro",
        "FieldName": "AuthorIntro",
        "Nullable": false,
@@ -5233,6 +6579,8 @@
       },
       "binding": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "binding",
        "FieldName": "Binding",
        "Nullable": false,
@@ -5247,6 +6595,8 @@
       },
       "content_intro": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "content_intro",
        "FieldName": "ContentIntro",
        "Nullable": false,
@@ -5261,6 +6611,8 @@
       },
       "format": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "format",
        "FieldName": "Format",
        "Nullable": false,
@@ -5275,6 +6627,8 @@
       },
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -5289,6 +6643,8 @@
       },
       "image": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "image",
        "FieldName": "Image",
        "Nullable": false,
@@ -5303,6 +6659,8 @@
       },
       "is_ok": {
        "OrmType": 3,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "is_ok",
        "FieldName": "IsOk",
        "Nullable": false,
@@ -5317,12 +6675,14 @@
       },
       "isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "isbn",
        "FieldName": "Isbn",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
-       "IsUni": true,
+       "IsUni": false,
        "DefVal": null,
        "Offset": 0,
        "SqlType": "varchar(128)",
@@ -5331,6 +6691,8 @@
       },
       "menu": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "menu",
        "FieldName": "Menu",
        "Nullable": false,
@@ -5345,6 +6707,8 @@
       },
       "pages": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "pages",
        "FieldName": "Pages",
        "Nullable": false,
@@ -5359,6 +6723,8 @@
       },
       "price": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "price",
        "FieldName": "Price",
        "Nullable": false,
@@ -5373,6 +6739,8 @@
       },
       "publish_date": {
        "OrmType": 5,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publish_date",
        "FieldName": "PublishDate",
        "Nullable": false,
@@ -5387,6 +6755,8 @@
       },
       "publisher": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "publisher",
        "FieldName": "Publisher",
        "Nullable": false,
@@ -5401,6 +6771,8 @@
       },
       "series": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "series",
        "FieldName": "Series",
        "Nullable": false,
@@ -5415,6 +6787,8 @@
       },
       "title": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "title",
        "FieldName": "Title",
        "Nullable": false,
@@ -5429,6 +6803,8 @@
       },
       "word_count": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "word_count",
        "FieldName": "WordCount",
        "Nullable": false,
@@ -5446,30 +6822,116 @@
      "ForeignKeys": [],
      "ReverseForeignKeys": [
       {
-       "SrcCol": "isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Book"
       }
      ],
      "ManyToManys": [
       {
-       "SrcCol": "isbn",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "book_info__isbn",
-       "MidRightCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "Tag"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "book_info",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -5485,6 +6947,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "book_info",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -5505,12 +6969,14 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
         "ColName": "isbn",
         "FieldName": "Isbn",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
-        "IsUni": true,
+        "IsUni": false,
         "DefVal": null,
         "Offset": 0,
         "SqlType": "varchar(128)",
@@ -5530,30 +6996,34 @@
      "IsComplete": false,
      "IsNewMiddleTable": false
     },
-    "book_info__tag": {
+    "mtm_406167494000000000000000": {
      "DBName": "nborm_test",
-     "TabName": "book_info__tag",
+     "TabName": "mtm_406167494000000000000000",
      "ModelType": null,
-     "ModelName": "BookInfo__Tag",
+     "ModelName": "",
      "Columns": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -5566,8 +7036,10 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -5582,8 +7054,10 @@
      "ColumnMap": {
       "book_info__isbn": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "book_info__isbn",
-       "FieldName": "BookInfo__Isbn",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -5596,22 +7070,26 @@
       },
       "id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       },
       "tag__id": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "",
        "ColName": "tag__id",
-       "FieldName": "Tag__ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": false,
        "IsPk": false,
@@ -5626,18 +7104,74 @@
      "OneToOnes": null,
      "ForeignKeys": [
       {
-       "SrcCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       },
       {
-       "SrcCol": "tag__id",
-       "DstDB": "nborm_test",
-       "DstTab": "tag",
-       "DstCol": "id",
+       "SrcCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": ""
       }
@@ -5648,15 +7182,17 @@
      "Pk": [
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "mtm_406167494000000000000000",
        "ColName": "id",
-       "FieldName": "ID",
+       "FieldName": "",
        "Nullable": false,
        "IsInc": true,
-       "IsPk": true,
+       "IsPk": false,
        "IsUni": false,
        "DefVal": null,
        "Offset": 0,
-       "SqlType": "INT",
+       "SqlType": "int",
        "Charset": "",
        "Collate": ""
       }
@@ -5666,8 +7202,10 @@
       [
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
         "ColName": "book_info__isbn",
-        "FieldName": "BookInfo__Isbn",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -5680,8 +7218,10 @@
        },
        {
         "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
         "ColName": "tag__id",
-        "FieldName": "Tag__ID",
+        "FieldName": "",
         "Nullable": false,
         "IsInc": false,
         "IsPk": false,
@@ -5709,6 +7249,8 @@
      "Columns": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -5723,6 +7265,8 @@
       },
       {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -5739,6 +7283,8 @@
      "ColumnMap": {
       "id": {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,
@@ -5753,6 +7299,8 @@
       },
       "tag": {
        "OrmType": 0,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "tag",
        "FieldName": "Tag",
        "Nullable": false,
@@ -5771,20 +7319,78 @@
      "ReverseForeignKeys": [],
      "ManyToManys": [
       {
-       "SrcCol": "id",
-       "MidDB": "nborm_test",
-       "MidTab": "book_info__tag",
-       "MidLeftCol": "tag__id",
-       "MidRightCol": "book_info__isbn",
-       "DstDB": "nborm_test",
-       "DstTab": "book_info",
-       "DstCol": "isbn",
+       "SrcCol": {
+        "OrmType": 1,
+        "DBName": "nborm_test",
+        "TabName": "tag",
+        "ColName": "id",
+        "FieldName": "ID",
+        "Nullable": false,
+        "IsInc": true,
+        "IsPk": false,
+        "IsUni": true,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidLeftCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "",
+        "ColName": "tag__id",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "int",
+        "Charset": "",
+        "Collate": ""
+       },
+       "MidRightCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "mtm_406167494000000000000000",
+        "ColName": "book_info__isbn",
+        "FieldName": "",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
+       "DstCol": {
+        "OrmType": 0,
+        "DBName": "nborm_test",
+        "TabName": "book_info",
+        "ColName": "isbn",
+        "FieldName": "Isbn",
+        "Nullable": false,
+        "IsInc": false,
+        "IsPk": false,
+        "IsUni": false,
+        "DefVal": null,
+        "Offset": 0,
+        "SqlType": "varchar(128)",
+        "Charset": "",
+        "Collate": ""
+       },
        "Offset": 0,
        "FieldName": "BookInfo"
       }
      ],
      "Inc": {
       "OrmType": 1,
+      "DBName": "nborm_test",
+      "TabName": "tag",
       "ColName": "id",
       "FieldName": "ID",
       "Nullable": false,
@@ -5800,6 +7406,8 @@
      "Pk": [
       {
        "OrmType": 1,
+       "DBName": "nborm_test",
+       "TabName": "tag",
        "ColName": "id",
        "FieldName": "ID",
        "Nullable": false,

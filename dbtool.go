@@ -706,11 +706,11 @@ func initDBTabMap() {
 	}
 }
 
-var dbRe = regexp.MustCompile(`DB:(.*?)\n`)
-var tabRe = regexp.MustCompile(`Tab:(.*?)\n`)
-var PrimaryKeyRe = regexp.MustCompile(`PrimaryKey:(.*?)\n`)
-var KeysRe = regexp.MustCompile(`Index:(.*?)\n`)
-var uniqueKeyRe = regexp.MustCompile(`UniqueKey:(.*?)\n`)
+var dbRe = regexp.MustCompile(`(?m)^DB:(.*?)$`)
+var tabRe = regexp.MustCompile(`(?m)^Tab:(.*?)$`)
+var PrimaryKeyRe = regexp.MustCompile(`(?m)^PrimaryKey:(.*?)$`)
+var KeysRe = regexp.MustCompile(`(?m)^Index:(.*?)$`)
+var uniqueKeyRe = regexp.MustCompile(`(?m)^UniqueKey:(.*?)$`)
 
 func parseDBName(comment string) string {
 	group := dbRe.FindStringSubmatch(comment)

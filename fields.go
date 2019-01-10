@@ -49,22 +49,18 @@ func getInit(addr uintptr, tabInfo *TableInfo) bool {
 
 //StringField represent char, varchar, text type in mysql
 type StringField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      string
-	valid    bool
-	null     bool
-}
-
-//NewStringField create a StringField
-func NewStringField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *StringField {
-	return &StringField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        string
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 func (f *StringField) value() interface{} {
@@ -75,15 +71,23 @@ func (f *StringField) value() interface{} {
 }
 
 func (f *StringField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *StringField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
+}
+
+func (f *StringField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
 }
 
 func (f *StringField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *StringField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if the column is a primary key
@@ -104,6 +108,10 @@ func (f *StringField) IsValid() bool {
 //IsNull return true if the value of this column is null
 func (f *StringField) IsNull() bool {
 	return f.null
+}
+
+func (f *StringField) isNullable() bool {
+	return f.nullable
 }
 
 //IsUni return true if this column is a unique key
@@ -305,25 +313,34 @@ func (f *StringField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
-//IntField represent int, tinyint, midint, bigint types in mysql
-type IntField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	inc      bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      int64
-	valid    bool
-	null     bool
+func (f *StringField) getDefVal() interface{} {
+	return f.defVal
 }
 
-//NewIntField return a IntField
-func NewIntField(db, tab, column string, nullable, pk, inc, uni bool, defVal interface{}, offset uintptr) *IntField {
-	return &IntField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, inc: inc, uni: uni, defVal: defVal, offset: offset}
+func (f *StringField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//IntField represent int, tinyint, midint, bigint types in mysql
+type IntField struct {
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	inc        bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        int64
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 func (f *IntField) value() interface{} {
@@ -334,15 +351,23 @@ func (f *IntField) value() interface{} {
 }
 
 func (f *IntField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *IntField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
+}
+
+func (f *IntField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
 }
 
 func (f *IntField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *IntField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if this column is primary key
@@ -363,6 +388,10 @@ func (f *IntField) IsValid() bool {
 //IsNull return true if this field value is null
 func (f *IntField) IsNull() bool {
 	return f.null
+}
+
+func (f *IntField) isNullable() bool {
+	return f.nullable
 }
 
 //IsUni return true if the column is a unique key
@@ -576,6 +605,19 @@ func (f *IntField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
+func (f *IntField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *IntField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //SumFunc return a function for sum aggregate
 func (f *IntField) SumFunc() func(slice table) float64 {
 	return func(slice table) float64 {
@@ -632,17 +674,18 @@ func (f *IntField) AvgFunc(ignoreNull bool) func(slice table) float64 {
 
 //FloatField represent float, decimal types in mysql
 type FloatField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      float64
-	valid    bool
-	null     bool
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        float64
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 //NewFloatField create new FloatField
@@ -658,15 +701,23 @@ func (f *FloatField) value() interface{} {
 }
 
 func (f *FloatField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *FloatField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
 }
 
 func (f *FloatField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *FloatField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
+}
+
+func (f *FloatField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if the column is primary key
@@ -687,6 +738,10 @@ func (f *FloatField) IsValid() bool {
 //IsNull return true if the field value is null
 func (f *FloatField) IsNull() bool {
 	return f.null
+}
+
+func (f *FloatField) isNullable() bool {
+	return f.nullable
 }
 
 //IsUni return true if the column is a unique key
@@ -900,19 +955,33 @@ func (f *FloatField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
+func (f *FloatField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *FloatField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //BoolField represent tinyint(1) type in mysql
 type BoolField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      bool
-	valid    bool
-	null     bool
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        bool
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 //NewBoolField return a new BoolField
@@ -928,15 +997,23 @@ func (f *BoolField) value() interface{} {
 }
 
 func (f *BoolField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *BoolField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
 }
 
 func (f *BoolField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *BoolField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
+}
+
+func (f *BoolField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if the column is a primary key
@@ -957,6 +1034,10 @@ func (f *BoolField) IsValid() bool {
 //IsNull return true if value is null
 func (f *BoolField) IsNull() bool {
 	return f.null
+}
+
+func (f *BoolField) isNullable() bool {
+	return f.nullable
 }
 
 //Set set a value
@@ -1141,19 +1222,33 @@ func (f *BoolField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
+func (f *BoolField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *BoolField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //DateField represent date type in mysql
 type DateField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      time.Time
-	valid    bool
-	null     bool
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        time.Time
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 //NewDateField create a new DateField
@@ -1169,15 +1264,23 @@ func (f *DateField) value() interface{} {
 }
 
 func (f *DateField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *DateField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
 }
 
 func (f *DateField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *DateField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
+}
+
+func (f *DateField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if the column is a primary key
@@ -1198,6 +1301,10 @@ func (f *DateField) IsValid() bool {
 //IsNull return true if value is null
 func (f *DateField) IsNull() bool {
 	return f.null
+}
+
+func (f *DateField) isNullable() bool {
+	return f.nullable
 }
 
 //IsUni return true if the column is a unique key
@@ -1416,19 +1523,33 @@ func (f *DateField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
+func (f *DateField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *DateField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //DatetimeField represent datetime, timestamp types in mysql
 type DatetimeField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      time.Time
-	valid    bool
-	null     bool
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        time.Time
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 //NewDatetimeField create a DatetimeField
@@ -1444,15 +1565,23 @@ func (f *DatetimeField) value() interface{} {
 }
 
 func (f *DatetimeField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *DatetimeField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
 }
 
 func (f *DatetimeField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *DatetimeField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
+}
+
+func (f *DatetimeField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if column is a primary key
@@ -1473,6 +1602,10 @@ func (f *DatetimeField) IsValid() bool {
 //IsNull return true if field value is null
 func (f *DatetimeField) IsNull() bool {
 	return f.null
+}
+
+func (f *DatetimeField) isNullable() bool {
+	return f.nullable
 }
 
 //IsUni return true if column is a unique key
@@ -1690,19 +1823,33 @@ func (f *DatetimeField) SortOrder(reverse bool) string {
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
 }
 
+func (f *DatetimeField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *DatetimeField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //BinaryField represent blob type in mysql
 type BinaryField struct {
-	db       string
-	tab      string
-	column   string
-	nullable bool
-	pk       bool
-	uni      bool
-	defVal   interface{}
-	offset   uintptr
-	val      []byte
-	valid    bool
-	null     bool
+	db         string
+	tab        string
+	column     string
+	nullable   bool
+	pk         bool
+	uni        bool
+	defVal     interface{}
+	offset     uintptr
+	val        []byte
+	valid      bool
+	null       bool
+	validators []Validator
 }
 
 //NewBinaryField create a BinaryField
@@ -1732,6 +1879,10 @@ func (f *BinaryField) IsNull() bool {
 	return f.null
 }
 
+func (f *BinaryField) isNullable() bool {
+	return f.nullable
+}
+
 //Scan implement sql.Scanner interface
 func (f *BinaryField) Scan(val interface{}) error {
 	f.valid = true
@@ -1754,15 +1905,23 @@ func (f *BinaryField) Scan(val interface{}) error {
 }
 
 func (f *BinaryField) dbName() string {
-	return f.db
+	return wrap(f.db)
 }
 
 func (f *BinaryField) tabName() string {
-	return f.tab
+	return wrap(f.tab)
 }
 
 func (f *BinaryField) columnName() string {
-	return f.column
+	return wrap(f.column)
+}
+
+func (f *BinaryField) fullTabName() string {
+	return fmt.Sprintf("%s.%s", f.dbName(), f.tabName())
+}
+
+func (f *BinaryField) fullColName() string {
+	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
 }
 
 //IsPk return true if column is a primary key
@@ -1902,4 +2061,17 @@ func (f *BinaryField) SortOrder(reverse bool) string {
 		o = "ASC"
 	}
 	return fmt.Sprintf("%s.%s.%s %s", f.db, f.tab, f.column, o)
+}
+
+func (f *BinaryField) getDefVal() interface{} {
+	return f.defVal
+}
+
+func (f *BinaryField) check() error {
+	for _, validator := range f.validators {
+		if err := validator(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }

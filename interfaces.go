@@ -9,25 +9,6 @@ type table interface {
 	Tab() string
 }
 
-//Model declare a Model interface
-// type Model interface {
-// 	table
-// 	Fields() []Field
-// 	SetSync(bool)
-// }
-
-//ModelList declare a ModelList interface
-// type ModelList interface {
-// 	table
-// 	New() Model
-// 	Len() int
-// 	// Index(int) Model
-// 	// Delete(int)
-// 	Swap(i, j int)
-// 	json.Marshaler
-// 	Model() Model
-// }
-
 //Field declare a Field interface
 type Field interface {
 	IsValid() bool
@@ -36,6 +17,8 @@ type Field interface {
 	dbName() string
 	tabName() string
 	columnName() string
+	fullTabName() string
+	fullColName() string
 	isPk() bool
 	isInc() bool
 	isUni() bool
@@ -47,6 +30,9 @@ type Field interface {
 	value() interface{}
 	setVal(interface{}, bool)
 	updateValue() *UpdateValue
+	isNullable() bool
+	getDefVal() interface{}
+	check() error
 }
 
 type relation interface {

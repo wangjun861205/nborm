@@ -107,7 +107,7 @@ func (Pk PrimaryKey) match(fields ...Field) bool {
 	for _, PkCol := range Pk {
 		get := false
 		for _, field := range fields {
-			if field.columnName() == PkCol.ColName {
+			if escap(field.columnName()) == PkCol.ColName {
 				get = true
 				break
 			}
@@ -151,7 +151,7 @@ func (uks UniqueKeys) match(fields ...Field) (int, bool) {
 		for _, col := range uk {
 			get := false
 			for _, field := range fields {
-				if col.ColName == field.columnName() {
+				if col.ColName == escap(field.columnName()) {
 					get = true
 					break
 				}
@@ -367,6 +367,10 @@ func (ti *TableInfo) tabName() string {
 	return wrap(ti.TabName)
 }
 
+func (ti *TableInfo) fullTabName() string {
+	return fmt.Sprintf("%s.%s", ti.dbName(), ti.tabName())
+}
+
 type DatabaseInfo struct {
 	Tables   []*TableInfo
 	TableMap map[string]*TableInfo
@@ -463,34 +467,35 @@ func initModelWithTableInfo(model table, tabInfo *TableInfo) {
 		switch col.OrmType {
 		case TypeStringField:
 			field := (*StringField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeIntField:
 			field := (*IntField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsInc, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsInc, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeFloatField:
 			field := (*FloatField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeBoolField:
 			field := (*BoolField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeBinaryField:
 			field := (*BinaryField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeDateField:
 			field := (*DateField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 		case TypeDatetimeField:
 			field := (*DatetimeField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset = db, tab, col.ColName,
-				col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
+				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
 
 		}
+
 	}
 	for _, oto := range tabInfo.OneToOnes {
 		srcField := getFieldByName(baseAddr, oto.SrcCol.ColName, tabInfo)
@@ -573,6 +578,7 @@ func InitSlice(slice table) {
 }
 
 func getFieldByName(addr uintptr, ColName string, tabInfo *TableInfo) Field {
+	ColName = escap(ColName)
 	colInfo, ok := tabInfo.ColumnMap[ColName]
 	if !ok {
 		panic(fmt.Errorf("nborm.getFieldByName() error: %s.%s.%s column not exist", tabInfo.DBName, tabInfo.TabName, ColName))
@@ -656,31 +662,6 @@ func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
 	}
 	return nil
 }
-
-// func getUinsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
-// 	if tabInfo.Unis == nil {
-// 		return nil
-// 	}
-
-// 	l := make([][]Field, len(tabInfo.Unis))
-// 	for i, key := range tabInfo.Unis {
-// 		subL := make([]Field, len(key))
-// 		for j, col := range key {
-// 			subL[j] = getFieldByColumnInfo(addr, col)
-// 		}
-// 		// l[i] = getFieldByColumnInfo(addr, uniCol)
-// 		l[i] = subL
-// 	}
-// 	return l
-// }
-
-// func getAllFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []interface{} {
-// 	l := make([]interface{}, len(tabInfo.Columns))
-// 	for i, colInfo := range tabInfo.Columns {
-// 		l[i] = getFieldByColumnInfo(addr, colInfo)
-// 	}
-// 	return l
-// }
 
 func getAllFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
 	l := make([]Field, len(tabInfo.Columns))

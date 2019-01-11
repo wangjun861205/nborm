@@ -1536,6 +1536,14 @@ func (f *DateField) check() error {
 	return nil
 }
 
+func (f *DateField) ISOFormat() string {
+	return f.val.Format("2006-01-02")
+}
+
+func (f *DateField) Format(format string) string {
+	return f.val.Format(format)
+}
+
 //DatetimeField represent datetime, timestamp types in mysql
 type DatetimeField struct {
 	db         string
@@ -1834,6 +1842,14 @@ func (f *DatetimeField) check() error {
 		}
 	}
 	return nil
+}
+
+func (f *DatetimeField) Format(format string) string {
+	return f.val.Format(format)
+}
+
+func (f *DatetimeField) ISOFormat() string {
+	return f.val.Format("2006-01-02 15:04:05")
 }
 
 //BinaryField represent blob type in mysql

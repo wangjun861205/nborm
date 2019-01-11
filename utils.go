@@ -12,6 +12,8 @@ import (
 	"sync"
 	"unicode"
 	"unsafe"
+
+	"github.com/wangjun861205/nborm"
 )
 
 //UpdateValue is used for bulk update
@@ -339,4 +341,171 @@ func genMiddleTableName(srcModelName, srcFieldName, dstModelName, dstFieldName s
 		result[i] = factorA[i] & factorB[i]
 	}
 	return fmt.Sprintf("%x", result)
+}
+
+type JSONFieldNameChoice int
+
+const (
+	FieldName JSONFieldNameChoice = iota
+	ColumnName
+)
+
+func JsonifyModels(models nborm.Union, fieldNameChoice JSONFieldNameChoice, fieldNames ...string) (map[string]interface{}, error) {
+	if len(models) == 0 {
+		return nil, errors.New("nborm.JsonifyModels() error: no models")
+	}
+	if len(fieldNames) == 0 {
+		return nil, errors.New("nborm.Jsonify() error: no field name")
+	}
+	m := make(map[string]interface{})
+	tabInfos := make([]*TableInfo, len(models))
+	tabAddrs := make([]uintptr, len(models))
+	for i, model := range models {
+		tabInfos[i] = getTabInfo(model)
+		tabAddrs[i] = getTabAddr(model)
+	}
+	for _, fieldName := range fieldNames {
+		l := strings.Split(fieldName, ".")
+		if len(l) != 2 {
+			return nil, fmt.Errorf("nborm.JsonifyModels() error: invalid field name (%s) want <modelName>.<fieldName>", fieldName)
+		}
+		var tabInfo *TableInfo
+		var tabAddr uintptr
+		for i, ti := range tabInfos {
+			if ti.ModelName == l[0] {
+				tabInfo = ti
+				tabAddr = tabAddrs[i]
+				break
+			}
+		}
+		if tabInfo == nil {
+			return nil, fmt.Errorf("nborm.JsonifyModels() error: model not exists (%s)", l[0])
+		}
+		field, err := getFieldByFieldName(tabAddr, l[1], tabInfo)
+		if err != nil {
+			return nil, err
+		}
+		switch fieldNameChoice {
+		case FieldName:
+			switch f := field.(type) {
+			case *DateField:
+				m[l[1]] = f.ISOFormat()
+			case *DatetimeField:
+				m[l[1]] = f.ISOFormat()
+			default:
+				m[l[1]] = f.value()
+			}
+		case ColumnName:
+			switch f := field.(type) {
+			case *DateField:
+				m[f.column] = f.ISOFormat()
+			case *DatetimeField:
+				m[f.column] = f.ISOFormat()
+			default:
+				m[escap(f.columnName())] = f.value()
+			}
+		}
+	}
+	return m, nil
+}
+
+func JsonifySlices(slices Union, fieldNameChoice JSONFieldNameChoice, fieldNames ...string) ([]map[string]interface{}, error) {
+	if len(slices) == 0 {
+		return nil, errors.New("nborm.JsonifySlices() error: no slice")
+	}
+	if len(fieldNames) == 0 {
+		return nil, errors.New("nborm.JsonifySlices() error: no field name")
+	}
+	tabInfos := make([]*TableInfo, len(slices))
+	for i, slice := range slices {
+		tabInfos[i] = getTabInfo(slice)
+	}
+	sliceLength := len(*(*[]uintptr)(unsafe.Pointer(getTabAddr(slices[0]))))
+	l := make([][]uintptr, sliceLength-1)
+	for _, slice := range slices {
+		ptrSlice := *(*[]uintptr)(unsafe.Pointer(getTabAddr(slice)))
+		for i, ptr := range ptrSlice[1:] {
+			l[i] = append(l[i], ptr)
+		}
+	}
+	ml := make([]map[string]interface{}, sliceLength-1)
+	colNameList := make([][][2]string, len(slices))
+	var complete bool
+	for mi, addrs := range l {
+		m := make(map[string]interface{})
+		if !complete {
+		OUTER:
+			for _, fieldName := range fieldNames {
+				l := strings.Split(fieldName, ".")
+				if len(l) != 2 {
+					return nil, fmt.Errorf("nborm.JsonifyModels() error: invalid field name (%s) want <modelName>.<fieldName>", fieldName)
+				}
+				for i, ti := range tabInfos {
+					if ti.ModelName == l[0] {
+						tabInfo := ti
+						tabAddr := addrs[i]
+						field, err := getFieldByFieldName(tabAddr, l[1], tabInfo)
+						if err != nil {
+							return nil, err
+						}
+						colNameList[i] = append(colNameList[i], [2]string{escap(field.columnName()), l[1]})
+						switch fieldNameChoice {
+						case FieldName:
+							switch f := field.(type) {
+							case *DateField:
+								m[l[1]] = f.ISOFormat()
+							case *DatetimeField:
+								m[l[1]] = f.ISOFormat()
+							default:
+								m[l[1]] = f.value()
+							}
+						case ColumnName:
+							switch f := field.(type) {
+							case *DateField:
+								m[f.column] = f.ISOFormat()
+							case *DatetimeField:
+								m[f.column] = f.ISOFormat()
+							default:
+								m[escap(f.columnName())] = f.value()
+							}
+						}
+						continue OUTER
+					}
+				}
+				return nil, fmt.Errorf("nborm.JsonifySlices() error: model not exists (%s)", l[0])
+			}
+			ml[mi] = m
+			complete = true
+		} else {
+			for i, colNames := range colNameList {
+				tabInfo := tabInfos[i]
+				addr := addrs[i]
+				for _, colName := range colNames {
+					field := getFieldByName(addr, colName[0], tabInfo)
+					switch fieldNameChoice {
+					case FieldName:
+						switch f := field.(type) {
+						case *DateField:
+							m[colName[1]] = f.ISOFormat()
+						case *DatetimeField:
+							m[colName[1]] = f.ISOFormat()
+						default:
+							m[colName[1]] = f.value()
+						}
+					case ColumnName:
+						switch f := field.(type) {
+						case *DateField:
+							m[f.column] = f.ISOFormat()
+						case *DatetimeField:
+							m[f.column] = f.ISOFormat()
+						default:
+							m[escap(f.columnName())] = f.value()
+						}
+					}
+				}
+			}
+			ml[mi] = m
+		}
+	}
+	return ml, nil
 }

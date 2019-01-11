@@ -623,7 +623,33 @@ func getFieldByColumnInfo(addr uintptr, colInfo *ColumnInfo) Field {
 	default:
 		panic(fmt.Errorf("nborm.getFieldByColumnInfo() error: unknown field type (%d)", colInfo.OrmType))
 	}
+}
 
+func getFieldByFieldName(addr uintptr, fieldName string, tabInfo *TableInfo) (Field, error) {
+	for _, colInfo := range tabInfo.Columns {
+		if colInfo.FieldName == fieldName {
+			fieldAddr := unsafe.Pointer(addr + colInfo.Offset)
+			switch colInfo.OrmType {
+			case TypeStringField:
+				return (*StringField)(fieldAddr), nil
+			case TypeIntField:
+				return (*IntField)(fieldAddr), nil
+			case TypeFloatField:
+				return (*FloatField)(fieldAddr), nil
+			case TypeBoolField:
+				return (*BoolField)(fieldAddr), nil
+			case TypeBinaryField:
+				return (*BinaryField)(fieldAddr), nil
+			case TypeDateField:
+				return (*DateField)(fieldAddr), nil
+			case TypeDatetimeField:
+				return (*DatetimeField)(fieldAddr), nil
+			default:
+				return nil, fmt.Errorf("nborm.getFieldByFieldName() error: unknown field type (%d)", colInfo.OrmType)
+			}
+		}
+	}
+	return nil, fmt.Errorf("nborm.getFieldByFieldName() error: field not exists (%s)", fieldName)
 }
 
 func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
@@ -746,9 +772,9 @@ func unionScanRows(addrs []uintptr, tabInfos []*TableInfo, rows *sql.Rows) error
 		fields := make([]interface{}, 0, 64)
 		for i, tabInfo := range tabInfos {
 			modelAddr := newModelAddr(tabInfo)
-			fieldAddrList := make([]interface{}, len(fields))
-			for i, field := range getAllFieldsWithTableInfo(modelAddr, tabInfo) {
-				fieldAddrList[i] = field.(interface{})
+			fieldAddrList := make([]interface{}, len(tabInfo.Columns))
+			for j, field := range getAllFieldsWithTableInfo(modelAddr, tabInfo) {
+				fieldAddrList[j] = field.(interface{})
 			}
 			fields = append(fields, fieldAddrList...)
 			setSync(modelAddr, tabInfo)

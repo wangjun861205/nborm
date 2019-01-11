@@ -12,8 +12,6 @@ import (
 	"sync"
 	"unicode"
 	"unsafe"
-
-	"github.com/wangjun861205/nborm"
 )
 
 //UpdateValue is used for bulk update
@@ -350,7 +348,7 @@ const (
 	ColumnName
 )
 
-func JsonifyModels(models nborm.Union, fieldNameChoice JSONFieldNameChoice, fieldNames ...string) (map[string]interface{}, error) {
+func JsonifyModels(models Union, fieldNameChoice JSONFieldNameChoice, fieldNames ...string) (map[string]interface{}, error) {
 	if len(models) == 0 {
 		return nil, errors.New("nborm.JsonifyModels() error: no models")
 	}

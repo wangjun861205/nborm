@@ -61,6 +61,8 @@ type StringField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 func (f *StringField) value() interface{} {
@@ -86,8 +88,16 @@ func (f *StringField) columnName() string {
 	return wrap(f.column)
 }
 
+func (f *StringField) getFieldName() string {
+	return f.fieldName
+}
+
 func (f *StringField) fullColName() string {
 	return fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.columnName())
+}
+
+func (f *StringField) getModelName() string {
+	return f.modelName
 }
 
 //IsPk return true if the column is a primary key
@@ -341,6 +351,8 @@ type IntField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 func (f *IntField) value() interface{} {
@@ -364,6 +376,14 @@ func (f *IntField) fullTabName() string {
 
 func (f *IntField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *IntField) getModelName() string {
+	return f.modelName
+}
+
+func (f *IntField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *IntField) fullColName() string {
@@ -686,6 +706,8 @@ type FloatField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 //NewFloatField create new FloatField
@@ -710,6 +732,14 @@ func (f *FloatField) tabName() string {
 
 func (f *FloatField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *FloatField) getModelName() string {
+	return f.modelName
+}
+
+func (f *FloatField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *FloatField) fullTabName() string {
@@ -982,6 +1012,8 @@ type BoolField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 //NewBoolField return a new BoolField
@@ -1006,6 +1038,14 @@ func (f *BoolField) tabName() string {
 
 func (f *BoolField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *BoolField) getModelName() string {
+	return f.modelName
+}
+
+func (f *BoolField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *BoolField) fullTabName() string {
@@ -1249,6 +1289,8 @@ type DateField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 //NewDateField create a new DateField
@@ -1273,6 +1315,14 @@ func (f *DateField) tabName() string {
 
 func (f *DateField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *DateField) getModelName() string {
+	return f.modelName
+}
+
+func (f *DateField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *DateField) fullTabName() string {
@@ -1558,6 +1608,8 @@ type DatetimeField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 //NewDatetimeField create a DatetimeField
@@ -1582,6 +1634,14 @@ func (f *DatetimeField) tabName() string {
 
 func (f *DatetimeField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *DatetimeField) getModelName() string {
+	return f.modelName
+}
+
+func (f *DatetimeField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *DatetimeField) fullTabName() string {
@@ -1866,6 +1926,8 @@ type BinaryField struct {
 	valid      bool
 	null       bool
 	validators []Validator
+	fieldName  string
+	modelName  string
 }
 
 //NewBinaryField create a BinaryField
@@ -1930,6 +1992,14 @@ func (f *BinaryField) tabName() string {
 
 func (f *BinaryField) columnName() string {
 	return wrap(f.column)
+}
+
+func (f *BinaryField) getModelName() string {
+	return f.modelName
+}
+
+func (f *BinaryField) getFieldName() string {
+	return f.fieldName
 }
 
 func (f *BinaryField) fullTabName() string {

@@ -783,50 +783,50 @@ var tests = []struct {
 	// 	return nil
 	// }},
 
-	{"jsonify models", func() error {
-		bookInfo := NewBookInfo()
-		bookInfo.Isbn.Set("7654321")
-		book := NewBook()
-		book.UniqueCode.Set("1234567")
-		m, err := nborm.JsonifyModels(nborm.Union{bookInfo, book}, nborm.ColumnName, "BookInfo.Isbn", "Book.UniqueCode")
-		if err != nil {
-			return err
-		}
-		fmt.Println(m)
-		return nil
-	}},
-
-	// {"jsonify slices", func() error {
+	// {"jsonify models", func() error {
 	// 	bookInfo := NewBookInfo()
-	// 	bookInfo.Isbn.Set(fmt.Sprintf("%011d", 300))
-	// 	if err := nborm.InsertOne(bookInfo); err != nil {
-	// 		return err
-	// 	}
-	// 	tags := MakeTagSlice(0, 128)
-	// 	for i := 0; i < 10; i++ {
-	// 		tag1 := NewTag()
-	// 		tag1.Tag.Set("bulk remove")
-	// 		tag2 := NewTag()
-	// 		tag2.Tag.Set("not remove")
-	// 		tags = append(tags, tag1, tag2)
-	// 	}
-	// 	if err := bookInfo.Tag.InsertMul(&tags); err != nil {
-	// 		return err
-	// 	}
-	// 	bookInfos := MakeBookInfoSlice(0, 32)
-	// 	bookInfos[0].Isbn.Set(fmt.Sprintf("%011d", 300))
-	// 	newTags := MakeTagSlice(0, 128)
-	// 	err := nborm.UnionQuery(nborm.Union{&bookInfos, &newTags}, nil, nil, nil, true, bookInfos[0].Tag)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	m, err := nborm.JsonifySlices(nborm.Union{&bookInfos, &newTags}, nborm.ColumnName, "BookInfo.Isbn", "Tag.Tag")
+	// 	bookInfo.Isbn.Set("7654321")
+	// 	book := NewBook()
+	// 	book.UniqueCode.Set("1234567")
+	// 	m, err := nborm.JsonifyModels(nborm.Union{bookInfo, book}, nborm.ColumnName)
 	// 	if err != nil {
 	// 		return err
 	// 	}
 	// 	fmt.Println(m)
 	// 	return nil
 	// }},
+
+	{"jsonify slices", func() error {
+		bookInfo := NewBookInfo()
+		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 300))
+		if err := nborm.InsertOne(bookInfo); err != nil {
+			return err
+		}
+		tags := MakeTagSlice(0, 128)
+		for i := 0; i < 10; i++ {
+			tag1 := NewTag()
+			tag1.Tag.Set("bulk remove")
+			tag2 := NewTag()
+			tag2.Tag.Set("not remove")
+			tags = append(tags, tag1, tag2)
+		}
+		if err := bookInfo.Tag.InsertMul(&tags); err != nil {
+			return err
+		}
+		bookInfos := MakeBookInfoSlice(0, 32)
+		bookInfos[0].Isbn.Set(fmt.Sprintf("%011d", 300))
+		newTags := MakeTagSlice(0, 128)
+		err := nborm.UnionQuery(nborm.Union{&bookInfos, &newTags}, nil, nil, nil, true, bookInfos[0].Tag)
+		if err != nil {
+			return err
+		}
+		m, err := nborm.JsonifySlices(nborm.Union{&bookInfos, &newTags}, nborm.ColumnName, "BookInfo.Isbn", "Tag.Tag")
+		if err != nil {
+			return err
+		}
+		fmt.Println(m)
+		return nil
+	}},
 }
 
 func TestInsert(t *testing.T) {

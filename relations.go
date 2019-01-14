@@ -43,6 +43,46 @@ func (oto OneToOne) QueryInTx(tx *sql.Tx, model table) error {
 	return scanRow(modAddr, tabInfo, row)
 }
 
+func (oto OneToOne) Set(model table) error {
+	if model.DB() != oto.dstDB || model.Tab() != oto.dstTab {
+		return fmt.Errorf("nborm.OneToOne.Set() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, model.DB(), model.Tab())
+	}
+	tabInfo := getTabInfo(model)
+	addr := getTabAddr(model)
+	if getSync(addr, tabInfo) {
+		err := insertMiddleTable(oto, addr, tabInfo)
+		if err != nil {
+			return err
+		}
+	} else {
+		tx, err := Begin()
+		if err != nil {
+			return err
+		}
+		lastInsertID, err := insertInTx(tx, addr, tabInfo)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		setInc(addr, tabInfo, lastInsertID)
+		err = insertMiddleTable(oto, addr, tabInfo)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return nil
+}
+
+func (oto OneToOne) Unset(model table) error {
+	if model.DB() != oto.dstDB || model.Tab() != oto.dstTab {
+		return fmt.Errorf("nborm.OneToOne.Unset() error: required %s.%s supported %s.%s", oto.dstDB, oto.dstTab, model.DB(), model.Tab())
+	}
+	tabInfo := getTabInfo(model)
+	addr := getTabAddr(model)
+	return deleteMiddleTable(oto, addr, tabInfo)
+}
+
 func (oto OneToOne) where() *Where {
 	return newWhere(oto.srcDB, oto.srcTab, oto.srcCol, "=", oto.srcValF())
 }
@@ -51,40 +91,80 @@ func (oto OneToOne) getSrcDB() string {
 	return wrap(oto.srcDB)
 }
 
+func (oto OneToOne) getRawSrcDB() string {
+	return oto.srcDB
+}
+
 func (oto OneToOne) getSrcTab() string {
 	return wrap(oto.srcTab)
+}
+
+func (oto OneToOne) getRawSrcTab() string {
+	return oto.srcTab
 }
 
 func (oto OneToOne) getSrcCol() string {
 	return wrap(oto.srcCol)
 }
 
+func (oto OneToOne) getRawSrcCol() string {
+	return oto.srcCol
+}
+
 func (oto OneToOne) getMidDB() string {
 	return wrap(oto.midDB)
+}
+
+func (oto OneToOne) getRawMidDB() string {
+	return oto.midDB
 }
 
 func (oto OneToOne) getMidTab() string {
 	return wrap(oto.midTab)
 }
 
+func (oto OneToOne) getRawMidTab() string {
+	return oto.midTab
+}
+
 func (oto OneToOne) getMidLeftCol() string {
 	return wrap(oto.midLeftCol)
+}
+
+func (oto OneToOne) getRawMidLeftCol() string {
+	return oto.midLeftCol
 }
 
 func (oto OneToOne) getMidRightCol() string {
 	return wrap(oto.midRightCol)
 }
 
+func (oto OneToOne) getRawMidRightCol() string {
+	return oto.midRightCol
+}
+
 func (oto OneToOne) getDstDB() string {
 	return wrap(oto.dstDB)
+}
+
+func (oto OneToOne) getRawDstDB() string {
+	return oto.dstDB
 }
 
 func (oto OneToOne) getDstTab() string {
 	return wrap(oto.dstTab)
 }
 
+func (oto OneToOne) getRawDstTab() string {
+	return oto.dstTab
+}
+
 func (oto OneToOne) getDstCol() string {
 	return wrap(oto.dstCol)
+}
+
+func (oto OneToOne) getRawDstCol() string {
+	return oto.dstCol
 }
 
 func (oto OneToOne) getFullSrcTab() string {
@@ -113,6 +193,10 @@ func (oto OneToOne) getFullMidLeftCol() string {
 
 func (oto OneToOne) getFullMidRightCol() string {
 	return fmt.Sprintf("%s.%s.%s", oto.getMidDB(), oto.getMidTab(), oto.getMidRightCol())
+}
+
+func (oto OneToOne) getSrcVal() interface{} {
+	return oto.srcValF()
 }
 
 //ForeignKey represent a one point many relation
@@ -162,24 +246,48 @@ func (fk ForeignKey) getSrcDB() string {
 	return wrap(fk.srcDB)
 }
 
+func (fk ForeignKey) getRawSrcDB() string {
+	return fk.srcDB
+}
+
 func (fk ForeignKey) getSrcTab() string {
 	return wrap(fk.srcTab)
+}
+
+func (fk ForeignKey) getRawSrcTab() string {
+	return fk.srcTab
 }
 
 func (fk ForeignKey) getSrcCol() string {
 	return wrap(fk.srcCol)
 }
 
+func (fk ForeignKey) getRawSrcCol() string {
+	return fk.srcCol
+}
+
 func (fk ForeignKey) getDstDB() string {
 	return wrap(fk.dstDB)
+}
+
+func (fk ForeignKey) getRawDstDB() string {
+	return fk.dstDB
 }
 
 func (fk ForeignKey) getDstTab() string {
 	return wrap(fk.dstTab)
 }
 
+func (fk ForeignKey) getRawDstTab() string {
+	return fk.dstTab
+}
+
 func (fk ForeignKey) getDstCol() string {
 	return wrap(fk.dstCol)
+}
+
+func (fk ForeignKey) getRawDstCol() string {
+	return fk.dstCol
 }
 
 func (fk ForeignKey) getFullSrcTab() string {
@@ -196,6 +304,10 @@ func (fk ForeignKey) getFullSrcCol() string {
 
 func (fk ForeignKey) getFullDstCol() string {
 	return fmt.Sprintf("%s.%s.%s", fk.getDstDB(), fk.getDstTab(), fk.getDstCol())
+}
+
+func (fk ForeignKey) getSrcVal() interface{} {
+	return fk.srcValF()
 }
 
 //ReverseForeignKey represent many point one relation
@@ -488,24 +600,48 @@ func (rfk ReverseForeignKey) getSrcDB() string {
 	return wrap(rfk.srcDB)
 }
 
+func (rfk ReverseForeignKey) getRawSrcDB() string {
+	return rfk.srcDB
+}
+
 func (rfk ReverseForeignKey) getSrcTab() string {
 	return wrap(rfk.srcTab)
+}
+
+func (rfk ReverseForeignKey) getRawSrcTab() string {
+	return rfk.srcTab
 }
 
 func (rfk ReverseForeignKey) getSrcCol() string {
 	return wrap(rfk.srcCol)
 }
 
+func (rfk ReverseForeignKey) getRawSrcCol() string {
+	return rfk.srcCol
+}
+
 func (rfk ReverseForeignKey) getDstDB() string {
 	return wrap(rfk.dstDB)
+}
+
+func (rfk ReverseForeignKey) getRawDstDB() string {
+	return rfk.dstDB
 }
 
 func (rfk ReverseForeignKey) getDstTab() string {
 	return wrap(rfk.dstTab)
 }
 
+func (rfk ReverseForeignKey) getRawDstTab() string {
+	return rfk.dstTab
+}
+
 func (rfk ReverseForeignKey) getDstCol() string {
 	return wrap(rfk.dstCol)
+}
+
+func (rfk ReverseForeignKey) getRawDstCol() string {
+	return rfk.dstCol
 }
 
 func (rfk ReverseForeignKey) getFullSrcTab() string {
@@ -522,6 +658,10 @@ func (rfk ReverseForeignKey) getFullSrcCol() string {
 
 func (rfk ReverseForeignKey) getFullDstCol() string {
 	return fmt.Sprintf("%s.%s.%s", rfk.getDstDB(), rfk.getDstTab(), rfk.getDstCol())
+}
+
+func (rfk ReverseForeignKey) getSrcVal() interface{} {
+	return rfk.srcValF()
 }
 
 //ManyToMany represent many point many relation
@@ -966,40 +1106,80 @@ func (mtm ManyToMany) getSrcDB() string {
 	return wrap(mtm.srcDB)
 }
 
+func (mtm ManyToMany) getRawSrcDB() string {
+	return mtm.srcDB
+}
+
 func (mtm ManyToMany) getSrcTab() string {
 	return wrap(mtm.srcTab)
+}
+
+func (mtm ManyToMany) getRawSrcTab() string {
+	return mtm.srcTab
 }
 
 func (mtm ManyToMany) getSrcCol() string {
 	return wrap(mtm.srcCol)
 }
 
+func (mtm ManyToMany) getRawSrcCol() string {
+	return mtm.srcCol
+}
+
 func (mtm ManyToMany) getMidDB() string {
 	return wrap(mtm.midDB)
+}
+
+func (mtm ManyToMany) getRawMidDB() string {
+	return mtm.midDB
 }
 
 func (mtm ManyToMany) getMidTab() string {
 	return wrap(mtm.midTab)
 }
 
+func (mtm ManyToMany) getRawMidTab() string {
+	return mtm.midTab
+}
+
 func (mtm ManyToMany) getMidLeftCol() string {
 	return wrap(mtm.midLeftCol)
+}
+
+func (mtm ManyToMany) getRawMidLeftCol() string {
+	return mtm.midLeftCol
 }
 
 func (mtm ManyToMany) getMidRightCol() string {
 	return wrap(mtm.midRightCol)
 }
 
+func (mtm ManyToMany) getRawMidRightCol() string {
+	return mtm.midRightCol
+}
+
 func (mtm ManyToMany) getDstDB() string {
 	return wrap(mtm.dstDB)
+}
+
+func (mtm ManyToMany) getRawDstDB() string {
+	return mtm.dstDB
 }
 
 func (mtm ManyToMany) getDstTab() string {
 	return wrap(mtm.dstTab)
 }
 
+func (mtm ManyToMany) getRawDstTab() string {
+	return mtm.dstTab
+}
+
 func (mtm ManyToMany) getDstCol() string {
 	return wrap(mtm.dstCol)
+}
+
+func (mtm ManyToMany) getRawDstCol() string {
+	return mtm.dstCol
 }
 
 func (mtm ManyToMany) getFullSrcTab() string {
@@ -1028,6 +1208,10 @@ func (mtm ManyToMany) getFullMidLeftCol() string {
 
 func (mtm ManyToMany) getFullMidRightCol() string {
 	return fmt.Sprintf("%s.%s.%s", mtm.getMidDB(), mtm.getMidTab(), mtm.getMidRightCol())
+}
+
+func (mtm ManyToMany) getSrcVal() interface{} {
+	return mtm.srcValF()
 }
 
 func genJoinClause(relations ...relation) (string, error) {

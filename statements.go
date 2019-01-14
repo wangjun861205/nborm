@@ -183,3 +183,17 @@ func genTruncateStmt(tabInfo *TableInfo) *Statement {
 	stmtStr := fmt.Sprintf("TRUNCATE TABLE %s", tabInfo.fullTabName())
 	return &Statement{stmtStr: stmtStr}
 }
+
+func genMiddleTableInsertStmt(relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) (*Statement, error) {
+	leftVal := relation.getSrcVal()
+	rightVal := getFieldByName(dstAddr, relation.getRawDstCol(), dstTabInfo).value()
+	stmtStr := fmt.Sprintf("INSERT INTO %s (%s, %s) VALUES (?, ?)", relation.getFullMidTab(), relation.getMidLeftCol(), relation.getMidRightCol())
+	return &Statement{stmtStr, []interface{}{leftVal, rightVal}}, nil
+}
+
+func genMiddleTableDeleteStmt(relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) (*Statement, error) {
+	leftVal := relation.getSrcVal()
+	rightVal := getFieldByName(dstAddr, relation.getRawDstCol(), dstTabInfo).value()
+	stmtStr := fmt.Sprintf("DELETE FROM %s WHERE %s = ? AND %s = ?", relation.getFullMidTab(), relation.getMidLeftCol(), relation.getMidRightCol())
+	return &Statement{stmtStr, []interface{}{leftVal, rightVal}}, nil
+}

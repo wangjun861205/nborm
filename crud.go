@@ -520,3 +520,51 @@ func countInTx(tx *sql.Tx, tabInfo *TableInfo, where *Where) (int, error) {
 	}
 	return num, nil
 }
+
+func insertMiddleTable(relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) error {
+	stmt, err := genMiddleTableInsertStmt(relation, dstAddr, dstTabInfo)
+	if err != nil {
+		return err
+	}
+	_, err = getConn(relation.getRawMidDB()).Exec(stmt.stmtStr, stmt.args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func insertMiddleTableInTx(tx *sql.Tx, relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) error {
+	stmt, err := genMiddleTableInsertStmt(relation, dstAddr, dstTabInfo)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(stmt.stmtStr, stmt.args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func deleteMiddleTable(relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) error {
+	stmt, err := genMiddleTableDeleteStmt(relation, dstAddr, dstTabInfo)
+	if err != nil {
+		return err
+	}
+	_, err = getConn(relation.getRawMidDB()).Exec(stmt.stmtStr, stmt.args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func deleteMiddleTableInTx(tx *sql.Tx, relation complexRelation, dstAddr uintptr, dstTabInfo *TableInfo) error {
+	stmt, err := genMiddleTableDeleteStmt(relation, dstAddr, dstTabInfo)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(stmt.stmtStr, stmt.args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}

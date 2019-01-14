@@ -238,6 +238,7 @@ type TableInfo struct {
 	ModelName          string
 	Columns            []*ColumnInfo
 	ColumnMap          map[string]*ColumnInfo
+	FieldMap           map[string]*ColumnInfo
 	OneToOnes          []*OneToOneInfo
 	ForeignKeys        []*ForeignKeyInfo
 	ReverseForeignKeys []*ReverseForeignKeyInfo
@@ -275,6 +276,10 @@ func (ti *TableInfo) complement(tab table) {
 			panic(fmt.Errorf("nborm.TableInfo.complement() error: cannot find field (%s.%s)", modelType.String(), col.FieldName))
 		}
 		col.Offset = field.Offset
+		if ti.FieldMap == nil {
+			ti.FieldMap = make(map[string]*ColumnInfo)
+		}
+		ti.FieldMap[col.FieldName] = col
 	}
 	for _, col := range ti.ColumnMap {
 		field, ok := modelType.FieldByName(col.FieldName)
@@ -429,6 +434,20 @@ func (si *SchemaInfo) getTabInfo(tab table) *TableInfo {
 	return tabInfo
 }
 
+func (si *SchemaInfo) getTableInfoByTableName(dbName, tabName string) *TableInfo {
+	si.mux.RLock()
+	defer si.mux.RUnlock()
+	dbInfo, ok := si.DatabaseMap[dbName]
+	if !ok {
+		panic(fmt.Errorf("nborm.SchemaInfo.getTableInfoByTableName() error: database not exist (%s)", dbName))
+	}
+	tabInfo, ok := dbInfo.TableMap[tabName]
+	if !ok {
+		panic(fmt.Errorf("nborm.SchemaInfo.getTableInfoByTableName() error: table not exists (%s.%s)", dbName, tabName))
+	}
+	return tabInfo
+}
+
 var SchemaCache = SchemaInfo{
 	make([]*DatabaseInfo, 0, 16),
 	make(map[string]*DatabaseInfo),
@@ -467,33 +486,39 @@ func initModelWithTableInfo(model table, tabInfo *TableInfo) {
 		switch col.OrmType {
 		case TypeStringField:
 			field := (*StringField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		case TypeIntField:
 			field := (*IntField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsInc, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.inc, field.pk, field.uni, field.defVal, field.offset, field.validators,
+				field.fieldName, field.modelName = db, tab, col.ColName, col.Nullable, col.IsInc, col.IsPk, col.IsUni, col.DefVal, col.Offset,
+				[]Validator{nullValidator}, col.FieldName, tabInfo.ModelName
 		case TypeFloatField:
 			field := (*FloatField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		case TypeBoolField:
 			field := (*BoolField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		case TypeBinaryField:
 			field := (*BinaryField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		case TypeDateField:
 			field := (*DateField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		case TypeDatetimeField:
 			field := (*DatetimeField)(unsafe.Pointer(baseAddr + col.Offset))
-			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators = db, tab,
-				col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator}
-
+			field.db, field.tab, field.column, field.nullable, field.pk, field.uni, field.defVal, field.offset, field.validators, field.fieldName,
+				field.modelName = db, tab, col.ColName, col.Nullable, col.IsPk, col.IsUni, col.DefVal, col.Offset, []Validator{nullValidator},
+				col.FieldName, tabInfo.ModelName
 		}
 
 	}
@@ -626,30 +651,51 @@ func getFieldByColumnInfo(addr uintptr, colInfo *ColumnInfo) Field {
 }
 
 func getFieldByFieldName(addr uintptr, fieldName string, tabInfo *TableInfo) (Field, error) {
-	for _, colInfo := range tabInfo.Columns {
-		if colInfo.FieldName == fieldName {
-			fieldAddr := unsafe.Pointer(addr + colInfo.Offset)
-			switch colInfo.OrmType {
-			case TypeStringField:
-				return (*StringField)(fieldAddr), nil
-			case TypeIntField:
-				return (*IntField)(fieldAddr), nil
-			case TypeFloatField:
-				return (*FloatField)(fieldAddr), nil
-			case TypeBoolField:
-				return (*BoolField)(fieldAddr), nil
-			case TypeBinaryField:
-				return (*BinaryField)(fieldAddr), nil
-			case TypeDateField:
-				return (*DateField)(fieldAddr), nil
-			case TypeDatetimeField:
-				return (*DatetimeField)(fieldAddr), nil
-			default:
-				return nil, fmt.Errorf("nborm.getFieldByFieldName() error: unknown field type (%d)", colInfo.OrmType)
-			}
-		}
+	colInfo, ok := tabInfo.FieldMap[fieldName]
+	if !ok {
+		return nil, fmt.Errorf("nborm.getFieldByFieldName() error: field not exists (%s)", fieldName)
 	}
-	return nil, fmt.Errorf("nborm.getFieldByFieldName() error: field not exists (%s)", fieldName)
+	fieldAddr := unsafe.Pointer(addr + colInfo.Offset)
+	switch colInfo.OrmType {
+	case TypeStringField:
+		return (*StringField)(fieldAddr), nil
+	case TypeIntField:
+		return (*IntField)(fieldAddr), nil
+	case TypeFloatField:
+		return (*FloatField)(fieldAddr), nil
+	case TypeBoolField:
+		return (*BoolField)(fieldAddr), nil
+	case TypeBinaryField:
+		return (*BinaryField)(fieldAddr), nil
+	case TypeDateField:
+		return (*DateField)(fieldAddr), nil
+	case TypeDatetimeField:
+		return (*DatetimeField)(fieldAddr), nil
+	default:
+		return nil, fmt.Errorf("nborm.getFieldByFieldName() error: unknown field type (%d)", colInfo.OrmType)
+	}
+}
+
+func getFieldByOffset(addr, offset uintptr, ormType OrmType) (Field, error) {
+	fieldAddr := unsafe.Pointer(addr + offset)
+	switch ormType {
+	case TypeStringField:
+		return (*StringField)(fieldAddr), nil
+	case TypeIntField:
+		return (*IntField)(fieldAddr), nil
+	case TypeFloatField:
+		return (*FloatField)(fieldAddr), nil
+	case TypeBoolField:
+		return (*BoolField)(fieldAddr), nil
+	case TypeBinaryField:
+		return (*BinaryField)(fieldAddr), nil
+	case TypeDateField:
+		return (*DateField)(fieldAddr), nil
+	case TypeDatetimeField:
+		return (*DatetimeField)(fieldAddr), nil
+	default:
+		return nil, fmt.Errorf("nborm.getFieldByFieldName() error: unknown field type (%d)", ormType)
+	}
 }
 
 func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {

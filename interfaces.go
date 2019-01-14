@@ -33,15 +33,43 @@ type Field interface {
 	isNullable() bool
 	getDefVal() interface{}
 	check() error
+	getFieldName() string
+	getModelName() string
 }
 
 type relation interface {
 	// joinClause() string
 	where() *Where
 	getSrcDB() string
+	getRawSrcDB() string
 	getSrcTab() string
+	getRawSrcTab() string
+	getSrcCol() string
+	getRawSrcCol() string
 	getDstDB() string
+	getRawDstDB() string
 	getDstTab() string
+	getRawDstTab() string
+	getDstCol() string
+	getRawDstCol() string
 	getFullSrcTab() string
 	getFullDstTab() string
+	getFullSrcCol() string
+	getFullDstCol() string
+	getSrcVal() interface{}
+}
+
+type complexRelation interface {
+	relation
+	getMidDB() string
+	getRawMidDB() string
+	getMidTab() string
+	getRawMidTab() string
+	getFullMidTab() string
+	getMidLeftCol() string
+	getRawMidLeftCol() string
+	getMidRightCol() string
+	getRawMidRightCol() string
+	getFullMidLeftCol() string
+	getFullMidRightCol() string
 }

@@ -2,6 +2,7 @@ package nborm
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -67,7 +68,7 @@ type StringField struct {
 
 func (f *StringField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val
 }
@@ -179,12 +180,30 @@ func (f *StringField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *StringField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *StringField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var stringVal string
+		if err := json.Unmarshal(b, &stringVal); err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = stringVal
 	}
-	return []byte(fmt.Sprintf("%q", f.val)), nil
+	return nil
 }
 
 //BulkUpdateValue generate a UpdateValue by value which is passed in, it is for bulk update
@@ -246,6 +265,14 @@ func (f *StringField) In(val []string) *Where {
 		l[i] = fmt.Sprintf("%q", v)
 	}
 	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+}
+
+func (f *StringField) NotIn(val []string) *Where {
+	l := make([]string, len(val))
+	for i, v := range val {
+		l[i] = fmt.Sprintf("%q", v)
+	}
+	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 }
 
 //LessFunc generate a function for sort a ModelList
@@ -357,7 +384,7 @@ type IntField struct {
 
 func (f *IntField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val
 }
@@ -473,12 +500,30 @@ func (f *IntField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *IntField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *IntField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var intVal int64
+		if err := json.Unmarshal(b, &intVal); err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = intVal
 	}
-	return []byte(strconv.FormatInt(f.val, 10)), nil
+	return nil
 }
 
 //BulkUpdateValue return a UpdateValue for bulk update
@@ -548,6 +593,10 @@ func (f *IntField) NotNull() *Where {
 //In generate a in Where
 func (f *IntField) In(val []int) *Where {
 	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+}
+
+func (f *IntField) NotIn(val []int) *Where {
+	return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
 }
 
 //LessFunc return a function for sort ModelList
@@ -717,7 +766,7 @@ func NewFloatField(db, tab, column string, nullable, pk, uni bool, defVal interf
 
 func (f *FloatField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val
 }
@@ -833,12 +882,30 @@ func (f *FloatField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *FloatField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *FloatField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var floatVal float64
+		if err := json.Unmarshal(b, &floatVal); err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = floatVal
 	}
-	return []byte(strconv.FormatFloat(f.val, 'f', -1, 64)), nil
+	return nil
 }
 
 //BulkUpdateValue generate a UpdateValue for bulk update
@@ -908,6 +975,10 @@ func (f *FloatField) NotNull() *Where {
 //In generate in Where
 func (f *FloatField) In(val []float64) *Where {
 	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+}
+
+func (f *FloatField) NotIn(val []float64) *Where {
+	return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
 }
 
 //LessFunc return a func for sort ModelList
@@ -1023,7 +1094,7 @@ func NewBoolField(db, tab, column string, nullable, pk, uni bool, defVal interfa
 
 func (f *BoolField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val
 }
@@ -1138,12 +1209,30 @@ func (f *BoolField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *BoolField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *BoolField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var boolVal bool
+		if err := json.Unmarshal(b, &boolVal); err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = boolVal
 	}
-	return []byte(strconv.FormatBool(f.val)), nil
+	return nil
 }
 
 //BulkUpdateValue return a UpdateValue struct for bulk update
@@ -1300,7 +1389,7 @@ func NewDateField(db, tab, column string, nullable, pk, uni bool, defVal interfa
 
 func (f *DateField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val.Format("2006-01-02")
 }
@@ -1416,12 +1505,48 @@ func (f *DateField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *DateField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *DateField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var dateStr string
+		if err := json.Unmarshal(b, &dateStr); err != nil {
+			return err
+		}
+		// ymd := [3]int{1, 1, 1}
+		// l := strings.Split(dateStr, "-")
+		// for i, str := range l {
+		// 	intVal, err := strconv.ParseInt(str, 10, 64)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	ymd[i] = int(intVal)
+		// }
+		// location, err := time.LoadLocation("Local")
+		// if err != nil {
+		// 	return err
+		// }
+		// dateVal := time.Date(ymd[0], time.Month(ymd[1]), ymd[2], 0, 0, 0, 0, location)
+		dateVal, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = dateVal
 	}
-	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02"))), nil
+	return nil
 }
 
 //BulkUpdateValue generate a UpdateValue for bulk update
@@ -1495,6 +1620,15 @@ func (f *DateField) In(val []time.Time) *Where {
 		l[i] = val[i].Format("2006-01-02")
 	}
 	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+
+}
+
+func (f *DateField) NotIn(val []time.Time) *Where {
+	l := make([]string, len(val))
+	for i := range val {
+		l[i] = val[i].Format("2006-01-02")
+	}
+	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 
 }
 
@@ -1619,7 +1753,7 @@ func NewDatetimeField(db, tab, column string, nullable, pk, uni bool, defVal int
 
 func (f *DatetimeField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return f.val.Format("2006-01-02 15:04:05")
 }
@@ -1735,12 +1869,34 @@ func (f *DatetimeField) Invalidate() {
 //MarshalJSON implement json.Marshaler interface
 func (f *DatetimeField) MarshalJSON() ([]byte, error) {
 	if !f.valid {
-		return []byte("\"invalid\""), nil
+		return json.Marshal(nil)
 	}
-	if f.null {
-		return []byte("\"NULL\""), nil
+	return json.Marshal(f.value())
+}
+
+func (f *DatetimeField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			if f.defVal == nil {
+				return fmt.Errorf("nborm.StringField.UnmarshalJSON() error: %s cannot be null without default value", f.fullColName())
+			}
+		}
+	} else {
+		var datetimeStr string
+		if err := json.Unmarshal(b, &datetimeStr); err != nil {
+			return err
+		}
+		datetimeVal, err := time.Parse("2006-01-02 15:04:05", datetimeStr)
+		if err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = datetimeVal
 	}
-	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))), nil
+	return nil
 }
 
 //BulkUpdateValue return a UpdateValue for bulk update
@@ -1814,6 +1970,14 @@ func (f *DatetimeField) In(val []time.Time) *Where {
 		l[i] = val[i].Format("2006-01-02 15:04:05")
 	}
 	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+}
+
+func (f *DatetimeField) NotIn(val []time.Time) *Where {
+	l := make([]string, len(val))
+	for i := range val {
+		l[i] = val[i].Format("2006-01-02 15:04:05")
+	}
+	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
 }
 
 //LessFunc return a function for sorting ModelList
@@ -1937,7 +2101,7 @@ func NewBinaryField(db, tab, column string, nullable, pk, uni bool, defVal inter
 
 func (f *BinaryField) value() interface{} {
 	if f.null {
-		return "NULL"
+		return nil
 	}
 	return fmt.Sprintf("X'%x'", f.val)
 }
@@ -2158,6 +2322,32 @@ func (f *BinaryField) check() error {
 		if err := validator(f); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (f *BinaryField) MarshalJSON() ([]byte, error) {
+	if !f.valid {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(f.value())
+}
+
+func (f *BinaryField) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		if f.nullable {
+			f.valid = true
+			f.null = true
+		} else {
+			return fmt.Errorf("nborm.BinaryField.Unmarshal() error: %s cannot be null without default value")
+		}
+	} else {
+		binaryData := make([]byte, 0, 10240)
+		if err := json.Unmarshal(b, &binaryData); err != nil {
+			return err
+		}
+		f.valid = true
+		f.val = binaryData
 	}
 	return nil
 }

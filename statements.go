@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unsafe"
 )
 
 type Statement struct {
@@ -196,4 +197,34 @@ func genMiddleTableDeleteStmt(relation complexRelation, dstAddr uintptr, dstTabI
 	rightVal := getFieldByName(dstAddr, relation.getRawDstCol(), dstTabInfo).value()
 	stmtStr := fmt.Sprintf("DELETE FROM %s WHERE %s = ? AND %s = ?", relation.getFullMidTab(), relation.getMidLeftCol(), relation.getMidRightCol())
 	return &Statement{stmtStr, []interface{}{leftVal, rightVal}}, nil
+}
+
+func genBulkInsertStmt(addr uintptr, tabInfo *TableInfo) (*Statement, error) {
+	l := *(*[]uintptr)(unsafe.Pointer(addr))
+	placeHolderStr := strings.Trim(strings.Repeat("?,", len(tabInfo.Columns)), ",")
+	placeHolderList := make([]string, len(l)-1)
+	for i := 0; i < len(l)-1; i++ {
+		placeHolderList[i] = fmt.Sprintf("(%s)", placeHolderStr)
+	}
+	stmtStr := fmt.Sprintf("INSERT INTO %s VALUES %s", tabInfo.fullTabName(), strings.Join(placeHolderList, ", "))
+	argList := make([]interface{}, len(tabInfo.Columns)*(len(l)-1))
+	for i, modAddr := range l[1:] {
+		fields := getAllFieldsWithTableInfo(modAddr, tabInfo)
+		for j, field := range fields {
+			err := field.check()
+			if err != nil {
+				return nil, err
+			}
+			if field.IsValid() {
+				if field.IsNull() {
+					argList[i*len(tabInfo.Columns)+j] = nil
+					continue
+				}
+				argList[i*len(tabInfo.Columns)+j] = field.value()
+			} else {
+				argList[i*len(tabInfo.Columns)+j] = field.getDefVal()
+			}
+		}
+	}
+	return &Statement{stmtStr, argList}, nil
 }

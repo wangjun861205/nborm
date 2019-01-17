@@ -47,11 +47,13 @@ func (w *Where) toSQL() (string, []interface{}) {
 	} else {
 		switch {
 		case w.value == "NULL":
-			builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", w.db, w.table, w.column, w.operator))
+			builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", wrap(w.db), wrap(w.table), wrap(w.column), w.operator))
 		case w.operator == "IN":
-			builder.WriteString(fmt.Sprintf("%s.%s.%s IN %s", w.db, w.table, w.column, w.value))
+			builder.WriteString(fmt.Sprintf("%s.%s.%s IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
+		case w.operator == "NOT IN":
+			builder.WriteString(fmt.Sprintf("%s.%s.%s NOT IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
 		default:
-			builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", w.db, w.table, w.column, w.operator))
+			builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", wrap(w.db), wrap(w.table), wrap(w.column), w.operator))
 			valueList = append(valueList, w.value)
 		}
 	}

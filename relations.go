@@ -769,7 +769,7 @@ func (mtm ManyToMany) Query(slice table, where *Where, sorter *Sorter, pager *Pa
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = mtm.where().And(where)
+	// where = mtm.where().And(where)
 	rows, err := relationQueryRows(mtm, where, sorter, pager)
 	if err != nil {
 		return err

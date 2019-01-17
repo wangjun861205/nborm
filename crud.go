@@ -503,7 +503,7 @@ func truncateTableInTx(tx *sql.Tx, tabInfo *TableInfo) (int64, error) {
 
 func count(tabInfo *TableInfo, where *Where) (int, error) {
 	stmt := genCountStmt(tabInfo, where)
-	row := getConn(tabInfo.dbName()).QueryRow(stmt.stmtStr, stmt.args...)
+	row := getConn(tabInfo.rawDBName()).QueryRow(stmt.stmtStr, stmt.args...)
 	var num int
 	if err := row.Scan(&num); err != nil {
 		return -1, err
@@ -567,4 +567,31 @@ func deleteMiddleTableInTx(tx *sql.Tx, relation complexRelation, dstAddr uintptr
 		return err
 	}
 	return nil
+}
+
+func bulkInsert(addr uintptr, tabInfo *TableInfo) (int64, error) {
+	stmt, err := genBulkInsertStmt(addr, tabInfo)
+	if err != nil {
+		return 0, err
+	}
+	tx, err := getConn(tabInfo.rawDBName()).Begin()
+	if err != nil {
+		return -1, err
+	}
+	res, err := tx.Exec(stmt.stmtStr, stmt.args...)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	lastInsertID, err := res.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	return lastInsertID, nil
 }

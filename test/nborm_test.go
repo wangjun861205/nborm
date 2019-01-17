@@ -796,35 +796,52 @@ var tests = []struct {
 	// 	return nil
 	// }},
 
-	{"jsonify slices", func() error {
-		bookInfo := NewBookInfo()
-		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 300))
-		if err := nborm.InsertOne(bookInfo); err != nil {
-			return err
+	// {"jsonify slices", func() error {
+	// 	bookInfo := NewBookInfo()
+	// 	bookInfo.Isbn.Set(fmt.Sprintf("%011d", 300))
+	// 	if err := nborm.InsertOne(bookInfo); err != nil {
+	// 		return err
+	// 	}
+	// 	tags := MakeTagSlice(0, 128)
+	// 	for i := 0; i < 10; i++ {
+	// 		tag1 := NewTag()
+	// 		tag1.Tag.Set("bulk remove")
+	// 		tag2 := NewTag()
+	// 		tag2.Tag.Set("not remove")
+	// 		tags = append(tags, tag1, tag2)
+	// 	}
+	// 	if err := bookInfo.Tag.InsertMul(&tags); err != nil {
+	// 		return err
+	// 	}
+	// 	bookInfos := MakeBookInfoSlice(0, 32)
+	// 	bookInfos[0].Isbn.Set(fmt.Sprintf("%011d", 300))
+	// 	newTags := MakeTagSlice(0, 128)
+	// 	err := nborm.UnionQuery(nborm.Union{&bookInfos, &newTags}, nil, nil, nil, true, bookInfos[0].Tag)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	m, err := nborm.JsonifySlices(nborm.Union{&bookInfos, &newTags}, nborm.ColumnName, "BookInfo.Isbn", "Tag.Tag")
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	fmt.Println(m)
+	// 	return nil
+	// }},
+
+	{"bulk insert", func() error {
+		bookInfos := MakeBookInfoSlice(0, 100)
+		for i := 0; i < 100; i++ {
+			bookInfo := NewBookInfo()
+			bookInfo.Isbn.Set(fmt.Sprintf("%d", i))
+			bookInfos = append(bookInfos, bookInfo)
 		}
-		tags := MakeTagSlice(0, 128)
-		for i := 0; i < 10; i++ {
-			tag1 := NewTag()
-			tag1.Tag.Set("bulk remove")
-			tag2 := NewTag()
-			tag2.Tag.Set("not remove")
-			tags = append(tags, tag1, tag2)
-		}
-		if err := bookInfo.Tag.InsertMul(&tags); err != nil {
-			return err
-		}
-		bookInfos := MakeBookInfoSlice(0, 32)
-		bookInfos[0].Isbn.Set(fmt.Sprintf("%011d", 300))
-		newTags := MakeTagSlice(0, 128)
-		err := nborm.UnionQuery(nborm.Union{&bookInfos, &newTags}, nil, nil, nil, true, bookInfos[0].Tag)
+		err := nborm.BulkInsert(&bookInfos)
 		if err != nil {
 			return err
 		}
-		m, err := nborm.JsonifySlices(nborm.Union{&bookInfos, &newTags}, nborm.ColumnName, "BookInfo.Isbn", "Tag.Tag")
-		if err != nil {
-			return err
+		for _, bookInfo := range bookInfos[1:] {
+			fmt.Println(bookInfo.ID.Get())
 		}
-		fmt.Println(m)
 		return nil
 	}},
 }

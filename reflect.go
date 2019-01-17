@@ -253,6 +253,8 @@ type TableInfo struct {
 	ModelStatus        uintptr
 	IsComplete         bool
 	IsNewMiddleTable   bool
+	Charset            string
+	Collate            string
 }
 
 func (ti *TableInfo) lookupColInfoByFieldName(FieldName string) *ColumnInfo {
@@ -368,8 +370,16 @@ func (ti *TableInfo) dbName() string {
 	return wrap(ti.DBName)
 }
 
+func (ti *TableInfo) rawDBName() string {
+	return ti.DBName
+}
+
 func (ti *TableInfo) tabName() string {
 	return wrap(ti.TabName)
+}
+
+func (ti *TableInfo) rawTabName() string {
+	return ti.TabName
 }
 
 func (ti *TableInfo) fullTabName() string {

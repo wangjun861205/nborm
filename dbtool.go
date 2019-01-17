@@ -49,7 +49,7 @@ func parseFieldTag(tag string) *ColumnInfo {
 	if ColName, ok := infoMap["column"]; ok {
 		colInfo.ColName = strings.Trim(ColName, "\"")
 	}
-	if Nullable, ok := infoMap["Nullable"]; ok {
+	if Nullable, ok := infoMap["nullable"]; ok {
 		b, err := strconv.ParseBool(strings.Trim(Nullable, "\""))
 		if err != nil {
 			panic(err)
@@ -463,6 +463,8 @@ func getOrCreateMiddleTableInfo(srcTabInfo, dstTabInfo *TableInfo, srcColInfo, d
 			},
 		}
 		midTabInfo.IsNewMiddleTable = true
+		midTabInfo.Charset = "utf8mb4"
+		midTabInfo.Collate = "utf8mb4_bin"
 		switch tableType {
 		case manyToManyMiddleTable:
 			midTabInfo.Unis = UniqueKeys{[]*ColumnInfo{leftCol, rightCol}}
@@ -542,6 +544,8 @@ func parseModel(decl *ast.GenDecl) {
 			tabInfo.KeyNames = parseKeys(commentMap[ModelName])
 			tabInfo.PkNames = parsePrimaryKey(commentMap[ModelName])
 			tabInfo.UniNames = parseUniqueKeys(commentMap[ModelName])
+			tabInfo.Charset = parseCharset(commentMap[ModelName])
+			tabInfo.Collate = parseCollate(commentMap[ModelName])
 			for _, field := range stctType.Fields.List {
 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
 					switch expr.Sel.Name {
@@ -631,8 +635,9 @@ func create() error {
 				}
 				cols[i] = strings.Join(l, " ")
 			}
-			stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s%s%s%s) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
-				wrap(tname), strings.Join(cols, ", "), tab.Pk.genCreateClause(), tab.Unis.genCreateClause(), tab.Keys.genCreateClause())
+			stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s%s%s%s) ENGINE=InnoDB DEFAULT CHARSET=%s COLLATE=%s`,
+				wrap(tname), strings.Join(cols, ", "), tab.Pk.genCreateClause(), tab.Unis.genCreateClause(), tab.Keys.genCreateClause(),
+				tab.Charset, tab.Collate)
 			fmt.Println(stmt)
 			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 			if _, err := conn.Exec(stmt); err != nil {
@@ -711,6 +716,8 @@ var tabRe = regexp.MustCompile(`(?m)^Tab:(.*?)$`)
 var PrimaryKeyRe = regexp.MustCompile(`(?m)^PrimaryKey:(.*?)$`)
 var KeysRe = regexp.MustCompile(`(?m)^Index:(.*?)$`)
 var uniqueKeyRe = regexp.MustCompile(`(?m)^UniqueKey:(.*?)$`)
+var charsetRe = regexp.MustCompile(`(?m)^Charset:(.*?)$`)
+var collateRe = regexp.MustCompile(`(?m)^Collate:(.*?)$`)
 
 func parseDBName(comment string) string {
 	group := dbRe.FindStringSubmatch(comment)
@@ -766,6 +773,22 @@ func parseUniqueKeys(comment string) [][]string {
 		l = append(l, tl)
 	}
 	return l
+}
+
+func parseCharset(comment string) string {
+	group := charsetRe.FindStringSubmatch(comment)
+	if len(group) < 2 {
+		return "utf8mb4"
+	}
+	return strings.Trim(group[1], " ")
+}
+
+func parseCollate(comment string) string {
+	group := collateRe.FindStringSubmatch(comment)
+	if len(group) < 2 {
+		return "utf8mb4_bin"
+	}
+	return strings.Trim(group[1], " ")
 }
 
 type MethodInfo struct {

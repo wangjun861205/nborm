@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unsafe"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -601,6 +602,21 @@ func InsertOrGetMulInTx(tx *sql.Tx, slice table) error {
 		setInc(addr, tabInfo, lid)
 		return nil
 	})
+}
+
+func BulkInsert(slice table) error {
+	addr := getTabAddr(slice)
+	tabInfo := getTabInfo(slice)
+	lastInsertID, err := bulkInsert(addr, tabInfo)
+	if err != nil {
+		return err
+	}
+	l := *(*[]uintptr)(unsafe.Pointer(addr))
+	for i, modAddr := range l[1:] {
+		setSync(modAddr, tabInfo)
+		setInc(modAddr, tabInfo, lastInsertID+int64(i))
+	}
+	return nil
 }
 
 //UpdateOne update one record

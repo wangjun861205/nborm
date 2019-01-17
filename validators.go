@@ -15,7 +15,7 @@ func RegisterValidator(name string, v Validator) {
 
 func nullValidator(f Field) error {
 	if !f.isNullable() && f.getDefVal() == nil && f.IsNull() {
-		return fmt.Errorf("nborm.nullValidator() error: %s.%s cannot be null", f.dbName(), f.tabName())
+		return fmt.Errorf("nborm.nullValidator() error: %s cannot be null", f.fullColName())
 	}
 	return nil
 }

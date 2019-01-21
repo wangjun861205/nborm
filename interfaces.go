@@ -73,3 +73,8 @@ type complexRelation interface {
 	getFullMidLeftCol() string
 	getFullMidRightCol() string
 }
+
+type DefaultValue interface {
+	createTableClause() string
+	value() interface{}
+}

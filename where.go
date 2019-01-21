@@ -11,14 +11,23 @@ type Where struct {
 	table    string
 	column   string
 	operator string
-	value    interface{}
+	// value    interface{}
+	value    []interface{}
 	relation string
 	next     *Where
 	sub      *Where
 }
 
-func newWhere(db, table, column, operator string, value interface{}) *Where {
+// func newWhere(db, table, column, operator string, value interface{}) *Where {
+// 	return &Where{db: db, table: table, column: column, operator: operator, value: value}
+// }
+
+func newWhere(db, table, column, operator string, value ...interface{}) *Where {
 	return &Where{db: db, table: table, column: column, operator: operator, value: value}
+}
+
+func (w *Where) fullColumnName() string {
+	return fmt.Sprintf("%s.%s.%s", wrap(w.db), wrap(w.table), wrap(w.column))
 }
 
 func (w *Where) toClause() (string, []interface{}) {
@@ -46,15 +55,20 @@ func (w *Where) toSQL() (string, []interface{}) {
 		valueList = append(valueList, l...)
 	} else {
 		switch {
-		case w.value == "NULL":
-			builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", wrap(w.db), wrap(w.table), wrap(w.column), w.operator))
+		case w.value[0] == "NULL":
+			// builder.WriteString(fmt.Sprintf("%s.%s.%s %s NULL", wrap(w.db), wrap(w.table), wrap(w.column), w.operator))
+			builder.WriteString(fmt.Sprintf("%s %s NULL", w.fullColumnName(), w.operator))
 		case w.operator == "IN":
-			builder.WriteString(fmt.Sprintf("%s.%s.%s IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
+			// builder.WriteString(fmt.Sprintf("%s.%s.%s IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
+			builder.WriteString(fmt.Sprintf("%s IN (%s)", w.fullColumnName(), genPlaceHolder(len(w.value))))
+			valueList = append(valueList, w.value...)
 		case w.operator == "NOT IN":
-			builder.WriteString(fmt.Sprintf("%s.%s.%s NOT IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
+			// builder.WriteString(fmt.Sprintf("%s.%s.%s NOT IN %s", wrap(w.db), wrap(w.table), wrap(w.column), w.value))
+			builder.WriteString(fmt.Sprintf("%s NOT IN (%s)", w.fullColumnName(), genPlaceHolder(len(w.value))))
+			valueList = append(valueList, w.value...)
 		default:
 			builder.WriteString(fmt.Sprintf("%s.%s.%s %s ?", wrap(w.db), wrap(w.table), wrap(w.column), w.operator))
-			valueList = append(valueList, w.value)
+			valueList = append(valueList, w.value[0])
 		}
 	}
 	if w.next != nil {

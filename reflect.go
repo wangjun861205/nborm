@@ -2,11 +2,14 @@ package nborm
 
 import (
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -475,9 +478,136 @@ func CleanSchemaCache() {
 var sqlConstRe = regexp.MustCompile(`^@'(.+)'$`)
 var sqlStringRe = regexp.MustCompile(`^s'(.*)'$`)
 var sqlIntRe = regexp.MustCompile(`^d'(\d+)'$`)
-var sqlFloatRe = regexp.MustCompile(`^f'(.*)'$`)
+var sqlFloatRe = regexp.MustCompile(`^f'(\d+\.?\d*)'$`)
 var sqlBoolRe = regexp.MustCompile(`^b'(true|false)'$`)
-var sqlBinaryRe = regexp.MustCompile(`^x'.*'$`)
+var sqlBinaryRe = regexp.MustCompile(`^x'([a-fA-F0-9])'$`)
+var sqlDateRe = regexp.MustCompile(`^dt'(\d{4}-\d{2}-\d{2})'$`)
+var sqlDatetimeRe = regexp.MustCompile(`^tm'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})`)
+
+type ConstDefaultValue struct {
+	Value string
+}
+
+func (dv *ConstDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %s", dv.Value)
+}
+
+func (dv *ConstDefaultValue) value() interface{} {
+	return nil
+}
+
+type StringDefaultValue struct {
+	Value string
+}
+
+func (dv *StringDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %q", dv.Value)
+}
+
+func (dv *StringDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type IntDefaultValue struct {
+	Value int64
+}
+
+func (dv *IntDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %d", dv.Value)
+}
+
+func (dv *IntDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type FloatDefaultValue struct {
+	Value float64
+}
+
+func (dv *FloatDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %f", dv.Value)
+}
+
+func (dv *FloatDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type BoolDefaultValue struct {
+	Value bool
+}
+
+func (dv *BoolDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %t", dv.Value)
+}
+
+func (dv *BoolDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type BinaryDefaultValue struct {
+	Value []byte
+}
+
+func (dv *BinaryDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT x'%x'", dv.Value)
+}
+
+func (dv *BinaryDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type DateDefaultValue struct {
+	Value time.Time
+}
+
+func (dv *DateDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %q", dv.Value.Format("2006-01-02"))
+}
+
+func (dv *DateDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+type DatetimeDefaultValue struct {
+	Value time.Time
+}
+
+func (dv *DatetimeDefaultValue) createTableClause() string {
+	return fmt.Sprintf("DEFAULT %q", dv.Value.Format("2006-01-02 15:04:05"))
+}
+
+func (dv *DatetimeDefaultValue) value() interface{} {
+	return dv.Value
+}
+
+func parseDefaultValue(s string) DefaultValue {
+	switch {
+	case sqlConstRe.MatchString(s):
+		return &ConstDefaultValue{sqlConstRe.FindStringSubmatch(s)[1]}
+	case sqlStringRe.MatchString(s):
+		return &StringDefaultValue{sqlStringRe.FindStringSubmatch(s)[1]}
+	case sqlIntRe.MatchString(s):
+		val, _ := strconv.ParseInt(sqlIntRe.FindStringSubmatch(s)[1], 10, 64)
+		return &IntDefaultValue{val}
+	case sqlFloatRe.MatchString(s):
+		val, _ := strconv.ParseFloat(sqlIntRe.FindStringSubmatch(s)[1], 64)
+		return &FloatDefaultValue{val}
+	case sqlBoolRe.MatchString(s):
+		val, _ := strconv.ParseBool(sqlIntRe.FindStringSubmatch(s)[1])
+		return &BoolDefaultValue{val}
+	case sqlBinaryRe.MatchString(s):
+		val, _ := hex.DecodeString(sqlBinaryRe.FindStringSubmatch(s)[1])
+		return &BinaryDefaultValue{val}
+	case sqlDateRe.MatchString(s):
+		val, _ := time.Parse("2006-01-02", sqlDateRe.FindStringSubmatch(s)[1])
+		return &DateDefaultValue{val}
+	case sqlDatetimeRe.MatchString(s):
+		val, _ := time.Parse("2006-01-02 15:04:05", sqlDatetimeRe.FindStringSubmatch(s)[1])
+		return &DatetimeDefaultValue{val}
+	default:
+		panic(fmt.Errorf("nborm.parseDefaultValue() error: unknown default value type (%s)", s))
+	}
+}
 
 func getTabInfo(tab table) *TableInfo {
 	info := SchemaCache.getTabInfo(tab)

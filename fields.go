@@ -260,19 +260,29 @@ func (f *StringField) NotNull() *Where {
 
 //In generate a in Where
 func (f *StringField) In(val []string) *Where {
-	l := make([]string, len(val))
+	// l := make([]string, len(val))
+	// for i, v := range val {
+	// 	l[i] = fmt.Sprintf("%q", v)
+	// }
+	// return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
 	for i, v := range val {
-		l[i] = fmt.Sprintf("%q", v)
+		l[i] = v
 	}
-	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "IN", l...)
 }
 
 func (f *StringField) NotIn(val []string) *Where {
-	l := make([]string, len(val))
+	// l := make([]string, len(val))
+	// for i, v := range val {
+	// 	l[i] = fmt.Sprintf("%q", v)
+	// }
+	// return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
 	for i, v := range val {
-		l[i] = fmt.Sprintf("%q", v)
+		l[i] = v
 	}
-	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "NOT IN", l...)
 }
 
 //LessFunc generate a function for sort a ModelList
@@ -592,11 +602,21 @@ func (f *IntField) NotNull() *Where {
 
 //In generate a in Where
 func (f *IntField) In(val []int) *Where {
-	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+	// return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v
+	}
+	return newWhere(f.db, f.tab, f.column, "IN", l...)
 }
 
 func (f *IntField) NotIn(val []int) *Where {
-	return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
+	// return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v
+	}
+	return newWhere(f.db, f.tab, f.column, "NOT IN", l...)
 }
 
 //LessFunc return a function for sort ModelList
@@ -974,11 +994,21 @@ func (f *FloatField) NotNull() *Where {
 
 //In generate in Where
 func (f *FloatField) In(val []float64) *Where {
-	return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+	// return newWhere(f.db, f.tab, f.column, "IN", toListStr(val))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v
+	}
+	return newWhere(f.db, f.tab, f.column, "IN", l...)
 }
 
 func (f *FloatField) NotIn(val []float64) *Where {
-	return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
+	// return newWhere(f.db, f.tab, f.column, "NOT IN", toListStr(val))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v
+	}
+	return newWhere(f.db, f.tab, f.column, "NOT IN", l...)
 }
 
 //LessFunc return a func for sort ModelList
@@ -1615,21 +1645,29 @@ func (f *DateField) NotNull() *Where {
 
 //In generate in Where
 func (f *DateField) In(val []time.Time) *Where {
-	l := make([]string, len(val))
-	for i := range val {
-		l[i] = val[i].Format("2006-01-02")
+	// l := make([]string, len(val))
+	// for i := range val {
+	// 	l[i] = val[i].Format("2006-01-02")
+	// }
+	// return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v.Format("2006-01-02")
 	}
-	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
-
+	return newWhere(f.db, f.tab, f.column, "IN", l...)
 }
 
 func (f *DateField) NotIn(val []time.Time) *Where {
-	l := make([]string, len(val))
-	for i := range val {
-		l[i] = val[i].Format("2006-01-02")
+	// l := make([]string, len(val))
+	// for i := range val {
+	// 	l[i] = val[i].Format("2006-01-02")
+	// }
+	// return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v.Format("2006-01-02")
 	}
-	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
-
+	return newWhere(f.db, f.tab, f.column, "NOT IN", l...)
 }
 
 //LessFunc return a function for sort ModelList
@@ -1965,19 +2003,29 @@ func (f *DatetimeField) NotNull() *Where {
 
 //In generate in Where
 func (f *DatetimeField) In(val []time.Time) *Where {
-	l := make([]string, len(val))
-	for i := range val {
-		l[i] = val[i].Format("2006-01-02 15:04:05")
+	// l := make([]string, len(val))
+	// for i := range val {
+	// 	l[i] = val[i].Format("2006-01-02 15:04:05")
+	// }
+	// return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v.Format("2006-01-02 15:04:05")
 	}
-	return newWhere(f.db, f.tab, f.column, "IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "IN", l...)
 }
 
 func (f *DatetimeField) NotIn(val []time.Time) *Where {
-	l := make([]string, len(val))
-	for i := range val {
-		l[i] = val[i].Format("2006-01-02 15:04:05")
+	// l := make([]string, len(val))
+	// for i := range val {
+	// 	l[i] = val[i].Format("2006-01-02 15:04:05")
+	// }
+	// return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	l := make([]interface{}, len(val))
+	for i, v := range val {
+		l[i] = v.Format("2006-01-02 15:04:05")
 	}
-	return newWhere(f.db, f.tab, f.column, "NOT IN", fmt.Sprintf("(%s)", strings.Join(l, ", ")))
+	return newWhere(f.db, f.tab, f.column, "NOT IN", l...)
 }
 
 //LessFunc return a function for sorting ModelList

@@ -414,7 +414,7 @@ func (rfk ReverseForeignKey) Query(slice table, where *Where, sorter *Sorter, pa
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = rfk.where().And(where)
+	// where = rfk.where().And(where)
 	rows, err := relationQueryRows(rfk, where, sorter, pager)
 	if err != nil {
 		return err
@@ -429,7 +429,7 @@ func (rfk ReverseForeignKey) QueryInTx(tx *sql.Tx, slice table, where *Where, so
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = rfk.where().And(where)
+	// where = rfk.where().And(where)
 	rows, err := relationQueryRowsInTx(tx, rfk, where, sorter, pager)
 	if err != nil {
 		return err
@@ -445,7 +445,7 @@ func (rfk ReverseForeignKey) QueryWithFoundRows(slice table, where *Where, sorte
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = rfk.where().And(where)
+	// where = rfk.where().And(where)
 	rows, tx, err := relationQueryRowsAndFoundRows(rfk, where, sorter, pager)
 	if err != nil {
 		return -1, err
@@ -471,7 +471,7 @@ func (rfk ReverseForeignKey) QueryWithFoundRowsInTx(tx *sql.Tx, slice table, whe
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = rfk.where().And(where)
+	// where = rfk.where().And(where)
 	rows, tx, err := relationQueryRowsAndFoundRowsInTx(tx, rfk, where, sorter, pager)
 	if err != nil {
 		return -1, err
@@ -496,11 +496,12 @@ func (rfk ReverseForeignKey) AddOne(model table) error {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
-	if dstField.IsValid() {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: destination field already set (%s.%s.%s)", model.DB(), model.Tab(),
-			dstField.columnName)
+	if dstField.IsValid() && !dstField.IsNull() && dstField.value() != rfk.srcValF() {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
+			wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
+	} else {
+		dstField.setVal(rfk.srcValF(), false)
 	}
-	dstField.setVal(rfk.srcValF(), false)
 	lid, err := insert(modAddr, tabInfo)
 	if err != nil {
 		return err
@@ -512,17 +513,18 @@ func (rfk ReverseForeignKey) AddOne(model table) error {
 
 func (rfk ReverseForeignKey) AddOneInTx(tx *sql.Tx, model table) error {
 	if model.DB() != rfk.dstDB || model.Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: database or table not match (%s.%s), want %s.%s", model.DB(), model.Tab(),
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOneInTx() error: database or table not match (%s.%s), want %s.%s", model.DB(), model.Tab(),
 			rfk.dstDB, rfk.dstTab)
 	}
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
 	dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
-	if dstField.IsValid() {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: destination field already set (%s.%s.%s)", model.DB(), model.Tab(),
-			dstField.columnName)
+	if dstField.IsValid() && !dstField.IsNull() && dstField.value() != rfk.srcValF() {
+		return fmt.Errorf("nborm.ReverseForeignKey.AddOneInTx() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
+			wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
+	} else {
+		dstField.setVal(rfk.srcValF(), false)
 	}
-	dstField.setVal(rfk.srcValF(), false)
 	lid, err := insertInTx(tx, modAddr, tabInfo)
 	if err != nil {
 		return err
@@ -541,11 +543,12 @@ func (rfk ReverseForeignKey) AddMul(slice table) error {
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
 		dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
-		if dstField.IsValid() {
-			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: destination field already set (%s.%s.%s)", slice.DB(), slice.Tab(),
-				dstField.columnName)
+		if dstField.IsValid() && !dstField.IsNull() && dstField.value() != rfk.srcValF() {
+			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
+				wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
+		} else {
+			dstField.setVal(rfk.srcValF(), false)
 		}
-		dstField.setVal(rfk.srcValF(), false)
 		lid, err := insertContext(ctx, modAddr, tabInfo)
 		if err != nil {
 			return err
@@ -558,17 +561,18 @@ func (rfk ReverseForeignKey) AddMul(slice table) error {
 
 func (rfk ReverseForeignKey) AddMulInTx(tx *sql.Tx, slice table) error {
 	if slice.DB() != rfk.dstDB || slice.Tab() != rfk.dstTab {
-		return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: database or table not match (%s.%s), want %s.%s", slice.DB(), slice.Tab(),
+		return fmt.Errorf("nborm.ReverseForeignKey.AddMulInTx() error: database or table not match (%s.%s), want %s.%s", slice.DB(), slice.Tab(),
 			rfk.dstDB, rfk.dstTab)
 	}
 	tabInfo := getTabInfo(slice)
 	return iterList(slice, func(ctx context.Context, modAddr uintptr) error {
 		dstField := getFieldByName(modAddr, rfk.dstCol, tabInfo)
-		if dstField.IsValid() {
-			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: destination field already set (%s.%s.%s)", slice.DB(), slice.Tab(),
-				dstField.columnName)
+		if dstField.IsValid() && !dstField.IsNull() && dstField.value() != rfk.srcValF() {
+			return fmt.Errorf("nborm.ReverseForeignKey.AddMulInTx() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
+				wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
+		} else {
+			dstField.setVal(rfk.srcValF(), false)
 		}
-		dstField.setVal(rfk.srcValF(), false)
 		lid, err := insertContextInTx(tx, ctx, modAddr, tabInfo)
 		if err != nil {
 			return err
@@ -783,7 +787,7 @@ func (mtm ManyToMany) QueryInTx(tx *sql.Tx, slice table, where *Where, sorter *S
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = mtm.where().And(where)
+	// where = mtm.where().And(where)
 	rows, err := relationQueryRowsInTx(tx, mtm, where, sorter, pager)
 	if err != nil {
 		return err
@@ -799,7 +803,7 @@ func (mtm ManyToMany) QueryWithFoundRows(slice table, where *Where, sorter *Sort
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = mtm.where().And(where)
+	// where = mtm.where().And(where)
 	rows, tx, err := relationQueryRowsAndFoundRows(mtm, where, sorter, pager)
 	if err != nil {
 		return -1, err
@@ -824,7 +828,7 @@ func (mtm ManyToMany) QueryWithFoundRowsInTx(tx *sql.Tx, slice table, where *Whe
 	}
 	tabInfo := getTabInfo(slice)
 	sliceAddr := getTabAddr(slice)
-	where = mtm.where().And(where)
+	// where = mtm.where().And(where)
 	rows, tx, err := relationQueryRowsAndFoundRowsInTx(tx, mtm, where, sorter, pager)
 	if err != nil {
 		return -1, err

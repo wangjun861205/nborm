@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/wangjun861205/nborm"
@@ -828,19 +827,32 @@ var tests = []struct {
 	// 	return nil
 	// }},
 
-	{"bulk insert", func() error {
-		bookInfos := MakeBookInfoSlice(0, 100)
-		for i := 0; i < 100; i++ {
-			bookInfo := NewBookInfo()
-			bookInfo.Isbn.Set(fmt.Sprintf("%d", i))
-			bookInfos = append(bookInfos, bookInfo)
-		}
-		err := nborm.BulkInsert(&bookInfos)
+	// {"bulk insert", func() error {
+	// 	bookInfos := MakeBookInfoSlice(0, 100)
+	// 	for i := 0; i < 100; i++ {
+	// 		bookInfo := NewBookInfo()
+	// 		bookInfo.Isbn.Set(fmt.Sprintf("%d", i))
+	// 		bookInfos = append(bookInfos, bookInfo)
+	// 	}
+	// 	err := nborm.BulkInsert(&bookInfos)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	for _, bookInfo := range bookInfos[1:] {
+	// 		fmt.Println(bookInfo.ID.Get())
+	// 	}
+	// 	return nil
+	// }},
+
+	{"byte array argument test", func() error {
+		tx, err := nborm.Begin()
 		if err != nil {
 			return err
 		}
-		for _, bookInfo := range bookInfos[1:] {
-			fmt.Println(bookInfo.ID.Get())
+		_, err = tx.Exec("INSERT INTO bk_dalian.book_info (isbn, is_ok) VALUES (?, ?)", "111111", []byte("DEFAULT"))
+		if err != nil {
+			tx.Rollback()
+			return err
 		}
 		return nil
 	}},

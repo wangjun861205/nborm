@@ -264,7 +264,7 @@ func getTabAddr(tab table) uintptr {
 func setInc(addr uintptr, tabInfo *TableInfo, lastInsertId int64) {
 	if tabInfo.Inc != nil {
 		inc := getIncWithTableInfo(addr, tabInfo)
-		inc.setVal(lastInsertId, false)
+		inc.setVal(lastInsertId)
 	}
 }
 

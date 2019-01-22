@@ -84,34 +84,35 @@ func parseFieldTag(tag string) *ColumnInfo {
 	// }
 	if DefVal, ok := infoMap["default_value"]; ok {
 		expr := strings.Trim(DefVal, "\"")
-		switch {
-		case sqlConstRe.MatchString(expr):
-			colInfo.DefVal = DefValRe.FindStringSubmatch(expr)[1]
-		case sqlStringRe.MatchString(expr):
-			colInfo.DefVal = fmt.Sprintf("%q", DefValRe.FindStringSubmatch(expr)[1])
-		case sqlIntRe.MatchString(expr):
-			d, err := strconv.ParseInt(DefValRe.FindStringSubmatch(expr)[1], 10, 64)
-			if err != nil {
-				panic(err)
-			}
-			colInfo.DefVal = d
-		case sqlFloatRe.MatchString(expr):
-			f, err := strconv.ParseFloat(DefValRe.FindStringSubmatch(expr)[1], 64)
-			if err != nil {
-				panic(err)
-			}
-			colInfo.DefVal = f
-		case sqlBoolRe.MatchString(expr):
-			b, err := strconv.ParseBool(DefValRe.FindStringSubmatch(expr)[1])
-			if err != nil {
-				panic(err)
-			}
-			colInfo.DefVal = b
-		case sqlBinaryRe.MatchString(expr):
-			colInfo.DefVal = expr
-		default:
-			panic(fmt.Errorf("nborm.parseFieldTag() error: invalid default value (%s)", expr))
-		}
+		// switch {
+		// case sqlConstRe.MatchString(expr):
+		// 	colInfo.DefVal = DefValRe.FindStringSubmatch(expr)[1]
+		// case sqlStringRe.MatchString(expr):
+		// 	colInfo.DefVal = fmt.Sprintf("%q", DefValRe.FindStringSubmatch(expr)[1])
+		// case sqlIntRe.MatchString(expr):
+		// 	d, err := strconv.ParseInt(DefValRe.FindStringSubmatch(expr)[1], 10, 64)
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// 	colInfo.DefVal = d
+		// case sqlFloatRe.MatchString(expr):
+		// 	f, err := strconv.ParseFloat(DefValRe.FindStringSubmatch(expr)[1], 64)
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// 	colInfo.DefVal = f
+		// case sqlBoolRe.MatchString(expr):
+		// 	b, err := strconv.ParseBool(DefValRe.FindStringSubmatch(expr)[1])
+		// 	if err != nil {
+		// 		panic(err)
+		// 	}
+		// 	colInfo.DefVal = b
+		// case sqlBinaryRe.MatchString(expr):
+		// 	colInfo.DefVal = expr
+		// default:
+		// 	panic(fmt.Errorf("nborm.parseFieldTag() error: invalid default value (%s)", expr))
+		// }
+		colInfo.DefVal = parseDefaultValue(expr)
 	}
 	if Charset, ok := infoMap["Charset"]; ok {
 		colInfo.Charset = Charset
@@ -631,7 +632,7 @@ func create() error {
 					l = append(l, "AUTO_INCREMENT")
 				}
 				if col.DefVal != nil {
-					l = append(l, fmt.Sprintf("DEFAULT %v", col.DefVal))
+					l = append(l, col.DefVal.createTableClause())
 				}
 				cols[i] = strings.Join(l, " ")
 			}

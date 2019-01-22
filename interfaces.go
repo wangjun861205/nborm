@@ -28,7 +28,7 @@ type Field interface {
 	Invalidate()
 	SortOrder(reverse bool) string
 	value() interface{}
-	setVal(interface{}, bool)
+	setVal(interface{})
 	updateValue() *UpdateValue
 	isNullable() bool
 	getDefVal() interface{}
@@ -72,9 +72,4 @@ type complexRelation interface {
 	getRawMidRightCol() string
 	getFullMidLeftCol() string
 	getFullMidRightCol() string
-}
-
-type DefaultValue interface {
-	createTableClause() string
-	value() interface{}
 }

@@ -3,6 +3,7 @@ package nborm
 import (
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -45,7 +46,7 @@ type ColumnInfo struct {
 	IsInc     bool
 	IsPk      bool
 	IsUni     bool
-	DefVal    interface{}
+	DefVal    *DefaultValue
 	Offset    uintptr
 	SqlType   string
 	Charset   string
@@ -484,126 +485,133 @@ var sqlBinaryRe = regexp.MustCompile(`^x'([a-fA-F0-9])'$`)
 var sqlDateRe = regexp.MustCompile(`^dt'(\d{4}-\d{2}-\d{2})'$`)
 var sqlDatetimeRe = regexp.MustCompile(`^tm'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})`)
 
-type ConstDefaultValue struct {
-	Value string
+type DefaultValueType int
+
+const (
+	ConstDefault DefaultValueType = iota
+	StringDefault
+	IntDefault
+	FloatDefault
+	BoolDefault
+	BinaryDefault
+	DateDefault
+	DatetimeDefault
+)
+
+type DefaultValue struct {
+	Type  DefaultValueType
+	Value interface{}
 }
 
-func (dv *ConstDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %s", dv.Value)
+func (dv *DefaultValue) createTableClause() string {
+	if dv == nil {
+		return "DEFAULT NULL"
+	}
+	switch dv.Type {
+	case ConstDefault:
+		return fmt.Sprintf("DEFAULT %s", dv.Value)
+	case StringDefault:
+		return fmt.Sprintf("DEFAULT %q", dv.Value)
+	case IntDefault:
+		return fmt.Sprintf("DEFAULT %d", dv.Value)
+	case FloatDefault:
+		return fmt.Sprintf("DEFAULT %f", dv.Value)
+	case BoolDefault:
+		return fmt.Sprintf("DEFAULT %t", dv.Value)
+	case BinaryDefault:
+		return fmt.Sprintf("DEFAULT x'%x'", dv.Value)
+	case DateDefault:
+		return fmt.Sprintf("DEFAULT %q", dv.Value.(time.Time).Format("2006-01-02"))
+	case DatetimeDefault:
+		return fmt.Sprintf("DEFAULT %q", dv.Value.(time.Time).Format("2006-01-02 15:04:05"))
+	default:
+		panic(fmt.Errorf("nborm.DefaultValue.createTableClause() error: unknown DefaultValue type (%v)", dv))
+	}
 }
 
-func (dv *ConstDefaultValue) value() interface{} {
+func (dv *DefaultValue) value() interface{} {
+	if dv == nil {
+		return nil
+	}
+	// switch dv.Type {
+	// case ConstDefault:
+	// 	if strings.HasPrefix(dv.Value.(string), "CURRENT_TIMESTAMP") {
+	// 		return time.Now()
+	// 	} else {
+	// 		return nil
+	// 	}
+	// case StringDefault:
+	// 	return dv.Value.(string)
+	// case IntDefault:
+	// 	return dv.Value.(int64)
+	// case FloatDefault:
+	// 	return dv.Value.(float64)
+	// case BoolDefault:
+	// 	return dv.Value.(bool)
+	// case BinaryDefault:
+	// 	return dv.Value.([]byte)
+	// case DateDefault, DatetimeDefault:
+	// 	return dv.Value.(time.Time)
+	// default:
+	// 	panic(fmt.Errorf("nborm.DefaultValue.value() unsupported default type %v", dv))
+	// }
+	return dv.Value
+}
+
+func (dv *DefaultValue) UnmarshalJSON(b []byte) error {
+	m := make(map[string]interface{})
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
+	}
+	switch DefaultValueType(int(m["Type"].(float64))) {
+	case ConstDefault:
+		if strings.HasPrefix(m["Value"].(string), "CURRENT_TIMESTAMP") {
+			dv.Value = time.Now()
+		} else {
+			dv.Value = nil
+		}
+	case StringDefault:
+		dv.Value = m["Value"].(string)
+	case IntDefault:
+		dv.Value = int64(m["Value"].(float64))
+	case FloatDefault:
+		dv.Value = m["Value"].(float64)
+	case BoolDefault:
+		dv.Value = m["Value"].(bool)
+	case BinaryDefault:
+		dv.Value = m["Value"].([]byte)
+	case DateDefault, DatetimeDefault:
+		dv.Value = m["Value"].(time.Time)
+	default:
+		return fmt.Errorf("nborm.DefaultValue.UnmarshalJSON() error: unsupported DefaultValue type (%v)", m)
+	}
 	return nil
 }
 
-type StringDefaultValue struct {
-	Value string
-}
-
-func (dv *StringDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %q", dv.Value)
-}
-
-func (dv *StringDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type IntDefaultValue struct {
-	Value int64
-}
-
-func (dv *IntDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %d", dv.Value)
-}
-
-func (dv *IntDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type FloatDefaultValue struct {
-	Value float64
-}
-
-func (dv *FloatDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %f", dv.Value)
-}
-
-func (dv *FloatDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type BoolDefaultValue struct {
-	Value bool
-}
-
-func (dv *BoolDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %t", dv.Value)
-}
-
-func (dv *BoolDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type BinaryDefaultValue struct {
-	Value []byte
-}
-
-func (dv *BinaryDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT x'%x'", dv.Value)
-}
-
-func (dv *BinaryDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type DateDefaultValue struct {
-	Value time.Time
-}
-
-func (dv *DateDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %q", dv.Value.Format("2006-01-02"))
-}
-
-func (dv *DateDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-type DatetimeDefaultValue struct {
-	Value time.Time
-}
-
-func (dv *DatetimeDefaultValue) createTableClause() string {
-	return fmt.Sprintf("DEFAULT %q", dv.Value.Format("2006-01-02 15:04:05"))
-}
-
-func (dv *DatetimeDefaultValue) value() interface{} {
-	return dv.Value
-}
-
-func parseDefaultValue(s string) DefaultValue {
+func parseDefaultValue(s string) *DefaultValue {
 	switch {
 	case sqlConstRe.MatchString(s):
-		return &ConstDefaultValue{sqlConstRe.FindStringSubmatch(s)[1]}
+		return &DefaultValue{ConstDefault, sqlConstRe.FindStringSubmatch(s)[1]}
 	case sqlStringRe.MatchString(s):
-		return &StringDefaultValue{sqlStringRe.FindStringSubmatch(s)[1]}
+		return &DefaultValue{StringDefault, sqlStringRe.FindStringSubmatch(s)[1]}
 	case sqlIntRe.MatchString(s):
 		val, _ := strconv.ParseInt(sqlIntRe.FindStringSubmatch(s)[1], 10, 64)
-		return &IntDefaultValue{val}
+		return &DefaultValue{IntDefault, val}
 	case sqlFloatRe.MatchString(s):
-		val, _ := strconv.ParseFloat(sqlIntRe.FindStringSubmatch(s)[1], 64)
-		return &FloatDefaultValue{val}
+		val, _ := strconv.ParseFloat(sqlFloatRe.FindStringSubmatch(s)[1], 64)
+		return &DefaultValue{FloatDefault, val}
 	case sqlBoolRe.MatchString(s):
-		val, _ := strconv.ParseBool(sqlIntRe.FindStringSubmatch(s)[1])
-		return &BoolDefaultValue{val}
+		val, _ := strconv.ParseBool(sqlBoolRe.FindStringSubmatch(s)[1])
+		return &DefaultValue{BoolDefault, val}
 	case sqlBinaryRe.MatchString(s):
 		val, _ := hex.DecodeString(sqlBinaryRe.FindStringSubmatch(s)[1])
-		return &BinaryDefaultValue{val}
+		return &DefaultValue{BinaryDefault, val}
 	case sqlDateRe.MatchString(s):
 		val, _ := time.Parse("2006-01-02", sqlDateRe.FindStringSubmatch(s)[1])
-		return &DateDefaultValue{val}
+		return &DefaultValue{DateDefault, val}
 	case sqlDatetimeRe.MatchString(s):
 		val, _ := time.Parse("2006-01-02 15:04:05", sqlDatetimeRe.FindStringSubmatch(s)[1])
-		return &DatetimeDefaultValue{val}
+		return &DefaultValue{DatetimeDefault, val}
 	default:
 		panic(fmt.Errorf("nborm.parseDefaultValue() error: unknown default value type (%s)", s))
 	}
@@ -839,7 +847,16 @@ func getFieldByOffset(addr, offset uintptr, ormType OrmType) (Field, error) {
 }
 
 func getPrimaryKeyFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
-	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
+	fields := getAllFieldsWithTableInfo(addr, tabInfo)
+	validFields := make([]Field, 0, len(fields))
+	for _, field := range fields {
+		if field.IsValid() && !field.IsNull() {
+			validFields = append(validFields, field)
+		}
+	}
+	if len(validFields) == 0 {
+		return nil
+	}
 	if tabInfo.Pk.match(validFields...) {
 		return tabInfo.Pk.getFields(addr)
 	}
@@ -868,7 +885,16 @@ func getUniqueFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
 	if len(tabInfo.Unis) == 0 {
 		return nil
 	}
-	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
+	fields := getAllFieldsWithTableInfo(addr, tabInfo)
+	validFields := make([]Field, 0, len(fields))
+	for _, field := range fields {
+		if field.IsValid() && !field.IsNull() {
+			validFields = append(validFields, field)
+		}
+	}
+	if len(validFields) == 0 {
+		return nil
+	}
 	if idx, match := tabInfo.Unis.match(validFields...); match {
 		return tabInfo.Unis.getFields(addr, idx)
 	}
@@ -889,6 +915,16 @@ func getValidFieldsWithTableInfo(addr uintptr, tabInfo *TableInfo) []Field {
 	for _, field := range allFields {
 		if field.IsValid() {
 			l = append(l, field)
+		}
+	}
+	return l
+}
+
+func getFieldsWithoutInc(addr uintptr, tabInfo *TableInfo) []Field {
+	l := make([]Field, 0, len(tabInfo.Columns))
+	for _, col := range tabInfo.Columns {
+		if col.ColName != tabInfo.Inc.ColName {
+			l = append(l, getFieldByColumnInfo(addr, col))
 		}
 	}
 	return l
@@ -978,4 +1014,65 @@ func unionScanRows(addrs []uintptr, tabInfos []*TableInfo, rows *sql.Rows) error
 		return err
 	}
 	return nil
+}
+
+func initModelForInsert(addr uintptr, tabInfo *TableInfo) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("nborm.initModelForInsert() error: %v", e)
+		}
+	}()
+	fields := getFieldsWithoutInc(addr, tabInfo)
+	for _, field := range fields {
+		if !field.IsValid() {
+			field.setVal(field.getDefVal())
+		}
+	}
+	return nil
+}
+
+func processInsertModel(addr uintptr, tabInfo *TableInfo) ([]string, []string, []interface{}, error) {
+	colLen := len(tabInfo.Columns)
+	colList, placeHolderList, valList := make([]string, colLen), make([]string, colLen), make([]interface{}, colLen)
+	for i, col := range tabInfo.Columns {
+		field := getFieldByColumnInfo(addr, col)
+		colList[i] = field.fullColName()
+		if !field.IsValid() {
+			if field.isInc() || field.isNullable() {
+				field.setVal(nil)
+				placeHolderList[i] = "?"
+				valList[i] = nil
+			} else {
+				if defVal := field.getDefVal(); defVal == nil {
+					return nil, nil, nil, fmt.Errorf("nborm.genInsertStmt() error: column cannot be null (%s)", field.fullColName())
+				} else {
+					if binDef, ok := defVal.([]byte); ok {
+						field.setVal(binDef)
+						placeHolderList[i] = fmt.Sprintf("x'%x'", binDef)
+					} else {
+						field.setVal(defVal)
+						placeHolderList[i] = "?"
+						valList[i] = defVal
+					}
+				}
+			}
+		} else {
+			if field.IsNull() {
+				if field.isNullable() {
+					placeHolderList[i] = "?"
+					valList[i] = nil
+				} else {
+					return nil, nil, nil, fmt.Errorf("nborm.genInsertStmt() error: column cannot be null (%s)", field.fullColName())
+				}
+			} else {
+				if binField, ok := field.(*BinaryField); ok {
+					placeHolderList[i] = binField.strVal().(string)
+				} else {
+					placeHolderList[i] = "?"
+					valList[i] = field.value()
+				}
+			}
+		}
+	}
+	return colList, placeHolderList, valList, nil
 }

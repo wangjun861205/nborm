@@ -56,7 +56,7 @@ type StringField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        string
 	valid      bool
@@ -139,8 +139,12 @@ func (f *StringField) SetNull() {
 	f.valid, f.null, f.val = true, true, ""
 }
 
-func (f *StringField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(string)
+func (f *StringField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(string)
 }
 
 //SetByUpdateValue set by UpdateValue struct
@@ -361,7 +365,7 @@ func (f *StringField) SortOrder(reverse bool) string {
 }
 
 func (f *StringField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *StringField) check() error {
@@ -382,7 +386,7 @@ type IntField struct {
 	pk         bool
 	inc        bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        int64
 	valid      bool
@@ -465,8 +469,12 @@ func (f *IntField) SetNull() {
 	f.valid, f.null, f.val = true, true, 0
 }
 
-func (f *IntField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(int64)
+func (f *IntField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(int64)
 }
 
 //SetByUpdateValue set a value by UpdateValue struct
@@ -695,7 +703,7 @@ func (f *IntField) SortOrder(reverse bool) string {
 }
 
 func (f *IntField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *IntField) check() error {
@@ -769,7 +777,7 @@ type FloatField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        float64
 	valid      bool
@@ -777,11 +785,6 @@ type FloatField struct {
 	validators []Validator
 	fieldName  string
 	modelName  string
-}
-
-//NewFloatField create new FloatField
-func NewFloatField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *FloatField {
-	return &FloatField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *FloatField) value() interface{} {
@@ -857,8 +860,12 @@ func (f *FloatField) SetNull() {
 	f.valid, f.null, f.val = true, true, 0
 }
 
-func (f *FloatField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(float64)
+func (f *FloatField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(float64)
 }
 
 //SetByUpdateValue set a value by UpdateValue struct
@@ -1087,7 +1094,7 @@ func (f *FloatField) SortOrder(reverse bool) string {
 }
 
 func (f *FloatField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *FloatField) check() error {
@@ -1107,7 +1114,7 @@ type BoolField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        bool
 	valid      bool
@@ -1115,11 +1122,6 @@ type BoolField struct {
 	validators []Validator
 	fieldName  string
 	modelName  string
-}
-
-//NewBoolField return a new BoolField
-func NewBoolField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *BoolField {
-	return &BoolField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *BoolField) value() interface{} {
@@ -1190,8 +1192,12 @@ func (f *BoolField) SetNull() {
 	f.valid, f.null, f.val = true, true, false
 }
 
-func (f *BoolField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(bool)
+func (f *BoolField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(bool)
 }
 
 //SetByUpdateValue set value by a UpdateValue struct
@@ -1382,7 +1388,7 @@ func (f *BoolField) SortOrder(reverse bool) string {
 }
 
 func (f *BoolField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *BoolField) check() error {
@@ -1402,7 +1408,7 @@ type DateField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        time.Time
 	valid      bool
@@ -1410,11 +1416,6 @@ type DateField struct {
 	validators []Validator
 	fieldName  string
 	modelName  string
-}
-
-//NewDateField create a new DateField
-func NewDateField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *DateField {
-	return &DateField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *DateField) value() interface{} {
@@ -1490,8 +1491,12 @@ func (f *DateField) SetNull() {
 	f.valid, f.null, f.val = true, true, time.Time{}
 }
 
-func (f *DateField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(time.Time)
+func (f *DateField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(time.Time)
 }
 
 //SetByUpdateValue set value by UpdateValue struct
@@ -1746,7 +1751,7 @@ func (f *DateField) SortOrder(reverse bool) string {
 }
 
 func (f *DateField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *DateField) check() error {
@@ -1774,7 +1779,7 @@ type DatetimeField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        time.Time
 	valid      bool
@@ -1782,11 +1787,6 @@ type DatetimeField struct {
 	validators []Validator
 	fieldName  string
 	modelName  string
-}
-
-//NewDatetimeField create a DatetimeField
-func NewDatetimeField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *DatetimeField {
-	return &DatetimeField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
 }
 
 func (f *DatetimeField) value() interface{} {
@@ -1862,8 +1862,12 @@ func (f *DatetimeField) SetNull() {
 	f.valid, f.null, f.val = true, true, time.Time{}
 }
 
-func (f *DatetimeField) setVal(val interface{}, isNull bool) {
-	f.valid, f.null, f.val = true, isNull, val.(time.Time)
+func (f *DatetimeField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.(time.Time)
 }
 
 //SetByUpdateValue set value by UpdateValue struct
@@ -2104,7 +2108,7 @@ func (f *DatetimeField) SortOrder(reverse bool) string {
 }
 
 func (f *DatetimeField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *DatetimeField) check() error {
@@ -2132,7 +2136,7 @@ type BinaryField struct {
 	nullable   bool
 	pk         bool
 	uni        bool
-	defVal     interface{}
+	defVal     *DefaultValue
 	offset     uintptr
 	val        []byte
 	valid      bool
@@ -2142,16 +2146,18 @@ type BinaryField struct {
 	modelName  string
 }
 
-//NewBinaryField create a BinaryField
-func NewBinaryField(db, tab, column string, nullable, pk, uni bool, defVal interface{}, offset uintptr) *BinaryField {
-	return &BinaryField{db: db, tab: tab, column: column, nullable: nullable, pk: pk, uni: uni, defVal: defVal, offset: offset}
-}
-
 func (f *BinaryField) value() interface{} {
 	if f.null {
 		return nil
 	}
-	return fmt.Sprintf("X'%x'", f.val)
+	return f.val
+}
+
+func (f *BinaryField) strVal() interface{} {
+	if f.null {
+		return nil
+	}
+	return fmt.Sprintf("x'%x'", f.val)
 }
 
 //Get get value
@@ -2302,8 +2308,12 @@ func (f *BinaryField) SetNull() {
 	f.valid, f.null, f.val = true, true, nil
 }
 
-func (f *BinaryField) setVal(val interface{}, null bool) {
-	f.valid, f.null, f.val = true, null, val.([]byte)
+func (f *BinaryField) setVal(val interface{}) {
+	if val == nil {
+		f.valid, f.null = true, true
+		return
+	}
+	f.valid, f.null, f.val = true, false, val.([]byte)
 }
 
 //SetByUpdateValue set value by UpdateValue struct
@@ -2362,7 +2372,7 @@ func (f *BinaryField) SortOrder(reverse bool) string {
 }
 
 func (f *BinaryField) getDefVal() interface{} {
-	return f.defVal
+	return f.defVal.value()
 }
 
 func (f *BinaryField) check() error {

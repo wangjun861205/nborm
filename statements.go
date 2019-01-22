@@ -12,10 +12,18 @@ type Statement struct {
 	args    []interface{}
 }
 
-func getColAndValList(fields ...Field) (colList []string, valList []interface{}) {
+func getColAndValList(fields ...Field) (colList []string, placeHolderList []string, valList []interface{}) {
 	for _, field := range fields {
-		if !field.isInc() {
-			colList = append(colList, field.columnName())
+		colList = append(colList, field.columnName())
+		if binaryField, ok := field.(*BinaryField); ok {
+			if val := binaryField.strVal(); val != nil {
+				placeHolderList = append(placeHolderList, val.(string))
+			} else {
+				placeHolderList = append(placeHolderList, "?")
+				valList = append(valList, nil)
+			}
+		} else {
+			placeHolderList = append(placeHolderList, "?")
 			valList = append(valList, field.value())
 		}
 	}
@@ -56,15 +64,11 @@ func genPlaceHolder(num int) string {
 }
 
 func genInsertStmt(addr uintptr, tabInfo *TableInfo) (*Statement, error) {
-	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
-	if len(validFields) == 0 {
-		return nil, fmt.Errorf("nborm.genInsertStmt() error: no valid field (%s)", tabInfo.ModelName)
-	}
-	if err := checkFields(validFields...); err != nil {
+	colList, placeHolderList, valList, err := processInsertModel(addr, tabInfo)
+	if err != nil {
 		return nil, err
 	}
-	colList, valList := getColAndValList(validFields...)
-	stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabInfo.fullTabName(), strings.Join(colList, ", "), genPlaceHolder(len(validFields)))
+	stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tabInfo.fullTabName(), strings.Join(colList, ", "), strings.Join(placeHolderList, ", "))
 	return &Statement{stmtStr, valList}, nil
 }
 

@@ -527,7 +527,7 @@ func InsertOrGetOne(model table) error {
 		return err
 	}
 	inc := getIncWithTableInfo(modAddr, tabInfo)
-	inc.setVal(lid, false)
+	inc.setVal(lid)
 	return nil
 }
 
@@ -551,7 +551,7 @@ func InsertOrGetOneInTx(tx *sql.Tx, model table) error {
 		return err
 	}
 	inc := getIncWithTableInfo(modAddr, tabInfo)
-	inc.setVal(lid, false)
+	inc.setVal(lid)
 	return nil
 }
 

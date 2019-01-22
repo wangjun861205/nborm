@@ -123,7 +123,7 @@ const (
 
 func genWhere(addr uintptr, tabInfo *TableInfo) (*Where, whereType) {
 	inc := getIncWithTableInfo(addr, tabInfo)
-	if inc != nil && inc.IsValid() {
+	if inc != nil && inc.IsValid() && !inc.IsNull() {
 		return inc.where(), autoIncrementType
 	}
 	var where *Where

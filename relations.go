@@ -500,7 +500,7 @@ func (rfk ReverseForeignKey) AddOne(model table) error {
 		return fmt.Errorf("nborm.ReverseForeignKey.AddOne() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
 			wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
 	} else {
-		dstField.setVal(rfk.srcValF(), false)
+		dstField.setVal(rfk.srcValF())
 	}
 	lid, err := insert(modAddr, tabInfo)
 	if err != nil {
@@ -523,7 +523,7 @@ func (rfk ReverseForeignKey) AddOneInTx(tx *sql.Tx, model table) error {
 		return fmt.Errorf("nborm.ReverseForeignKey.AddOneInTx() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
 			wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
 	} else {
-		dstField.setVal(rfk.srcValF(), false)
+		dstField.setVal(rfk.srcValF())
 	}
 	lid, err := insertInTx(tx, modAddr, tabInfo)
 	if err != nil {
@@ -547,7 +547,7 @@ func (rfk ReverseForeignKey) AddMul(slice table) error {
 			return fmt.Errorf("nborm.ReverseForeignKey.AddMul() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
 				wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
 		} else {
-			dstField.setVal(rfk.srcValF(), false)
+			dstField.setVal(rfk.srcValF())
 		}
 		lid, err := insertContext(ctx, modAddr, tabInfo)
 		if err != nil {
@@ -571,7 +571,7 @@ func (rfk ReverseForeignKey) AddMulInTx(tx *sql.Tx, slice table) error {
 			return fmt.Errorf("nborm.ReverseForeignKey.AddMulInTx() error: relation field values not match src(%s.%s.%s: %v), dst(%s: %v)", wrap(rfk.srcDB),
 				wrap(rfk.srcTab), wrap(rfk.srcCol), rfk.srcValF(), dstField.fullColName(), dstField.value())
 		} else {
-			dstField.setVal(rfk.srcValF(), false)
+			dstField.setVal(rfk.srcValF())
 		}
 		lid, err := insertContextInTx(tx, ctx, modAddr, tabInfo)
 		if err != nil {

@@ -485,6 +485,12 @@ var sqlBinaryRe = regexp.MustCompile(`^x'([a-fA-F0-9])'$`)
 var sqlDateRe = regexp.MustCompile(`^dt'(\d{4}-\d{2}-\d{2})'$`)
 var sqlDatetimeRe = regexp.MustCompile(`^tm'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})`)
 
+type mysqlKeyword string
+
+func (kw mysqlKeyword) kwStr() string {
+	return string(kw)
+}
+
 type DefaultValueType int
 
 const (
@@ -519,7 +525,7 @@ func (dv *DefaultValue) createTableClause() string {
 	case BoolDefault:
 		return fmt.Sprintf("DEFAULT %t", dv.Value)
 	case BinaryDefault:
-		return fmt.Sprintf("DEFAULT x'%x'", dv.Value)
+		return fmt.Sprintf("DEFAULT ('%x')", dv.Value)
 	case DateDefault:
 		return fmt.Sprintf("DEFAULT %q", dv.Value.(time.Time).Format("2006-01-02"))
 	case DatetimeDefault:
@@ -568,7 +574,8 @@ func (dv *DefaultValue) UnmarshalJSON(b []byte) error {
 		if strings.HasPrefix(m["Value"].(string), "CURRENT_TIMESTAMP") {
 			dv.Value = time.Now()
 		} else {
-			dv.Value = nil
+			// dv.Value = nil
+			dv.Value = mysqlKeyword("DEFAULT")
 		}
 	case StringDefault:
 		dv.Value = m["Value"].(string)
@@ -1038,22 +1045,25 @@ func processInsertModel(addr uintptr, tabInfo *TableInfo) ([]string, []string, [
 		field := getFieldByColumnInfo(addr, col)
 		colList[i] = field.fullColName()
 		if !field.IsValid() {
-			if field.isInc() || field.isNullable() {
-				field.setVal(nil)
-				placeHolderList[i] = "?"
-				valList[i] = nil
-			} else {
-				if defVal := field.getDefVal(); defVal == nil {
-					return nil, nil, nil, fmt.Errorf("nborm.genInsertStmt() error: column cannot be null (%s)", field.fullColName())
+			if defVal := field.getDefVal(); defVal == nil {
+				if field.isInc() || field.isNullable() {
+					placeHolderList[i] = "?"
+					valList[i] = nil
+					field.setVal(nil)
 				} else {
-					if binDef, ok := defVal.([]byte); ok {
-						field.setVal(binDef)
-						placeHolderList[i] = fmt.Sprintf("x'%x'", binDef)
-					} else {
-						field.setVal(defVal)
-						placeHolderList[i] = "?"
-						valList[i] = defVal
-					}
+					return nil, nil, nil, fmt.Errorf("nborm.processInsertModel() error: column cannot be null (%s)", field.fullColName())
+				}
+			} else {
+				switch v := defVal.(type) {
+				case []byte:
+					placeHolderList[i] = fmt.Sprintf("x'%x'", v)
+					field.setVal(v)
+				case mysqlKeyword:
+					placeHolderList[i] = v.kwStr()
+				default:
+					placeHolderList[i] = "?"
+					valList[i] = defVal
+					field.setVal(v)
 				}
 			}
 		} else {
@@ -1062,7 +1072,7 @@ func processInsertModel(addr uintptr, tabInfo *TableInfo) ([]string, []string, [
 					placeHolderList[i] = "?"
 					valList[i] = nil
 				} else {
-					return nil, nil, nil, fmt.Errorf("nborm.genInsertStmt() error: column cannot be null (%s)", field.fullColName())
+					return nil, nil, nil, fmt.Errorf("nborm.processInsertModel() error: column cannot be null (%s)", field.fullColName())
 				}
 			} else {
 				if binField, ok := field.(*BinaryField); ok {
@@ -1119,10 +1129,13 @@ func processInsertOrUpdateModel(addr uintptr, tabInfo *TableInfo) (colList []str
 					return nil, nil, nil, nil, fmt.Errorf("nborm.processInsertOrUpdateModel() error: column cannot be null (%s)", field.fullColName())
 				}
 			} else {
-				if binDef, ok := defVal.([]byte); ok {
-					insertPlaceHolderList[i] = fmt.Sprintf("x'%x'", binDef)
-					field.setVal(binDef)
-				} else {
+				switch v := defVal.(type) {
+				case []byte:
+					insertPlaceHolderList[i] = fmt.Sprintf("x'%x'", v)
+					field.setVal(v)
+				case mysqlKeyword:
+					insertPlaceHolderList[i] = v.kwStr()
+				default:
 					insertPlaceHolderList[i] = "?"
 					insertValueList[i] = defVal
 					field.setVal(defVal)

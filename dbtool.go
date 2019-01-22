@@ -72,7 +72,8 @@ func parseFieldTag(tag string) *ColumnInfo {
 		}
 		if b {
 			colInfo.IsInc = b
-			colInfo.IsUni = true
+			// colInfo.IsUni = true
+			colInfo.Nullable = false
 		}
 	}
 	// if IsUni, ok := infoMap["unique"]; ok {

@@ -428,28 +428,28 @@ func InsertOneInTx(tx *sql.Tx, model table) error {
 }
 
 //InsertOrUpdateOne insert or update one record
-func InsertOrUpdateOne(model table) error {
+func InsertOrUpdateOne(model table) (bool, error) {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	lid, err := insertOrUpdate(modAddr, tabInfo)
+	lid, isCreated, err := insertOrUpdate(modAddr, tabInfo)
 	if err != nil {
-		return err
+		return false, err
 	}
 	setInc(modAddr, tabInfo, lid)
 	setSync(modAddr, tabInfo)
-	return nil
+	return isCreated, nil
 }
 
-func InsertOrUpdateOneInTx(tx *sql.Tx, model table) error {
+func InsertOrUpdateOneInTx(tx *sql.Tx, model table) (bool, error) {
 	tabInfo := getTabInfo(model)
 	modAddr := getTabAddr(model)
-	lid, err := insertOrUpdateInTx(tx, modAddr, tabInfo)
+	lid, isCreated, err := insertOrUpdateInTx(tx, modAddr, tabInfo)
 	if err != nil {
-		return err
+		return false, err
 	}
 	setInc(modAddr, tabInfo, lid)
 	setSync(modAddr, tabInfo)
-	return nil
+	return isCreated, nil
 }
 
 //InsertMul insert multiple record

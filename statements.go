@@ -73,17 +73,14 @@ func genInsertStmt(addr uintptr, tabInfo *TableInfo) (*Statement, error) {
 }
 
 func genInsertOrUpdateStmt(addr uintptr, tabInfo *TableInfo) (*Statement, error) {
-	validFields := getValidFieldsWithTableInfo(addr, tabInfo)
-	if len(validFields) == 0 {
-		return nil, fmt.Errorf("nborm.genInsertOrUpdateStmt() error: no valid field (%s)", tabInfo.ModelName)
-	}
-	if err := checkFields(validFields...); err != nil {
+	colList, insertPlaceHolderList, updatePlaceHolderList, valList, err := processInsertOrUpdateModel(addr, tabInfo)
+	if err != nil {
 		return nil, err
 	}
-	colList, valList, updList := getColAndValAndUpdList(validFields...)
 	stmtStr := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s = LAST_INSERT_ID(%s), %s", tabInfo.fullTabName(),
-		strings.Join(colList, ", "), genPlaceHolder(len(validFields)), tabInfo.Inc.colName(), tabInfo.Inc.colName(), strings.Join(updList, ", "))
-	return &Statement{stmtStr, append(valList, valList...)}, nil
+		strings.Join(colList, ", "), strings.Join(insertPlaceHolderList, ", "), tabInfo.Inc.colName(), tabInfo.Inc.colName(),
+		strings.Join(updatePlaceHolderList, ", "))
+	return &Statement{stmtStr, valList}, nil
 
 }
 

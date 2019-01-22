@@ -1076,3 +1076,59 @@ func processInsertModel(addr uintptr, tabInfo *TableInfo) ([]string, []string, [
 	}
 	return colList, placeHolderList, valList, nil
 }
+
+func processInsertOrUpdateModel(addr uintptr, tabInfo *TableInfo) (colList []string, insertPlaceHolderList []string, updatePlaceHolderList []string,
+	valueList []interface{}, err error) {
+	fields := getAllFieldsWithTableInfo(addr, tabInfo)
+	colLen := len(fields)
+	colList = make([]string, colLen)
+	insertPlaceHolderList = make([]string, colLen)
+	updatePlaceHolderList = make([]string, 0, colLen)
+	insertValueList := make([]interface{}, colLen)
+	updateValueList := make([]interface{}, 0, colLen)
+	for i, field := range fields {
+		colList[i] = field.fullColName()
+		if field.IsValid() {
+			if field.IsNull() {
+				if field.isNullable() {
+					insertPlaceHolderList[i] = "?"
+					updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = ?", field.fullColName()))
+					insertValueList[i] = nil
+					updateValueList = append(updateValueList, nil)
+				} else {
+					return nil, nil, nil, nil, fmt.Errorf("nborm.processInsertOrUpdateModel() error: column cannot be null (%s)", field.fullColName())
+				}
+			} else {
+				if binField, ok := field.(*BinaryField); ok {
+					insertPlaceHolderList[i] = binField.strVal().(string)
+					updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = %s", field.fullColName(), binField.strVal()))
+				} else {
+					insertPlaceHolderList[i] = "?"
+					updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = ?", field.fullColName()))
+					insertValueList[i] = field.value()
+					updateValueList = append(updateValueList, field.value())
+				}
+			}
+		} else {
+			if defVal := field.getDefVal(); defVal == nil {
+				if field.isInc() || field.isNullable() {
+					insertPlaceHolderList[i] = "?"
+					insertValueList[i] = nil
+					field.setVal(nil)
+				} else {
+					return nil, nil, nil, nil, fmt.Errorf("nborm.processInsertOrUpdateModel() error: column cannot be null (%s)", field.fullColName())
+				}
+			} else {
+				if binDef, ok := defVal.([]byte); ok {
+					insertPlaceHolderList[i] = fmt.Sprintf("x'%x'", binDef)
+					field.setVal(binDef)
+				} else {
+					insertPlaceHolderList[i] = "?"
+					insertValueList[i] = defVal
+					field.setVal(defVal)
+				}
+			}
+		}
+	}
+	return colList, insertPlaceHolderList, updatePlaceHolderList, append(insertValueList, updateValueList...), nil
+}

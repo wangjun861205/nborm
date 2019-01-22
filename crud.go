@@ -53,28 +53,52 @@ func insertContextInTx(tx *sql.Tx, ctx context.Context, addr uintptr, tabInfo *T
 	return res.LastInsertId()
 }
 
-func insertOrUpdate(addr uintptr, tabInfo *TableInfo) (int64, error) {
+func insertOrUpdate(addr uintptr, tabInfo *TableInfo) (int64, bool, error) {
 	stmt, err := genInsertOrUpdateStmt(addr, tabInfo)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
 	res, err := getConn(tabInfo.dbName()).Exec(stmt.stmtStr, stmt.args...)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
-	return res.LastInsertId()
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return -1, false, err
+	}
+	var isCreated bool
+	if rowsAffected == 0 {
+		isCreated = true
+	}
+	lastInsertID, err := res.LastInsertId()
+	if err != nil {
+		return -1, false, err
+	}
+	return lastInsertID, isCreated, nil
 }
 
-func insertOrUpdateInTx(tx *sql.Tx, addr uintptr, tabInfo *TableInfo) (int64, error) {
+func insertOrUpdateInTx(tx *sql.Tx, addr uintptr, tabInfo *TableInfo) (int64, bool, error) {
 	stmt, err := genInsertOrUpdateStmt(addr, tabInfo)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
 	res, err := tx.Exec(stmt.stmtStr, stmt.args...)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
-	return res.LastInsertId()
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return -1, false, err
+	}
+	var isCreated bool
+	if rowsAffected == 0 {
+		isCreated = true
+	}
+	lastInsertID, err := res.LastInsertId()
+	if err != nil {
+		return -1, false, err
+	}
+	return lastInsertID, isCreated, nil
 }
 
 func insertOrUpdateContext(ctx context.Context, addr uintptr, tabInfo *TableInfo) (int64, error) {

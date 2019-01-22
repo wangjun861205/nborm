@@ -202,8 +202,10 @@ var tests = []struct {
 		bookInfo := NewBookInfo()
 		bookInfo.Isbn.Set(fmt.Sprintf("%011d", 50))
 		bookInfo.Author.Set("王君")
-		if err := nborm.InsertOrUpdateOne(bookInfo); err != nil {
+		if isCreated, err := nborm.InsertOrUpdateOne(bookInfo); err != nil {
 			return err
+		} else {
+			fmt.Println(isCreated)
 		}
 		if !bookInfo.IsSync() {
 			return errors.New("SyncFlag is false, want true")

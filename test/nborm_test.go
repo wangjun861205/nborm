@@ -19,12 +19,26 @@ var tests = []struct {
 		auth.Password.Set("Wt20110523")
 		auth.Phone.Set("13793148690")
 		auth.Email.Set("wangjun20110523@gmail.com")
+		auth.BinaryTest.Set([]byte("hello world"))
 		if err := nborm.InsertOne(auth); err != nil {
 			return err
 		}
 		fmt.Println(auth.CreateTime.Get())
 		return nil
 	}},
+
+	{"query binary field", func() error {
+		auth := NewAuth()
+		if err := nborm.QueryOne(auth, auth.Phone.Eq("13793148690")); err != nil {
+			return err
+		}
+		bt, _, _ := auth.BinaryTest.Get()
+		if string(bt) != "hello world" {
+			return fmt.Errorf("want 'hello world', now %s", bt)
+		}
+		return nil
+	}},
+
 	{"insert many", func() error {
 		bookInfos := MakeBookInfoSlice(0, 128)
 		for i := 0; i < 100; i++ {

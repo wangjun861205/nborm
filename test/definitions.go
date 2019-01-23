@@ -20,6 +20,7 @@ type Auth struct {
 	CreateTime    nborm.DatetimeField `json:"create_time" default_value:"@'CURRENT_TIMESTAMP'"`
 	LastLoginTime nborm.DatetimeField `json:"last_login_time" nullable:"true"`
 	IsSuperUser   nborm.BoolField     `json:"is_super_user" default_value:"b'false'"`
+	BinaryTest    nborm.BinaryField   `json:"binary_test"`
 }
 
 //DB:nborm_test

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 	"unsafe"
 )
@@ -2150,14 +2149,7 @@ func (f *BinaryField) value() interface{} {
 	if f.null {
 		return nil
 	}
-	return f.val
-}
-
-func (f *BinaryField) strVal() interface{} {
-	if f.null {
-		return nil
-	}
-	return fmt.Sprintf("x'%x'", f.val)
+	return fmt.Sprintf("%x", f.val)
 }
 
 //Get get value
@@ -2188,15 +2180,12 @@ func (f *BinaryField) Scan(val interface{}) error {
 	}
 	f.null = false
 	b := val.([]byte)
-	s := strings.Trim(string(b), "X'")
-	b = []byte(s)
-	decodedLen := hex.DecodedLen(len(b))
-	l := make([]byte, decodedLen)
-	n, err := hex.Decode(l, b)
+	f.val = make([]byte, hex.DecodedLen(len(b)))
+	n, err := hex.Decode(f.val, b)
 	if err != nil {
 		return err
 	}
-	f.val = l[:n]
+	f.val = f.val[:n]
 	return nil
 }
 

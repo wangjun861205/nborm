@@ -1075,12 +1075,8 @@ func processInsertModel(addr uintptr, tabInfo *TableInfo) ([]string, []string, [
 					return nil, nil, nil, fmt.Errorf("nborm.processInsertModel() error: column cannot be null (%s)", field.fullColName())
 				}
 			} else {
-				if binField, ok := field.(*BinaryField); ok {
-					placeHolderList[i] = binField.strVal().(string)
-				} else {
-					placeHolderList[i] = "?"
-					valList[i] = field.value()
-				}
+				placeHolderList[i] = "?"
+				valList[i] = field.value()
 			}
 		}
 	}
@@ -1109,15 +1105,10 @@ func processInsertOrUpdateModel(addr uintptr, tabInfo *TableInfo) (colList []str
 					return nil, nil, nil, nil, fmt.Errorf("nborm.processInsertOrUpdateModel() error: column cannot be null (%s)", field.fullColName())
 				}
 			} else {
-				if binField, ok := field.(*BinaryField); ok {
-					insertPlaceHolderList[i] = binField.strVal().(string)
-					updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = %s", field.fullColName(), binField.strVal()))
-				} else {
-					insertPlaceHolderList[i] = "?"
-					updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = ?", field.fullColName()))
-					insertValueList[i] = field.value()
-					updateValueList = append(updateValueList, field.value())
-				}
+				insertPlaceHolderList[i] = "?"
+				updatePlaceHolderList = append(updatePlaceHolderList, fmt.Sprintf("%s = ?", field.fullColName()))
+				insertValueList[i] = field.value()
+				updateValueList = append(updateValueList, field.value())
 			}
 		} else {
 			if defVal := field.getDefVal(); defVal == nil {

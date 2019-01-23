@@ -15,17 +15,8 @@ type Statement struct {
 func getColAndValList(fields ...Field) (colList []string, placeHolderList []string, valList []interface{}) {
 	for _, field := range fields {
 		colList = append(colList, field.columnName())
-		if binaryField, ok := field.(*BinaryField); ok {
-			if val := binaryField.strVal(); val != nil {
-				placeHolderList = append(placeHolderList, val.(string))
-			} else {
-				placeHolderList = append(placeHolderList, "?")
-				valList = append(valList, nil)
-			}
-		} else {
-			placeHolderList = append(placeHolderList, "?")
-			valList = append(valList, field.value())
-		}
+		placeHolderList = append(placeHolderList, "?")
+		valList = append(valList, field.value())
 	}
 	return
 }

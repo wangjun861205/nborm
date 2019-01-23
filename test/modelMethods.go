@@ -4,6 +4,59 @@ import (
 	"github.com/wangjun861205/nborm"
 )
 
+func (model *Tag) DB() string {
+	return "nborm_test"
+}
+
+func (model *Tag) Tab() string {
+	return "tag"
+}
+
+func (model *Tag) PrimaryKey() []string {
+	return []string{"id"}
+}
+
+func (model *Tag) UniqueKeys() [][]string {
+	return [][]string{}
+}
+
+func (model *Tag) Keys() [][]string {
+	return [][]string{}
+}
+
+func NewTag() *Tag {
+	model := new(Tag)
+	nborm.InitModel(model)
+	return model
+}
+
+type TagSlice []*Tag
+
+func (slice *TagSlice) DB() string {
+	return "nborm_test"
+}
+
+func (slice *TagSlice) Tab() string {
+	return "tag"
+}
+
+func (model *TagSlice) PrimaryKey() []string {
+	return []string{"id"}
+}
+
+func (model *TagSlice) UniqueKeys() [][]string {
+	return [][]string{}
+}
+
+func (model *TagSlice) Keys() [][]string {
+	return [][]string{}
+}
+
+func MakeTagSlice(length, cap int) TagSlice {
+	slice := make(TagSlice, length, cap)
+	nborm.InitSlice(&slice)
+	return slice
+}
 func (model *Auth) DB() string {
 	return "nborm_test"
 }
@@ -168,59 +221,6 @@ func (model *BookInfoSlice) Keys() [][]string {
 
 func MakeBookInfoSlice(length, cap int) BookInfoSlice {
 	slice := make(BookInfoSlice, length, cap)
-	nborm.InitSlice(&slice)
-	return slice
-}
-func (model *Tag) DB() string {
-	return "nborm_test"
-}
-
-func (model *Tag) Tab() string {
-	return "tag"
-}
-
-func (model *Tag) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *Tag) UniqueKeys() [][]string {
-	return [][]string{}
-}
-
-func (model *Tag) Keys() [][]string {
-	return [][]string{}
-}
-
-func NewTag() *Tag {
-	model := new(Tag)
-	nborm.InitModel(model)
-	return model
-}
-
-type TagSlice []*Tag
-
-func (slice *TagSlice) DB() string {
-	return "nborm_test"
-}
-
-func (slice *TagSlice) Tab() string {
-	return "tag"
-}
-
-func (model *TagSlice) PrimaryKey() []string {
-	return []string{"id"}
-}
-
-func (model *TagSlice) UniqueKeys() [][]string {
-	return [][]string{}
-}
-
-func (model *TagSlice) Keys() [][]string {
-	return [][]string{}
-}
-
-func MakeTagSlice(length, cap int) TagSlice {
-	slice := make(TagSlice, length, cap)
 	nborm.InitSlice(&slice)
 	return slice
 }

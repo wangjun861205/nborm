@@ -258,13 +258,12 @@ func parseOneToOneField(srcModelName string, field *ast.Field) *OneToOneInfo {
 	if field.Tag == nil {
 		panic(fmt.Errorf("nborm.parseOneToOneField() error: no relation information tag (%s)", field.Names[0].Name))
 	}
-	srcFieldName := field.Names[0].String()
 	srcFieldName, dstModelName, dstFieldName := parseOn(field.Tag.Value)
 	srcTabInfo, srcColInfo := findTableAndColumnInfo(srcModelName, srcFieldName)
 	dstTabInfo, dstColInfo := findTableAndColumnInfo(dstModelName, dstFieldName)
 	oto.SrcCol = srcColInfo
 	oto.DstCol = dstColInfo
-	oto.FieldName = srcFieldName
+	oto.FieldName = field.Names[0].String()
 	midModelName, leftIndex, rightIndex, ok := parseBy(field.Tag.Value)
 	if !ok {
 		midTabInfo, isCreated := getOrCreateMiddleTableInfo(srcTabInfo, dstTabInfo, srcColInfo, dstColInfo, oneToOneMiddleTable)
@@ -442,7 +441,7 @@ func getOrCreateMiddleTableInfo(srcTabInfo, dstTabInfo *TableInfo, srcColInfo, d
 		leftCol.SqlType = srcColInfo.SqlType
 		rightCol := &ColumnInfo{}
 		rightCol.DBName = midTabInfo.DBName
-		leftCol.TabName = midTabInfo.TabName
+		rightCol.TabName = midTabInfo.TabName
 		rightCol.Charset = dstColInfo.Charset
 		rightCol.ColName = dstTabInfo.TabName + "__" + dstColInfo.ColName
 		rightCol.Collate = dstColInfo.Collate

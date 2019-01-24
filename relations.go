@@ -1218,157 +1218,321 @@ func (mtm ManyToMany) getSrcVal() interface{} {
 	return mtm.srcValF()
 }
 
-func genJoinClause(relations ...relation) (string, error) {
-	if len(relations) == 0 {
-		panic(errors.New("nborm.genJoinClause() error: no relation"))
-	}
-	var firstRel relation
-	firstRel, relations = relations[0], relations[1:]
-	srcTab, dstTab := firstRel.getFullSrcTab(), firstRel.getFullDstTab()
-	chainedTables := map[string]bool{srcTab: true, dstTab: true}
-	var currentJoinStr string
-	switch r := firstRel.(type) {
-	case OneToOne:
-		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullMidTab(),
-			r.getFullSrcCol(), r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
-	case ManyToMany:
-		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullMidTab(),
-			r.getFullSrcCol(), r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
-	case ForeignKey:
-		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstTab(),
-			r.getFullSrcCol(), r.getFullDstCol())
-	case ReverseForeignKey:
-		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstTab(),
-			r.getFullSrcCol(), r.getFullDstCol())
-	default:
-		return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
-	}
-	if len(relations) > 0 {
-		nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-		if err != nil {
-			return "", err
-		}
-		return currentJoinStr + " " + nextJoinStr, nil
-	}
-	return currentJoinStr, nil
+// func genJoinClause(relations ...relation) (string, error) {
+// 	if len(relations) == 0 {
+// 		panic(errors.New("nborm.genJoinClause() error: no relation"))
+// 	}
+// 	var firstRel relation
+// 	firstRel, relations = relations[0], relations[1:]
+// 	srcTab, dstTab := firstRel.getFullSrcTab(), firstRel.getFullDstTab()
+// 	chainedTables := map[string]bool{srcTab: true, dstTab: true}
+// 	var currentJoinStr string
+// 	switch r := firstRel.(type) {
+// 	case OneToOne:
+// 		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullMidTab(),
+// 			r.getFullSrcCol(), r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
+// 	case ManyToMany:
+// 		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullMidTab(),
+// 			r.getFullSrcCol(), r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
+// 	case ForeignKey:
+// 		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstTab(),
+// 			r.getFullSrcCol(), r.getFullDstCol())
+// 	case ReverseForeignKey:
+// 		currentJoinStr = fmt.Sprintf("%s JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstTab(),
+// 			r.getFullSrcCol(), r.getFullDstCol())
+// 	default:
+// 		return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+// 	}
+// 	if len(relations) > 0 {
+// 		nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		return currentJoinStr + " " + nextJoinStr, nil
+// 	}
+// 	return currentJoinStr, nil
+// }
+
+// func rGenJoinClause(chainedTables map[string]bool, relations ...relation) (string, error) {
+// 	for i, rel := range relations {
+// 		srcTab := rel.getFullSrcTab()
+// 		dstTab := rel.getFullDstTab()
+// 		switch {
+// 		case chainedTables[srcTab]:
+// 			switch r := rel.(type) {
+// 			case OneToOne:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(), r.getFullSrcCol(),
+// 					r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
+// 				chainedTables[dstTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			case ManyToMany:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(), r.getFullSrcCol(),
+// 					r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
+// 				chainedTables[dstTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			case ForeignKey:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullDstTab(), r.getFullSrcCol(), r.getFullDstCol())
+// 				chainedTables[dstTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 			case ReverseForeignKey:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullDstTab(), r.getFullSrcCol(), r.getFullDstCol())
+// 				chainedTables[dstTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 			default:
+// 				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+// 			}
+// 		case chainedTables[dstTab]:
+// 			switch r := rel.(type) {
+// 			case OneToOne:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(),
+// 					r.getMidRightCol(), r.getFullDstTab(), r.getFullSrcTab(),
+// 					r.getFullMidLeftCol(), r.getFullSrcCol())
+// 				chainedTables[srcTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			case ManyToMany:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(),
+// 					r.getMidRightCol(), r.getFullDstTab(), r.getFullSrcTab(),
+// 					r.getFullMidLeftCol(), r.getFullSrcCol())
+// 				chainedTables[srcTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			case ForeignKey:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstCol(), r.getFullSrcCol())
+// 				chainedTables[srcTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			case ReverseForeignKey:
+// 				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstCol(), r.getFullSrcCol())
+// 				chainedTables[srcTab] = true
+// 				if len(relations) > 1 {
+// 					relations = append(relations[:i], relations[i+1:]...)
+// 					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
+// 					if err != nil {
+// 						return "", err
+// 					}
+// 					return currentJoinStr + " " + nextJoinStr, nil
+// 				}
+// 				return currentJoinStr, nil
+// 			default:
+// 				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+// 			}
+// 		}
+// 	}
+// 	return "", fmt.Errorf("nborm.rGenJoinClause() error: cannot chain relations (%v)", relations)
+// }
+
+type relNode struct {
+	srcTab      *tabNode
+	dstTab      *tabNode
+	srcCol      string
+	dstCol      string
+	midTab      string
+	midLeftCol  string
+	midRightCol string
 }
 
-func rGenJoinClause(chainedTables map[string]bool, relations ...relation) (string, error) {
-	for i, rel := range relations {
-		srcTab := rel.getFullSrcTab()
-		dstTab := rel.getFullDstTab()
-		switch {
-		case chainedTables[srcTab]:
-			switch r := rel.(type) {
-			case OneToOne:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(), r.getFullSrcCol(),
-					r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
-				chainedTables[dstTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			case ManyToMany:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(), r.getFullSrcCol(),
-					r.getFullMidLeftCol(), r.getFullDstTab(), r.getFullMidRightCol(), r.getFullDstCol())
-				chainedTables[dstTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			case ForeignKey:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullDstTab(), r.getFullSrcCol(), r.getFullDstCol())
-				chainedTables[dstTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-			case ReverseForeignKey:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullDstTab(), r.getFullSrcCol(), r.getFullDstCol())
-				chainedTables[dstTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-			default:
-				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
-			}
-		case chainedTables[dstTab]:
-			switch r := rel.(type) {
-			case OneToOne:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(),
-					r.getMidRightCol(), r.getFullDstTab(), r.getFullSrcTab(),
-					r.getFullMidLeftCol(), r.getFullSrcCol())
-				chainedTables[srcTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			case ManyToMany:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", r.getFullMidTab(),
-					r.getMidRightCol(), r.getFullDstTab(), r.getFullSrcTab(),
-					r.getFullMidLeftCol(), r.getFullSrcCol())
-				chainedTables[srcTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			case ForeignKey:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstCol(), r.getFullSrcCol())
-				chainedTables[srcTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			case ReverseForeignKey:
-				currentJoinStr := fmt.Sprintf("JOIN %s ON %s = %s", r.getFullSrcTab(), r.getFullDstCol(), r.getFullSrcCol())
-				chainedTables[srcTab] = true
-				if len(relations) > 1 {
-					relations = append(relations[:i], relations[i+1:]...)
-					nextJoinStr, err := rGenJoinClause(chainedTables, relations...)
-					if err != nil {
-						return "", err
-					}
-					return currentJoinStr + " " + nextJoinStr, nil
-				}
-				return currentJoinStr, nil
-			default:
-				return "", errors.New("nborm.rGenJoinClause() error: unknown relation type")
+type tabNode struct {
+	rels []*relNode
+	name string
+}
+
+func toRelNode(rel relation) *relNode {
+	node := new(relNode)
+	node.srcTab = &tabNode{[]*relNode{node}, rel.getFullSrcTab()}
+	node.dstTab = &tabNode{[]*relNode{node}, rel.getFullDstTab()}
+	node.srcCol = rel.getFullSrcCol()
+	node.dstCol = rel.getFullDstCol()
+	if r, ok := rel.(complexRelation); ok {
+		node.midTab = r.getFullMidTab()
+		node.midLeftCol = r.getFullMidLeftCol()
+		node.midRightCol = r.getFullMidRightCol()
+	}
+	return node
+}
+
+func allTabMap(node *relNode) map[string]*tabNode {
+	m := map[string]*tabNode{node.srcTab.name: node.srcTab, node.dstTab.name: node.dstTab}
+	for _, subNode := range node.srcTab.rels {
+		if subNode != node {
+			subM := allTabMap(subNode)
+			for k, v := range subM {
+				m[k] = v
 			}
 		}
 	}
-	return "", fmt.Errorf("nborm.rGenJoinClause() error: cannot chain relations (%v)", relations)
+	for _, subNode := range node.dstTab.rels {
+		if subNode != node {
+			subM := allTabMap(subNode)
+			for k, v := range subM {
+				m[k] = v
+			}
+		}
+	}
+	return m
+}
+
+func findLeaf(node *relNode) *tabNode {
+	if len(node.srcTab.rels) == 1 {
+		return node.srcTab
+	}
+	if len(node.dstTab.rels) == 1 {
+		return node.dstTab
+	}
+	return findLeaf(node.srcTab.rels[1])
+}
+
+func (node *relNode) joinClause(prevTab *tabNode) string {
+	switch prevTab {
+	case node.srcTab:
+		if node.midTab == "" {
+			return fmt.Sprintf("JOIN %s ON %s = %s", node.dstTab.name, node.srcCol, node.dstCol)
+		} else {
+			return fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", node.midTab, node.srcCol, node.midLeftCol, node.dstTab.name,
+				node.midRightCol, node.dstCol)
+		}
+	case node.dstTab:
+		if node.midTab == "" {
+			return fmt.Sprintf("JOIN %s ON %s = %s", node.srcTab.name, node.dstCol, node.srcCol)
+		} else {
+			return fmt.Sprintf("JOIN %s ON %s = %s JOIN %s ON %s = %s", node.midTab, node.dstCol, node.midRightCol, node.srcTab.name,
+				node.midLeftCol, node.srcCol)
+		}
+	case nil:
+		if node.midTab == "" {
+			return fmt.Sprintf("%s JOIN %s ON %s = %s", node.srcTab.name, node.dstTab.name, node.dstCol, node.srcCol)
+		} else {
+			return fmt.Sprintf("%s JOIN %s ON %s = %s JOIN %s ON %s = %s", node.srcTab.name, node.midTab, node.srcCol, node.midLeftCol,
+				node.dstTab.name, node.midRightCol, node.dstCol)
+		}
+	default:
+		panic("nborm.relNode.joinClause() error: irrelative table")
+
+	}
+}
+
+func (node *tabNode) otherRels(prevRel *relNode) []*relNode {
+	l := make([]*relNode, 0, len(node.rels)-1)
+	for _, rel := range node.rels {
+		if rel != prevRel {
+			l = append(l, rel)
+		}
+	}
+	return l
+}
+
+func (node *relNode) otherTab(prevTab *tabNode) *tabNode {
+	if prevTab == node.srcTab {
+		return node.dstTab
+	}
+	return node.srcTab
+}
+
+func (node *relNode) toJoinClause(existRelMap map[*relNode]bool, prevTab *tabNode) string {
+	if !existRelMap[node] {
+		existRelMap[node] = true
+		str := node.joinClause(prevTab)
+		for _, rel := range node.srcTab.rels {
+			nextStr := rel.toJoinClause(existRelMap, node.srcTab)
+			if nextStr != "" {
+				str = fmt.Sprintf("%s %s", str, nextStr)
+			}
+		}
+		for _, rel := range node.dstTab.rels {
+			nextStr := rel.toJoinClause(existRelMap, node.dstTab)
+			if nextStr != "" {
+				str = fmt.Sprintf("%s %s", str, nextStr)
+			}
+		}
+		return str
+
+	} else {
+		return ""
+	}
+}
+
+func genJoinClause(rels ...relation) (string, error) {
+	nodeList := make([]*relNode, len(rels))
+	for i, rel := range rels {
+		nodeList[i] = toRelNode(rel)
+	}
+	root, remain := nodeList[0], nodeList[1:]
+	atm := map[string]*tabNode{root.srcTab.name: root.srcTab, root.dstTab.name: root.dstTab}
+	for len(remain) > 0 {
+		var found bool
+		for i, node := range remain {
+			if existTab := atm[node.srcTab.name]; existTab != nil {
+				atm[node.dstTab.name] = node.dstTab
+				node.srcTab = existTab
+				existTab.rels = append(existTab.rels, node)
+				found = true
+				remain = append(remain[:i], remain[i+1:]...)
+				break
+			} else if existTab := atm[node.dstTab.name]; existTab != nil {
+				atm[node.srcTab.name] = node.srcTab
+				node.dstTab = existTab
+				existTab.rels = append(existTab.rels, node)
+				found = true
+				remain = append(remain[:i], remain[i+1:]...)
+				break
+			} else {
+				continue
+			}
+		}
+		if !found {
+			return "", errors.New("nborm.genJoinClause() error: cannot chain relation")
+		}
+	}
+	return root.toJoinClause(make(map[*relNode]bool), nil), nil
 }

@@ -953,7 +953,7 @@ func scanRow(addr uintptr, tabInfo *TableInfo, row *sql.Row) error {
 func unionScanRow(addrs []uintptr, tabInfos []*TableInfo, row *sql.Row) error {
 	fields := make([]interface{}, 0, 64)
 	for i := 0; i < len(addrs); i++ {
-		addrList := make([]interface{}, len(fields))
+		addrList := make([]interface{}, len(tabInfos[i].Columns))
 		for i, field := range getAllFieldsWithTableInfo(addrs[i], tabInfos[i]) {
 			addrList[i] = field.(interface{})
 		}

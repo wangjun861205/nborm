@@ -23,9 +23,9 @@ type UpdateValue struct {
 
 func (uv *UpdateValue) toSQL() (string, interface{}) {
 	if uv.null {
-		return fmt.Sprintf("%s = ?", uv.column), nil
+		return fmt.Sprintf("`%s` = ?", uv.column), nil
 	}
-	return fmt.Sprintf("%s = ?", uv.column), uv.val
+	return fmt.Sprintf("`%s` = ?", uv.column), uv.val
 }
 
 //Pager is for pagerate

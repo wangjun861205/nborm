@@ -18,8 +18,6 @@ import (
 	"strings"
 
 	"github.com/wangjun861205/nbfmt"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 var goToSQLMap = map[string]string{
@@ -601,7 +599,7 @@ func parseDB(filename string) error {
 	return nil
 }
 
-func create() error {
+func create(ignoreConstraintError bool) error {
 	conn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/information_schema", config.Username, config.Password, config.Host, config.Port))
 	if err != nil {
 		return err
@@ -645,22 +643,30 @@ func create() error {
 				return err
 			}
 		}
+	}
+
+	for dbName, db := range SchemaCache.DatabaseMap {
 		for tname, tab := range db.TableMap {
 			for _, fk := range tab.ForeignKeys {
 				fkName := wrap(fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s_%s__%s_%s", tname, fk.SrcCol.ColName, fk.DstCol.DBName,
 					fk.DstCol.ColName)))))
-				stmt := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE", wrap(tname),
-					fkName, wrap(fk.SrcCol.ColName), wrap(fk.DstCol.DBName),
-					wrap(fk.DstCol.TabName), wrap(fk.DstCol.ColName))
+				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE ON UPDATE CASCADE",
+					wrap(dbName), wrap(tname), fkName, wrap(fk.SrcCol.ColName), wrap(fk.DstCol.DBName), wrap(fk.DstCol.TabName), wrap(fk.DstCol.ColName))
 				fmt.Println(stmt)
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
-					if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1826 {
-						fmt.Printf("warning: %v\n", e)
+					if ignoreConstraintError {
+						fmt.Printf("warning: %v\n", err)
 						fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 						continue
 					}
 					return err
+					// if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1826 {
+					// 	fmt.Printf("warning: %v\n", e)
+					// 	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+					// 	continue
+					// }
+					// return err
 				}
 			}
 		}
@@ -668,11 +674,11 @@ func create() error {
 	return nil
 }
 
-func ParseAndCreate(filename string) error {
+func ParseAndCreate(filename string, ignoreConstraintError bool) error {
 	if err := parseDB(filename); err != nil {
 		return err
 	}
-	if err := create(); err != nil {
+	if err := create(ignoreConstraintError); err != nil {
 		return err
 	}
 	return nil

@@ -2386,7 +2386,7 @@ func (f *BinaryField) UnmarshalJSON(b []byte) error {
 			f.valid = true
 			f.null = true
 		} else {
-			return fmt.Errorf("nborm.BinaryField.Unmarshal() error: %s cannot be null without default value")
+			return fmt.Errorf("nborm.BinaryField.Unmarshal() error: %s cannot be null without default value", f.columnName())
 		}
 	} else {
 		binaryData := make([]byte, 0, 10240)

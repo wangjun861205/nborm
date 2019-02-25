@@ -21,11 +21,12 @@ func main() {
 	path := flag.Args()[0]
 	os.Remove(filepath.Join(path, "modelMethods.go"))
 	nborm.CleanSchemaCache()
-	if err := nborm.ParseComment(path); err != nil {
+	attrMap, err := nborm.ParseComment(path, flag.Args()[1:]...)
+	if err != nil {
 		panic(err)
 	}
 	for _, f := range flag.Args()[1:] {
-		err := nborm.ParseAndCreate(filepath.Join(path, f), ignoreConstraintError)
+		err := nborm.ParseAndCreate(filepath.Join(path, f), attrMap, ignoreConstraintError)
 		if err != nil {
 			panic(err)
 		}

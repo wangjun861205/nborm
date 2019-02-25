@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/ast"
-	"go/doc"
 	"go/parser"
 	"go/token"
 	"log"
@@ -17,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/wangjun861205/nbcolor"
 	"github.com/wangjun861205/nbfmt"
 )
 
@@ -164,11 +164,11 @@ type relInfo struct {
 	DstCol      string
 }
 
-func parseRelationInfo(decl *ast.GenDecl) (relInfo relInfo) {
+func parseRelationInfo(decl *ast.GenDecl, attrMap comment) (relInfo relInfo) {
 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
 			ModelName := typeSpec.Name.Name
-			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
+			dbName, tabName := attrMap[ModelName].dbName, attrMap[ModelName].tabName
 			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
 			for _, field := range stctType.Fields.List {
 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
@@ -480,7 +480,7 @@ type dbAndTab struct {
 	tab string
 }
 
-var dbTabMap = map[string]*dbAndTab{}
+// var dbTabMap = map[string]*dbAndTab{}
 
 func initPrimaryKey(tabInfo *TableInfo) {
 	for _, name := range tabInfo.PkNames {
@@ -533,18 +533,50 @@ func initKeys(tabInfo *TableInfo) {
 	}
 }
 
-func parseModel(decl *ast.GenDecl) {
+// func parseModel(decl *ast.GenDecl) {
+// 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
+// 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
+// 			ModelName := typeSpec.Name.Name
+// 			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
+// 			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
+// 			tabInfo.DBName, tabInfo.TabName, tabInfo.ModelName = dbName, tabName, ModelName
+// 			tabInfo.KeyNames = parseKeys(commentMap[ModelName])
+// 			tabInfo.PkNames = parsePrimaryKey(commentMap[ModelName])
+// 			tabInfo.UniNames = parseUniqueKeys(commentMap[ModelName])
+// 			tabInfo.Charset = parseCharset(commentMap[ModelName])
+// 			tabInfo.Collate = parseCollate(commentMap[ModelName])
+// 			for _, field := range stctType.Fields.List {
+// 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
+// 					switch expr.Sel.Name {
+// 					case "StringField", "IntField", "FloatField", "BoolField", "BinaryField", "DateField", "DatetimeField":
+// 						colInfo := parseField(dbName, tabName, field)
+// 						tabInfo.Columns = append(tabInfo.Columns, colInfo)
+// 						tabInfo.ColumnMap[colInfo.ColName] = colInfo
+// 						if colInfo.IsInc {
+// 							tabInfo.Inc = colInfo
+// 						}
+// 					}
+// 				}
+// 			}
+// 			initPrimaryKey(tabInfo)
+// 			initUniqueKeys(tabInfo)
+// 			initKeys(tabInfo)
+// 		}
+// 	}
+// }
+
+func parseModel(decl *ast.GenDecl, attrMap comment) {
 	if typeSpec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
 		if stctType, ok := typeSpec.Type.(*ast.StructType); ok {
 			ModelName := typeSpec.Name.Name
-			dbName, tabName := dbTabMap[ModelName].db, dbTabMap[ModelName].tab
+			dbName, tabName := attrMap[ModelName].dbName, attrMap[ModelName].tabName
 			tabInfo := SchemaCache.DatabaseMap[dbName].TableMap[tabName]
 			tabInfo.DBName, tabInfo.TabName, tabInfo.ModelName = dbName, tabName, ModelName
-			tabInfo.KeyNames = parseKeys(commentMap[ModelName])
-			tabInfo.PkNames = parsePrimaryKey(commentMap[ModelName])
-			tabInfo.UniNames = parseUniqueKeys(commentMap[ModelName])
-			tabInfo.Charset = parseCharset(commentMap[ModelName])
-			tabInfo.Collate = parseCollate(commentMap[ModelName])
+			tabInfo.KeyNames = attrMap[ModelName].indices
+			tabInfo.PkNames = attrMap[ModelName].primaryKey
+			tabInfo.UniNames = attrMap[ModelName].uniqueKeys
+			tabInfo.Charset = attrMap[ModelName].charset
+			tabInfo.Collate = attrMap[ModelName].collate
 			for _, field := range stctType.Fields.List {
 				if expr, ok := field.Type.(*ast.SelectorExpr); ok {
 					switch expr.Sel.Name {
@@ -565,34 +597,34 @@ func parseModel(decl *ast.GenDecl) {
 	}
 }
 
-func initSchema() {
-	for m, info := range dbTabMap {
-		if info.db == "" || info.tab == "" {
+func initSchema(attrMap comment) {
+	for m, info := range attrMap {
+		if info.dbName == "" || info.tabName == "" {
 			panic(fmt.Errorf("nborm.initSchema() error: no database name or no table name (model %s)", m))
 		}
-		tabInfo := SchemaCache.getOrCreate(info.db).getOrCreate(info.tab)
+		tabInfo := SchemaCache.getOrCreate(info.dbName).getOrCreate(info.tabName)
 		tabInfo.ModelName = m
-		tabInfo.DBName = info.db
-		tabInfo.TabName = info.tab
+		tabInfo.DBName = info.dbName
+		tabInfo.TabName = info.tabName
 	}
 }
 
-func parseDB(filename string) error {
+func parseDB(filename string, attrMap comment) error {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, nil, parser.AllErrors)
 	if err != nil {
 		return err
 	}
-	initSchema()
+	initSchema(attrMap)
 	ast.Inspect(f, func(node ast.Node) bool {
 		if genDecl, ok := node.(*ast.GenDecl); ok {
-			parseModel(genDecl)
+			parseModel(genDecl, attrMap)
 		}
 		return true
 	})
 	ast.Inspect(f, func(node ast.Node) bool {
 		if genDecl, ok := node.(*ast.GenDecl); ok {
-			parseRelationInfo(genDecl)
+			parseRelationInfo(genDecl, attrMap)
 		}
 		return true
 	})
@@ -637,7 +669,7 @@ func create(ignoreConstraintError bool) error {
 			stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (%s%s%s%s) ENGINE=InnoDB DEFAULT CHARSET=%s COLLATE=%s`,
 				wrap(tname), strings.Join(cols, ", "), tab.Pk.genCreateClause(), tab.Unis.genCreateClause(), tab.Keys.genCreateClause(),
 				tab.Charset, tab.Collate)
-			fmt.Println(stmt)
+			fmt.Println(nbcolor.Green(stmt))
 			fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 			if _, err := conn.Exec(stmt); err != nil {
 				return err
@@ -652,21 +684,15 @@ func create(ignoreConstraintError bool) error {
 					fk.DstCol.ColName)))))
 				stmt := fmt.Sprintf("ALTER TABLE %s.%s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s.%s (%s) ON DELETE CASCADE ON UPDATE CASCADE",
 					wrap(dbName), wrap(tname), fkName, wrap(fk.SrcCol.ColName), wrap(fk.DstCol.DBName), wrap(fk.DstCol.TabName), wrap(fk.DstCol.ColName))
-				fmt.Println(stmt)
+				fmt.Println(nbcolor.Purple(stmt))
 				fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 				if _, err := conn.Exec(stmt); err != nil {
 					if ignoreConstraintError {
-						fmt.Printf("warning: %v\n", err)
+						fmt.Println(nbcolor.Yellow(fmt.Sprintf("warning: %v", err)))
 						fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 						continue
 					}
 					return err
-					// if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1826 {
-					// 	fmt.Printf("warning: %v\n", e)
-					// 	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-					// 	continue
-					// }
-					// return err
 				}
 			}
 		}
@@ -674,8 +700,8 @@ func create(ignoreConstraintError bool) error {
 	return nil
 }
 
-func ParseAndCreate(filename string, ignoreConstraintError bool) error {
-	if err := parseDB(filename); err != nil {
+func ParseAndCreate(filename string, attrMap comment, ignoreConstraintError bool) error {
+	if err := parseDB(filename, attrMap); err != nil {
 		return err
 	}
 	if err := create(ignoreConstraintError); err != nil {
@@ -684,39 +710,50 @@ func ParseAndCreate(filename string, ignoreConstraintError bool) error {
 	return nil
 }
 
-var Pkg string
-var commentMap = make(map[string]string)
+// var Pkg string
+// var commentMap = make(map[string]string)
 
 //ParseComment parse package comments
-func ParseComment(path string) error {
-	pfset := token.NewFileSet()
-	d, err := parser.ParseDir(pfset, path, nil, parser.ParseComments)
-	if err != nil {
-		return err
-	}
-	for _, f := range d {
-		if Pkg == "" {
-			Pkg = f.Name
-		}
-		p := doc.New(f, path, 0)
-		for _, t := range p.Types {
-			commentMap[t.Name] = t.Doc
-		}
-	}
-	initDBTabMap()
-	return nil
-}
+// func ParseComment(path string) error {
+// 	pfset := token.NewFileSet()
+// 	d, err := parser.ParseDir(pfset, path, nil, parser.ParseComments)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, f := range d {
+// 		if Pkg == "" {
+// 			Pkg = f.Name
+// 		}
+// 		p := doc.New(f, path, 0)
+// 		for _, t := range p.Types {
+// 			commentMap[t.Name] = t.Doc
+// 		}
+// 	}
+// 	initDBTabMap()
+// 	return nil
+// }
 
-func initDBTabMap() {
-	for ModelName, comment := range commentMap {
-		db, tab := parseDBName(comment), parseTabName(comment)
-		if db == "" || tab == "" {
-			log.Printf("nborm.initDBTabMap() warnning: no database name or table name (%s:%s.%s, %s)\n", ModelName, db, tab, comment)
-			continue
-		}
-		dbTabMap[ModelName] = &dbAndTab{db, tab}
-	}
-}
+// func initDBTabMap() {
+// 	for ModelName, comment := range commentMap {
+// 		db, tab := parseDBName(comment), parseTabName(comment)
+// 		if db == "" || tab == "" {
+// 			log.Printf("nborm.initDBTabMap() warnning: no database name or table name (%s:%s.%s, %s)\n", ModelName, db, tab, comment)
+// 			continue
+// 		}
+// 		dbTabMap[ModelName] = &dbAndTab{db, tab}
+// 	}
+// }
+
+// func initDBTabMap(attrMap comment) error {
+// 	for ModelName, attrMap := range attrMap {
+// 		db, tab := attrMap.dbName, attrMap.tabName
+// 		if db == "" || tab == "" {
+// 			return fmt.Errorf("nborm.initDBTabMap() warnning: no database name or table name (%s:%s.%s)\n", ModelName, db, tab)
+// 		}
+// 		dbTabMap[ModelName] = &dbAndTab{db, tab}
+// 	}
+// 	return nil
+// }
 
 var dbRe = regexp.MustCompile(`(?m)^DB:(.*?)$`)
 var tabRe = regexp.MustCompile(`(?m)^Tab:(.*?)$`)

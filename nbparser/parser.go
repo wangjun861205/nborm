@@ -390,7 +390,7 @@ func main() {
 					for _, field := range n.Fields.List {
 						switch ft := field.Type.(type) {
 						case *ast.SelectorExpr:
-							if ft.X.(*ast.Ident).String() == "model" {
+							if ft.X.(*ast.Ident).String() == "nborm" {
 								switch ft.Sel.Name {
 								case "Meta":
 									continue
@@ -429,7 +429,7 @@ func main() {
 		nf.WriteString(fmt.Sprintf("package %s\n", pkg.Name))
 		nf.WriteString(`
 		import (
-			"AntLinkCampus/CampusServer/handles/job/model"
+			"github.com/wangjun861205/nborm"
 		)
 		`)
 		for _, m := range modelInfos {

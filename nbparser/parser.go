@@ -307,7 +307,7 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
 		if l.IsSynced() {
 			s := struct{
-				List []*{{ modelName }}
+				List []*{{ model.Name }}
 				Total int
 			} {
 				l.List,

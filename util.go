@@ -106,6 +106,7 @@ func scanRow(row *sql.Row, model Model, fields ...Field) error {
 		return err
 	}
 	initRelation(model)
+	model.addModelStatus(synced)
 	return nil
 }
 
@@ -119,6 +120,7 @@ func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
 		return err
 	}
 	initRelation(model)
+	model.addModelStatus(synced)
 	return nil
 }
 

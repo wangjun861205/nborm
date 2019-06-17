@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -311,7 +312,7 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 				Total int
 			} {
 				l.List,
-				l.Total
+				l.Total,
 			}
 			return json.Marshal(s)
 		}
@@ -395,12 +396,12 @@ func main() {
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
 	os.Remove(path.Join(*dir, "methods.go"))
-	defer func() {
-		if err := recover(); err != nil {
-			os.Remove(path.Join(*dir, "methods.go"))
-			panic(err)
-		}
-	}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		os.Remove(path.Join(*dir, "methods.go"))
+	// 		panic(err)
+	// 	}
+	// }()
 	fs := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fs, *dir, nil, parser.ParseComments)
 	if err != nil {
@@ -491,6 +492,6 @@ func main() {
 	}
 	cmd := exec.Command("gofmt", "-w", *dir)
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		log.Println(nbcolor.Red(err))
 	}
 }

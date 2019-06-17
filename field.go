@@ -40,7 +40,8 @@ type modelStatus int
 
 const (
 	none     modelStatus = 0
-	distinct modelStatus = 1
+	synced   modelStatus = 1
+	distinct modelStatus = 1 << 1
 )
 
 type Meta struct {
@@ -105,6 +106,10 @@ func (m *Meta) removeModelStatus(status modelStatus) {
 
 func (m *Meta) SelectDistinct() {
 	m.addModelStatus(distinct)
+}
+
+func (m *Meta) IsSynced() bool {
+	return m.status&synced == synced
 }
 
 type fieldStatus int

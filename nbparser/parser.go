@@ -219,6 +219,21 @@ func (m *ModelInfo) relationsFunc() string {
 	return s
 }
 
+func (m *ModelInfo) modelMarshalJSONFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
+		if m.IsSynced() {
+			return json.Marshal(m)
+		}
+		return []byte("null"), nil
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func (m *ModelInfo) modelListType() string {
 	s, err := nbfmt.Fmt(`
 	type {{ model.Name }}List struct {
@@ -279,6 +294,28 @@ func (m *ModelInfo) listLenFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) Len() int {
 		return len(l.List)
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listMarshalJSONFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
+		if l.IsSynced() {
+			s := struct{
+				List []*{{ modelName }}
+				Total int
+			} {
+				l.List,
+				l.Total
+			}
+			return json.Marshal(s)
+		}
+		return []byte("null"), nil
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -442,11 +479,13 @@ func main() {
 			nf.WriteString(m.primaryKeyFunc())
 			nf.WriteString(m.uniqueKeysFunc())
 			nf.WriteString(m.relationsFunc())
+			nf.WriteString(m.modelMarshalJSONFunc())
 			nf.WriteString(m.modelListType())
 			nf.WriteString(m.newListFunc())
 			nf.WriteString(m.listNewModelFunc())
 			nf.WriteString(m.listSetTotalFunc())
 			nf.WriteString(m.listLenFunc())
+			nf.WriteString(m.listMarshalJSONFunc())
 		}
 		nf.Sync()
 	}

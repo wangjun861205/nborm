@@ -6,7 +6,11 @@ import (
 	"strings"
 )
 
-const DEBUG = true
+var DEBUG = true
+
+func SetDebug(debug bool) {
+	DEBUG = debug
+}
 
 func InitModel(model Model) {
 	for _, fi := range model.FieldInfos() {
@@ -19,6 +23,20 @@ func InitModel(model Model) {
 	}
 	if model.AutoIncField() != nil {
 		model.AutoIncField().setAutoInc()
+	}
+	for _, ri := range model.Relations() {
+		rm := ri.Object.(Model)
+		for _, fi := range model.FieldInfos() {
+			fi.Field.setModel(rm)
+			fi.Field.setCol(fi.ColName)
+			fi.Field.setField(fi.FieldName)
+		}
+		for _, f := range rm.PrimaryKey() {
+			f.setPrimaryKey()
+		}
+		if rm.AutoIncField() != nil {
+			rm.AutoIncField().setAutoInc()
+		}
 	}
 }
 

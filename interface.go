@@ -1,4 +1,4 @@
-package model
+package nborm
 
 import "database/sql"
 
@@ -47,8 +47,11 @@ type BaseField interface {
 	unsetAutoInc()
 	isAutoInc() bool
 	mustValid()
+	rawFullTabName() string
 	fullTabName() string
-	fullFieldName() string
+	fullColName() string
+	ForSelect()
+	ForSum()
 	String() string
 }
 
@@ -76,7 +79,7 @@ type Model interface {
 	AutoIncField() Field
 	PrimaryKey() FieldList
 	Relations() RelationInfoList
-	setRel(string, string, string, *where)
+	setRel(string, *where)
 	getRelCols() string
 	setRelCols(string)
 	getRelJoin() string
@@ -90,6 +93,9 @@ type Model interface {
 	setModelStatus(modelStatus)
 	removeModelStatus(modelStatus)
 	SelectDistinct()
+	setModel(Model)
+	rawFullTabName() string
+	fullTabName() string
 }
 
 type ModelList interface {

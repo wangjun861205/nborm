@@ -1,4 +1,4 @@
-package model
+package nborm
 
 import (
 	"database/sql"
@@ -6,13 +6,14 @@ import (
 	"strings"
 )
 
-var DEBUG = true
+var DEBUG = false
 
 func SetDebug(debug bool) {
 	DEBUG = debug
 }
 
 func InitModel(model Model) {
+	model.setModel(model)
 	for _, fi := range model.FieldInfos() {
 		fi.Field.setModel(model)
 		fi.Field.setCol(fi.ColName)
@@ -24,28 +25,15 @@ func InitModel(model Model) {
 	if model.AutoIncField() != nil {
 		model.AutoIncField().setAutoInc()
 	}
-	for _, ri := range model.Relations() {
-		rm := ri.Object.(Model)
-		for _, fi := range model.FieldInfos() {
-			fi.Field.setModel(rm)
-			fi.Field.setCol(fi.ColName)
-			fi.Field.setField(fi.FieldName)
-		}
-		for _, f := range rm.PrimaryKey() {
-			f.setPrimaryKey()
-		}
-		if rm.AutoIncField() != nil {
-			rm.AutoIncField().setAutoInc()
-		}
-	}
 }
 
 func initRelation(model Model) {
+	model.setAlias("t0")
 	infos := model.Relations()
 	for _, info := range infos {
-		m := info.Object.(Model)
-		InitModel(m)
-		m.setRel("", fmt.Sprintf("%s.*", info.Fields[0].fullTabName()), info.toJoinClause(), info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+		if info.Fields[0].getStatus()&valid == valid {
+			info.Object.(Model).setRel(info.toJoinClause(), info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+		}
 	}
 }
 
@@ -179,11 +167,16 @@ func getSelectColumns(model Model) string {
 		if model.getAlias() != "" {
 			builder.WriteString(fmt.Sprintf("%s.*", model.getAlias()))
 		} else {
-			builder.WriteString(fmt.Sprintf("%s.%s.*", model.DB(), model.Tab()))
+			builder.WriteString(fmt.Sprintf("%s.*", model.rawFullTabName()))
 		}
 	} else {
 		for _, f := range selectFields {
-			builder.WriteString(fmt.Sprintf("%s, ", f.fullFieldName()))
+			switch {
+			case f.getStatus()&forSum == forSum:
+				builder.WriteString(fmt.Sprintf("IFNULL(SUM(%s), 0), ", f.fullColName()))
+			default:
+				builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			}
 		}
 	}
 	return strings.Trim(builder.String(), " ,")

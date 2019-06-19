@@ -20,7 +20,7 @@ import (
 
 var modelInfos = make([]*ModelInfo, 0, 128)
 
-var dbRe = regexp.MustCompile(`(?m)db:(\w+)$`)
+var dbRe = regexp.MustCompile(`(?m)db:(\w+|\*)$`)
 var tabRe = regexp.MustCompile(`(?m)tab:(\w+)$`)
 var pkRe = regexp.MustCompile(`(?m)pk:([0-9a-zA-Z,]+)$`)
 var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
@@ -84,7 +84,10 @@ func (m *ModelInfo) newModelFunc() string {
 				{{ rel.Field }}: &{{ rel.Type }}{},
 			{{ endfor }}
 		}
-		model.InitModel(m)
+		nborm.InitModel(m)
+		{{ for _, rel in model.RelInfos }}
+			nborm.InitModel(m.{{ rel.Field }})
+		{{ endfor }}
 		return m
 	}
 	`, map[string]interface{}{"model": m})
@@ -120,8 +123,8 @@ func (m *ModelInfo) tabFunc() string {
 
 func (m *ModelInfo) fieldInfosFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) FieldInfos() model.FieldInfoList {
-		return model.FieldInfoList {
+	func (m *{{ model.Name }}) FieldInfos() nborm.FieldInfoList {
+		return nborm.FieldInfoList {
 			{{ for _, field in model.FieldInfos }}
 				{"{{ field.Col }}", "{{ field.Field }}", &m.{{ field.Field }} },
 			{{ endfor }}
@@ -136,7 +139,7 @@ func (m *ModelInfo) fieldInfosFunc() string {
 
 func (m *ModelInfo) autoIncFieldFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) AutoIncField() model.Field {
+	func (m *{{ model.Name }}) AutoIncField() nborm.Field {
 		{{ if model.Inc == "nil" }}
 			return nil
 		{{ else }}
@@ -152,8 +155,8 @@ func (m *ModelInfo) autoIncFieldFunc() string {
 
 func (m *ModelInfo) primaryKeyFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) PrimaryKey() model.FieldList {
-		return model.FieldList {
+	func (m *{{ model.Name }}) PrimaryKey() nborm.FieldList {
+		return nborm.FieldList {
 			{{ for _, pk in model.Pk }}
 				&m.{{ pk }},
 			{{ endfor }}
@@ -168,11 +171,11 @@ func (m *ModelInfo) primaryKeyFunc() string {
 
 func (m *ModelInfo) uniqueKeysFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) UniqueKeys() []model.FieldList {
+	func (m *{{ model.Name }}) UniqueKeys() []nborm.FieldList {
 			{{ if model.HasUk == false }}
 				return nil
 			{{ else }}
-				return []model.FieldList{
+				return []nborm.FieldList{
 					{{ for _, uk in model.Unis }}
 					{
 						{{ for _, f in uk }}
@@ -191,17 +194,22 @@ func (m *ModelInfo) uniqueKeysFunc() string {
 
 func (m *ModelInfo) relationsFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) Relations() model.RelationInfoList {
+	func (m *{{ model.Name }}) Relations() nborm.RelationInfoList {
 		{{ if model.HasRel == false }}
 			return nil
 		{{ else }}
+			{{ for _, rel in model.RelInfos }}
+				if m.{{ rel.Field }} == nil {
+					m.{{ rel.Field }} = New{{ rel.Type }}()
+				}
+			{{ endfor }}
 			{{ for i, mm in model.MidModels }}
 				mm{{ i }} := {{ mm }}{}
 			{{ endfor }}
-			return model.RelationInfoList{
+			return nborm.RelationInfoList{
 				{{ for _, info in model.RelInfos }}
-					model.RelationInfo{
-						model.FieldList{
+					nborm.RelationInfo{
+						nborm.FieldList{
 							{{ for _, f in info.Fields }}
 								&{{ f }},
 							{{ endfor }}
@@ -238,7 +246,7 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 func (m *ModelInfo) modelListType() string {
 	s, err := nbfmt.Fmt(`
 	type {{ model.Name }}List struct {
-		*{{ model.Name }}
+		{{ model.Name }}
 		List []*{{ model.Name }}
 		Total int
 	}
@@ -251,12 +259,14 @@ func (m *ModelInfo) modelListType() string {
 
 func (m *ModelInfo) newListFunc() string {
 	s, err := nbfmt.Fmt(`
-	func New{{ model.Name }}List(cap int) *{{ model.Name }}List {
-		return &{{ model.Name }}List {
-			New{{ model.Name }}(),
-			make([]*{{ model.Name }}, 0, cap),
+	func New{{ model.Name }}List() *{{ model.Name }}List {
+		l := &{{ model.Name }}List {
+			{{ model.Name }}{},
+			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
+		nborm.InitModel(l)
+		return l
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -267,7 +277,7 @@ func (m *ModelInfo) newListFunc() string {
 
 func (m *ModelInfo) listNewModelFunc() string {
 	s, err := nbfmt.Fmt(`
-	func (l *{{ model.Name }}List) NewModel() model.Model {
+	func (l *{{ model.Name }}List) NewModel() nborm.Model {
 		m := New{{ model.Name }}()
 		l.List = append(l.List, m)
 		return m
@@ -396,12 +406,6 @@ func main() {
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
 	os.Remove(path.Join(*dir, "methods.go"))
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		os.Remove(path.Join(*dir, "methods.go"))
-	// 		panic(err)
-	// 	}
-	// }()
 	fs := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fs, *dir, nil, parser.ParseComments)
 	if err != nil {
@@ -468,6 +472,7 @@ func main() {
 		nf.WriteString(`
 		import (
 			"github.com/wangjun861205/nborm"
+			"encoding/json"
 		)
 		`)
 		for _, m := range modelInfos {

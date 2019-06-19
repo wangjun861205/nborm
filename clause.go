@@ -1,4 +1,4 @@
-package model
+package nborm
 
 import (
 	"fmt"
@@ -111,39 +111,43 @@ func (w *where) toClause(cl *[]string, vl *[]interface{}) {
 		if w.op == in {
 			switch l := w.value.(type) {
 			case []string:
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullFieldName(), strings.Trim(strings.Repeat("?, ", len(l)), ",")))
+				var builder strings.Builder
 				for _, v := range l {
-					*vl = append(*vl, v)
+					builder.WriteString(fmt.Sprintf(`'%s', `, v))
 				}
+				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
 			case []int:
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullFieldName(), strings.Trim(strings.Repeat("?, ", len(l)), ",")))
+				var builder strings.Builder
 				for _, v := range l {
-					*vl = append(*vl, v)
+					builder.WriteString(fmt.Sprintf("%d, ", v))
 				}
+				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
 			case []float64:
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullFieldName(), strings.Trim(strings.Repeat("?, ", len(l)), ",")))
+				var builder strings.Builder
 				for _, v := range l {
-					*vl = append(*vl, v)
+					builder.WriteString(fmt.Sprintf("%f, ", v))
 				}
+				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
 			case []time.Time:
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullFieldName(), strings.Trim(strings.Repeat("?, ", len(l)), ",")))
+				var builder strings.Builder
 				switch w.field.(type) {
 				case *Date:
 					for _, v := range l {
-						*vl = append(*vl, v.Format("2006-01-02"))
+						builder.WriteString(fmt.Sprintf(`'%s', `, v.Format("2006-01-02")))
 					}
 				case *Datetime:
 					for _, v := range l {
-						*vl = append(*vl, v.Format("2006-01-02 15:04:05"))
+						builder.WriteString(fmt.Sprintf(`'%s', `, v.Format("2006-01-02 15:04:05")))
 					}
 				}
+				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
 			}
 			return
 		}
-		*cl = append(*cl, fmt.Sprintf("%s %s %s ?", w.rel, w.field.fullFieldName(), w.op))
+		*cl = append(*cl, fmt.Sprintf("%s %s %s ?", w.rel, w.field.fullColName(), w.op))
 		*vl = append(*vl, w.value)
 	case byExpr:
-		*cl = append(*cl, fmt.Sprintf("%s %s %s %s", w.rel, w.field.fullFieldName(), w.op, w.expr))
+		*cl = append(*cl, fmt.Sprintf("%s %s %s %s", w.rel, w.field.fullColName(), w.op, w.expr))
 	}
 }
 

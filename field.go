@@ -1,9 +1,9 @@
-package model
+package nborm
 
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"strconv"
 	"time"
 )
 
@@ -25,35 +25,46 @@ func (l FieldList) toWhereClause() (string, []interface{}) {
 	return whereList.toClause()
 }
 
-func (l FieldList) toSelectColumns() string {
-	if len(l) == 0 {
-		return "*"
-	}
-	colNames := make([]string, len(l))
-	for i, f := range l {
-		colNames[i] = fmt.Sprintf("%s.%s.%s", f.dbName(), f.tabName(), f.colName())
-	}
-	return strings.Join(colNames, ", ")
-}
-
 type modelStatus int
 
 const (
 	none     modelStatus = 0
 	synced   modelStatus = 1
 	distinct modelStatus = 1 << 1
+	forAgg   modelStatus = 1 << 2
 )
 
 type Meta struct {
+	Model
 	status   modelStatus
 	alias    string
-	relCols  string
 	relJoin  string
 	relWhere *where
 }
 
-func (m *Meta) setRel(alias, relCols, relJoin string, where *where) {
-	m.alias, m.relCols, m.relJoin, m.relWhere = alias, relCols, relJoin, where
+func (m *Meta) setModel(model Model) {
+	m.Model = model
+}
+
+func (m *Meta) rawFullTabName() string {
+	if m.DB() == "*" {
+		return m.Tab()
+	}
+	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
+}
+
+func (m *Meta) fullTabName() string {
+	if m.alias != "" {
+		return fmt.Sprintf("%s AS %s", m.rawFullTabName(), m.alias)
+	}
+	if m.DB() == "*" {
+		return m.Tab()
+	}
+	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
+}
+
+func (m *Meta) setRel(relJoin string, where *where) {
+	m.relJoin, m.relWhere = relJoin, where
 }
 
 func (m *Meta) getAlias() string {
@@ -62,14 +73,6 @@ func (m *Meta) getAlias() string {
 
 func (m *Meta) setAlias(alias string) {
 	m.alias = alias
-}
-
-func (m *Meta) getRelCols() string {
-	return m.relCols
-}
-
-func (m *Meta) setRelCols(cols string) {
-	m.relCols = cols
 }
 
 func (m *Meta) getRelJoin() string {
@@ -123,6 +126,7 @@ const (
 	forWhere   fieldStatus = 1 << 4
 	forUpdate  fieldStatus = 1 << 5
 	forSelect  fieldStatus = 1 << 6
+	forSum     fieldStatus = 1 << 7
 )
 
 type baseField struct {
@@ -255,19 +259,21 @@ func (f *baseField) mustValid() {
 	}
 }
 
-func (f *baseField) fullTabName() string {
-	return fmt.Sprintf("%s.%s", f.DB(), f.Tab())
-}
-
-func (f *baseField) fullFieldName() string {
+func (f *baseField) fullColName() string {
 	if f.Model.getAlias() != "" {
-		return fmt.Sprintf("%s.%s", f.Model.getAlias(), f.field)
+		return fmt.Sprintf("%s.%s", f.Model.getAlias(), f.col)
 	}
-	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.field)
+	return fmt.Sprintf("%s.%s", f.rawFullTabName(), f.col)
 }
 
 func (f *baseField) ForSelect() {
 	f.addStatus(forSelect)
+}
+
+func (f *baseField) ForSum() {
+	f.addStatus(forSelect)
+	f.addStatus(forSum)
+	f.addModelStatus(forAgg)
 }
 
 func (f *baseField) Distinct() {
@@ -385,14 +391,12 @@ func (f *String) OrW() Field {
 }
 
 func (f *String) AndWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
 }
 
 func (f *String) OrWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
@@ -432,6 +436,12 @@ func (f *Int) Scan(v interface{}) error {
 	switch val := v.(type) {
 	case int64:
 		f.value = int(val)
+	case []byte:
+		i, err := strconv.ParseInt(string(val), 10, 64)
+		if err != nil {
+			return err
+		}
+		f.value = int(i)
 	default:
 		return fmt.Errorf("invalid type for scan Int(%T)", v)
 	}
@@ -587,7 +597,7 @@ func (f *Date) Value() interface{} {
 	if f.IsNull() {
 		return nil
 	}
-	return f.value
+	return f.value.Format("2006-01-02")
 }
 
 func (f *Date) SetDate(v time.Time) {
@@ -597,9 +607,20 @@ func (f *Date) SetDate(v time.Time) {
 }
 
 func (f *Date) Set(v interface{}) {
+	switch val := v.(type) {
+	case string:
+		t, err := time.Parse("2006-01-02", val)
+		if err != nil {
+			panic(err)
+		}
+		f.value = t
+	case time.Time:
+		f.value = val
+	default:
+		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
+	}
 	f.setValid()
 	f.unsetNull()
-	f.value = v.(time.Time)
 }
 
 func (f *Date) Date() time.Time {
@@ -621,14 +642,12 @@ func (f *Date) OrW() Field {
 }
 
 func (f *Date) AndWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
 }
 
 func (f *Date) OrWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
@@ -715,7 +734,7 @@ func (f *Datetime) Value() interface{} {
 	if f.IsNull() {
 		return nil
 	}
-	return f.value
+	return f.value.Format("2006-01-02 15:04:05")
 }
 
 func (f *Datetime) SetDatetime(v time.Time) {
@@ -725,9 +744,20 @@ func (f *Datetime) SetDatetime(v time.Time) {
 }
 
 func (f *Datetime) Set(v interface{}) {
+	switch val := v.(type) {
+	case string:
+		t, err := time.Parse("2006-01-02", val)
+		if err != nil {
+			panic(err)
+		}
+		f.value = t
+	case time.Time:
+		f.value = val
+	default:
+		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
+	}
 	f.setValid()
 	f.unsetNull()
-	f.value = v.(time.Time)
 }
 
 func (f *Datetime) Datetime() time.Time {
@@ -749,14 +779,12 @@ func (f *Datetime) OrW() Field {
 }
 
 func (f *Datetime) AndWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
 }
 
 func (f *Datetime) OrWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
@@ -797,6 +825,8 @@ func (f *Decimal) Scan(v interface{}) error {
 	switch val := v.(type) {
 	case float64:
 		f.value = val
+	case float32:
+		f.value = float64(val)
 	default:
 		return fmt.Errorf("invalid type for scan Decimal(%T)", v)
 	}
@@ -861,14 +891,12 @@ func (f *Decimal) OrW() Field {
 }
 
 func (f *Decimal) AndWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f
 }
 
 func (f *Decimal) OrWhere(op string, value interface{}) Field {
-	f.mustValid()
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
 	return f

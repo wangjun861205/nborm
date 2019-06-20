@@ -34,12 +34,24 @@ func InsertOne(exe Executor, model Model) error {
 
 func Count(exe Executor, model Model) (int, error) {
 	fields := getFields(model, forWhere)
+	for _, rel := range model.Relations() {
+		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+			for _, f := range getFields(rel.Object.(Model), forWhere) {
+				fields = append(fields, f)
+			}
+		}
+	}
 	whereList := make(whereList, 0, len(fields)*2)
 	for _, f := range fields {
 		whereList = append(whereList, f.whereList()...)
 	}
 	clause, values := whereList.toClause()
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", model.fullTabName(), clause)
+	tabRef := getTabRef(model)
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, clause)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(values))
+	}
 	var count int
 	if err := exe.QueryRow(stmt, values...).Scan(&count); err != nil {
 		return 0, err
@@ -53,15 +65,16 @@ func QueryOne(exe Executor, model Model) error {
 	selectColumns := getSelectColumns(model)
 	selectFields := getFields(model, forSelect)
 	var stmt string
-	if model.getRelJoin() != "" {
+	if model.getRelWhere() != nil {
 		whereList := make(whereList, 0, 8)
 		whereList = append(whereList, model.getRelWhere())
 		whereList = append(whereList, genWhereList(model)...)
 		whereClause, whereValues = whereList.toClause()
 		stmt = fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, model.getRelJoin(), whereClause)
 	} else {
+		tabRef := getTabRef(model)
 		whereClause, whereValues = genWhereClause(model)
-		stmt = fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, model.fullTabName(), whereClause)
+		stmt = fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
 	}
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
@@ -71,7 +84,6 @@ func QueryOne(exe Executor, model Model) error {
 	if err != nil {
 		return err
 	}
-	initRelation(model)
 	return nil
 }
 
@@ -81,15 +93,16 @@ func Query(exe Executor, l ModelList, limit, offset int) error {
 	var stmt string
 	selectFields := getFields(l, forSelect)
 	selectColumns := getSelectColumns(l)
-	if l.getRelJoin() != "" {
+	if l.getRelWhere() != nil {
 		whereList := make(whereList, 0, 8)
 		whereList = append(whereList, l.getRelWhere())
 		whereList = append(whereList, genWhereList(l)...)
 		whereClause, whereValues = whereList.toClause()
 		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, l.getRelJoin(), whereClause)
 	} else {
+		tabRef := getTabRef(l)
 		whereClause, whereValues = genWhereClause(l)
-		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, l.fullTabName(), whereClause)
+		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, tabRef, whereClause)
 	}
 	if limit > 0 && offset >= 0 {
 		stmt = fmt.Sprintf("%s LIMIT %d, %d", stmt, offset, limit)
@@ -117,7 +130,6 @@ func Query(exe Executor, l ModelList, limit, offset int) error {
 		return err
 	}
 	l.SetTotal(total)
-	initRelation(l)
 	l.setModelStatus(synced)
 	return nil
 }

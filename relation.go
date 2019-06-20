@@ -41,3 +41,16 @@ func (r RelationInfo) toJoinClause() string {
 		return builder.String()
 	}
 }
+
+func (r RelationInfo) toAppendJoinClause() string {
+	if len(r.Fields)%2 != 0 {
+		panic(fmt.Errorf("invalid RelationInfo.Fields length(%d)", len(r.Fields)))
+	}
+	var builder strings.Builder
+	for i, field := range r.Fields[1:] {
+		if i%2 == 0 {
+			builder.WriteString(fmt.Sprintf(" JOIN %s ON %s = %s ", field.fullTabName(), r.Fields[i].fullColName(), field.fullColName()))
+		}
+	}
+	return builder.String()
+}

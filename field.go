@@ -28,10 +28,11 @@ func (l FieldList) toWhereClause() (string, []interface{}) {
 type modelStatus int
 
 const (
-	none     modelStatus = 0
-	synced   modelStatus = 1
-	distinct modelStatus = 1 << 1
-	forAgg   modelStatus = 1 << 2
+	none          modelStatus = 0
+	synced        modelStatus = 1
+	distinct      modelStatus = 1 << 1
+	forAgg        modelStatus = 1 << 2
+	forModelWhere modelStatus = 1 << 3
 )
 
 type Meta struct {
@@ -40,6 +41,15 @@ type Meta struct {
 	alias    string
 	relJoin  string
 	relWhere *where
+	midTabs  []Model
+}
+
+func (m *Meta) GetMidTabs() []Model {
+	return m.midTabs
+}
+
+func (m *Meta) AppendMidTab(model Model) {
+	m.midTabs = append(m.midTabs, model)
 }
 
 func (m *Meta) setModel(model Model) {
@@ -380,6 +390,7 @@ func (f *String) AndW() Field {
 	f.mustValid()
 	f.andWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -387,18 +398,21 @@ func (f *String) OrW() Field {
 	f.mustValid()
 	f.orWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) AndWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) OrWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -494,6 +508,7 @@ func (f *Int) AndW() Field {
 	f.mustValid()
 	f.andWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -501,18 +516,21 @@ func (f *Int) OrW() Field {
 	f.mustValid()
 	f.orWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) AndWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) OrWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -631,6 +649,7 @@ func (f *Date) AndW() Field {
 	f.mustValid()
 	f.andWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -638,18 +657,21 @@ func (f *Date) OrW() Field {
 	f.mustValid()
 	f.orWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) AndWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) OrWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -768,6 +790,7 @@ func (f *Datetime) AndW() Field {
 	f.mustValid()
 	f.andWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -775,18 +798,21 @@ func (f *Datetime) OrW() Field {
 	f.mustValid()
 	f.orWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) AndWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -880,6 +906,7 @@ func (f *Decimal) AndW() Field {
 	f.mustValid()
 	f.andWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
@@ -887,18 +914,21 @@ func (f *Decimal) OrW() Field {
 	f.mustValid()
 	f.orWhere(f, "=", f.Value())
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) AndWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	f.andWhere(f, op, value)
 	f.addStatus(forWhere)
+	f.addModelStatus(forModelWhere)
 	return f
 }
 

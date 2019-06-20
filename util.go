@@ -27,13 +27,23 @@ func InitModel(model Model) {
 	}
 }
 
-func initRelation(model Model) {
+func InitRelation(model Model) {
 	model.setAlias("t0")
-	infos := model.Relations()
-	for _, info := range infos {
-		if info.Fields[0].getStatus()&valid == valid {
-			info.Object.(Model).setRel(info.toJoinClause(), info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+	index := 1
+	// infos := model.Relations()
+	// for _, info := range infos {
+	// 	if info.Fields[0].getStatus()&valid == valid {
+	// 		info.Object.(Model).setRel(info.toJoinClause(), info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+	// 	}
+	// }
+	for _, info := range model.Relations() {
+		for i, field := range info.Fields[1:] {
+			if i%2 == 0 {
+				field.(Model).setAlias(fmt.Sprintf("t%d", index))
+				index++
+			}
 		}
+		info.Object.(Model).setRelJoin(info.toJoinClause())
 	}
 }
 
@@ -102,6 +112,14 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*vl = append(*vl, field.Value())
 }
 
+func setRelWhere(model Model) {
+	for _, info := range model.Relations() {
+		if info.Fields[0].getStatus()&valid == valid {
+			info.Object.(Model).setRelWhere(info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+		}
+	}
+}
+
 func scanRow(row *sql.Row, model Model, fields ...Field) error {
 	scanFields := getFieldsForScan(model, fields...)
 	addrs := make([]interface{}, 0, len(scanFields))
@@ -111,7 +129,8 @@ func scanRow(row *sql.Row, model Model, fields ...Field) error {
 	if err := row.Scan(addrs...); err != nil {
 		return err
 	}
-	initRelation(model)
+	InitRelation(model)
+	setRelWhere(model)
 	model.addModelStatus(synced)
 	return nil
 }
@@ -125,13 +144,19 @@ func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
 	if err := rows.Scan(addrs...); err != nil {
 		return err
 	}
-	initRelation(model)
+	InitRelation(model)
+	setRelWhere(model)
 	model.addModelStatus(synced)
 	return nil
 }
 
 func genWhereClause(model Model) (string, []interface{}) {
 	whereFields := getFields(model, forWhere)
+	for _, rel := range model.Relations() {
+		for _, f := range getFields(rel.Object.(Model), forWhere) {
+			whereFields = append(whereFields, f)
+		}
+	}
 	whereList := make(whereList, 0, len(whereFields)*2)
 	for _, f := range whereFields {
 		whereList = append(whereList, f.whereList()...)
@@ -188,4 +213,15 @@ func getSelectFields(model Model) FieldList {
 		return getAllFields(model)
 	}
 	return selectFields
+}
+
+func getTabRef(model Model) string {
+	var builder strings.Builder
+	builder.WriteString(model.fullTabName())
+	for _, rel := range model.Relations() {
+		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+			builder.WriteString(rel.toAppendJoinClause())
+		}
+	}
+	return builder.String()
 }

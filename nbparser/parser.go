@@ -42,17 +42,18 @@ type RelInfo struct {
 }
 
 type ModelInfo struct {
-	Name       string
-	DB         string
-	Tab        string
-	FieldInfos []*FieldInfo
-	Pk         []string
-	Unis       [][]string
-	HasUk      bool
-	Inc        string
-	MidModels  []string
-	RelInfos   []*RelInfo
-	HasRel     bool
+	Name         string
+	DB           string
+	Tab          string
+	FieldInfos   []*FieldInfo
+	Pk           []string
+	Unis         [][]string
+	HasUk        bool
+	Inc          string
+	MidModels    []string
+	RelInfos     []*RelInfo
+	HasRel       bool
+	HasMidModels bool
 }
 
 func (m *ModelInfo) proc() {
@@ -74,6 +75,9 @@ func (m *ModelInfo) proc() {
 	if len(m.RelInfos) > 0 {
 		m.HasRel = true
 	}
+	if len(m.MidModels) > 0 {
+		m.HasMidModels = true
+	}
 }
 
 func (m *ModelInfo) newModelFunc() string {
@@ -88,6 +92,7 @@ func (m *ModelInfo) newModelFunc() string {
 		{{ for _, rel in model.RelInfos }}
 			nborm.InitModel(m.{{ rel.Field }})
 		{{ endfor }}
+		nborm.InitRelation(m)
 		return m
 	}
 	`, map[string]interface{}{"model": m})
@@ -203,9 +208,22 @@ func (m *ModelInfo) relationsFunc() string {
 					m.{{ rel.Field }} = New{{ rel.Type }}()
 				}
 			{{ endfor }}
-			{{ for i, mm in model.MidModels }}
-				mm{{ i }} := {{ mm }}{}
-			{{ endfor }}
+			{{ if model.HasMidModels == true }}
+				{{ for i, mm in model.MidModels }}
+					var mm{{ i }} *{{ mm }}
+				{{ endfor }}
+				if m.GetMidTabs() == nil {
+					{{ for i, mm in model.MidModels }}
+						mm{{ i }} = &{{ mm }}{}
+						nborm.InitModel(mm{{ i }})
+						m.AppendMidTab(mm{{ i }})
+					{{ endfor }}
+				} else {
+					{{ for i, mm in model.MidModels }}
+						mm{{ i }} = m.GetMidTabs()[{{ i }}].(*{{ mm }})
+					{{ endfor }}
+				}
+			{{ endif }}
 			return nborm.RelationInfoList{
 				{{ for _, info in model.RelInfos }}
 					nborm.RelationInfo{
@@ -261,11 +279,12 @@ func (m *ModelInfo) newListFunc() string {
 	s, err := nbfmt.Fmt(`
 	func New{{ model.Name }}List() *{{ model.Name }}List {
 		l := &{{ model.Name }}List {
-			{{ model.Name }}{},
+			*New{{ model.Name }}(),
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
 		nborm.InitModel(l)
+		nborm.InitRelation(l)
 		return l
 	}
 	`, map[string]interface{}{"model": m})

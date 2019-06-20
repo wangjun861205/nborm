@@ -60,22 +60,11 @@ func Count(exe Executor, model Model) (int, error) {
 }
 
 func QueryOne(exe Executor, model Model) error {
-	var whereClause string
-	var whereValues []interface{}
-	selectColumns := getSelectColumns(model)
 	selectFields := getFields(model, forSelect)
-	var stmt string
-	if model.getRelWhere() != nil {
-		whereList := make(whereList, 0, 8)
-		whereList = append(whereList, model.getRelWhere())
-		whereList = append(whereList, genWhereList(model)...)
-		whereClause, whereValues = whereList.toClause()
-		stmt = fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, model.getRelJoin(), whereClause)
-	} else {
-		tabRef := getTabRef(model)
-		whereClause, whereValues = genWhereClause(model)
-		stmt = fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
-	}
+	selectColumns := getSelectColumns(model)
+	whereClause, whereValues := getWhereList(model).toClause()
+	tabRef := getTabRef(model)
+	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
@@ -88,22 +77,11 @@ func QueryOne(exe Executor, model Model) error {
 }
 
 func Query(exe Executor, l ModelList, limit, offset int) error {
-	var whereClause string
-	var whereValues []interface{}
-	var stmt string
 	selectFields := getFields(l, forSelect)
 	selectColumns := getSelectColumns(l)
-	if l.getRelWhere() != nil {
-		whereList := make(whereList, 0, 8)
-		whereList = append(whereList, l.getRelWhere())
-		whereList = append(whereList, genWhereList(l)...)
-		whereClause, whereValues = whereList.toClause()
-		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, l.getRelJoin(), whereClause)
-	} else {
-		tabRef := getTabRef(l)
-		whereClause, whereValues = genWhereClause(l)
-		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, tabRef, whereClause)
-	}
+	whereClause, whereValues := getWhereList(l).toClause()
+	tabRef := getTabRef(l)
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, tabRef, whereClause)
 	if limit > 0 && offset >= 0 {
 		stmt = fmt.Sprintf("%s LIMIT %d, %d", stmt, offset, limit)
 	}

@@ -29,6 +29,7 @@ var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
 
 type FieldInfo struct {
+	Type  string
 	Col   string
 	Field string
 	IsInc bool
@@ -250,7 +251,21 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
 		if m.IsSynced() {
-			return json.Marshal(m)
+			return json.Marshal(struct{
+				{{ for _, f in model.FieldInfos }}
+					{{ f.Field }} interface{}
+				{{ endfor }}
+				{{ for _, r in model.RelInfos }}
+					{{ r.Field }} *{{ r.Type }}
+				{{ endfor }}
+			}{
+				{{ for _, f in model.FieldInfos }}
+					{{ f.Field }}: m.{{ f.Field }}.JSONValue(),
+				{{ endfor }}
+				{{ for _, r in model.RelInfos }}
+					{{ r.Field }}: m.{{ r.Field }},
+				{{ endfor }}
+			})
 		}
 		return []byte("null"), nil
 	}
@@ -457,7 +472,7 @@ func main() {
 									continue
 								default:
 									lastModel := modelInfos[len(modelInfos)-1]
-									lastModel.FieldInfos = append(lastModel.FieldInfos, &FieldInfo{Field: field.Names[0].Name})
+									lastModel.FieldInfos = append(lastModel.FieldInfos, &FieldInfo{Field: field.Names[0].Name, Type: fmt.Sprintf("nborm.%s", ft.Sel.Name)})
 									if field.Tag == nil {
 										lastField := lastModel.FieldInfos[len(lastModel.FieldInfos)-1]
 										lastField.Col = field.Names[0].Name

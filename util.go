@@ -173,6 +173,25 @@ func genUpdateSetClause(model Model) (string, []interface{}) {
 	return updates.toClause()
 }
 
+func getWhereList(model Model) whereList {
+	whereFieldList := getFields(model, forWhere)
+	for _, rel := range model.Relations() {
+		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+			for _, f := range getFields(rel.Object.(Model), forWhere) {
+				whereFieldList = append(whereFieldList, f)
+			}
+		}
+	}
+	whereList := make(whereList, 0, 8)
+	for _, f := range whereFieldList {
+		whereList = append(whereList, f.whereList()...)
+	}
+	if model.getRelWhere() != nil {
+		whereList = append(whereList, model.getRelWhere())
+	}
+	return whereList
+}
+
 func genWhereList(model Model) whereList {
 	whereFields := getFields(model, forWhere)
 	whereList := make(whereList, 0, len(whereFields)*2)
@@ -217,7 +236,11 @@ func getSelectFields(model Model) FieldList {
 
 func getTabRef(model Model) string {
 	var builder strings.Builder
-	builder.WriteString(model.fullTabName())
+	if model.getRelJoin() != "" {
+		builder.WriteString(model.getRelJoin())
+	} else {
+		builder.WriteString(model.fullTabName())
+	}
 	for _, rel := range model.Relations() {
 		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
 			builder.WriteString(rel.toAppendJoinClause())

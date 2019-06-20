@@ -370,6 +370,13 @@ func (f *String) Value() interface{} {
 	return f.value
 }
 
+func (f *String) JSONValue() interface{} {
+	if !f.IsValid() || f.IsNull() {
+		return nil
+	}
+	return f.value
+}
+
 func (f *String) SetString(v string) {
 	f.setValid()
 	f.unsetNull()
@@ -483,6 +490,13 @@ func (f *Int) UnmarshalJSON(b []byte) error {
 func (f *Int) Value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
+		return nil
+	}
+	return f.value
+}
+
+func (f *Int) JSONValue() interface{} {
+	if !f.IsValid() || f.IsNull() {
 		return nil
 	}
 	return f.value
@@ -613,6 +627,13 @@ func (f *Date) UnmarshalJSON(b []byte) error {
 func (f *Date) Value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
+		return nil
+	}
+	return f.value.Format("2006-01-02")
+}
+
+func (f *Date) JSONValue() interface{} {
+	if !f.IsValid() || f.IsNull() {
 		return nil
 	}
 	return f.value.Format("2006-01-02")
@@ -759,6 +780,13 @@ func (f *Datetime) Value() interface{} {
 	return f.value.Format("2006-01-02 15:04:05")
 }
 
+func (f *Datetime) JSONValue() interface{} {
+	if !f.IsValid() || f.IsNull() {
+		return nil
+	}
+	return f.value.Format("2006-01-02 15:04:05")
+}
+
 func (f *Datetime) SetDatetime(v time.Time) {
 	f.setValid()
 	f.unsetNull()
@@ -881,6 +909,13 @@ func (f *Decimal) UnmarshalJSON(b []byte) error {
 func (f *Decimal) Value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
+		return nil
+	}
+	return f.value
+}
+
+func (f *Decimal) JSONValue() interface{} {
+	if !f.IsValid() || f.IsNull() {
 		return nil
 	}
 	return f.value

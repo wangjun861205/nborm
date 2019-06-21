@@ -27,12 +27,26 @@ var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
+var masterRelFieldRe = regexp.MustCompile(`(\w+)(\(.+\))?\.(\w+)`)
+var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?(".*?"|\d+|\d+\.\d+)(?:,|$)`)
 
 type FieldInfo struct {
 	Type  string
 	Col   string
 	Field string
 	IsInc bool
+}
+
+type MidWhere struct {
+	Field string
+	Op    string
+	Value string
+}
+
+type MidModel struct {
+	Name        string
+	MidWheres   []MidWhere
+	HasMidWhere bool
 }
 
 type RelInfo struct {
@@ -43,15 +57,16 @@ type RelInfo struct {
 }
 
 type ModelInfo struct {
-	Name         string
-	DB           string
-	Tab          string
-	FieldInfos   []*FieldInfo
-	Pk           []string
-	Unis         [][]string
-	HasUk        bool
-	Inc          string
-	MidModels    []string
+	Name       string
+	DB         string
+	Tab        string
+	FieldInfos []*FieldInfo
+	Pk         []string
+	Unis       [][]string
+	HasUk      bool
+	Inc        string
+	// MidModels    []string
+	MidModels    []MidModel
 	RelInfos     []*RelInfo
 	HasRel       bool
 	HasMidModels bool
@@ -211,17 +226,22 @@ func (m *ModelInfo) relationsFunc() string {
 			{{ endfor }}
 			{{ if model.HasMidModels == true }}
 				{{ for i, mm in model.MidModels }}
-					var mm{{ i }} *{{ mm }}
+					var mm{{ i }} *{{ mm.Name }}
 				{{ endfor }}
 				if m.GetMidTabs() == nil {
 					{{ for i, mm in model.MidModels }}
-						mm{{ i }} = &{{ mm }}{}
+						mm{{ i }} = &{{ mm.Name }}{}
 						nborm.InitModel(mm{{ i }})
+						{{ if mm.HasMidWhere == true }}
+							{{ for _, w in mm.MidWheres }}
+								mm{{ i }}.{{ w.Field }}.AndWhere({{ w.Op }}, {{ w.Value }})
+							{{ endfor }}
+						{{ endif }}
 						m.AppendMidTab(mm{{ i }})
 					{{ endfor }}
 				} else {
 					{{ for i, mm in model.MidModels }}
-						mm{{ i }} = m.GetMidTabs()[{{ i }}].(*{{ mm }})
+						mm{{ i }} = m.GetMidTabs()[{{ i }}].(*{{ mm.Name }})
 					{{ endfor }}
 				}
 			{{ endif }}
@@ -426,8 +446,28 @@ func parseRelation(dstModel, tag string) error {
 			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
 		default:
 			if i%2 == 1 {
-				lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])
-				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
+				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
+				modelName, midWhereStr, fieldName := fieldGroup[1], fieldGroup[2], fieldGroup[3]
+				midWhereGroup := midWhereRe.FindAllStringSubmatch(strings.Trim(midWhereStr, "()"), -1)
+				var midModel MidModel
+				if len(midWhereGroup) == 0 {
+					midModel = MidModel{
+						Name: modelName,
+					}
+				} else {
+					midModel = MidModel{
+						Name:        modelName,
+						MidWheres:   make([]MidWhere, 0, len(midWhereGroup)),
+						HasMidWhere: true,
+					}
+					for _, w := range midWhereGroup {
+						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), w[3]})
+					}
+				}
+				// lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])
+				// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
+				lastModel.MidModels = append(lastModel.MidModels, midModel)
+				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, fieldName))
 			} else {
 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
 			}

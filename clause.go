@@ -34,11 +34,11 @@ func newUpdateSet(field Field, value interface{}) *updateSet {
 
 func (u *updateSet) toClause(cl *[]string, vl *[]interface{}) {
 	if u.status == byValue {
-		*cl = append(*cl, fmt.Sprintf("%s.%s.%s = ?"), u.field.dbName(), u.field.tabName(), u.field.fieldName())
+		*cl = append(*cl, fmt.Sprintf("%s = ?", u.field.fullColName()))
 		*vl = append(*vl, u.value)
 		return
 	}
-	*cl = append(*cl, fmt.Sprintf("%s.%s.%s = %s", u.field.dbName(), u.field.tabName(), u.field.fieldName()))
+	*cl = append(*cl, fmt.Sprintf("%s = %s", u.field.fullColName()))
 }
 
 type updateSetList []*updateSet
@@ -163,4 +163,30 @@ func (l whereList) toClause() (string, []interface{}) {
 		where.toClause(&cl, &vl)
 	}
 	return fmt.Sprintf(fmt.Sprintf("WHERE %s", strings.Trim(strings.Trim(strings.Trim(strings.Join(cl, " "), " "), "AND"), "OR"))), vl
+}
+
+func (l whereList) toOnClause() string {
+	if len(l) == 0 {
+		return ""
+	}
+	var builder strings.Builder
+	for _, w := range l {
+		builder.WriteString(fmt.Sprintf("%s %s %s ", w.rel, w.field.fullColName(), w.op))
+		switch w.status {
+		case byExpr:
+			builder.WriteString(fmt.Sprintf("%s ", w.expr.String()))
+		case byValue:
+			switch v := w.value.(type) {
+			case string:
+				builder.WriteString(fmt.Sprintf(`"%s" `, v))
+			case int:
+				builder.WriteString(fmt.Sprintf("%d ", v))
+			case float32:
+				builder.WriteString(fmt.Sprintf("%f ", v))
+			case float64:
+				builder.WriteString(fmt.Sprintf("%f ", v))
+			}
+		}
+	}
+	return builder.String()
 }

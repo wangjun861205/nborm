@@ -52,6 +52,8 @@ type BaseField interface {
 	fullColName() string
 	ForSelect()
 	ForSum()
+	AscOrder()
+	DscOrder()
 	String() string
 }
 

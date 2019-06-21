@@ -128,15 +128,17 @@ func (m *Meta) IsSynced() bool {
 type fieldStatus int
 
 const (
-	invalid    fieldStatus = 0
-	valid      fieldStatus = 1
-	notNull    fieldStatus = 1 << 1
-	primaryKey fieldStatus = 1 << 2
-	autoInc    fieldStatus = 1 << 3
-	forWhere   fieldStatus = 1 << 4
-	forUpdate  fieldStatus = 1 << 5
-	forSelect  fieldStatus = 1 << 6
-	forSum     fieldStatus = 1 << 7
+	invalid     fieldStatus = 0
+	valid       fieldStatus = 1
+	notNull     fieldStatus = 1 << 1
+	primaryKey  fieldStatus = 1 << 2
+	autoInc     fieldStatus = 1 << 3
+	forWhere    fieldStatus = 1 << 4
+	forUpdate   fieldStatus = 1 << 5
+	forSelect   fieldStatus = 1 << 6
+	forSum      fieldStatus = 1 << 7
+	forAscOrder fieldStatus = 1 << 8
+	forDscOrder fieldStatus = 1 << 9
 )
 
 type baseField struct {
@@ -286,6 +288,16 @@ func (f *baseField) ForSum() {
 	f.addModelStatus(forAgg)
 }
 
+func (f *baseField) AscOrder() {
+	f.removeStatus(forDscOrder)
+	f.addStatus(forAscOrder)
+}
+
+func (f *baseField) DscOrder() {
+	f.removeStatus(forAscOrder)
+	f.addStatus(forDscOrder)
+}
+
 func (f *baseField) Distinct() {
 	f.Model.addModelStatus(distinct)
 	f.addStatus(forSelect)
@@ -425,10 +437,12 @@ func (f *String) OrWhere(op string, value interface{}) Field {
 
 func (f *String) SetU() {
 	f.setUpdate(f, f.Value())
+	f.addStatus(forUpdate)
 }
 
 func (f *String) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
+	f.addStatus(forUpdate)
 }
 
 func (f *String) genAndWhere(op string, value interface{}) *where {
@@ -550,10 +564,12 @@ func (f *Int) OrWhere(op string, value interface{}) Field {
 
 func (f *Int) SetU() {
 	f.setUpdate(f, f.Value())
+	f.addStatus(forUpdate)
 }
 
 func (f *Int) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
+	f.addStatus(forUpdate)
 }
 
 func (f *Int) genAndWhere(op string, value interface{}) *where {
@@ -581,13 +597,13 @@ func (f *Date) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case []byte:
-		t, err := time.Parse("2006-01-02 15:04:05", string(val))
+		t, err := time.Parse("2006-01-02", string(val))
 		if err != nil {
 			return err
 		}
 		f.value = t
 	case string:
-		t, err := time.Parse("2006-01-02 15:04:05", val)
+		t, err := time.Parse("2006-01-02", val)
 		if err != nil {
 			return err
 		}
@@ -698,10 +714,12 @@ func (f *Date) OrWhere(op string, value interface{}) Field {
 
 func (f *Date) SetU() {
 	f.setUpdate(f, f.Value())
+	f.addStatus(forUpdate)
 }
 
 func (f *Date) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
+	f.addStatus(forUpdate)
 }
 
 func (f *Date) genAndWhere(op string, value interface{}) *where {
@@ -846,10 +864,12 @@ func (f *Datetime) OrWhere(op string, value interface{}) Field {
 
 func (f *Datetime) SetU() {
 	f.setUpdate(f, f.Value())
+	f.addStatus(forUpdate)
 }
 
 func (f *Datetime) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
+	f.addStatus(forUpdate)
 }
 
 func (f *Datetime) genAndWhere(op string, value interface{}) *where {
@@ -969,10 +989,12 @@ func (f *Decimal) OrWhere(op string, value interface{}) Field {
 
 func (f *Decimal) SetU() {
 	f.setUpdate(f, f.Value())
+	f.addStatus(forUpdate)
 }
 
 func (f *Decimal) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
+	f.addStatus(forUpdate)
 }
 
 func (f *Decimal) genAndWhere(op string, value interface{}) *where {

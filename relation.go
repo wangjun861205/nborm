@@ -33,9 +33,13 @@ func (r RelationInfo) toJoinClause() string {
 			case i == 0:
 				builder.WriteString(fmt.Sprintf("%s AS t%d ", field.rawFullTabName(), i))
 			case i%2 == 1:
+				field.(Model).setAlias(fmt.Sprintf("t%d", i/2+1))
 				builder.WriteString(fmt.Sprintf("JOIN %s AS t%d ON t%d.%s = t%d.%s ",
 					field.rawFullTabName(), i/2+1, i/2, r.Fields[i-1].colName(), i/2+1, field.colName()))
-				field.(Model).setAlias(fmt.Sprintf("t%d", i/2+1))
+				for _, wf := range getFields(field.(Model), forWhere) {
+					wl := wf.whereList()
+					builder.WriteString(wl.toOnClause())
+				}
 			}
 		}
 		return builder.String()

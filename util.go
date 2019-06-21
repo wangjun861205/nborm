@@ -30,12 +30,6 @@ func InitModel(model Model) {
 func InitRelation(model Model) {
 	model.setAlias("t0")
 	index := 1
-	// infos := model.Relations()
-	// for _, info := range infos {
-	// 	if info.Fields[0].getStatus()&valid == valid {
-	// 		info.Object.(Model).setRel(info.toJoinClause(), info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
-	// 	}
-	// }
 	for _, info := range model.Relations() {
 		for i, field := range info.Fields[1:] {
 			if i%2 == 0 {
@@ -236,7 +230,7 @@ func getSelectFields(model Model) FieldList {
 
 func getTabRef(model Model) string {
 	var builder strings.Builder
-	if model.getRelJoin() != "" {
+	if model.getRelWhere() != nil {
 		builder.WriteString(model.getRelJoin())
 	} else {
 		builder.WriteString(model.fullTabName())
@@ -247,4 +241,20 @@ func getTabRef(model Model) string {
 		}
 	}
 	return builder.String()
+}
+
+func getOrderClause(model Model) string {
+	orderFields := getFields(model, forAscOrder|forDscOrder)
+	if len(orderFields) == 0 {
+		return ""
+	}
+	colList := make([]string, 0, len(orderFields))
+	for _, f := range orderFields {
+		if f.getStatus()|forAscOrder == forAscOrder {
+			colList = append(colList, f.fullColName())
+		} else {
+			colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
+		}
+	}
+	return fmt.Sprintf(" ORDER BY %s ", strings.Join(colList, ", "))
 }

@@ -17,7 +17,11 @@ func InsertOne(exe Executor, model Model) error {
 	for _, f := range validFields {
 		toInsert(f, &cl, &pl, &vl)
 	}
-	stmt := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, model.fullTabName(), strings.Join(cl, ", "), strings.Join(pl, ", "))
+	stmt := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, model.rawFullTabName(), strings.Join(cl, ", "), strings.Join(pl, ", "))
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(vl))
+	}
 	res, err := exe.Exec(stmt, vl...)
 	if err != nil {
 		return err
@@ -81,7 +85,8 @@ func Query(exe Executor, l ModelList, limit, offset int) error {
 	selectColumns := getSelectColumns(l)
 	whereClause, whereValues := getWhereList(l).toClause()
 	tabRef := getTabRef(l)
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s", selectColumns, tabRef, whereClause)
+	orderClause := getOrderClause(l)
+	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s", selectColumns, tabRef, whereClause, orderClause)
 	if limit > 0 && offset >= 0 {
 		stmt = fmt.Sprintf("%s LIMIT %d, %d", stmt, offset, limit)
 	}
@@ -115,6 +120,11 @@ func Query(exe Executor, l ModelList, limit, offset int) error {
 func Update(exe Executor, model Model) (sql.Result, error) {
 	updateClause, updateValues := genUpdateSetClause(model)
 	whereClause, whereValues := genWhereClause(model)
-	stmt := fmt.Sprintf(`UPDATE %%s %s %s`, model.fullTabName(), updateClause, whereClause)
-	return exe.Exec(stmt, append(updateValues, whereValues...))
+	stmt := fmt.Sprintf(`UPDATE %s %s %s`, model.fullTabName(), updateClause, whereClause)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(updateValues))
+		fmt.Println(nbcolor.Green(whereValues))
+	}
+	return exe.Exec(stmt, append(updateValues, whereValues...)...)
 }

@@ -370,17 +370,17 @@ func (m *ModelInfo) listLenFunc() string {
 func (m *ModelInfo) listMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
-		if l.IsSynced() {
-			s := struct{
-				List []*{{ model.Name }}
-				Total int
-			} {
-				l.List,
-				l.Total,
-			}
-			return json.Marshal(s)
+		s := struct{
+			List []*{{ model.Name }}
+			Total int
+		} {
+			make([]*{{ model.Name }}, 0, 1),
+			l.Total,
 		}
-		return []byte("null"), nil
+		if l.Len() > 0 {
+			s.List = l.List
+		}
+		return json.Marshal(s)
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {

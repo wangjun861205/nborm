@@ -68,10 +68,8 @@ type Field interface {
 	OrWhere(string, interface{}) Field
 	SetU()
 	SetUpdate(interface{})
-	whereList() whereList
+	// whereList() whereList
 	updateSet() *updateSet
-	genAndWhere(string, interface{}) *where
-	genOrWhere(string, interface{}) *where
 }
 
 type Model interface {
@@ -86,8 +84,6 @@ type Model interface {
 	setRelCols(string)
 	getRelJoin() string
 	setRelJoin(string)
-	getRelWhere() *where
-	setRelWhere(*where)
 	getAlias() string
 	setAlias(string)
 	getModelStatus() modelStatus
@@ -98,6 +94,12 @@ type Model interface {
 	setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
+	AndExprWhere(*Expr, ...interface{}) Model
+	OrExprWhere(*Expr, ...interface{}) Model
+	getParent() Model
+	setParent(Model)
+	getIndex() int
+	getWhere() *where
 }
 
 type ModelList interface {

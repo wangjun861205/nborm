@@ -13,31 +13,47 @@ func SetDebug(debug bool) {
 }
 
 func InitModel(model Model) {
-	model.setModel(model)
-	for _, fi := range model.FieldInfos() {
-		fi.Field.setModel(model)
-		fi.Field.setCol(fi.ColName)
-		fi.Field.setField(fi.FieldName)
+	if model.getModelStatus()&inited == 0 {
+		model.setModel(model)
+		if model.getParent() == nil {
+			model.setAlias("t0")
+		}
+		for _, fi := range model.FieldInfos() {
+			fi.Field.setModel(model)
+			fi.Field.setCol(fi.ColName)
+			fi.Field.setField(fi.FieldName)
+		}
+		for _, f := range model.PrimaryKey() {
+			f.setPrimaryKey()
+		}
+		if model.AutoIncField() != nil {
+			model.AutoIncField().setAutoInc()
+		}
+		model.setModelStatus(inited)
 	}
-	for _, f := range model.PrimaryKey() {
-		f.setPrimaryKey()
-	}
-	if model.AutoIncField() != nil {
-		model.AutoIncField().setAutoInc()
-	}
-}
-
-func InitRelation(model Model) {
-	model.setAlias("t0")
-	index := 1
-	for _, info := range model.Relations() {
-		for i, field := range info.Fields[1:] {
+	for _, rel := range model.Relations() {
+		relModel := rel.Object.(Model)
+		relModel.setModel(relModel)
+		relModel.setAlias(fmt.Sprintf("t%d", model.getIndex()))
+		for _, fi := range relModel.FieldInfos() {
+			fi.Field.setModel(relModel)
+			fi.Field.setCol(fi.ColName)
+			fi.Field.setField(fi.FieldName)
+		}
+		for _, f := range rel.Object.(Model).PrimaryKey() {
+			f.setPrimaryKey()
+		}
+		if rel.Object.(Model).AutoIncField() != nil {
+			rel.Object.(Model).AutoIncField().setAutoInc()
+		}
+		for i, rf := range rel.Fields[1 : len(rel.Fields)-1] {
 			if i%2 == 0 {
-				field.(Model).setAlias(fmt.Sprintf("t%d", index))
-				index++
+				if rf.(Model).getModelStatus()&inited == 0 {
+					rf.(Model).setAlias(fmt.Sprintf("t%d", model.getIndex()))
+					rf.(Model).setParent(model)
+				}
 			}
 		}
-		info.Object.(Model).setRelJoin(info.toJoinClause())
 	}
 }
 
@@ -109,7 +125,8 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 func setRelWhere(model Model) {
 	for _, info := range model.Relations() {
 		if info.Fields[0].getStatus()&valid == valid {
-			info.Object.(Model).setRelWhere(info.Fields[0].genAndWhere("=", info.Fields[0].Value()))
+			info.Object.(Model).AndExprWhere(NewExpr("@ = ?", info.Fields[len(info.Fields)-1]), info.Fields[0].Value())
+			info.Object.(Model).setModelStatus(forModelWhere)
 		}
 	}
 }
@@ -123,7 +140,9 @@ func scanRow(row *sql.Row, model Model, fields ...Field) error {
 	if err := row.Scan(addrs...); err != nil {
 		return err
 	}
-	InitRelation(model)
+	if model.getModelStatus()&inited == 0 {
+		InitModel(model)
+	}
 	setRelWhere(model)
 	model.addModelStatus(synced)
 	return nil
@@ -138,24 +157,12 @@ func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
 	if err := rows.Scan(addrs...); err != nil {
 		return err
 	}
-	InitRelation(model)
+	if model.getModelStatus()&inited == 0 {
+		InitModel(model)
+	}
 	setRelWhere(model)
 	model.addModelStatus(synced)
 	return nil
-}
-
-func genWhereClause(model Model) (string, []interface{}) {
-	whereFields := getFields(model, forWhere)
-	for _, rel := range model.Relations() {
-		for _, f := range getFields(rel.Object.(Model), forWhere) {
-			whereFields = append(whereFields, f)
-		}
-	}
-	whereList := make(whereList, 0, len(whereFields)*2)
-	for _, f := range whereFields {
-		whereList = append(whereList, f.whereList()...)
-	}
-	return whereList.toClause()
 }
 
 func genUpdateSetClause(model Model) (string, []interface{}) {
@@ -165,34 +172,6 @@ func genUpdateSetClause(model Model) (string, []interface{}) {
 		updates[i] = f.updateSet()
 	}
 	return updates.toClause()
-}
-
-func getWhereList(model Model) whereList {
-	whereFieldList := getFields(model, forWhere)
-	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
-			for _, f := range getFields(rel.Object.(Model), forWhere) {
-				whereFieldList = append(whereFieldList, f)
-			}
-		}
-	}
-	whereList := make(whereList, 0, 8)
-	for _, f := range whereFieldList {
-		whereList = append(whereList, f.whereList()...)
-	}
-	if model.getRelWhere() != nil {
-		whereList = append(whereList, model.getRelWhere())
-	}
-	return whereList
-}
-
-func genWhereList(model Model) whereList {
-	whereFields := getFields(model, forWhere)
-	whereList := make(whereList, 0, len(whereFields)*2)
-	for _, f := range whereFields {
-		whereList = append(whereList, f.whereList()...)
-	}
-	return whereList
 }
 
 func getSelectColumns(model Model) string {
@@ -230,13 +209,9 @@ func getSelectFields(model Model) FieldList {
 
 func getTabRef(model Model) string {
 	var builder strings.Builder
-	if model.getRelWhere() != nil {
-		builder.WriteString(model.getRelJoin())
-	} else {
-		builder.WriteString(model.fullTabName())
-	}
+	builder.WriteString(fmt.Sprintf("%s ", model.fullTabName()))
 	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+		if rel.Object.(Model).getWhere() != nil {
 			builder.WriteString(rel.toAppendJoinClause())
 		}
 	}
@@ -257,4 +232,52 @@ func getOrderClause(model Model) string {
 		}
 	}
 	return fmt.Sprintf(" ORDER BY %s ", strings.Join(colList, ", "))
+}
+
+func genPlaceHolder(val []interface{}) string {
+	if len(val) == 0 {
+		return ""
+	}
+	switch v := val[0].(type) {
+	case []int:
+		return fmt.Sprintf("(%s)", strings.Trim(strings.Repeat("?, ", len(v)), ", "))
+	case []float32:
+		return fmt.Sprintf("(%s)", strings.Trim(strings.Repeat("?, ", len(v)), ", "))
+	case []float64:
+		return fmt.Sprintf("(%s)", strings.Trim(strings.Repeat("?, ", len(v)), ", "))
+	case []string:
+		return fmt.Sprintf("(%s)", strings.Trim(strings.Repeat("?, ", len(v)), ", "))
+	default:
+		return "?"
+	}
+}
+
+func genWhereClause(model Model) (string, []interface{}) {
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
+	where := model.getWhere()
+	for _, rel := range model.Relations() {
+		if rel.Object.(Model).getWhere() != nil {
+			if where == nil {
+				where = rel.Object.(Model).getWhere()
+			} else {
+				where.append(rel.Object.(Model).getWhere())
+			}
+		}
+	}
+	where.toClause(&cl, &vl)
+	if len(cl) == 0 {
+		return "", nil
+	}
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
+func genSimpleWhereClause(model Model) (string, []interface{}) {
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
+	model.getWhere().toClause(&cl, &vl)
+	if len(cl) == 0 {
+		return "", nil
+	}
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
 }

@@ -54,7 +54,7 @@ func (e *Expr) String() string {
 				}
 			}
 		}
-		if r == '?' {
+		if r == '@' {
 			if stat == normal {
 				builder.WriteString(e.fields[0].fullColName())
 				e.fields = e.fields[1:]

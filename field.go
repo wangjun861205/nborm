@@ -17,14 +17,6 @@ type FieldInfoList []FieldInfo
 
 type FieldList []Field
 
-func (l FieldList) toWhereClause() (string, []interface{}) {
-	whereList := make(whereList, 0, len(l)*2)
-	for _, f := range l {
-		whereList = append(whereList, f.whereList()...)
-	}
-	return whereList.toClause()
-}
-
 type modelStatus int
 
 const (
@@ -33,15 +25,17 @@ const (
 	distinct      modelStatus = 1 << 1
 	forAgg        modelStatus = 1 << 2
 	forModelWhere modelStatus = 1 << 3
+	inited        modelStatus = 1 << 4
 )
 
 type Meta struct {
 	Model
-	status   modelStatus
-	alias    string
-	relJoin  string
-	relWhere *where
-	midTabs  []Model
+	status  modelStatus
+	midTabs []Model
+	where   *where
+	alias   string
+	parent  Model
+	index   int
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -73,10 +67,6 @@ func (m *Meta) fullTabName() string {
 	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
 }
 
-func (m *Meta) setRel(relJoin string, where *where) {
-	m.relJoin, m.relWhere = relJoin, where
-}
-
 func (m *Meta) getAlias() string {
 	return m.alias
 }
@@ -85,20 +75,18 @@ func (m *Meta) setAlias(alias string) {
 	m.alias = alias
 }
 
-func (m *Meta) getRelJoin() string {
-	return m.relJoin
+func (m *Meta) getWhere() *where {
+	return m.where
 }
 
-func (m *Meta) setRelJoin(join string) {
-	m.relJoin = join
+func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
+	m.appendWhere(newWhere(and, expr, val...))
+	return m
 }
 
-func (m *Meta) getRelWhere() *where {
-	return m.relWhere
-}
-
-func (m *Meta) setRelWhere(where *where) {
-	m.relWhere = where
+func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
+	m.appendWhere(newWhere(or, expr, val...))
+	return m
 }
 
 func (m *Meta) getModelStatus() modelStatus {
@@ -123,6 +111,30 @@ func (m *Meta) SelectDistinct() {
 
 func (m *Meta) IsSynced() bool {
 	return m.status&synced == synced
+}
+
+func (m *Meta) getParent() Model {
+	return m.parent
+}
+
+func (m *Meta) setParent(parent Model) {
+	m.parent = parent
+}
+
+func (m *Meta) getIndex() int {
+	if m.parent != nil {
+		return m.parent.getIndex()
+	}
+	m.index++
+	return m.index
+}
+
+func (m *Meta) appendWhere(where *where) {
+	if m.where == nil {
+		m.where = where
+		return
+	}
+	m.where.append(where)
 }
 
 type fieldStatus int
@@ -308,25 +320,25 @@ func (f *baseField) String() string {
 }
 
 type clauseField struct {
-	where  whereList
+	// where  whereList
 	update *updateSet
 }
 
-func (f *clauseField) andWhere(field Field, op string, value interface{}) {
-	f.where = append(f.where, newWhere(and, field, op, value))
-}
+// func (f *clauseField) andWhere(field Field, op string, value interface{}) {
+// 	f.where = append(f.where, newWhere(and, field, op, value))
+// }
 
-func (f *clauseField) orWhere(field Field, op string, value interface{}) {
-	f.where = append(f.where, newWhere(or, field, op, value))
-}
+// func (f *clauseField) orWhere(field Field, op string, value interface{}) {
+// 	f.where = append(f.where, newWhere(or, field, op, value))
+// }
 
 func (f *clauseField) setUpdate(field Field, value interface{}) {
 	f.update = newUpdateSet(field, value)
 }
 
-func (f *clauseField) whereList() whereList {
-	return f.where
-}
+// func (f *clauseField) whereList() whereList {
+// 	return f.where
+// }
 
 func (f *clauseField) updateSet() *updateSet {
 	return f.update
@@ -406,31 +418,27 @@ func (f *String) String() string {
 }
 
 func (f *String) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -443,14 +451,6 @@ func (f *String) SetU() {
 func (f *String) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
-}
-
-func (f *String) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *String) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
 }
 
 //=============================================================================================================
@@ -533,31 +533,27 @@ func (f *Int) Int() int {
 }
 
 func (f *Int) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -570,14 +566,6 @@ func (f *Int) SetU() {
 func (f *Int) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
-}
-
-func (f *Int) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Int) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
 }
 
 //=======================================================================================================
@@ -683,31 +671,27 @@ func (f *Date) Date() time.Time {
 }
 
 func (f *Date) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -720,14 +704,6 @@ func (f *Date) SetU() {
 func (f *Date) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
-}
-
-func (f *Date) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Date) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
 }
 
 //=========================================================================================
@@ -834,30 +810,28 @@ func (f *Datetime) Datetime() time.Time {
 
 func (f *Datetime) AndW() Field {
 	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) OrW() Field {
 	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -870,14 +844,6 @@ func (f *Datetime) SetU() {
 func (f *Datetime) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
-}
-
-func (f *Datetime) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Datetime) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
 }
 
 //=============================================================================================================
@@ -958,31 +924,27 @@ func (f *Decimal) Decimal() float64 {
 }
 
 func (f *Decimal) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
+	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
+	checkOp(op)
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -995,12 +957,4 @@ func (f *Decimal) SetU() {
 func (f *Decimal) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
-}
-
-func (f *Decimal) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Decimal) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
 }

@@ -105,10 +105,6 @@ func (m *ModelInfo) newModelFunc() string {
 			{{ endfor }}
 		}
 		nborm.InitModel(m)
-		{{ for _, rel in model.RelInfos }}
-			nborm.InitModel(m.{{ rel.Field }})
-		{{ endfor }}
-		nborm.InitRelation(m)
 		return m
 	}
 	`, map[string]interface{}{"model": m})
@@ -319,7 +315,6 @@ func (m *ModelInfo) newListFunc() string {
 			0,
 		}
 		nborm.InitModel(l)
-		nborm.InitRelation(l)
 		return l
 	}
 	`, map[string]interface{}{"model": m})

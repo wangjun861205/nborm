@@ -37,27 +37,15 @@ func InsertOne(exe Executor, model Model) error {
 }
 
 func Count(exe Executor, model Model) (int, error) {
-	fields := getFields(model, forWhere)
-	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
-			for _, f := range getFields(rel.Object.(Model), forWhere) {
-				fields = append(fields, f)
-			}
-		}
-	}
-	whereList := make(whereList, 0, len(fields)*2)
-	for _, f := range fields {
-		whereList = append(whereList, f.whereList()...)
-	}
-	clause, values := whereList.toClause()
+	whereClause, whereValues := genWhereClause(model)
 	tabRef := getTabRef(model)
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, clause)
+	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, whereClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(values))
+		fmt.Println(nbcolor.Green(whereValues))
 	}
 	var count int
-	if err := exe.QueryRow(stmt, values...).Scan(&count); err != nil {
+	if err := exe.QueryRow(stmt, whereValues...).Scan(&count); err != nil {
 		return 0, err
 	}
 	return count, nil
@@ -66,7 +54,7 @@ func Count(exe Executor, model Model) (int, error) {
 func QueryOne(exe Executor, model Model) error {
 	selectFields := getFields(model, forSelect)
 	selectColumns := getSelectColumns(model)
-	whereClause, whereValues := getWhereList(model).toClause()
+	whereClause, whereValues := genWhereClause(model)
 	tabRef := getTabRef(model)
 	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
 	if DEBUG {
@@ -83,7 +71,7 @@ func QueryOne(exe Executor, model Model) error {
 func Query(exe Executor, l ModelList, limit, offset int) error {
 	selectFields := getFields(l, forSelect)
 	selectColumns := getSelectColumns(l)
-	whereClause, whereValues := getWhereList(l).toClause()
+	whereClause, whereValues := genWhereClause(l)
 	tabRef := getTabRef(l)
 	orderClause := getOrderClause(l)
 	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s", selectColumns, tabRef, whereClause, orderClause)
@@ -127,4 +115,14 @@ func Update(exe Executor, model Model) (sql.Result, error) {
 		fmt.Println(nbcolor.Green(whereValues))
 	}
 	return exe.Exec(stmt, append(updateValues, whereValues...)...)
+}
+
+func Delete(exe Executor, model Model) (sql.Result, error) {
+	whereClause, whereValues := genSimpleWhereClause(model)
+	stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(whereValues))
+	}
+	return exe.Exec(stmt, whereValues...)
 }

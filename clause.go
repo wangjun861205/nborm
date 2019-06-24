@@ -3,7 +3,6 @@ package nborm
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 type clauseStatus int
@@ -55,16 +54,18 @@ func (l updateSetList) toClause() (string, []interface{}) {
 type operator string
 
 const (
-	eq   operator = "="
-	neq  operator = "<>"
-	lt   operator = "<"
-	lte  operator = "<="
-	gt   operator = ">"
-	gte  operator = ">="
-	is   operator = "IS"
-	nis  operator = "IS NOT"
-	like operator = "LIKE"
-	in   operator = "IN"
+	eq    operator = "="
+	neq   operator = "<>"
+	lt    operator = "<"
+	lte   operator = "<="
+	gt    operator = ">"
+	gte   operator = ">="
+	is    operator = "IS"
+	nis   operator = "IS NOT"
+	like  operator = "LIKE"
+	nlike operator = "NOT LIKE"
+	in    operator = "IN"
+	nin   operator = "NOT IN"
 )
 
 type rel string
@@ -76,7 +77,7 @@ const (
 
 func checkOp(op string) {
 	switch op {
-	case "=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT", "LIKE", "IN":
+	case "=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT", "LIKE", "NOT LIKE", "IN", "NOT IN":
 		return
 	default:
 		panic(fmt.Sprintf("unsupported operator (%s)", op))
@@ -84,109 +85,57 @@ func checkOp(op string) {
 }
 
 type where struct {
-	rel    rel
-	field  Field
-	op     operator
-	value  interface{}
-	expr   *Expr
-	status clauseStatus
+	rel  rel
+	expr *Expr
+	val  []interface{}
+	next *where
 }
 
-func newWhere(rel rel, field Field, op string, value interface{}) *where {
-	checkOp(op)
-	w := &where{rel: rel, field: field, op: operator(op)}
-	if v, ok := value.(*Expr); ok {
-		w.expr = v
-		w.status = byExpr
-		return w
+func newWhere(rel rel, expr *Expr, val ...interface{}) *where {
+	return &where{
+		rel,
+		expr,
+		val,
+		nil,
 	}
-	w.value = value
-	w.status = byValue
-	return w
+}
+
+func (w *where) append(nw *where) {
+	lastWhere := w
+	for lastWhere.next != nil {
+		lastWhere = lastWhere.next
+	}
+	lastWhere.next = nw
 }
 
 func (w *where) toClause(cl *[]string, vl *[]interface{}) {
-	switch w.status {
-	case byValue:
-		if w.op == in {
-			switch l := w.value.(type) {
-			case []string:
-				var builder strings.Builder
-				for _, v := range l {
-					builder.WriteString(fmt.Sprintf(`'%s', `, v))
-				}
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
-			case []int:
-				var builder strings.Builder
-				for _, v := range l {
-					builder.WriteString(fmt.Sprintf("%d, ", v))
-				}
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
-			case []float64:
-				var builder strings.Builder
-				for _, v := range l {
-					builder.WriteString(fmt.Sprintf("%f, ", v))
-				}
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
-			case []time.Time:
-				var builder strings.Builder
-				switch w.field.(type) {
-				case *Date:
-					for _, v := range l {
-						builder.WriteString(fmt.Sprintf(`'%s', `, v.Format("2006-01-02")))
-					}
-				case *Datetime:
-					for _, v := range l {
-						builder.WriteString(fmt.Sprintf(`'%s', `, v.Format("2006-01-02 15:04:05")))
-					}
-				}
-				*cl = append(*cl, fmt.Sprintf("%s %s IN (%s)", w.rel, w.field.fullColName(), strings.Trim(builder.String(), ", ")))
+	if w == nil {
+		return
+	}
+	*cl = append(*cl, fmt.Sprintf("%s %s", w.rel, w.expr.String()))
+	if len(w.val) > 0 {
+		switch v := w.val[0].(type) {
+		case []int:
+			for _, i := range v {
+				*vl = append(*vl, i)
 			}
-			return
-		}
-		*cl = append(*cl, fmt.Sprintf("%s %s %s ?", w.rel, w.field.fullColName(), w.op))
-		*vl = append(*vl, w.value)
-	case byExpr:
-		*cl = append(*cl, fmt.Sprintf("%s %s %s %s", w.rel, w.field.fullColName(), w.op, w.expr))
-	}
-}
-
-type whereList []*where
-
-func (l whereList) toClause() (string, []interface{}) {
-	if len(l) == 0 {
-		return "", nil
-	}
-	cl := make([]string, 0, len(l))
-	vl := make([]interface{}, 0, len(l))
-	for _, where := range l {
-		where.toClause(&cl, &vl)
-	}
-	return fmt.Sprintf(fmt.Sprintf("WHERE %s", strings.Trim(strings.Trim(strings.Trim(strings.Join(cl, " "), " "), "AND"), "OR"))), vl
-}
-
-func (l whereList) toOnClause() string {
-	if len(l) == 0 {
-		return ""
-	}
-	var builder strings.Builder
-	for _, w := range l {
-		builder.WriteString(fmt.Sprintf("%s %s %s ", w.rel, w.field.fullColName(), w.op))
-		switch w.status {
-		case byExpr:
-			builder.WriteString(fmt.Sprintf("%s ", w.expr.String()))
-		case byValue:
-			switch v := w.value.(type) {
-			case string:
-				builder.WriteString(fmt.Sprintf(`"%s" `, v))
-			case int:
-				builder.WriteString(fmt.Sprintf("%d ", v))
-			case float32:
-				builder.WriteString(fmt.Sprintf("%f ", v))
-			case float64:
-				builder.WriteString(fmt.Sprintf("%f ", v))
+		case []float32:
+			for _, f := range v {
+				*vl = append(*vl, f)
 			}
+		case []float64:
+			for _, f := range v {
+				*vl = append(*vl, f)
+			}
+		case []string:
+			for _, s := range v {
+				*vl = append(*vl, s)
+			}
+		default:
+			*vl = append(*vl, w.val[0])
 		}
 	}
-	return builder.String()
+	if w.next != nil {
+		w.next.toClause(cl, vl)
+	}
 }

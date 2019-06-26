@@ -99,15 +99,44 @@ func (m *ModelInfo) proc() {
 func (m *ModelInfo) newModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func New{{ model.Name }}() *{{ model.Name }} {
-		m := &{{ model.Name }}{
-			{{ for _, rel in model.RelInfos }}
-				{{ rel.Field }}: &{{ rel.Type }}{},
-			{{ endfor }}
-		}
+		m := &{{ model.Name }}{}
 		nborm.InitModel(m)
+		m.InitRel()
 		return m
 	}
 	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) initRelFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) InitRel() {
+		{{ for _, rel in model.RelInfos }}
+			m.{{ rel.Field }} = &{{ rel.Type }}{}
+			m.{{ rel.Field }}.SetParent(m)
+			nborm.InitModel(m.{{ rel.Field }})
+		{{ endfor }}
+		{{ if model.HasMidModels == true }}
+			{{ for i, mm in model.MidModels }}
+				var mm{{ i }} *{{ mm.Name }}
+			{{ endfor }}
+			{{ for i, mm in model.MidModels }}
+				mm{{ i }} = &{{ mm.Name }}{}
+				mm{{ i }}.SetParent(m)
+				nborm.InitModel(mm{{ i }})
+				{{ if mm.HasMidWhere == true }}
+					{{ for _, w in mm.MidWheres }}
+						mm{{ i }}.{{ w.Field }}.AndWhere({{ w.Op }}, {{ w.Value }})
+					{{ endfor }}
+				{{ endif }}
+				m.AppendMidTab(mm{{ i }})
+			{{ endfor }}
+		{{ endif }}
+		m.AddRelInited()
+	}`, map[string]interface{}{"model": m})
 	if err != nil {
 		panic(err)
 	}
@@ -215,31 +244,13 @@ func (m *ModelInfo) relationsFunc() string {
 		{{ if model.HasRel == false }}
 			return nil
 		{{ else }}
-			{{ for _, rel in model.RelInfos }}
-				if m.{{ rel.Field }} == nil {
-					m.{{ rel.Field }} = New{{ rel.Type }}()
-				}
-			{{ endfor }}
+			if !m.IsRelInited() {
+				m.InitRel()
+			}
 			{{ if model.HasMidModels == true }}
 				{{ for i, mm in model.MidModels }}
-					var mm{{ i }} *{{ mm.Name }}
+					mm{{ i }} := m.GetMidTabs()[{{ i }}].(*{{ mm.Name }})
 				{{ endfor }}
-				if m.GetMidTabs() == nil {
-					{{ for i, mm in model.MidModels }}
-						mm{{ i }} = &{{ mm.Name }}{}
-						nborm.InitModel(mm{{ i }})
-						{{ if mm.HasMidWhere == true }}
-							{{ for _, w in mm.MidWheres }}
-								mm{{ i }}.{{ w.Field }}.AndWhere({{ w.Op }}, {{ w.Value }})
-							{{ endfor }}
-						{{ endif }}
-						m.AppendMidTab(mm{{ i }})
-					{{ endfor }}
-				} else {
-					{{ for i, mm in model.MidModels }}
-						mm{{ i }} = m.GetMidTabs()[{{ i }}].(*{{ mm.Name }})
-					{{ endfor }}
-				}
 			{{ endif }}
 			return nborm.RelationInfoList{
 				{{ for _, info in model.RelInfos }}
@@ -252,9 +263,8 @@ func (m *ModelInfo) relationsFunc() string {
 						m.{{ info.Field }},
 					},
 				{{ endfor }}
-				}
+			}
 		{{ endif }}
-
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -310,7 +320,7 @@ func (m *ModelInfo) newListFunc() string {
 	s, err := nbfmt.Fmt(`
 	func New{{ model.Name }}List() *{{ model.Name }}List {
 		l := &{{ model.Name }}List {
-			*New{{ model.Name }}(),
+			{{ model.Name }}{},
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
@@ -327,7 +337,9 @@ func (m *ModelInfo) newListFunc() string {
 func (m *ModelInfo) listNewModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) NewModel() nborm.Model {
-		m := New{{ model.Name }}()
+		m := &{{ model.Name }}{}
+		m.SetParent(l.GetParent())
+		nborm.InitModel(m)
 		l.List = append(l.List, m)
 		return m
 	}
@@ -547,6 +559,7 @@ func main() {
 		for _, m := range modelInfos {
 			m.proc()
 			nf.WriteString(m.newModelFunc())
+			nf.WriteString(m.initRelFunc())
 			nf.WriteString(m.dbFunc())
 			nf.WriteString(m.tabFunc())
 			nf.WriteString(m.fieldInfosFunc())

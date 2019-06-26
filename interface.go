@@ -40,15 +40,10 @@ type BaseField interface {
 	isForUpdate() bool
 	setForUpdate()
 	unsetForUpdate()
-	setPrimaryKey()
-	unsetPrimaryKey()
-	isPrimaryKey() bool
-	setAutoInc()
-	unsetAutoInc()
-	isAutoInc() bool
 	mustValid()
 	rawFullTabName() string
 	fullTabName() string
+	rawFullColName() string
 	fullColName() string
 	ForSelect()
 	ForSum()
@@ -68,7 +63,6 @@ type Field interface {
 	OrWhere(string, interface{}) Field
 	SetU()
 	SetUpdate(interface{})
-	// whereList() whereList
 	updateSet() *updateSet
 }
 
@@ -85,7 +79,7 @@ type Model interface {
 	getRelJoin() string
 	setRelJoin(string)
 	getAlias() string
-	setAlias(string)
+	setAlias()
 	getModelStatus() modelStatus
 	addModelStatus(modelStatus)
 	setModelStatus(modelStatus)
@@ -96,10 +90,11 @@ type Model interface {
 	fullTabName() string
 	AndExprWhere(*Expr, ...interface{}) Model
 	OrExprWhere(*Expr, ...interface{}) Model
-	getParent() Model
-	setParent(Model)
+	GetParent() Model
+	SetParent(Model)
 	getIndex() int
 	getWhere() *where
+	InitRel()
 }
 
 type ModelList interface {

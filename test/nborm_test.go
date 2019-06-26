@@ -3,9 +3,10 @@ package test
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"testing"
+	"time"
 
+	"github.com/wangjun861205/nbcolor"
 	"github.com/wangjun861205/nborm"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,44 +15,71 @@ import (
 
 var db *sql.DB
 
-func TestDelete(t *testing.T) {
-	e := model.NewEnterprise()
-	e.ID.AndWhere("=", 1)
-	e.Account.ID.AndWhere("=", 1)
-	if res, err := nborm.Delete(db, e); err != nil {
-		t.Fatal(err)
-	} else {
-		fmt.Println(res.RowsAffected())
-	}
-
+type test struct {
+	name string
+	f    func() error
 }
 
-func TestInsert(t *testing.T) {
-	e := model.NewEnterprise()
-	e.Contact.SetString("contact")
-	e.Introduction.SetString("introduction")
-	e.NatureID.SetInt(1)
-	e.SectorID.SetInt(2)
-	e.ScopeID.SetInt(3)
-	e.Name.SetString("name")
-	e.RegisterCityID.SetInt(4)
-	e.RegisterAddress.SetString("address")
-	e.UniformCode.SetString("uniform code 1")
-	e.Website.SetString("website")
-	e.ZipCode.SetString("zipcode")
-	e.EmployeeFromThis.SetInt(100)
-	if err := nborm.InsertOne(db, e); err != nil {
-		log.Fatal(err)
-	}
+var testList = []test{
+	{
+		name: "deleteTest",
+		f: func() error {
+			e := model.NewEnterpriseJob()
+			if _, err := nborm.Delete(db, e); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "insertTest",
+		f: func() error {
+			for i := 0; i < 10; i++ {
+				j := model.NewEnterpriseJob()
+				j.Address.SetString(fmt.Sprintf("address%d", i))
+				j.CityID.SetInt(i)
+				j.Comment.SetString(fmt.Sprintf("comment%d", i))
+				j.DegreeID.SetInt(i)
+				j.Description.SetString(fmt.Sprintf("Description%d", i))
+				j.EnterpriseID.SetInt(i)
+				j.ExpiredAt.SetDate(time.Now())
+				j.Gender.SetString("男")
+				j.LanguageSkillID.SetInt(i)
+				j.MajorCode.SetString(fmt.Sprintf("major_code%d", i))
+				j.Name.SetString(fmt.Sprintf("name%d", i))
+				j.SalaryRangeID.SetInt(i)
+				j.Status.SetString("待审核")
+				j.Vacancies.SetInt(i)
+				j.Welfare.SetString(fmt.Sprintf("welfare%d", 1))
+				j.TypeID.SetInt(i)
+				if err := nborm.InsertOne(db, j); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
+		name: "queryTest",
+		f: func() error {
+			j := model.NewEnterpriseJobList()
+			j.Address.AndWhere("IN", []string{"address1", "address2"})
+			j.AndExprWhere(nborm.NewExpr("(@ = ? OR @ = ?)", &j.Comment, &j.Comment), []string{"hello", "world"})
+			if err := nborm.Query(db, j, -1, -1); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
 }
 
-func TestQuery(t *testing.T) {
-	e := model.NewEnterprise()
-	e.Account.EnterpriseID.AndWhere("=", 1)
-	if err := nborm.QueryOne(db, e); err != nil {
-		t.Fatal(err)
+func TestNBorm(t *testing.T) {
+	for _, test := range testList {
+		if err := test.f(); err != nil {
+			t.Fatal(nbcolor.Red(fmt.Sprintf("%s failed(%v)", test.name, err)))
+		}
+		fmt.Println(nbcolor.LightCyan(fmt.Sprintf("%s passed", test.name)))
 	}
-	fmt.Println("success")
 }
 
 func init() {

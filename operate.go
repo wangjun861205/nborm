@@ -33,12 +33,13 @@ func InsertOne(exe Executor, model Model) error {
 		}
 		model.AutoIncField().Set(int(lid))
 	}
+	model.setModelStatus(synced)
 	return nil
 }
 
 func Count(exe Executor, model Model) (int, error) {
 	whereClause, whereValues := genWhereClause(model)
-	tabRef := getTabRef(model)
+	tabRef := genTabRef(model)
 	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, whereClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
@@ -55,7 +56,7 @@ func QueryOne(exe Executor, model Model) error {
 	selectFields := getFields(model, forSelect)
 	selectColumns := getSelectColumns(model)
 	whereClause, whereValues := genWhereClause(model)
-	tabRef := getTabRef(model)
+	tabRef := genTabRef(model)
 	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
@@ -72,7 +73,7 @@ func Query(exe Executor, l ModelList, limit, offset int) error {
 	selectFields := getFields(l, forSelect)
 	selectColumns := getSelectColumns(l)
 	whereClause, whereValues := genWhereClause(l)
-	tabRef := getTabRef(l)
+	tabRef := genTabRef(l)
 	orderClause := getOrderClause(l)
 	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s", selectColumns, tabRef, whereClause, orderClause)
 	if limit > 0 && offset >= 0 {

@@ -7,13 +7,18 @@ import (
 )
 
 func NewEnterpriseAccount() *EnterpriseAccount {
-	m := &EnterpriseAccount{
-		Enterprise: &EnterpriseList{},
-	}
+	m := &EnterpriseAccount{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseAccount) InitRel() {
+	m.Enterprise = &EnterpriseList{}
+	m.Enterprise.SetParent(m)
+	nborm.InitModel(m.Enterprise)
+	m.AddRelInited()
+}
 func (m *EnterpriseAccount) DB() string {
 	return "qdxg"
 }
@@ -46,8 +51,8 @@ func (m *EnterpriseAccount) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *EnterpriseAccount) Relations() nborm.RelationInfoList {
-	if m.Enterprise == nil {
-		m.Enterprise = NewEnterpriseList()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
@@ -58,7 +63,6 @@ func (m *EnterpriseAccount) Relations() nborm.RelationInfoList {
 			m.Enterprise,
 		},
 	}
-
 }
 
 func (m EnterpriseAccount) MarshalJSON() ([]byte, error) {
@@ -90,7 +94,7 @@ type EnterpriseAccountList struct {
 
 func NewEnterpriseAccountList() *EnterpriseAccountList {
 	l := &EnterpriseAccountList{
-		*NewEnterpriseAccount(),
+		EnterpriseAccount{},
 		make([]*EnterpriseAccount, 0, 32),
 		0,
 	}
@@ -99,7 +103,9 @@ func NewEnterpriseAccountList() *EnterpriseAccountList {
 }
 
 func (l *EnterpriseAccountList) NewModel() nborm.Model {
-	m := NewEnterpriseAccount()
+	m := &EnterpriseAccount{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -129,9 +135,13 @@ func (l EnterpriseAccountList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseReviewStatus() *EnterpriseReviewStatus {
 	m := &EnterpriseReviewStatus{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseReviewStatus) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseReviewStatus) DB() string {
 	return "qdxg"
 }
@@ -166,7 +176,6 @@ func (m *EnterpriseReviewStatus) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseReviewStatus) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseReviewStatus) MarshalJSON() ([]byte, error) {
@@ -198,7 +207,7 @@ type EnterpriseReviewStatusList struct {
 
 func NewEnterpriseReviewStatusList() *EnterpriseReviewStatusList {
 	l := &EnterpriseReviewStatusList{
-		*NewEnterpriseReviewStatus(),
+		EnterpriseReviewStatus{},
 		make([]*EnterpriseReviewStatus, 0, 32),
 		0,
 	}
@@ -207,7 +216,9 @@ func NewEnterpriseReviewStatusList() *EnterpriseReviewStatusList {
 }
 
 func (l *EnterpriseReviewStatusList) NewModel() nborm.Model {
-	m := NewEnterpriseReviewStatus()
+	m := &EnterpriseReviewStatus{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -237,9 +248,13 @@ func (l EnterpriseReviewStatusList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseStatistic() *EnterpriseStatistic {
 	m := &EnterpriseStatistic{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseStatistic) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseStatistic) DB() string {
 	return "qdxg"
 }
@@ -272,7 +287,6 @@ func (m *EnterpriseStatistic) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseStatistic) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseStatistic) MarshalJSON() ([]byte, error) {
@@ -300,7 +314,7 @@ type EnterpriseStatisticList struct {
 
 func NewEnterpriseStatisticList() *EnterpriseStatisticList {
 	l := &EnterpriseStatisticList{
-		*NewEnterpriseStatistic(),
+		EnterpriseStatistic{},
 		make([]*EnterpriseStatistic, 0, 32),
 		0,
 	}
@@ -309,7 +323,9 @@ func NewEnterpriseStatisticList() *EnterpriseStatisticList {
 }
 
 func (l *EnterpriseStatisticList) NewModel() nborm.Model {
-	m := NewEnterpriseStatistic()
+	m := &EnterpriseStatistic{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -337,13 +353,18 @@ func (l EnterpriseStatisticList) MarshalJSON() ([]byte, error) {
 }
 
 func NewEnterprise() *Enterprise {
-	m := &Enterprise{
-		Account: &EnterpriseAccountList{},
-	}
+	m := &Enterprise{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *Enterprise) InitRel() {
+	m.Account = &EnterpriseAccountList{}
+	m.Account.SetParent(m)
+	nborm.InitModel(m.Account)
+	m.AddRelInited()
+}
 func (m *Enterprise) DB() string {
 	return "qdxg"
 }
@@ -386,8 +407,8 @@ func (m *Enterprise) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *Enterprise) Relations() nborm.RelationInfoList {
-	if m.Account == nil {
-		m.Account = NewEnterpriseAccountList()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
@@ -398,7 +419,6 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 			m.Account,
 		},
 	}
-
 }
 
 func (m Enterprise) MarshalJSON() ([]byte, error) {
@@ -450,7 +470,7 @@ type EnterpriseList struct {
 
 func NewEnterpriseList() *EnterpriseList {
 	l := &EnterpriseList{
-		*NewEnterprise(),
+		Enterprise{},
 		make([]*Enterprise, 0, 32),
 		0,
 	}
@@ -459,7 +479,9 @@ func NewEnterpriseList() *EnterpriseList {
 }
 
 func (l *EnterpriseList) NewModel() nborm.Model {
-	m := NewEnterprise()
+	m := &Enterprise{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -489,9 +511,13 @@ func (l EnterpriseList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseAttachment() *EnterpriseAttachment {
 	m := &EnterpriseAttachment{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseAttachment) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseAttachment) DB() string {
 	return "qdxg"
 }
@@ -527,7 +553,6 @@ func (m *EnterpriseAttachment) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseAttachment) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseAttachment) MarshalJSON() ([]byte, error) {
@@ -561,7 +586,7 @@ type EnterpriseAttachmentList struct {
 
 func NewEnterpriseAttachmentList() *EnterpriseAttachmentList {
 	l := &EnterpriseAttachmentList{
-		*NewEnterpriseAttachment(),
+		EnterpriseAttachment{},
 		make([]*EnterpriseAttachment, 0, 32),
 		0,
 	}
@@ -570,7 +595,9 @@ func NewEnterpriseAttachmentList() *EnterpriseAttachmentList {
 }
 
 func (l *EnterpriseAttachmentList) NewModel() nborm.Model {
-	m := NewEnterpriseAttachment()
+	m := &EnterpriseAttachment{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -600,9 +627,13 @@ func (l EnterpriseAttachmentList) MarshalJSON() ([]byte, error) {
 func NewMidEnterpriseTag() *MidEnterpriseTag {
 	m := &MidEnterpriseTag{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidEnterpriseTag) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidEnterpriseTag) DB() string {
 	return "qdxg"
 }
@@ -634,7 +665,6 @@ func (m *MidEnterpriseTag) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidEnterpriseTag) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidEnterpriseTag) MarshalJSON() ([]byte, error) {
@@ -658,7 +688,7 @@ type MidEnterpriseTagList struct {
 
 func NewMidEnterpriseTagList() *MidEnterpriseTagList {
 	l := &MidEnterpriseTagList{
-		*NewMidEnterpriseTag(),
+		MidEnterpriseTag{},
 		make([]*MidEnterpriseTag, 0, 32),
 		0,
 	}
@@ -667,7 +697,9 @@ func NewMidEnterpriseTagList() *MidEnterpriseTagList {
 }
 
 func (l *MidEnterpriseTagList) NewModel() nborm.Model {
-	m := NewMidEnterpriseTag()
+	m := &MidEnterpriseTag{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -697,9 +729,13 @@ func (l MidEnterpriseTagList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseJobStatistic() *EnterpriseJobStatistic {
 	m := &EnterpriseJobStatistic{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseJobStatistic) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseJobStatistic) DB() string {
 	return "qdxg"
 }
@@ -732,7 +768,6 @@ func (m *EnterpriseJobStatistic) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseJobStatistic) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseJobStatistic) MarshalJSON() ([]byte, error) {
@@ -760,7 +795,7 @@ type EnterpriseJobStatisticList struct {
 
 func NewEnterpriseJobStatisticList() *EnterpriseJobStatisticList {
 	l := &EnterpriseJobStatisticList{
-		*NewEnterpriseJobStatistic(),
+		EnterpriseJobStatistic{},
 		make([]*EnterpriseJobStatistic, 0, 32),
 		0,
 	}
@@ -769,7 +804,9 @@ func NewEnterpriseJobStatisticList() *EnterpriseJobStatisticList {
 }
 
 func (l *EnterpriseJobStatisticList) NewModel() nborm.Model {
-	m := NewEnterpriseJobStatistic()
+	m := &EnterpriseJobStatistic{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -799,9 +836,13 @@ func (l EnterpriseJobStatisticList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeEnterpriseJob() *MidStudentResumeEnterpriseJob {
 	m := &MidStudentResumeEnterpriseJob{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeEnterpriseJob) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeEnterpriseJob) DB() string {
 	return "qdxg"
 }
@@ -836,7 +877,6 @@ func (m *MidStudentResumeEnterpriseJob) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeEnterpriseJob) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeEnterpriseJob) MarshalJSON() ([]byte, error) {
@@ -866,7 +906,7 @@ type MidStudentResumeEnterpriseJobList struct {
 
 func NewMidStudentResumeEnterpriseJobList() *MidStudentResumeEnterpriseJobList {
 	l := &MidStudentResumeEnterpriseJobList{
-		*NewMidStudentResumeEnterpriseJob(),
+		MidStudentResumeEnterpriseJob{},
 		make([]*MidStudentResumeEnterpriseJob, 0, 32),
 		0,
 	}
@@ -875,7 +915,9 @@ func NewMidStudentResumeEnterpriseJobList() *MidStudentResumeEnterpriseJobList {
 }
 
 func (l *MidStudentResumeEnterpriseJobList) NewModel() nborm.Model {
-	m := NewMidStudentResumeEnterpriseJob()
+	m := &MidStudentResumeEnterpriseJob{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -903,14 +945,27 @@ func (l MidStudentResumeEnterpriseJobList) MarshalJSON() ([]byte, error) {
 }
 
 func NewEnterpriseJob() *EnterpriseJob {
-	m := &EnterpriseJob{
-		Enterprise:     &EnterpriseList{},
-		StudentResumes: &StudentResumeList{},
-	}
+	m := &EnterpriseJob{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseJob) InitRel() {
+	m.Enterprise = &EnterpriseList{}
+	m.Enterprise.SetParent(m)
+	nborm.InitModel(m.Enterprise)
+	m.StudentResumes = &StudentResumeList{}
+	m.StudentResumes.SetParent(m)
+	nborm.InitModel(m.StudentResumes)
+	var mm0 *MidStudentResumeEnterpriseJob
+	mm0 = &MidStudentResumeEnterpriseJob{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	mm0.ReviewStatus.AndWhere("=", 1)
+	m.AppendMidTab(mm0)
+	m.AddRelInited()
+}
 func (m *EnterpriseJob) DB() string {
 	return "qdxg"
 }
@@ -957,20 +1012,10 @@ func (m *EnterpriseJob) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
-	if m.Enterprise == nil {
-		m.Enterprise = NewEnterpriseList()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	if m.StudentResumes == nil {
-		m.StudentResumes = NewStudentResumeList()
-	}
-	var mm0 *MidStudentResumeEnterpriseJob
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeEnterpriseJob{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeEnterpriseJob)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeEnterpriseJob)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -989,7 +1034,6 @@ func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
 			m.StudentResumes,
 		},
 	}
-
 }
 
 func (m EnterpriseJob) MarshalJSON() ([]byte, error) {
@@ -1051,7 +1095,7 @@ type EnterpriseJobList struct {
 
 func NewEnterpriseJobList() *EnterpriseJobList {
 	l := &EnterpriseJobList{
-		*NewEnterpriseJob(),
+		EnterpriseJob{},
 		make([]*EnterpriseJob, 0, 32),
 		0,
 	}
@@ -1060,7 +1104,9 @@ func NewEnterpriseJobList() *EnterpriseJobList {
 }
 
 func (l *EnterpriseJobList) NewModel() nborm.Model {
-	m := NewEnterpriseJob()
+	m := &EnterpriseJob{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1090,9 +1136,13 @@ func (l EnterpriseJobList) MarshalJSON() ([]byte, error) {
 func NewMidStudentJobFairRead() *MidStudentJobFairRead {
 	m := &MidStudentJobFairRead{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentJobFairRead) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentJobFairRead) DB() string {
 	return "qdxg"
 }
@@ -1126,7 +1176,6 @@ func (m *MidStudentJobFairRead) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentJobFairRead) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentJobFairRead) MarshalJSON() ([]byte, error) {
@@ -1154,7 +1203,7 @@ type MidStudentJobFairReadList struct {
 
 func NewMidStudentJobFairReadList() *MidStudentJobFairReadList {
 	l := &MidStudentJobFairReadList{
-		*NewMidStudentJobFairRead(),
+		MidStudentJobFairRead{},
 		make([]*MidStudentJobFairRead, 0, 32),
 		0,
 	}
@@ -1163,7 +1212,9 @@ func NewMidStudentJobFairReadList() *MidStudentJobFairReadList {
 }
 
 func (l *MidStudentJobFairReadList) NewModel() nborm.Model {
-	m := NewMidStudentJobFairRead()
+	m := &MidStudentJobFairRead{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1193,9 +1244,13 @@ func (l MidStudentJobFairReadList) MarshalJSON() ([]byte, error) {
 func NewMidStudentJobFairEnroll() *MidStudentJobFairEnroll {
 	m := &MidStudentJobFairEnroll{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentJobFairEnroll) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentJobFairEnroll) DB() string {
 	return "qdxg"
 }
@@ -1229,7 +1284,6 @@ func (m *MidStudentJobFairEnroll) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentJobFairEnroll) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentJobFairEnroll) MarshalJSON() ([]byte, error) {
@@ -1257,7 +1311,7 @@ type MidStudentJobFairEnrollList struct {
 
 func NewMidStudentJobFairEnrollList() *MidStudentJobFairEnrollList {
 	l := &MidStudentJobFairEnrollList{
-		*NewMidStudentJobFairEnroll(),
+		MidStudentJobFairEnroll{},
 		make([]*MidStudentJobFairEnroll, 0, 32),
 		0,
 	}
@@ -1266,7 +1320,9 @@ func NewMidStudentJobFairEnrollList() *MidStudentJobFairEnrollList {
 }
 
 func (l *MidStudentJobFairEnrollList) NewModel() nborm.Model {
-	m := NewMidStudentJobFairEnroll()
+	m := &MidStudentJobFairEnroll{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1296,9 +1352,13 @@ func (l MidStudentJobFairEnrollList) MarshalJSON() ([]byte, error) {
 func NewMidStudentJobFairShare() *MidStudentJobFairShare {
 	m := &MidStudentJobFairShare{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentJobFairShare) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentJobFairShare) DB() string {
 	return "qdxg"
 }
@@ -1332,7 +1392,6 @@ func (m *MidStudentJobFairShare) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentJobFairShare) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentJobFairShare) MarshalJSON() ([]byte, error) {
@@ -1360,7 +1419,7 @@ type MidStudentJobFairShareList struct {
 
 func NewMidStudentJobFairShareList() *MidStudentJobFairShareList {
 	l := &MidStudentJobFairShareList{
-		*NewMidStudentJobFairShare(),
+		MidStudentJobFairShare{},
 		make([]*MidStudentJobFairShare, 0, 32),
 		0,
 	}
@@ -1369,7 +1428,9 @@ func NewMidStudentJobFairShareList() *MidStudentJobFairShareList {
 }
 
 func (l *MidStudentJobFairShareList) NewModel() nborm.Model {
-	m := NewMidStudentJobFairShare()
+	m := &MidStudentJobFairShare{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1399,9 +1460,13 @@ func (l MidStudentJobFairShareList) MarshalJSON() ([]byte, error) {
 func NewJobFairStatistic() *JobFairStatistic {
 	m := &JobFairStatistic{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *JobFairStatistic) InitRel() {
+	m.AddRelInited()
+}
 func (m *JobFairStatistic) DB() string {
 	return "qdxg"
 }
@@ -1436,7 +1501,6 @@ func (m *JobFairStatistic) UniqueKeys() []nborm.FieldList {
 }
 func (m *JobFairStatistic) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m JobFairStatistic) MarshalJSON() ([]byte, error) {
@@ -1468,7 +1532,7 @@ type JobFairStatisticList struct {
 
 func NewJobFairStatisticList() *JobFairStatisticList {
 	l := &JobFairStatisticList{
-		*NewJobFairStatistic(),
+		JobFairStatistic{},
 		make([]*JobFairStatistic, 0, 32),
 		0,
 	}
@@ -1477,7 +1541,9 @@ func NewJobFairStatisticList() *JobFairStatisticList {
 }
 
 func (l *JobFairStatisticList) NewModel() nborm.Model {
-	m := NewJobFairStatistic()
+	m := &JobFairStatistic{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1507,9 +1573,13 @@ func (l JobFairStatisticList) MarshalJSON() ([]byte, error) {
 func NewJobFair() *JobFair {
 	m := &JobFair{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *JobFair) InitRel() {
+	m.AddRelInited()
+}
 func (m *JobFair) DB() string {
 	return "qdxg"
 }
@@ -1547,7 +1617,6 @@ func (m *JobFair) UniqueKeys() []nborm.FieldList {
 }
 func (m *JobFair) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m JobFair) MarshalJSON() ([]byte, error) {
@@ -1585,7 +1654,7 @@ type JobFairList struct {
 
 func NewJobFairList() *JobFairList {
 	l := &JobFairList{
-		*NewJobFair(),
+		JobFair{},
 		make([]*JobFair, 0, 32),
 		0,
 	}
@@ -1594,7 +1663,9 @@ func NewJobFairList() *JobFairList {
 }
 
 func (l *JobFairList) NewModel() nborm.Model {
-	m := NewJobFair()
+	m := &JobFair{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1624,9 +1695,13 @@ func (l JobFairList) MarshalJSON() ([]byte, error) {
 func NewJobFlag() *JobFlag {
 	m := &JobFlag{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *JobFlag) InitRel() {
+	m.AddRelInited()
+}
 func (m *JobFlag) DB() string {
 	return "qdxg"
 }
@@ -1666,7 +1741,6 @@ func (m *JobFlag) UniqueKeys() []nborm.FieldList {
 }
 func (m *JobFlag) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m JobFlag) MarshalJSON() ([]byte, error) {
@@ -1708,7 +1782,7 @@ type JobFlagList struct {
 
 func NewJobFlagList() *JobFlagList {
 	l := &JobFlagList{
-		*NewJobFlag(),
+		JobFlag{},
 		make([]*JobFlag, 0, 32),
 		0,
 	}
@@ -1717,7 +1791,9 @@ func NewJobFlagList() *JobFlagList {
 }
 
 func (l *JobFlagList) NewModel() nborm.Model {
-	m := NewJobFlag()
+	m := &JobFlag{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1747,9 +1823,13 @@ func (l JobFlagList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeLanguageSkill() *MidStudentResumeLanguageSkill {
 	m := &MidStudentResumeLanguageSkill{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeLanguageSkill) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeLanguageSkill) DB() string {
 	return "qdxg"
 }
@@ -1781,7 +1861,6 @@ func (m *MidStudentResumeLanguageSkill) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeLanguageSkill) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeLanguageSkill) MarshalJSON() ([]byte, error) {
@@ -1805,7 +1884,7 @@ type MidStudentResumeLanguageSkillList struct {
 
 func NewMidStudentResumeLanguageSkillList() *MidStudentResumeLanguageSkillList {
 	l := &MidStudentResumeLanguageSkillList{
-		*NewMidStudentResumeLanguageSkill(),
+		MidStudentResumeLanguageSkill{},
 		make([]*MidStudentResumeLanguageSkill, 0, 32),
 		0,
 	}
@@ -1814,7 +1893,9 @@ func NewMidStudentResumeLanguageSkillList() *MidStudentResumeLanguageSkillList {
 }
 
 func (l *MidStudentResumeLanguageSkillList) NewModel() nborm.Model {
-	m := NewMidStudentResumeLanguageSkill()
+	m := &MidStudentResumeLanguageSkill{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1844,9 +1925,13 @@ func (l MidStudentResumeLanguageSkillList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeStudentTrain() *MidStudentResumeStudentTrain {
 	m := &MidStudentResumeStudentTrain{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeStudentTrain) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeStudentTrain) DB() string {
 	return "qdxg"
 }
@@ -1878,7 +1963,6 @@ func (m *MidStudentResumeStudentTrain) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeStudentTrain) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeStudentTrain) MarshalJSON() ([]byte, error) {
@@ -1902,7 +1986,7 @@ type MidStudentResumeStudentTrainList struct {
 
 func NewMidStudentResumeStudentTrainList() *MidStudentResumeStudentTrainList {
 	l := &MidStudentResumeStudentTrainList{
-		*NewMidStudentResumeStudentTrain(),
+		MidStudentResumeStudentTrain{},
 		make([]*MidStudentResumeStudentTrain, 0, 32),
 		0,
 	}
@@ -1911,7 +1995,9 @@ func NewMidStudentResumeStudentTrainList() *MidStudentResumeStudentTrainList {
 }
 
 func (l *MidStudentResumeStudentTrainList) NewModel() nborm.Model {
-	m := NewMidStudentResumeStudentTrain()
+	m := &MidStudentResumeStudentTrain{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -1941,9 +2027,13 @@ func (l MidStudentResumeStudentTrainList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeStudentHonor() *MidStudentResumeStudentHonor {
 	m := &MidStudentResumeStudentHonor{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeStudentHonor) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeStudentHonor) DB() string {
 	return "qdxg"
 }
@@ -1975,7 +2065,6 @@ func (m *MidStudentResumeStudentHonor) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeStudentHonor) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeStudentHonor) MarshalJSON() ([]byte, error) {
@@ -1999,7 +2088,7 @@ type MidStudentResumeStudentHonorList struct {
 
 func NewMidStudentResumeStudentHonorList() *MidStudentResumeStudentHonorList {
 	l := &MidStudentResumeStudentHonorList{
-		*NewMidStudentResumeStudentHonor(),
+		MidStudentResumeStudentHonor{},
 		make([]*MidStudentResumeStudentHonor, 0, 32),
 		0,
 	}
@@ -2008,7 +2097,9 @@ func NewMidStudentResumeStudentHonorList() *MidStudentResumeStudentHonorList {
 }
 
 func (l *MidStudentResumeStudentHonorList) NewModel() nborm.Model {
-	m := NewMidStudentResumeStudentHonor()
+	m := &MidStudentResumeStudentHonor{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2038,9 +2129,13 @@ func (l MidStudentResumeStudentHonorList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeStudentExperience() *MidStudentResumeStudentExperience {
 	m := &MidStudentResumeStudentExperience{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeStudentExperience) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeStudentExperience) DB() string {
 	return "qdxg"
 }
@@ -2072,7 +2167,6 @@ func (m *MidStudentResumeStudentExperience) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeStudentExperience) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeStudentExperience) MarshalJSON() ([]byte, error) {
@@ -2096,7 +2190,7 @@ type MidStudentResumeStudentExperienceList struct {
 
 func NewMidStudentResumeStudentExperienceList() *MidStudentResumeStudentExperienceList {
 	l := &MidStudentResumeStudentExperienceList{
-		*NewMidStudentResumeStudentExperience(),
+		MidStudentResumeStudentExperience{},
 		make([]*MidStudentResumeStudentExperience, 0, 32),
 		0,
 	}
@@ -2105,7 +2199,9 @@ func NewMidStudentResumeStudentExperienceList() *MidStudentResumeStudentExperien
 }
 
 func (l *MidStudentResumeStudentExperienceList) NewModel() nborm.Model {
-	m := NewMidStudentResumeStudentExperience()
+	m := &MidStudentResumeStudentExperience{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2135,9 +2231,13 @@ func (l MidStudentResumeStudentExperienceList) MarshalJSON() ([]byte, error) {
 func NewMidStudentResumeStudentSkill() *MidStudentResumeStudentSkill {
 	m := &MidStudentResumeStudentSkill{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *MidStudentResumeStudentSkill) InitRel() {
+	m.AddRelInited()
+}
 func (m *MidStudentResumeStudentSkill) DB() string {
 	return "qdxg"
 }
@@ -2169,7 +2269,6 @@ func (m *MidStudentResumeStudentSkill) UniqueKeys() []nborm.FieldList {
 }
 func (m *MidStudentResumeStudentSkill) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m MidStudentResumeStudentSkill) MarshalJSON() ([]byte, error) {
@@ -2193,7 +2292,7 @@ type MidStudentResumeStudentSkillList struct {
 
 func NewMidStudentResumeStudentSkillList() *MidStudentResumeStudentSkillList {
 	l := &MidStudentResumeStudentSkillList{
-		*NewMidStudentResumeStudentSkill(),
+		MidStudentResumeStudentSkill{},
 		make([]*MidStudentResumeStudentSkill, 0, 32),
 		0,
 	}
@@ -2202,7 +2301,9 @@ func NewMidStudentResumeStudentSkillList() *MidStudentResumeStudentSkillList {
 }
 
 func (l *MidStudentResumeStudentSkillList) NewModel() nborm.Model {
-	m := NewMidStudentResumeStudentSkill()
+	m := &MidStudentResumeStudentSkill{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2230,13 +2331,23 @@ func (l MidStudentResumeStudentSkillList) MarshalJSON() ([]byte, error) {
 }
 
 func NewStudentTrain() *StudentTrain {
-	m := &StudentTrain{
-		StudentResume: &StudentResume{},
-	}
+	m := &StudentTrain{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentTrain) InitRel() {
+	m.StudentResume = &StudentResume{}
+	m.StudentResume.SetParent(m)
+	nborm.InitModel(m.StudentResume)
+	var mm0 *MidStudentResumeStudentTrain
+	mm0 = &MidStudentResumeStudentTrain{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	m.AppendMidTab(mm0)
+	m.AddRelInited()
+}
 func (m *StudentTrain) DB() string {
 	return "qdxg"
 }
@@ -2275,17 +2386,10 @@ func (m *StudentTrain) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *StudentTrain) Relations() nborm.RelationInfoList {
-	if m.StudentResume == nil {
-		m.StudentResume = NewStudentResume()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	var mm0 *MidStudentResumeStudentTrain
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeStudentTrain{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeStudentTrain)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeStudentTrain)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -2297,7 +2401,6 @@ func (m *StudentTrain) Relations() nborm.RelationInfoList {
 			m.StudentResume,
 		},
 	}
-
 }
 
 func (m StudentTrain) MarshalJSON() ([]byte, error) {
@@ -2341,7 +2444,7 @@ type StudentTrainList struct {
 
 func NewStudentTrainList() *StudentTrainList {
 	l := &StudentTrainList{
-		*NewStudentTrain(),
+		StudentTrain{},
 		make([]*StudentTrain, 0, 32),
 		0,
 	}
@@ -2350,7 +2453,9 @@ func NewStudentTrainList() *StudentTrainList {
 }
 
 func (l *StudentTrainList) NewModel() nborm.Model {
-	m := NewStudentTrain()
+	m := &StudentTrain{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2378,13 +2483,23 @@ func (l StudentTrainList) MarshalJSON() ([]byte, error) {
 }
 
 func NewStudentHonor() *StudentHonor {
-	m := &StudentHonor{
-		StudentResume: &StudentResume{},
-	}
+	m := &StudentHonor{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentHonor) InitRel() {
+	m.StudentResume = &StudentResume{}
+	m.StudentResume.SetParent(m)
+	nborm.InitModel(m.StudentResume)
+	var mm0 *MidStudentResumeStudentHonor
+	mm0 = &MidStudentResumeStudentHonor{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	m.AppendMidTab(mm0)
+	m.AddRelInited()
+}
 func (m *StudentHonor) DB() string {
 	return "qdxg"
 }
@@ -2420,17 +2535,10 @@ func (m *StudentHonor) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *StudentHonor) Relations() nborm.RelationInfoList {
-	if m.StudentResume == nil {
-		m.StudentResume = NewStudentResume()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	var mm0 *MidStudentResumeStudentHonor
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeStudentHonor{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeStudentHonor)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeStudentHonor)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -2442,7 +2550,6 @@ func (m *StudentHonor) Relations() nborm.RelationInfoList {
 			m.StudentResume,
 		},
 	}
-
 }
 
 func (m StudentHonor) MarshalJSON() ([]byte, error) {
@@ -2480,7 +2587,7 @@ type StudentHonorList struct {
 
 func NewStudentHonorList() *StudentHonorList {
 	l := &StudentHonorList{
-		*NewStudentHonor(),
+		StudentHonor{},
 		make([]*StudentHonor, 0, 32),
 		0,
 	}
@@ -2489,7 +2596,9 @@ func NewStudentHonorList() *StudentHonorList {
 }
 
 func (l *StudentHonorList) NewModel() nborm.Model {
-	m := NewStudentHonor()
+	m := &StudentHonor{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2517,13 +2626,23 @@ func (l StudentHonorList) MarshalJSON() ([]byte, error) {
 }
 
 func NewStudentExperience() *StudentExperience {
-	m := &StudentExperience{
-		StudentResume: &StudentResume{},
-	}
+	m := &StudentExperience{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentExperience) InitRel() {
+	m.StudentResume = &StudentResume{}
+	m.StudentResume.SetParent(m)
+	nborm.InitModel(m.StudentResume)
+	var mm0 *MidStudentResumeStudentExperience
+	mm0 = &MidStudentResumeStudentExperience{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	m.AppendMidTab(mm0)
+	m.AddRelInited()
+}
 func (m *StudentExperience) DB() string {
 	return "qdxg"
 }
@@ -2562,17 +2681,10 @@ func (m *StudentExperience) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *StudentExperience) Relations() nborm.RelationInfoList {
-	if m.StudentResume == nil {
-		m.StudentResume = NewStudentResume()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	var mm0 *MidStudentResumeStudentExperience
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeStudentExperience{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeStudentExperience)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeStudentExperience)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -2584,7 +2696,6 @@ func (m *StudentExperience) Relations() nborm.RelationInfoList {
 			m.StudentResume,
 		},
 	}
-
 }
 
 func (m StudentExperience) MarshalJSON() ([]byte, error) {
@@ -2628,7 +2739,7 @@ type StudentExperienceList struct {
 
 func NewStudentExperienceList() *StudentExperienceList {
 	l := &StudentExperienceList{
-		*NewStudentExperience(),
+		StudentExperience{},
 		make([]*StudentExperience, 0, 32),
 		0,
 	}
@@ -2637,7 +2748,9 @@ func NewStudentExperienceList() *StudentExperienceList {
 }
 
 func (l *StudentExperienceList) NewModel() nborm.Model {
-	m := NewStudentExperience()
+	m := &StudentExperience{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2665,13 +2778,23 @@ func (l StudentExperienceList) MarshalJSON() ([]byte, error) {
 }
 
 func NewStudentSkill() *StudentSkill {
-	m := &StudentSkill{
-		StudentResume: &StudentResume{},
-	}
+	m := &StudentSkill{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentSkill) InitRel() {
+	m.StudentResume = &StudentResume{}
+	m.StudentResume.SetParent(m)
+	nborm.InitModel(m.StudentResume)
+	var mm0 *MidStudentResumeStudentSkill
+	mm0 = &MidStudentResumeStudentSkill{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	m.AppendMidTab(mm0)
+	m.AddRelInited()
+}
 func (m *StudentSkill) DB() string {
 	return "qdxg"
 }
@@ -2706,17 +2829,10 @@ func (m *StudentSkill) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *StudentSkill) Relations() nborm.RelationInfoList {
-	if m.StudentResume == nil {
-		m.StudentResume = NewStudentResume()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	var mm0 *MidStudentResumeStudentSkill
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeStudentSkill{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeStudentSkill)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeStudentSkill)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -2728,7 +2844,6 @@ func (m *StudentSkill) Relations() nborm.RelationInfoList {
 			m.StudentResume,
 		},
 	}
-
 }
 
 func (m StudentSkill) MarshalJSON() ([]byte, error) {
@@ -2764,7 +2879,7 @@ type StudentSkillList struct {
 
 func NewStudentSkillList() *StudentSkillList {
 	l := &StudentSkillList{
-		*NewStudentSkill(),
+		StudentSkill{},
 		make([]*StudentSkill, 0, 32),
 		0,
 	}
@@ -2773,7 +2888,9 @@ func NewStudentSkillList() *StudentSkillList {
 }
 
 func (l *StudentSkillList) NewModel() nborm.Model {
-	m := NewStudentSkill()
+	m := &StudentSkill{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -2801,17 +2918,50 @@ func (l StudentSkillList) MarshalJSON() ([]byte, error) {
 }
 
 func NewStudentResume() *StudentResume {
-	m := &StudentResume{
-		StudentTrain:        &StudentTrainList{},
-		StudentHonor:        &StudentHonorList{},
-		StudentExperience:   &StudentExperienceList{},
-		StudentSkill:        &StudentSkillList{},
-		StudentLanguageType: &JobFlagList{},
-	}
+	m := &StudentResume{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentResume) InitRel() {
+	m.StudentTrain = &StudentTrainList{}
+	m.StudentTrain.SetParent(m)
+	nborm.InitModel(m.StudentTrain)
+	m.StudentHonor = &StudentHonorList{}
+	m.StudentHonor.SetParent(m)
+	nborm.InitModel(m.StudentHonor)
+	m.StudentExperience = &StudentExperienceList{}
+	m.StudentExperience.SetParent(m)
+	nborm.InitModel(m.StudentExperience)
+	m.StudentSkill = &StudentSkillList{}
+	m.StudentSkill.SetParent(m)
+	nborm.InitModel(m.StudentSkill)
+	m.StudentLanguageType = &JobFlagList{}
+	m.StudentLanguageType.SetParent(m)
+	nborm.InitModel(m.StudentLanguageType)
+	var mm0 *MidStudentResumeStudentTrain
+	var mm1 *MidStudentResumeStudentHonor
+	var mm2 *MidStudentResumeStudentExperience
+	var mm3 *MidStudentResumeStudentSkill
+	mm0 = &MidStudentResumeStudentTrain{}
+	mm0.SetParent(m)
+	nborm.InitModel(mm0)
+	m.AppendMidTab(mm0)
+	mm1 = &MidStudentResumeStudentHonor{}
+	mm1.SetParent(m)
+	nborm.InitModel(mm1)
+	m.AppendMidTab(mm1)
+	mm2 = &MidStudentResumeStudentExperience{}
+	mm2.SetParent(m)
+	nborm.InitModel(mm2)
+	m.AppendMidTab(mm2)
+	mm3 = &MidStudentResumeStudentSkill{}
+	mm3.SetParent(m)
+	nborm.InitModel(mm3)
+	m.AppendMidTab(mm3)
+	m.AddRelInited()
+}
 func (m *StudentResume) DB() string {
 	return "qdxg"
 }
@@ -2844,44 +2994,13 @@ func (m *StudentResume) UniqueKeys() []nborm.FieldList {
 	return nil
 }
 func (m *StudentResume) Relations() nborm.RelationInfoList {
-	if m.StudentTrain == nil {
-		m.StudentTrain = NewStudentTrainList()
+	if !m.IsRelInited() {
+		m.InitRel()
 	}
-	if m.StudentHonor == nil {
-		m.StudentHonor = NewStudentHonorList()
-	}
-	if m.StudentExperience == nil {
-		m.StudentExperience = NewStudentExperienceList()
-	}
-	if m.StudentSkill == nil {
-		m.StudentSkill = NewStudentSkillList()
-	}
-	if m.StudentLanguageType == nil {
-		m.StudentLanguageType = NewJobFlagList()
-	}
-	var mm0 *MidStudentResumeStudentTrain
-	var mm1 *MidStudentResumeStudentHonor
-	var mm2 *MidStudentResumeStudentExperience
-	var mm3 *MidStudentResumeStudentSkill
-	if m.GetMidTabs() == nil {
-		mm0 = &MidStudentResumeStudentTrain{}
-		nborm.InitModel(mm0)
-		m.AppendMidTab(mm0)
-		mm1 = &MidStudentResumeStudentHonor{}
-		nborm.InitModel(mm1)
-		m.AppendMidTab(mm1)
-		mm2 = &MidStudentResumeStudentExperience{}
-		nborm.InitModel(mm2)
-		m.AppendMidTab(mm2)
-		mm3 = &MidStudentResumeStudentSkill{}
-		nborm.InitModel(mm3)
-		m.AppendMidTab(mm3)
-	} else {
-		mm0 = m.GetMidTabs()[0].(*MidStudentResumeStudentTrain)
-		mm1 = m.GetMidTabs()[1].(*MidStudentResumeStudentHonor)
-		mm2 = m.GetMidTabs()[2].(*MidStudentResumeStudentExperience)
-		mm3 = m.GetMidTabs()[3].(*MidStudentResumeStudentSkill)
-	}
+	mm0 := m.GetMidTabs()[0].(*MidStudentResumeStudentTrain)
+	mm1 := m.GetMidTabs()[1].(*MidStudentResumeStudentHonor)
+	mm2 := m.GetMidTabs()[2].(*MidStudentResumeStudentExperience)
+	mm3 := m.GetMidTabs()[3].(*MidStudentResumeStudentSkill)
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -2927,7 +3046,6 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 			m.StudentLanguageType,
 		},
 	}
-
 }
 
 func (m StudentResume) MarshalJSON() ([]byte, error) {
@@ -2967,7 +3085,7 @@ type StudentResumeList struct {
 
 func NewStudentResumeList() *StudentResumeList {
 	l := &StudentResumeList{
-		*NewStudentResume(),
+		StudentResume{},
 		make([]*StudentResume, 0, 32),
 		0,
 	}
@@ -2976,7 +3094,9 @@ func NewStudentResumeList() *StudentResumeList {
 }
 
 func (l *StudentResumeList) NewModel() nborm.Model {
-	m := NewStudentResume()
+	m := &StudentResume{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -3006,9 +3126,13 @@ func (l StudentResumeList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseSnapshot() *EnterpriseSnapshot {
 	m := &EnterpriseSnapshot{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseSnapshot) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseSnapshot) DB() string {
 	return "qdxg"
 }
@@ -3040,7 +3164,6 @@ func (m *EnterpriseSnapshot) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseSnapshot) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseSnapshot) MarshalJSON() ([]byte, error) {
@@ -3066,7 +3189,7 @@ type EnterpriseSnapshotList struct {
 
 func NewEnterpriseSnapshotList() *EnterpriseSnapshotList {
 	l := &EnterpriseSnapshotList{
-		*NewEnterpriseSnapshot(),
+		EnterpriseSnapshot{},
 		make([]*EnterpriseSnapshot, 0, 32),
 		0,
 	}
@@ -3075,7 +3198,9 @@ func NewEnterpriseSnapshotList() *EnterpriseSnapshotList {
 }
 
 func (l *EnterpriseSnapshotList) NewModel() nborm.Model {
-	m := NewEnterpriseSnapshot()
+	m := &EnterpriseSnapshot{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -3105,9 +3230,13 @@ func (l EnterpriseSnapshotList) MarshalJSON() ([]byte, error) {
 func NewEnterpriseJobSnapshot() *EnterpriseJobSnapshot {
 	m := &EnterpriseJobSnapshot{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *EnterpriseJobSnapshot) InitRel() {
+	m.AddRelInited()
+}
 func (m *EnterpriseJobSnapshot) DB() string {
 	return "qdxg"
 }
@@ -3139,7 +3268,6 @@ func (m *EnterpriseJobSnapshot) UniqueKeys() []nborm.FieldList {
 }
 func (m *EnterpriseJobSnapshot) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m EnterpriseJobSnapshot) MarshalJSON() ([]byte, error) {
@@ -3165,7 +3293,7 @@ type EnterpriseJobSnapshotList struct {
 
 func NewEnterpriseJobSnapshotList() *EnterpriseJobSnapshotList {
 	l := &EnterpriseJobSnapshotList{
-		*NewEnterpriseJobSnapshot(),
+		EnterpriseJobSnapshot{},
 		make([]*EnterpriseJobSnapshot, 0, 32),
 		0,
 	}
@@ -3174,7 +3302,9 @@ func NewEnterpriseJobSnapshotList() *EnterpriseJobSnapshotList {
 }
 
 func (l *EnterpriseJobSnapshotList) NewModel() nborm.Model {
-	m := NewEnterpriseJobSnapshot()
+	m := &EnterpriseJobSnapshot{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }
@@ -3204,9 +3334,13 @@ func (l EnterpriseJobSnapshotList) MarshalJSON() ([]byte, error) {
 func NewStudentResumeSnapshot() *StudentResumeSnapshot {
 	m := &StudentResumeSnapshot{}
 	nborm.InitModel(m)
+	m.InitRel()
 	return m
 }
 
+func (m *StudentResumeSnapshot) InitRel() {
+	m.AddRelInited()
+}
 func (m *StudentResumeSnapshot) DB() string {
 	return "qdxg"
 }
@@ -3238,7 +3372,6 @@ func (m *StudentResumeSnapshot) UniqueKeys() []nborm.FieldList {
 }
 func (m *StudentResumeSnapshot) Relations() nborm.RelationInfoList {
 	return nil
-
 }
 
 func (m StudentResumeSnapshot) MarshalJSON() ([]byte, error) {
@@ -3264,7 +3397,7 @@ type StudentResumeSnapshotList struct {
 
 func NewStudentResumeSnapshotList() *StudentResumeSnapshotList {
 	l := &StudentResumeSnapshotList{
-		*NewStudentResumeSnapshot(),
+		StudentResumeSnapshot{},
 		make([]*StudentResumeSnapshot, 0, 32),
 		0,
 	}
@@ -3273,7 +3406,9 @@ func NewStudentResumeSnapshotList() *StudentResumeSnapshotList {
 }
 
 func (l *StudentResumeSnapshotList) NewModel() nborm.Model {
-	m := NewStudentResumeSnapshot()
+	m := &StudentResumeSnapshot{}
+	m.SetParent(l.GetParent())
+	nborm.InitModel(m)
 	l.List = append(l.List, m)
 	return m
 }

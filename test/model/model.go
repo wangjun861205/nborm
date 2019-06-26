@@ -133,7 +133,7 @@ type EnterpriseJob struct {
 	CreateTime      nborm.Datetime
 	UpdateTime      nborm.Datetime
 	Enterprise      *EnterpriseList    `rel:"EnterpriseID->ID"`
-	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob.JobID->MidEnterpriseJobStudentResume.ResumeID->StudentResume.ID"`
+	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob(ReviewStatus=1).JobID->MidEnterpriseJobStudentResume.ResumeID->StudentResume.ID"`
 }
 
 //db:qdxg

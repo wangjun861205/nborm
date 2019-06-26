@@ -15,45 +15,13 @@ func SetDebug(debug bool) {
 func InitModel(model Model) {
 	if model.getModelStatus()&inited == 0 {
 		model.setModel(model)
-		if model.getParent() == nil {
-			model.setAlias("t0")
-		}
+		model.setAlias()
 		for _, fi := range model.FieldInfos() {
 			fi.Field.setModel(model)
 			fi.Field.setCol(fi.ColName)
 			fi.Field.setField(fi.FieldName)
 		}
-		for _, f := range model.PrimaryKey() {
-			f.setPrimaryKey()
-		}
-		if model.AutoIncField() != nil {
-			model.AutoIncField().setAutoInc()
-		}
-		model.setModelStatus(inited)
-	}
-	for _, rel := range model.Relations() {
-		relModel := rel.Object.(Model)
-		relModel.setModel(relModel)
-		relModel.setAlias(fmt.Sprintf("t%d", model.getIndex()))
-		for _, fi := range relModel.FieldInfos() {
-			fi.Field.setModel(relModel)
-			fi.Field.setCol(fi.ColName)
-			fi.Field.setField(fi.FieldName)
-		}
-		for _, f := range rel.Object.(Model).PrimaryKey() {
-			f.setPrimaryKey()
-		}
-		if rel.Object.(Model).AutoIncField() != nil {
-			rel.Object.(Model).AutoIncField().setAutoInc()
-		}
-		for i, rf := range rel.Fields[1 : len(rel.Fields)-1] {
-			if i%2 == 0 {
-				if rf.(Model).getModelStatus()&inited == 0 {
-					rf.(Model).setAlias(fmt.Sprintf("t%d", model.getIndex()))
-					rf.(Model).setParent(model)
-				}
-			}
-		}
+		model.addModelStatus(inited)
 	}
 }
 
@@ -207,17 +175,6 @@ func getSelectFields(model Model) FieldList {
 	return selectFields
 }
 
-func getTabRef(model Model) string {
-	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("%s ", model.fullTabName()))
-	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getWhere() != nil {
-			builder.WriteString(rel.toAppendJoinClause())
-		}
-	}
-	return builder.String()
-}
-
 func getOrderClause(model Model) string {
 	orderFields := getFields(model, forAscOrder|forDscOrder)
 	if len(orderFields) == 0 {
@@ -252,19 +209,80 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func genWhereClause(model Model) (string, []interface{}) {
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	where := model.getWhere()
-	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getWhere() != nil {
-			if where == nil {
-				where = rel.Object.(Model).getWhere()
-			} else {
-				where.append(rel.Object.(Model).getWhere())
+func genTabRef(model Model) string {
+	var builder strings.Builder
+	if model.GetParent() == nil {
+		builder.WriteString(model.fullTabName())
+		for _, relInfo := range model.Relations() {
+			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+				builder.WriteString(relInfo.toAppendJoinClause())
+			}
+		}
+	} else {
+		parent := model.GetParent()
+		switch {
+		case (parent.getModelStatus()&synced)|(parent.getModelStatus()&forModelWhere) > 0:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					builder.WriteString(parent.fullTabName())
+					builder.WriteString(relInfo.toAppendJoinClause())
+					break
+				}
+			}
+		default:
+			builder.WriteString(model.fullTabName())
+		}
+		for _, relInfo := range model.Relations() {
+			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+				builder.WriteString(relInfo.toAppendJoinClause())
 			}
 		}
 	}
+	return builder.String()
+}
+
+func genWhereClause(model Model) (string, []interface{}) {
+	var where *where
+	if model.GetParent() == nil {
+		where = where.append(model.getWhere())
+		for _, relInfo := range model.Relations() {
+			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+				where = where.append(relInfo.Object.(Model).getWhere())
+			}
+		}
+	} else {
+		parent := model.GetParent()
+		switch {
+		case parent.getModelStatus()&synced == synced:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					where = where.append(newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+					break
+				}
+			}
+		case parent.getModelStatus()&forModelWhere == forModelWhere:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					where = where.append(parent.getWhere())
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+					break
+				}
+			}
+		default:
+			where = where.append(model.getWhere())
+		}
+	}
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
 	where.toClause(&cl, &vl)
 	if len(cl) == 0 {
 		return "", nil
@@ -272,10 +290,30 @@ func genWhereClause(model Model) (string, []interface{}) {
 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
 }
 
+// func genWhereClause(model Model) (string, []interface{}) {
+// 	cl := make([]string, 0, 8)
+// 	vl := make([]interface{}, 0, 8)
+// 	where := model.getWhere()
+// 	for _, rel := range model.Relations() {
+// 		if rel.Object.(Model).getWhere() != nil {
+// 			if where == nil {
+// 				where = rel.Object.(Model).getWhere()
+// 			} else {
+// 				where.append(rel.Object.(Model).getWhere())
+// 			}
+// 		}
+// 	}
+// 	where.toClause(&cl, &vl)
+// 	if len(cl) == 0 {
+// 		return "", nil
+// 	}
+// 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+// }
+
 func genSimpleWhereClause(model Model) (string, []interface{}) {
 	cl := make([]string, 0, 8)
 	vl := make([]interface{}, 0, 8)
-	model.getWhere().toClause(&cl, &vl)
+	model.getWhere().toSimpleClause(&cl, &vl)
 	if len(cl) == 0 {
 		return "", nil
 	}

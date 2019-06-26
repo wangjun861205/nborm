@@ -3,6 +3,7 @@ package nborm
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 type clauseStatus int
@@ -100,12 +101,19 @@ func newWhere(rel rel, expr *Expr, val ...interface{}) *where {
 	}
 }
 
-func (w *where) append(nw *where) {
+func (w *where) append(nw *where) *where {
+	if w == nil {
+		return nw
+	}
+	if nw == nil {
+		return w
+	}
 	lastWhere := w
 	for lastWhere.next != nil {
 		lastWhere = lastWhere.next
 	}
 	lastWhere.next = nw
+	return w
 }
 
 func (w *where) toClause(cl *[]string, vl *[]interface{}) {
@@ -130,6 +138,74 @@ func (w *where) toClause(cl *[]string, vl *[]interface{}) {
 		case []string:
 			for _, s := range v {
 				*vl = append(*vl, s)
+			}
+		case []time.Time:
+			switch w.expr.fields[0].(type) {
+			case *Date:
+				for _, t := range v {
+					*vl = append(*vl, t.Format("2006-01-02"))
+				}
+			default:
+				for _, t := range v {
+					*vl = append(*vl, t.Format("2006-01-02"))
+				}
+			}
+		case time.Time:
+			switch w.expr.fields[0].(type) {
+			case *Date:
+				*vl = append(*vl, v.Format("2006-01-02"))
+			default:
+				*vl = append(*vl, v.Format("2006-01-02"))
+			}
+		default:
+			*vl = append(*vl, w.val[0])
+		}
+	}
+	if w.next != nil {
+		w.next.toClause(cl, vl)
+	}
+}
+
+func (w *where) toSimpleClause(cl *[]string, vl *[]interface{}) {
+	if w == nil {
+		return
+	}
+	*cl = append(*cl, fmt.Sprintf("%s %s", w.rel, w.expr.SimpleString()))
+	if len(w.val) > 0 {
+		switch v := w.val[0].(type) {
+		case []int:
+			for _, i := range v {
+				*vl = append(*vl, i)
+			}
+		case []float32:
+			for _, f := range v {
+				*vl = append(*vl, f)
+			}
+		case []float64:
+			for _, f := range v {
+				*vl = append(*vl, f)
+			}
+		case []string:
+			for _, s := range v {
+				*vl = append(*vl, s)
+			}
+		case []time.Time:
+			switch w.expr.fields[0].(type) {
+			case *Date:
+				for _, t := range v {
+					*vl = append(*vl, t.Format("2006-01-02"))
+				}
+			default:
+				for _, t := range v {
+					*vl = append(*vl, t.Format("2006-01-02"))
+				}
+			}
+		case time.Time:
+			switch w.expr.fields[0].(type) {
+			case *Date:
+				*vl = append(*vl, v.Format("2006-01-02"))
+			default:
+				*vl = append(*vl, v.Format("2006-01-02"))
 			}
 		default:
 			*vl = append(*vl, w.val[0])

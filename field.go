@@ -310,25 +310,12 @@ func (f *baseField) String() string {
 }
 
 type clauseField struct {
-	// where  whereList
 	update *updateSet
 }
-
-// func (f *clauseField) andWhere(field Field, op string, value interface{}) {
-// 	f.where = append(f.where, newWhere(and, field, op, value))
-// }
-
-// func (f *clauseField) orWhere(field Field, op string, value interface{}) {
-// 	f.where = append(f.where, newWhere(or, field, op, value))
-// }
 
 func (f *clauseField) setUpdate(field Field, value interface{}) {
 	f.update = newUpdateSet(field, value)
 }
-
-// func (f *clauseField) whereList() whereList {
-// 	return f.where
-// }
 
 func (f *clauseField) updateSet() *updateSet {
 	return f.update
@@ -421,24 +408,28 @@ func (f *String) OrW() Field {
 
 func (f *String) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
+	switch op {
+	case "IN", "NOT IN":
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	case "IS NULL", "IS NOT NULL":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *String) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
+	switch op {
+	case "IN", "NOT IN":
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	case "IS NULL", "IS NOT NULL":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -546,24 +537,28 @@ func (f *Int) OrW() Field {
 
 func (f *Int) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]int))), ", ")), f), value)
+	case "IS NULL", "IS NOT NULL":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Int) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]int))), ", ")), f), value)
+	case "IS NULL", "IS NOT NULL":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -694,24 +689,36 @@ func (f *Date) OrW() Field {
 
 func (f *Date) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		vals := make([]string, 0, len(value.([]time.Time)))
+		for _, t := range value.([]time.Time) {
+			vals = append(vals, t.Format("2006-01-02"))
+		}
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
+	case "IS NULL", "IS NOT NULL":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Date) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		vals := make([]string, 0, len(value.([]time.Time)))
+		for _, t := range value.([]time.Time) {
+			vals = append(vals, t.Format("2006-01-02"))
+		}
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
+	case "IS NULL", "IS NOT NULL":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -844,24 +851,36 @@ func (f *Datetime) OrW() Field {
 
 func (f *Datetime) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		vals := make([]string, 0, len(value.([]time.Time)))
+		for _, t := range value.([]time.Time) {
+			vals = append(vals, t.Format("2006-01-02 15:04:05"))
+		}
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
+	case "IS NULL", "IS NOT NULL":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		vals := make([]string, 0, len(value.([]time.Time)))
+		for _, t := range value.([]time.Time) {
+			vals = append(vals, t.Format("2006-01-02 15:04:05"))
+		}
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
+	case "IS NULL", "IS NOT NULL":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
@@ -967,25 +986,31 @@ func (f *Decimal) OrW() Field {
 
 func (f *Decimal) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
-		return f
+	switch op {
+	case "IN", "NOT IN":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]float64))), ", ")), f), value)
+	case "IS NULL", "IS NOT NULL":
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+	default:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	f.addModelStatus(forModelWhere)
 	return f
 }
 
 func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	if op == "IN" || op == "NOT IN" {
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
+	switch op {
+	case "IN", "NOT IN":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]float64))), ", ")), f), value)
 		f.addModelStatus(forModelWhere)
-		return f
+	case "IS NULL", "IS NOT NULL":
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+		f.addModelStatus(forModelWhere)
+	default:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
+		f.addModelStatus(forModelWhere)
 	}
-	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	f.addModelStatus(forModelWhere)
 	return f
 }
 

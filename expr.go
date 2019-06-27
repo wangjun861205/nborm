@@ -43,6 +43,7 @@ func (e *Expr) String() string {
 		if r == '"' || r == '`' || r == '\'' {
 			if stat == normal {
 				stat = inQuote
+				quoteStack = append(quoteStack, r)
 			} else {
 				if quoteStack[len(quoteStack)-1] == r {
 					quoteStack = quoteStack[:len(quoteStack)-1]

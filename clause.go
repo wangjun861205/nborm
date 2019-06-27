@@ -61,8 +61,8 @@ const (
 	lte   operator = "<="
 	gt    operator = ">"
 	gte   operator = ">="
-	is    operator = "IS"
-	nis   operator = "IS NOT"
+	is    operator = "IS NULL"
+	nis   operator = "IS NOT NULL"
 	like  operator = "LIKE"
 	nlike operator = "NOT LIKE"
 	in    operator = "IN"
@@ -78,7 +78,7 @@ const (
 
 func checkOp(op string) {
 	switch op {
-	case "=", "<>", "<", "<=", ">", ">=", "IS", "IS NOT", "LIKE", "NOT LIKE", "IN", "NOT IN":
+	case "=", "<>", "<", "<=", ">", ">=", "IS NULL", "IS NOT NULL", "LIKE", "NOT LIKE", "IN", "NOT IN":
 		return
 	default:
 		panic(fmt.Sprintf("unsupported operator (%s)", op))
@@ -121,8 +121,8 @@ func (w *where) toClause(cl *[]string, vl *[]interface{}) {
 		return
 	}
 	*cl = append(*cl, fmt.Sprintf("%s %s", w.rel, w.expr.String()))
-	if len(w.val) > 0 {
-		switch v := w.val[0].(type) {
+	for _, value := range w.val {
+		switch v := value.(type) {
 		case []int:
 			for _, i := range v {
 				*vl = append(*vl, i)
@@ -158,7 +158,7 @@ func (w *where) toClause(cl *[]string, vl *[]interface{}) {
 				*vl = append(*vl, v.Format("2006-01-02"))
 			}
 		default:
-			*vl = append(*vl, w.val[0])
+			*vl = append(*vl, v)
 		}
 	}
 	if w.next != nil {

@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-
 	"github.com/wangjun861205/nborm"
 )
 
@@ -99,6 +98,7 @@ func NewEnterpriseAccountList() *EnterpriseAccountList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -212,6 +212,7 @@ func NewEnterpriseReviewStatusList() *EnterpriseReviewStatusList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -319,6 +320,7 @@ func NewEnterpriseStatisticList() *EnterpriseStatisticList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -475,6 +477,7 @@ func NewEnterpriseList() *EnterpriseList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -591,6 +594,7 @@ func NewEnterpriseAttachmentList() *EnterpriseAttachmentList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -693,6 +697,7 @@ func NewMidEnterpriseTagList() *MidEnterpriseTagList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -800,6 +805,7 @@ func NewEnterpriseJobStatisticList() *EnterpriseJobStatisticList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -911,6 +917,7 @@ func NewMidStudentResumeEnterpriseJobList() *MidStudentResumeEnterpriseJobList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1100,6 +1107,7 @@ func NewEnterpriseJobList() *EnterpriseJobList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1208,6 +1216,7 @@ func NewMidStudentJobFairReadList() *MidStudentJobFairReadList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1316,6 +1325,7 @@ func NewMidStudentJobFairEnrollList() *MidStudentJobFairEnrollList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1424,6 +1434,7 @@ func NewMidStudentJobFairShareList() *MidStudentJobFairShareList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1537,6 +1548,7 @@ func NewJobFairStatisticList() *JobFairStatisticList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1659,6 +1671,7 @@ func NewJobFairList() *JobFairList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1787,6 +1800,7 @@ func NewJobFlagList() *JobFlagList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1889,6 +1903,7 @@ func NewMidStudentResumeLanguageSkillList() *MidStudentResumeLanguageSkillList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -1991,6 +2006,7 @@ func NewMidStudentResumeStudentTrainList() *MidStudentResumeStudentTrainList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2093,6 +2109,7 @@ func NewMidStudentResumeStudentHonorList() *MidStudentResumeStudentHonorList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2195,6 +2212,7 @@ func NewMidStudentResumeStudentExperienceList() *MidStudentResumeStudentExperien
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2297,6 +2315,7 @@ func NewMidStudentResumeStudentSkillList() *MidStudentResumeStudentSkillList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2449,6 +2468,7 @@ func NewStudentTrainList() *StudentTrainList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2592,6 +2612,7 @@ func NewStudentHonorList() *StudentHonorList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2744,6 +2765,7 @@ func NewStudentExperienceList() *StudentExperienceList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -2884,6 +2906,7 @@ func NewStudentSkillList() *StudentSkillList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -3090,6 +3113,7 @@ func NewStudentResumeList() *StudentResumeList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -3194,6 +3218,7 @@ func NewEnterpriseSnapshotList() *EnterpriseSnapshotList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -3298,6 +3323,7 @@ func NewEnterpriseJobSnapshotList() *EnterpriseJobSnapshotList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 
@@ -3402,6 +3428,7 @@ func NewStudentResumeSnapshotList() *StudentResumeSnapshotList {
 		0,
 	}
 	nborm.InitModel(l)
+	l.InitRel()
 	return l
 }
 

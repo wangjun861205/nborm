@@ -325,6 +325,7 @@ func (m *ModelInfo) newListFunc() string {
 			0,
 		}
 		nborm.InitModel(l)
+		l.InitRel()
 		return l
 	}
 	`, map[string]interface{}{"model": m})

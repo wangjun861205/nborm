@@ -127,7 +127,7 @@ type EnterpriseJob struct {
 	SalaryRangeID   nborm.Int
 	Welfare         nborm.String
 	Vacancies       nborm.Int
-	ExpiredAt       nborm.Date
+	ExpiredAt       nborm.Datetime
 	Status          nborm.String
 	Comment         nborm.String
 	CreateTime      nborm.Datetime

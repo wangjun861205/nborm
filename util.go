@@ -280,6 +280,11 @@ func genWhereClause(model Model) (string, []interface{}) {
 		default:
 			where = where.append(model.getWhere())
 		}
+		for _, relInfo := range model.Relations() {
+			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+				where = where.append(relInfo.Object.(Model).getWhere())
+			}
+		}
 	}
 	cl := make([]string, 0, 8)
 	vl := make([]interface{}, 0, 8)
@@ -289,26 +294,6 @@ func genWhereClause(model Model) (string, []interface{}) {
 	}
 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
 }
-
-// func genWhereClause(model Model) (string, []interface{}) {
-// 	cl := make([]string, 0, 8)
-// 	vl := make([]interface{}, 0, 8)
-// 	where := model.getWhere()
-// 	for _, rel := range model.Relations() {
-// 		if rel.Object.(Model).getWhere() != nil {
-// 			if where == nil {
-// 				where = rel.Object.(Model).getWhere()
-// 			} else {
-// 				where.append(rel.Object.(Model).getWhere())
-// 			}
-// 		}
-// 	}
-// 	where.toClause(&cl, &vl)
-// 	if len(cl) == 0 {
-// 		return "", nil
-// 	}
-// 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
-// }
 
 func genSimpleWhereClause(model Model) (string, []interface{}) {
 	cl := make([]string, 0, 8)

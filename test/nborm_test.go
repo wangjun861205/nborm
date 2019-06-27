@@ -42,7 +42,7 @@ var testList = []test{
 				j.DegreeID.SetInt(i)
 				j.Description.SetString(fmt.Sprintf("Description%d", i))
 				j.EnterpriseID.SetInt(i)
-				j.ExpiredAt.SetDate(time.Now())
+				j.ExpiredAt.SetDatetime(time.Now())
 				j.Gender.SetString("男")
 				j.LanguageSkillID.SetInt(i)
 				j.MajorCode.SetString(fmt.Sprintf("major_code%d", i))
@@ -64,7 +64,42 @@ var testList = []test{
 		f: func() error {
 			j := model.NewEnterpriseJobList()
 			j.Address.AndWhere("IN", []string{"address1", "address2"})
-			j.AndExprWhere(nborm.NewExpr("(@ = ? OR @ = ?)", &j.Comment, &j.Comment), []string{"hello", "world"})
+			j.AndExprWhere(nborm.NewExpr("(@ = 'test1' OR @ = 'test2')", &j.Comment, &j.Comment))
+			if err := nborm.Query(db, j, -1, -1); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "backQuery",
+		f: func() error {
+			j := model.NewEnterpriseJobList()
+			j.EnterpriseID.AndWhere("=", 1)
+			j.StudentResumes.IntelUserCode.AndWhere("=", "xxx")
+			if err := nborm.Query(db, j, -1, -1); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "spanQuary",
+		f: func() error {
+			j := model.NewEnterpriseJobList()
+			j.StudentResumes.InitRel()
+			j.StudentResumes.StudentSkill.ID.AndWhere("=", 1)
+			if err := nborm.Query(db, j.StudentResumes, -1, -1); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "isNullOpQuery",
+		f: func() error {
+			j := model.NewEnterpriseJobList()
+			j.EnterpriseID.AndWhere("IS NOT NULL", nil)
 			if err := nborm.Query(db, j, -1, -1); err != nil {
 				return err
 			}

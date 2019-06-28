@@ -50,6 +50,7 @@ type BaseField interface {
 	AscOrder()
 	DscOrder()
 	String() string
+	Distinct()
 }
 
 type Field interface {
@@ -95,6 +96,8 @@ type Model interface {
 	getIndex() int
 	getWhere() *where
 	InitRel()
+	SetLimit(int, int)
+	getLimit() (int, int)
 }
 
 type ModelList interface {
@@ -102,4 +105,5 @@ type ModelList interface {
 	NewModel() Model
 	SetTotal(int)
 	Len() int
+	Collapse()
 }

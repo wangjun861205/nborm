@@ -28,7 +28,8 @@ var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
 var masterRelFieldRe = regexp.MustCompile(`(\w+)(\(.+\))?\.(\w+)`)
-var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?(".*?"|\d+|\d+\.\d+)(?:,|$)`)
+var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?('.*?'|\d+|\d+\.\d+)(?:,|$)`)
+var dstFieldRelRe = regexp.MustCompile(`(\w+)(\(.+\))?`)
 
 type FieldInfo struct {
 	Type  string
@@ -54,18 +55,21 @@ type RelInfo struct {
 	Type   string
 	Models []string
 	Fields []string
+	//=======================================
+	HasAddedCond bool
+	AddedConds   []MidWhere
+	IsList       bool
 }
 
 type ModelInfo struct {
-	Name       string
-	DB         string
-	Tab        string
-	FieldInfos []*FieldInfo
-	Pk         []string
-	Unis       [][]string
-	HasUk      bool
-	Inc        string
-	// MidModels    []string
+	Name         string
+	DB           string
+	Tab          string
+	FieldInfos   []*FieldInfo
+	Pk           []string
+	Unis         [][]string
+	HasUk        bool
+	Inc          string
 	MidModels    []MidModel
 	RelInfos     []*RelInfo
 	HasRel       bool
@@ -118,6 +122,11 @@ func (m *ModelInfo) initRelFunc() string {
 			m.{{ rel.Field }} = &{{ rel.Type }}{}
 			m.{{ rel.Field }}.SetParent(m)
 			nborm.InitModel(m.{{ rel.Field }})
+			{{ if rel.HasAddedCond == true }}
+				{{ for _, aw in rel.AddedConds }}
+					m.{{ rel.Field }}.{{ aw.Field }}.AndWhere({{ aw.Op }}, {{ aw.Value }})
+				{{ endfor }}
+			{{ endif }}
 		{{ endfor }}
 		{{ if model.HasMidModels == true }}
 			{{ for i, mm in model.MidModels }}
@@ -397,6 +406,36 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) listCollapseFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) Collapse() {
+		{{ if model.HasRel == false }}
+			return
+		{{ else }}
+			if len(l.List) < 2 {
+				return
+			}
+			lm := l.List[len(l.List)-2]
+			rm := l.List[len(l.List)-1]
+			if nborm.IsPrimaryKeyEqual(lm, rm) {
+				{{ for _, relInfo in model.RelInfos }}
+					{{ if relInfo.IsList == true }}
+						lm.{{ relInfo.Field }}.List = append(lm.{{ relInfo.Field }}.List, rm.{{ relInfo.Field }}.List...)
+					{{ else }}
+						lm.{{ relInfo.Field }} = rm.{{ relInfo.Field }}
+					{{ endif }}
+				{{ endfor }}
+				l.List = l.List[:len(l.List)-1]
+			}
+		{{ endif }}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func parseComment(com string) error {
 	fmt.Println(nbcolor.Green(com))
 	lastModelInfo := modelInfos[len(modelInfos)-1]
@@ -451,7 +490,20 @@ func parseRelation(dstModel, tag string) error {
 		case i == 0:
 			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s", field))
 		case i == len(fields)-1:
-			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
+			fieldGroup := dstFieldRelRe.FindStringSubmatch(field)
+			fieldName, addedConds := fieldGroup[1], fieldGroup[2]
+			condGroup := midWhereRe.FindAllStringSubmatch(strings.Trim(addedConds, "()"), -1)
+			if len(condGroup) == 0 {
+				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
+			} else {
+				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
+				lastRel.HasAddedCond = true
+				for _, w := range condGroup {
+					lastRel.AddedConds = append(lastRel.AddedConds, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
+				}
+			}
+			//======================================================
+			// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
 		default:
 			if i%2 == 1 {
 				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
@@ -469,7 +521,7 @@ func parseRelation(dstModel, tag string) error {
 						HasMidWhere: true,
 					}
 					for _, w := range midWhereGroup {
-						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), w[3]})
+						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
 					}
 				}
 				// lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])
@@ -533,7 +585,11 @@ func main() {
 							}
 						case *ast.StarExpr:
 							lastModel := modelInfos[len(modelInfos)-1]
-							lastModel.RelInfos = append(lastModel.RelInfos, &RelInfo{Field: field.Names[0].Name, Type: ft.X.(*ast.Ident).String()})
+							var isList bool
+							if strings.HasSuffix(ft.X.(*ast.Ident).String(), "List") {
+								isList = true
+							}
+							lastModel.RelInfos = append(lastModel.RelInfos, &RelInfo{Field: field.Names[0].Name, Type: ft.X.(*ast.Ident).String(), IsList: isList})
 							if err := parseRelation(field.Names[0].Name, field.Tag.Value); err != nil {
 								panic(err)
 							}
@@ -575,6 +631,7 @@ func main() {
 			nf.WriteString(m.listSetTotalFunc())
 			nf.WriteString(m.listLenFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
+			nf.WriteString(m.listCollapseFunc())
 		}
 		nf.Sync()
 	}

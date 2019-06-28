@@ -12,7 +12,7 @@ type EnterpriseAccount struct {
 	Phone        nborm.String
 	Email        nborm.String
 	Password     nborm.String
-	Enterprise   *EnterpriseList `rel:"EnterpriseID->ID"`
+	Enterprise   *EnterpriseList `rel:"EnterpriseID->ID(Name='xxx')"`
 }
 
 //db:qdxg
@@ -133,7 +133,7 @@ type EnterpriseJob struct {
 	CreateTime      nborm.Datetime
 	UpdateTime      nborm.Datetime
 	Enterprise      *EnterpriseList    `rel:"EnterpriseID->ID"`
-	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob(ReviewStatus=1).JobID->MidEnterpriseJobStudentResume.ResumeID->StudentResume.ID"`
+	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob(ReviewStatus=1).JobID->MidEnterpriseJobStudentResume.ResumeID->ID"`
 }
 
 //db:qdxg

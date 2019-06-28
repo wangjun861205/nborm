@@ -90,17 +90,48 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*vl = append(*vl, field.Value())
 }
 
-func setRelWhere(model Model) {
-	for _, info := range model.Relations() {
-		if info.Fields[0].getStatus()&valid == valid {
-			info.Object.(Model).AndExprWhere(NewExpr("@ = ?", info.Fields[len(info.Fields)-1]), info.Fields[0].Value())
-			info.Object.(Model).setModelStatus(forModelWhere)
-		}
-	}
-}
+// func scanRow(row *sql.Row, model Model, fields ...Field) error {
+// 	scanFields := getFieldsForScan(model, fields...)
+// 	addrs := make([]interface{}, 0, len(scanFields))
+// 	for _, f := range scanFields {
+// 		addrs = append(addrs, f)
+// 	}
+// 	if err := row.Scan(addrs...); err != nil {
+// 		return err
+// 	}
+// 	if model.getModelStatus()&inited == 0 {
+// 		InitModel(model)
+// 	}
+// 	// setRelWhere(model)
+// 	model.addModelStatus(synced)
+// 	return nil
+// }
 
-func scanRow(row *sql.Row, model Model, fields ...Field) error {
-	scanFields := getFieldsForScan(model, fields...)
+// func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
+// 	scanFields := getFieldsForScan(model, fields...)
+// 	addrs := make([]interface{}, 0, len(scanFields))
+// 	for _, f := range scanFields {
+// 		addrs = append(addrs, f)
+// 	}
+// 	if err := rows.Scan(addrs...); err != nil {
+// 		return err
+// 	}
+// 	if model.getModelStatus()&inited == 0 {
+// 		InitModel(model)
+// 	}
+// 	// setRelWhere(model)
+// 	model.addModelStatus(synced)
+// 	return nil
+// }
+
+func scanRow(row *sql.Row, model Model) error {
+	selectFields := getSelectFields(model)
+	if l, ok := model.(ModelList); ok {
+		newModel := l.NewModel()
+		scanFields := getFieldsForScan(newModel, selectFields...)
+		return row.Scan(scanFields...)
+	}
+	scanFields := getSelectFields(model)
 	addrs := make([]interface{}, 0, len(scanFields))
 	for _, f := range scanFields {
 		addrs = append(addrs, f)
@@ -108,41 +139,159 @@ func scanRow(row *sql.Row, model Model, fields ...Field) error {
 	if err := row.Scan(addrs...); err != nil {
 		return err
 	}
-	if model.getModelStatus()&inited == 0 {
-		InitModel(model)
+	if model.getModelStatus()&relInited == 0 {
+		model.InitRel()
 	}
-	setRelWhere(model)
 	model.addModelStatus(synced)
 	return nil
 }
 
-func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
-	scanFields := getFieldsForScan(model, fields...)
-	addrs := make([]interface{}, 0, len(scanFields))
-	for _, f := range scanFields {
+func scanRows(rows *sql.Rows, l ModelList) error {
+	defer rows.Close()
+	selectFields := getSelectFields(l)
+	for rows.Next() {
+		newModel := l.NewModel()
+		scanFields := getFieldsForScan(newModel, selectFields...)
+		rows.Scan(scanFields...)
+	}
+	return rows.Err()
+}
+
+func joinScanRow(row *sql.Row, m Model) error {
+	addrs := make([]interface{}, 0, 64)
+	for _, f := range getSelectFields(m) {
 		addrs = append(addrs, f)
 	}
-	if err := rows.Scan(addrs...); err != nil {
-		return err
+	for _, relInfo := range m.Relations() {
+		if relInfo.Object.(Model).getModelStatus()&forJoin == forJoin {
+			if l, ok := m.(ModelList); ok {
+				selectFields := getSelectFields(l)
+				nm := l.NewModel()
+				for _, f := range getFieldsForScan(nm, selectFields...) {
+					addrs = append(addrs, f)
+				}
+				nm.addModelStatus(synced)
+			} else {
+				for _, f := range getSelectFields(relInfo.Object.(Model)) {
+					addrs = append(addrs, f)
+				}
+				relInfo.Object.(Model).addModelStatus(synced)
+			}
+		}
 	}
-	if model.getModelStatus()&inited == 0 {
-		InitModel(model)
-	}
-	setRelWhere(model)
-	model.addModelStatus(synced)
-	return nil
+	return row.Scan(addrs...)
 }
 
-func genUpdateSetClause(model Model) (string, []interface{}) {
-	updateFields := getFields(model, forUpdate)
-	updates := make(updateSetList, len(updateFields))
-	for i, f := range updateFields {
-		updates[i] = f.updateSet()
+func IsPrimaryKeyEqual(lm, rm Model) bool {
+	lpk := lm.PrimaryKey()
+	rpk := rm.PrimaryKey()
+	for i := 0; i < len(lpk); i++ {
+		if lpk[i].Value() != rpk[i].Value() {
+			return false
+		}
+	}
+	return true
+}
+
+func joinScanRows(rows *sql.Rows, m Model) error {
+	defer rows.Close()
+	classModels := make([]Model, 0, 8)
+	classModels = append(classModels, m)
+	for _, relInfo := range m.Relations() {
+		relModel := relInfo.Object.(Model)
+		if relModel.getModelStatus()&forJoin == forJoin {
+			classModels = append(classModels, relModel)
+		}
+	}
+	selectFields := make(FieldList, 0, 64)
+	for _, cm := range classModels {
+		selectFields = append(selectFields, getSelectFields(cm)...)
+	}
+	for rows.Next() {
+		instModels := make([]Model, 0, len(classModels))
+		for _, cm := range classModels {
+			if cl, ok := cm.(ModelList); ok {
+				instModels = append(instModels, cl.NewModel())
+			} else {
+				instModels = append(instModels, cm)
+			}
+		}
+		addrs := make([]interface{}, 0, 64)
+		for _, im := range instModels {
+			im.addModelStatus(synced)
+			addrs = append(addrs, getFieldsForScan(im, selectFields...))
+		}
+		if err := rows.Scan(addrs...); err != nil {
+			return err
+		}
+		if l, ok := m.(ModelList); ok {
+			l.Collapse()
+		}
+	}
+	return rows.Err()
+}
+
+func genFullUpdateSetClause(model Model) (string, []interface{}) {
+	updates := make(updateSetList, 0, 16)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
+		for _, f := range getFields(model, forUpdate) {
+			updates = append(updates, f.updateSet())
+		}
+	}
+	if model.getModelStatus()&forModelUpdate == forModelUpdate {
+		for _, f := range getFields(model, forUpdate) {
+			updates = append(updates, f.updateSet())
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		if relInfo.Object.(Model).getModelStatus()&forModelUpdate == forModelUpdate {
+			for _, f := range getFields(relInfo.Object.(Model), forUpdate) {
+				updates = append(updates, f.updateSet())
+			}
+		}
 	}
 	return updates.toClause()
 }
 
-func getSelectColumns(model Model) string {
+func genUpdateSetClause(model Model) (string, []interface{}) {
+	updates := make(updateSetList, 0, 16)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
+		for _, f := range getFields(model, forUpdate) {
+			updates = append(updates, f.updateSet())
+		}
+	}
+	if model.getModelStatus()&forModelUpdate == forModelUpdate {
+		for _, f := range getFields(model, forUpdate) {
+			updates = append(updates, f.updateSet())
+		}
+	}
+	return updates.toClause()
+}
+
+func genSimpleSelectColumns(model Model) string {
+	var builder strings.Builder
+	if model.getModelStatus()&distinct == distinct {
+		builder.WriteString("DISTINCT ")
+	}
+	selectFields := getFields(model, forSelect)
+	if len(selectFields) == 0 {
+		builder.WriteString(fmt.Sprintf("%s.*", model.rawFullTabName()))
+	} else {
+		for _, f := range selectFields {
+			switch {
+			case f.getStatus()&forSum == forSum:
+				builder.WriteString(fmt.Sprintf("IFNULL(SUM(%s), 0), ", f.rawFullColName()))
+			default:
+				builder.WriteString(fmt.Sprintf("%s, ", f.rawFullColName()))
+			}
+		}
+	}
+	return strings.Trim(builder.String(), " ,")
+}
+
+func genSelectColumns(model Model) string {
 	var builder strings.Builder
 	if model.getModelStatus()&distinct == distinct {
 		builder.WriteString("DISTINCT ")
@@ -167,6 +316,35 @@ func getSelectColumns(model Model) string {
 	return strings.Trim(builder.String(), " ,")
 }
 
+func genJoinSelectColumns(model Model) string {
+	var builder strings.Builder
+	if model.getModelStatus()&distinct == distinct {
+		builder.WriteString("DISTINCT ")
+	}
+	selectFields := getFields(model, forSelect)
+	if len(selectFields) == 0 {
+		builder.WriteString(fmt.Sprintf("%s.*, ", model.getAlias()))
+	} else {
+		for _, f := range selectFields {
+			builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		relModel := relInfo.Object.(Model)
+		if relModel.getModelStatus()&forJoin == forJoin {
+			subSelectFields := getFields(relModel, forSelect)
+			if len(subSelectFields) == 0 {
+				builder.WriteString(fmt.Sprintf("%s.*, ", relModel.getAlias()))
+			} else {
+				for _, f := range subSelectFields {
+					builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+				}
+			}
+		}
+	}
+	return strings.Trim(builder.String(), ", ")
+}
+
 func getSelectFields(model Model) FieldList {
 	selectFields := getFields(model, forSelect)
 	if len(selectFields) == 0 {
@@ -175,20 +353,69 @@ func getSelectFields(model Model) FieldList {
 	return selectFields
 }
 
-func getOrderClause(model Model) string {
-	orderFields := getFields(model, forAscOrder|forDscOrder)
-	if len(orderFields) == 0 {
-		return ""
-	}
-	colList := make([]string, 0, len(orderFields))
-	for _, f := range orderFields {
-		if f.getStatus()|forAscOrder == forAscOrder {
-			colList = append(colList, f.fullColName())
-		} else {
-			colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
+func genFullOrderClause(model Model) string {
+	colList := make([]string, 0, 8)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forModelOrder == forModelOrder {
+		for _, f := range getFields(parent, forAscOrder|forDscOrder) {
+			if f.getStatus()&forAscOrder == forAscOrder {
+				colList = append(colList, f.fullColName())
+			} else {
+				colList = append(colList, fmt.Sprintf("%s DESC"))
+			}
 		}
 	}
-	return fmt.Sprintf(" ORDER BY %s ", strings.Join(colList, ", "))
+	if model.getModelStatus()&forModelOrder == forModelOrder {
+		for _, f := range getFields(model, forAscOrder|forDscOrder) {
+			if f.getStatus()&forAscOrder == forAscOrder {
+				colList = append(colList, f.fullColName())
+			} else {
+				colList = append(colList, fmt.Sprintf("%s DESC"))
+			}
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		if relInfo.Object.(Model).getModelStatus()&forModelOrder == forModelOrder {
+			for _, f := range getFields(relInfo.Object.(Model), forAscOrder|forDscOrder) {
+				if f.getStatus()&forAscOrder == forAscOrder {
+					colList = append(colList, f.fullColName())
+				} else {
+					colList = append(colList, fmt.Sprintf("%s DESC"))
+				}
+			}
+		}
+	}
+	if len(colList) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("ORDER BY %s", strings.Join(colList, ", "))
+}
+
+func genOrderClause(model Model) string {
+	colList := make([]string, 0, 8)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forModelOrder == forModelOrder {
+		for _, f := range getFields(parent, forAscOrder|forDscOrder) {
+			if f.getStatus()&forAscOrder == forAscOrder {
+				colList = append(colList, f.fullColName())
+			} else {
+				colList = append(colList, fmt.Sprintf("%s DESC"))
+			}
+		}
+	}
+	if model.getModelStatus()&forModelOrder == forModelOrder {
+		for _, f := range getFields(model, forAscOrder|forDscOrder) {
+			if f.getStatus()&forAscOrder == forAscOrder {
+				colList = append(colList, f.fullColName())
+			} else {
+				colList = append(colList, fmt.Sprintf("%s DESC"))
+			}
+		}
+	}
+	if len(colList) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("ORDER BY %s", strings.Join(colList, ", "))
 }
 
 func genPlaceHolder(val []interface{}) string {
@@ -209,19 +436,19 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func genTabRef(model Model) string {
+func genFullTabRef(model Model) string {
 	var builder strings.Builder
 	if model.GetParent() == nil {
 		builder.WriteString(model.fullTabName())
 		for _, relInfo := range model.Relations() {
-			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+			if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
 				builder.WriteString(relInfo.toAppendJoinClause())
 			}
 		}
 	} else {
 		parent := model.GetParent()
 		switch {
-		case (parent.getModelStatus()&synced)|(parent.getModelStatus()&forModelWhere) > 0:
+		case (parent.getModelStatus()&synced)|(parent.getModelStatus()&forModelRef) > 0:
 			for _, relInfo := range parent.Relations() {
 				if relInfo.Object.(Model) == model {
 					builder.WriteString(parent.fullTabName())
@@ -233,7 +460,7 @@ func genTabRef(model Model) string {
 			builder.WriteString(model.fullTabName())
 		}
 		for _, relInfo := range model.Relations() {
-			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
+			if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
 				builder.WriteString(relInfo.toAppendJoinClause())
 			}
 		}
@@ -241,7 +468,41 @@ func genTabRef(model Model) string {
 	return builder.String()
 }
 
-func genWhereClause(model Model) (string, []interface{}) {
+func genTabRef(model Model) string {
+	var builder strings.Builder
+	if model.GetParent() == nil {
+		builder.WriteString(model.fullTabName())
+	} else {
+		parent := model.GetParent()
+		switch {
+		case (parent.getModelStatus()&synced)|(parent.getModelStatus()&forModelRef) > 0:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					builder.WriteString(parent.fullTabName())
+					builder.WriteString(relInfo.toAppendJoinClause())
+					break
+				}
+			}
+		default:
+			builder.WriteString(model.fullTabName())
+		}
+	}
+	return builder.String()
+}
+
+func genJoinTabRef(model Model) string {
+	var builder strings.Builder
+	builder.WriteString(model.fullTabName())
+	for _, relInfo := range model.Relations() {
+		relModel := relInfo.Object.(Model)
+		if relModel.getModelStatus()&forJoin == forJoin {
+			builder.WriteString(relInfo.toAppendJoinClause())
+		}
+	}
+	return builder.String()
+}
+
+func genFullWhereClause(model Model) (string, []interface{}) {
 	var where *where
 	if model.GetParent() == nil {
 		where = where.append(model.getWhere())
@@ -295,6 +556,50 @@ func genWhereClause(model Model) (string, []interface{}) {
 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
 }
 
+func genWhereClause(model Model) (string, []interface{}) {
+	var where *where
+	if model.GetParent() == nil {
+		where = where.append(model.getWhere())
+	} else {
+		parent := model.GetParent()
+		switch {
+		case parent.getModelStatus()&synced == synced:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					where = where.append(newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+					break
+				}
+			}
+		case parent.getModelStatus()&forModelWhere == forModelWhere:
+			for _, relInfo := range parent.Relations() {
+				if relInfo.Object.(Model) == model {
+					where = where.append(parent.getWhere())
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+					break
+				}
+			}
+		default:
+			where = where.append(model.getWhere())
+		}
+	}
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
+	where.toClause(&cl, &vl)
+	if len(cl) == 0 {
+		return "", nil
+	}
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
 func genSimpleWhereClause(model Model) (string, []interface{}) {
 	cl := make([]string, 0, 8)
 	vl := make([]interface{}, 0, 8)
@@ -303,4 +608,12 @@ func genSimpleWhereClause(model Model) (string, []interface{}) {
 		return "", nil
 	}
 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
+func genLimitClause(model Model) string {
+	limit, offset := model.getLimit()
+	if limit == 0 {
+		return ""
+	}
+	return fmt.Sprintf("LIMIT %d, %d", offset, limit)
 }

@@ -65,7 +65,7 @@ var testList = []test{
 			j := model.NewEnterpriseJobList()
 			j.Address.AndWhere("IN", []string{"address1", "address2"})
 			j.AndExprWhere(nborm.NewExpr("(@ = 'test1' OR @ = 'test2')", &j.Comment, &j.Comment))
-			if err := nborm.Query(db, j, -1, -1); err != nil {
+			if err := nborm.Query(db, j); err != nil {
 				return err
 			}
 			return nil
@@ -77,7 +77,7 @@ var testList = []test{
 			j := model.NewEnterpriseJobList()
 			j.EnterpriseID.AndWhere("=", 1)
 			j.StudentResumes.IntelUserCode.AndWhere("=", "xxx")
-			if err := nborm.Query(db, j, -1, -1); err != nil {
+			if err := nborm.Query(db, j); err != nil {
 				return err
 			}
 			return nil
@@ -89,7 +89,7 @@ var testList = []test{
 			j := model.NewEnterpriseJobList()
 			j.StudentResumes.InitRel()
 			j.StudentResumes.StudentSkill.ID.AndWhere("=", 1)
-			if err := nborm.Query(db, j.StudentResumes, -1, -1); err != nil {
+			if err := nborm.Query(db, j.StudentResumes); err != nil {
 				return err
 			}
 			return nil
@@ -100,9 +100,56 @@ var testList = []test{
 		f: func() error {
 			j := model.NewEnterpriseJobList()
 			j.EnterpriseID.AndWhere("IS NOT NULL", nil)
-			if err := nborm.Query(db, j, -1, -1); err != nil {
+			if err := nborm.Query(db, j); err != nil {
 				return err
 			}
+			return nil
+		},
+	},
+	{
+		name: "addedCondQuery",
+		f: func() error {
+			e := model.NewEnterpriseAccountList()
+			if err := nborm.FullQuery(db, e); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "backQuery",
+		f: func() error {
+			e := model.NewEnterpriseAccountList()
+			if err := nborm.Query(db, e); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "fullUpdate",
+		f: func() error {
+			e := model.NewEnterpriseAccountList()
+			e.Email.SetUpdate("test")
+			e.Enterprise.ID.AndWhere("=", 1)
+			e.Enterprise.Contact.SetUpdate("yyy")
+			if _, err := nborm.FullUpdate(db, e); err != nil {
+				return err
+			}
+			return nil
+		},
+	},
+	{
+		name: "joinQuery",
+		f: func() error {
+			e := model.NewEnterpriseAccountList()
+			e.Enterprise.SetForJoin()
+			e.Phone.Distinct()
+			e.Enterprise.Contact.Distinct()
+			if err := nborm.JoinQuery(db, e); err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(e.Len()))
 			return nil
 		},
 	},

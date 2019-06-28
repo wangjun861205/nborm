@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"github.com/wangjun861205/nborm"
 )
 
@@ -16,6 +17,7 @@ func (m *EnterpriseAccount) InitRel() {
 	m.Enterprise = &EnterpriseList{}
 	m.Enterprise.SetParent(m)
 	nborm.InitModel(m.Enterprise)
+	m.Enterprise.Name.AndWhere("=", "xxx")
 	m.AddRelInited()
 }
 func (m *EnterpriseAccount) DB() string {
@@ -132,6 +134,18 @@ func (l EnterpriseAccountList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseAccountList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.Enterprise.List = append(lm.Enterprise.List, rm.Enterprise.List...)
+		l.List = l.List[:len(l.List)-1]
+	}
+}
+
 func NewEnterpriseReviewStatus() *EnterpriseReviewStatus {
 	m := &EnterpriseReviewStatus{}
 	nborm.InitModel(m)
@@ -246,6 +260,10 @@ func (l EnterpriseReviewStatusList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseReviewStatusList) Collapse() {
+	return
+}
+
 func NewEnterpriseStatistic() *EnterpriseStatistic {
 	m := &EnterpriseStatistic{}
 	nborm.InitModel(m)
@@ -352,6 +370,10 @@ func (l EnterpriseStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseStatisticList) Collapse() {
+	return
 }
 
 func NewEnterprise() *Enterprise {
@@ -511,6 +533,18 @@ func (l EnterpriseList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.Account.List = append(lm.Account.List, rm.Account.List...)
+		l.List = l.List[:len(l.List)-1]
+	}
+}
+
 func NewEnterpriseAttachment() *EnterpriseAttachment {
 	m := &EnterpriseAttachment{}
 	nborm.InitModel(m)
@@ -628,6 +662,10 @@ func (l EnterpriseAttachmentList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseAttachmentList) Collapse() {
+	return
+}
+
 func NewMidEnterpriseTag() *MidEnterpriseTag {
 	m := &MidEnterpriseTag{}
 	nborm.InitModel(m)
@@ -729,6 +767,10 @@ func (l MidEnterpriseTagList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidEnterpriseTagList) Collapse() {
+	return
 }
 
 func NewEnterpriseJobStatistic() *EnterpriseJobStatistic {
@@ -837,6 +879,10 @@ func (l EnterpriseJobStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseJobStatisticList) Collapse() {
+	return
 }
 
 func NewMidStudentResumeEnterpriseJob() *MidStudentResumeEnterpriseJob {
@@ -951,6 +997,10 @@ func (l MidStudentResumeEnterpriseJobList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeEnterpriseJobList) Collapse() {
+	return
+}
+
 func NewEnterpriseJob() *EnterpriseJob {
 	m := &EnterpriseJob{}
 	nborm.InitModel(m)
@@ -1036,7 +1086,7 @@ func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
 				&m.ID,
 				&mm0.JobID,
 				&mm0.ResumeID,
-				&m.StudentResumes.StudentResume.ID,
+				&m.StudentResumes.ID,
 			},
 			m.StudentResumes,
 		},
@@ -1139,6 +1189,19 @@ func (l EnterpriseJobList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseJobList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.Enterprise.List = append(lm.Enterprise.List, rm.Enterprise.List...)
+		lm.StudentResumes.List = append(lm.StudentResumes.List, rm.StudentResumes.List...)
+		l.List = l.List[:len(l.List)-1]
+	}
 }
 
 func NewMidStudentJobFairRead() *MidStudentJobFairRead {
@@ -1250,6 +1313,10 @@ func (l MidStudentJobFairReadList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentJobFairReadList) Collapse() {
+	return
+}
+
 func NewMidStudentJobFairEnroll() *MidStudentJobFairEnroll {
 	m := &MidStudentJobFairEnroll{}
 	nborm.InitModel(m)
@@ -1359,6 +1426,10 @@ func (l MidStudentJobFairEnrollList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentJobFairEnrollList) Collapse() {
+	return
+}
+
 func NewMidStudentJobFairShare() *MidStudentJobFairShare {
 	m := &MidStudentJobFairShare{}
 	nborm.InitModel(m)
@@ -1466,6 +1537,10 @@ func (l MidStudentJobFairShareList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentJobFairShareList) Collapse() {
+	return
 }
 
 func NewJobFairStatistic() *JobFairStatistic {
@@ -1580,6 +1655,10 @@ func (l JobFairStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *JobFairStatisticList) Collapse() {
+	return
 }
 
 func NewJobFair() *JobFair {
@@ -1703,6 +1782,10 @@ func (l JobFairList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *JobFairList) Collapse() {
+	return
 }
 
 func NewJobFlag() *JobFlag {
@@ -1834,6 +1917,10 @@ func (l JobFlagList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *JobFlagList) Collapse() {
+	return
+}
+
 func NewMidStudentResumeLanguageSkill() *MidStudentResumeLanguageSkill {
 	m := &MidStudentResumeLanguageSkill{}
 	nborm.InitModel(m)
@@ -1935,6 +2022,10 @@ func (l MidStudentResumeLanguageSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeLanguageSkillList) Collapse() {
+	return
 }
 
 func NewMidStudentResumeStudentTrain() *MidStudentResumeStudentTrain {
@@ -2040,6 +2131,10 @@ func (l MidStudentResumeStudentTrainList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeStudentTrainList) Collapse() {
+	return
+}
+
 func NewMidStudentResumeStudentHonor() *MidStudentResumeStudentHonor {
 	m := &MidStudentResumeStudentHonor{}
 	nborm.InitModel(m)
@@ -2141,6 +2236,10 @@ func (l MidStudentResumeStudentHonorList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeStudentHonorList) Collapse() {
+	return
 }
 
 func NewMidStudentResumeStudentExperience() *MidStudentResumeStudentExperience {
@@ -2246,6 +2345,10 @@ func (l MidStudentResumeStudentExperienceList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeStudentExperienceList) Collapse() {
+	return
+}
+
 func NewMidStudentResumeStudentSkill() *MidStudentResumeStudentSkill {
 	m := &MidStudentResumeStudentSkill{}
 	nborm.InitModel(m)
@@ -2347,6 +2450,10 @@ func (l MidStudentResumeStudentSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeStudentSkillList) Collapse() {
+	return
 }
 
 func NewStudentTrain() *StudentTrain {
@@ -2502,6 +2609,18 @@ func (l StudentTrainList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentTrainList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.StudentResume = rm.StudentResume
+		l.List = l.List[:len(l.List)-1]
+	}
+}
+
 func NewStudentHonor() *StudentHonor {
 	m := &StudentHonor{}
 	nborm.InitModel(m)
@@ -2644,6 +2763,18 @@ func (l StudentHonorList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentHonorList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.StudentResume = rm.StudentResume
+		l.List = l.List[:len(l.List)-1]
+	}
 }
 
 func NewStudentExperience() *StudentExperience {
@@ -2799,6 +2930,18 @@ func (l StudentExperienceList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentExperienceList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.StudentResume = rm.StudentResume
+		l.List = l.List[:len(l.List)-1]
+	}
+}
+
 func NewStudentSkill() *StudentSkill {
 	m := &StudentSkill{}
 	nborm.InitModel(m)
@@ -2938,6 +3081,18 @@ func (l StudentSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentSkillList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.StudentResume = rm.StudentResume
+		l.List = l.List[:len(l.List)-1]
+	}
 }
 
 func NewStudentResume() *StudentResume {
@@ -3147,6 +3302,22 @@ func (l StudentResumeList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentResumeList) Collapse() {
+	if len(l.List) < 2 {
+		return
+	}
+	lm := l.List[len(l.List)-2]
+	rm := l.List[len(l.List)-1]
+	if nborm.IsPrimaryKeyEqual(lm, rm) {
+		lm.StudentTrain.List = append(lm.StudentTrain.List, rm.StudentTrain.List...)
+		lm.StudentHonor.List = append(lm.StudentHonor.List, rm.StudentHonor.List...)
+		lm.StudentExperience.List = append(lm.StudentExperience.List, rm.StudentExperience.List...)
+		lm.StudentSkill.List = append(lm.StudentSkill.List, rm.StudentSkill.List...)
+		lm.StudentLanguageType.List = append(lm.StudentLanguageType.List, rm.StudentLanguageType.List...)
+		l.List = l.List[:len(l.List)-1]
+	}
+}
+
 func NewEnterpriseSnapshot() *EnterpriseSnapshot {
 	m := &EnterpriseSnapshot{}
 	nborm.InitModel(m)
@@ -3250,6 +3421,10 @@ func (l EnterpriseSnapshotList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseSnapshotList) Collapse() {
+	return
 }
 
 func NewEnterpriseJobSnapshot() *EnterpriseJobSnapshot {
@@ -3357,6 +3532,10 @@ func (l EnterpriseJobSnapshotList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseJobSnapshotList) Collapse() {
+	return
+}
+
 func NewStudentResumeSnapshot() *StudentResumeSnapshot {
 	m := &StudentResumeSnapshot{}
 	nborm.InitModel(m)
@@ -3460,4 +3639,8 @@ func (l StudentResumeSnapshotList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentResumeSnapshotList) Collapse() {
+	return
 }

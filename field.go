@@ -21,13 +21,17 @@ type FieldList []Field
 type modelStatus int
 
 const (
-	none          modelStatus = 0
-	synced        modelStatus = 1
-	distinct      modelStatus = 1 << 1
-	forAgg        modelStatus = 1 << 2
-	forModelWhere modelStatus = 1 << 3
-	inited        modelStatus = 1 << 4
-	relInited     modelStatus = 1 << 5
+	none           modelStatus = 0
+	synced         modelStatus = 1
+	distinct       modelStatus = 1 << 1
+	forAgg         modelStatus = 1 << 2
+	forModelWhere  modelStatus = 1 << 3
+	inited         modelStatus = 1 << 4
+	relInited      modelStatus = 1 << 5
+	forModelUpdate modelStatus = 1 << 6
+	forModelOrder  modelStatus = 1 << 7
+	forModelRef    modelStatus = 1 << 8
+	forJoin        modelStatus = 1 << 9
 )
 
 type Meta struct {
@@ -38,6 +42,7 @@ type Meta struct {
 	alias   string
 	parent  Model
 	index   int
+	limit   [2]int
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -82,12 +87,16 @@ func (m *Meta) getWhere() *where {
 }
 
 func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
-	m.appendWhere(newWhere(and, expr, val...))
+	m.where = m.where.append(newWhere(and, expr, val...))
+	m.addModelStatus(forModelWhere)
+	m.addModelStatus(forModelRef)
 	return m
 }
 
 func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
-	m.appendWhere(newWhere(or, expr, val...))
+	m.where = m.where.append(newWhere(or, expr, val...))
+	m.addModelStatus(forModelWhere)
+	m.addModelStatus(forModelRef)
 	return m
 }
 
@@ -139,12 +148,17 @@ func (m *Meta) getIndex() int {
 	return m.index
 }
 
-func (m *Meta) appendWhere(where *where) {
-	if m.where == nil {
-		m.where = where
-		return
-	}
-	m.where.append(where)
+func (m *Meta) SetLimit(limit, offset int) {
+	m.limit = [2]int{limit, offset}
+}
+
+func (m *Meta) getLimit() (limit, offset int) {
+	return m.limit[0], m.limit[1]
+}
+
+func (m *Meta) SetForJoin() {
+	m.addModelStatus(forJoin)
+	m.addModelStatus(forModelRef)
 }
 
 type fieldStatus int
@@ -293,11 +307,15 @@ func (f *baseField) ForSum() {
 func (f *baseField) AscOrder() {
 	f.removeStatus(forDscOrder)
 	f.addStatus(forAscOrder)
+	f.addModelStatus(forModelOrder)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *baseField) DscOrder() {
 	f.removeStatus(forAscOrder)
 	f.addStatus(forDscOrder)
+	f.addModelStatus(forModelOrder)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *baseField) Distinct() {
@@ -397,12 +415,14 @@ func (f *String) String() string {
 func (f *String) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *String) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -417,6 +437,7 @@ func (f *String) AndWhere(op string, value interface{}) Field {
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -431,17 +452,22 @@ func (f *String) OrWhere(op string, value interface{}) Field {
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *String) SetU() {
 	f.setUpdate(f, f.Value())
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *String) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 //=============================================================================================================
@@ -526,12 +552,14 @@ func (f *Int) Int() int {
 func (f *Int) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Int) OrW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -546,6 +574,7 @@ func (f *Int) AndWhere(op string, value interface{}) Field {
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -560,17 +589,22 @@ func (f *Int) OrWhere(op string, value interface{}) Field {
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Int) SetU() {
 	f.setUpdate(f, f.Value())
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *Int) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 //=======================================================================================================
@@ -678,12 +712,14 @@ func (f *Date) Date() time.Time {
 func (f *Date) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Date) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -702,6 +738,7 @@ func (f *Date) AndWhere(op string, value interface{}) Field {
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -720,17 +757,22 @@ func (f *Date) OrWhere(op string, value interface{}) Field {
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Date) SetU() {
 	f.setUpdate(f, f.Value())
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *Date) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 //=========================================================================================
@@ -839,6 +881,7 @@ func (f *Datetime) AndW() Field {
 	f.mustValid()
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -846,6 +889,7 @@ func (f *Datetime) OrW() Field {
 	f.mustValid()
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -864,6 +908,7 @@ func (f *Datetime) AndWhere(op string, value interface{}) Field {
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -882,17 +927,22 @@ func (f *Datetime) OrWhere(op string, value interface{}) Field {
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Datetime) SetU() {
 	f.setUpdate(f, f.Value())
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *Datetime) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 //=============================================================================================================
@@ -975,12 +1025,14 @@ func (f *Decimal) Decimal() float64 {
 func (f *Decimal) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Decimal) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -995,6 +1047,7 @@ func (f *Decimal) AndWhere(op string, value interface{}) Field {
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
 	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1003,23 +1056,26 @@ func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	switch op {
 	case "IN", "NOT IN":
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]float64))), ", ")), f), value)
-		f.addModelStatus(forModelWhere)
 	case "IS NULL", "IS NOT NULL":
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-		f.addModelStatus(forModelWhere)
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-		f.addModelStatus(forModelWhere)
 	}
+	f.addModelStatus(forModelWhere)
+	f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Decimal) SetU() {
 	f.setUpdate(f, f.Value())
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }
 
 func (f *Decimal) SetUpdate(value interface{}) {
 	f.setUpdate(f, value)
 	f.addStatus(forUpdate)
+	f.addModelStatus(forModelUpdate)
+	f.addModelStatus(forModelRef)
 }

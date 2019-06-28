@@ -33,7 +33,7 @@ func InsertOne(exe Executor, model Model) error {
 		}
 		model.AutoIncField().Set(int(lid))
 	}
-	model.setModelStatus(synced)
+	model.addModelStatus(synced)
 	return nil
 }
 
@@ -135,7 +135,7 @@ func Query(exe Executor, l ModelList) error {
 		return err
 	}
 	l.SetTotal(total)
-	l.setModelStatus(synced)
+	l.addModelStatus(synced)
 	return nil
 }
 
@@ -173,14 +173,14 @@ func FullQuery(exe Executor, l ModelList) error {
 		return err
 	}
 	l.SetTotal(total)
-	l.setModelStatus(synced)
+	l.addModelStatus(synced)
 	return nil
 }
 
 func JoinQuery(exe Executor, model Model) error {
 	selectColumns := genJoinSelectColumns(model)
 	tabRef := genJoinTabRef(model)
-	whereClause, whereValues := genWhereClause(model)
+	whereClause, whereValues := genJoinWhereClause(model)
 	limitClause := genLimitClause(model)
 	orderClause := genOrderClause(model)
 	var stmt string
@@ -207,11 +207,10 @@ func JoinQuery(exe Executor, model Model) error {
 			return err
 		}
 		l.SetTotal(total)
-		l.setModelStatus(synced)
+		l.addModelStatus(synced)
 		return nil
 	}
 	return joinScanRow(exe.QueryRow(stmt, whereValues...), model)
-
 }
 
 func Update(exe Executor, model Model) (sql.Result, error) {

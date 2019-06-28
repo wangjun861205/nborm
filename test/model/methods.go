@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-
 	"github.com/wangjun861205/nborm"
 )
 
@@ -17,7 +16,6 @@ func (m *EnterpriseAccount) InitRel() {
 	m.Enterprise = &EnterpriseList{}
 	m.Enterprise.SetParent(m)
 	nborm.InitModel(m.Enterprise)
-	m.Enterprise.Name.AndWhere("=", "xxx")
 	m.AddRelInited()
 }
 func (m *EnterpriseAccount) DB() string {
@@ -31,7 +29,6 @@ func (m *EnterpriseAccount) Tab() string {
 func (m *EnterpriseAccount) FieldInfos() nborm.FieldInfoList {
 	return nborm.FieldInfoList{
 		{"ID", "ID", &m.ID},
-		{"EnterpriseID", "EnterpriseID", &m.EnterpriseID},
 		{"Phone", "Phone", &m.Phone},
 		{"Email", "Email", &m.Email},
 		{"Password", "Password", &m.Password},
@@ -58,8 +55,8 @@ func (m *EnterpriseAccount) Relations() nborm.RelationInfoList {
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
-				&m.EnterpriseID,
-				&m.Enterprise.ID,
+				&m.ID,
+				&m.Enterprise.AccountID,
 			},
 			m.Enterprise,
 		},
@@ -67,21 +64,19 @@ func (m *EnterpriseAccount) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseAccount) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
-			ID           interface{}
-			EnterpriseID interface{}
-			Phone        interface{}
-			Email        interface{}
-			Password     interface{}
-			Enterprise   *EnterpriseList
+			ID         interface{}
+			Phone      interface{}
+			Email      interface{}
+			Password   interface{}
+			Enterprise *EnterpriseList
 		}{
-			ID:           m.ID.JSONValue(),
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			Phone:        m.Phone.JSONValue(),
-			Email:        m.Email.JSONValue(),
-			Password:     m.Password.JSONValue(),
-			Enterprise:   m.Enterprise,
+			ID:         m.ID.JSONValue(),
+			Phone:      m.Phone.JSONValue(),
+			Email:      m.Email.JSONValue(),
+			Password:   m.Password.JSONValue(),
+			Enterprise: m.Enterprise,
 		})
 	}
 	return []byte("null"), nil
@@ -108,6 +103,7 @@ func (l *EnterpriseAccountList) NewModel() nborm.Model {
 	m := &EnterpriseAccount{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -144,6 +140,16 @@ func (l *EnterpriseAccountList) Collapse() {
 		lm.Enterprise.List = append(lm.Enterprise.List, rm.Enterprise.List...)
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *EnterpriseAccountList) Filter(f func(m *EnterpriseAccount) bool) []*EnterpriseAccount {
+	ll := make([]*EnterpriseAccount, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseReviewStatus() *EnterpriseReviewStatus {
@@ -193,7 +199,7 @@ func (m *EnterpriseReviewStatus) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseReviewStatus) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID           interface{}
 			EnterpriseID interface{}
@@ -234,6 +240,7 @@ func (l *EnterpriseReviewStatusList) NewModel() nborm.Model {
 	m := &EnterpriseReviewStatus{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -262,6 +269,16 @@ func (l EnterpriseReviewStatusList) MarshalJSON() ([]byte, error) {
 
 func (l *EnterpriseReviewStatusList) Collapse() {
 	return
+}
+
+func (l *EnterpriseReviewStatusList) Filter(f func(m *EnterpriseReviewStatus) bool) []*EnterpriseReviewStatus {
+	ll := make([]*EnterpriseReviewStatus, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseStatistic() *EnterpriseStatistic {
@@ -309,7 +326,7 @@ func (m *EnterpriseStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID           interface{}
 			EnterpriseID interface{}
@@ -346,6 +363,7 @@ func (l *EnterpriseStatisticList) NewModel() nborm.Model {
 	m := &EnterpriseStatistic{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -376,6 +394,16 @@ func (l *EnterpriseStatisticList) Collapse() {
 	return
 }
 
+func (l *EnterpriseStatisticList) Filter(f func(m *EnterpriseStatistic) bool) []*EnterpriseStatistic {
+	ll := make([]*EnterpriseStatistic, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
+}
+
 func NewEnterprise() *Enterprise {
 	m := &Enterprise{}
 	nborm.InitModel(m)
@@ -384,7 +412,7 @@ func NewEnterprise() *Enterprise {
 }
 
 func (m *Enterprise) InitRel() {
-	m.Account = &EnterpriseAccountList{}
+	m.Account = &EnterpriseAccount{}
 	m.Account.SetParent(m)
 	nborm.InitModel(m.Account)
 	m.AddRelInited()
@@ -400,6 +428,7 @@ func (m *Enterprise) Tab() string {
 func (m *Enterprise) FieldInfos() nborm.FieldInfoList {
 	return nborm.FieldInfoList{
 		{"ID", "ID", &m.ID},
+		{"AccountID", "AccountID", &m.AccountID},
 		{"UniformCode", "UniformCode", &m.UniformCode},
 		{"Name", "Name", &m.Name},
 		{"RegisterCityID", "RegisterCityID", &m.RegisterCityID},
@@ -437,8 +466,8 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 	return nborm.RelationInfoList{
 		nborm.RelationInfo{
 			nborm.FieldList{
-				&m.ID,
-				&m.Account.EnterpriseID,
+				&m.AccountID,
+				&m.Account.ID,
 			},
 			m.Account,
 		},
@@ -446,9 +475,10 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 }
 
 func (m Enterprise) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID               interface{}
+			AccountID        interface{}
 			UniformCode      interface{}
 			Name             interface{}
 			RegisterCityID   interface{}
@@ -463,9 +493,10 @@ func (m Enterprise) MarshalJSON() ([]byte, error) {
 			ZipCode          interface{}
 			CreateTime       interface{}
 			UpdateTime       interface{}
-			Account          *EnterpriseAccountList
+			Account          *EnterpriseAccount
 		}{
 			ID:               m.ID.JSONValue(),
+			AccountID:        m.AccountID.JSONValue(),
 			UniformCode:      m.UniformCode.JSONValue(),
 			Name:             m.Name.JSONValue(),
 			RegisterCityID:   m.RegisterCityID.JSONValue(),
@@ -507,6 +538,7 @@ func (l *EnterpriseList) NewModel() nborm.Model {
 	m := &Enterprise{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -540,9 +572,19 @@ func (l *EnterpriseList) Collapse() {
 	lm := l.List[len(l.List)-2]
 	rm := l.List[len(l.List)-1]
 	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.Account.List = append(lm.Account.List, rm.Account.List...)
+		lm.Account = rm.Account
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *EnterpriseList) Filter(f func(m *Enterprise) bool) []*Enterprise {
+	ll := make([]*Enterprise, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseAttachment() *EnterpriseAttachment {
@@ -593,7 +635,7 @@ func (m *EnterpriseAttachment) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseAttachment) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID           interface{}
 			EnterpriseID interface{}
@@ -636,6 +678,7 @@ func (l *EnterpriseAttachmentList) NewModel() nborm.Model {
 	m := &EnterpriseAttachment{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -664,6 +707,16 @@ func (l EnterpriseAttachmentList) MarshalJSON() ([]byte, error) {
 
 func (l *EnterpriseAttachmentList) Collapse() {
 	return
+}
+
+func (l *EnterpriseAttachmentList) Filter(f func(m *EnterpriseAttachment) bool) []*EnterpriseAttachment {
+	ll := make([]*EnterpriseAttachment, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidEnterpriseTag() *MidEnterpriseTag {
@@ -710,7 +763,7 @@ func (m *MidEnterpriseTag) Relations() nborm.RelationInfoList {
 }
 
 func (m MidEnterpriseTag) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			EnterpriseID interface{}
 			TagID        interface{}
@@ -743,6 +796,7 @@ func (l *MidEnterpriseTagList) NewModel() nborm.Model {
 	m := &MidEnterpriseTag{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -771,6 +825,16 @@ func (l MidEnterpriseTagList) MarshalJSON() ([]byte, error) {
 
 func (l *MidEnterpriseTagList) Collapse() {
 	return
+}
+
+func (l *MidEnterpriseTagList) Filter(f func(m *MidEnterpriseTag) bool) []*MidEnterpriseTag {
+	ll := make([]*MidEnterpriseTag, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseJobStatistic() *EnterpriseJobStatistic {
@@ -818,7 +882,7 @@ func (m *EnterpriseJobStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseJobStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID          interface{}
 			JobID       interface{}
@@ -855,6 +919,7 @@ func (l *EnterpriseJobStatisticList) NewModel() nborm.Model {
 	m := &EnterpriseJobStatistic{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -883,6 +948,16 @@ func (l EnterpriseJobStatisticList) MarshalJSON() ([]byte, error) {
 
 func (l *EnterpriseJobStatisticList) Collapse() {
 	return
+}
+
+func (l *EnterpriseJobStatisticList) Filter(f func(m *EnterpriseJobStatistic) bool) []*EnterpriseJobStatistic {
+	ll := make([]*EnterpriseJobStatistic, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeEnterpriseJob() *MidStudentResumeEnterpriseJob {
@@ -932,7 +1007,7 @@ func (m *MidStudentResumeEnterpriseJob) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeEnterpriseJob) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID     interface{}
 			JobID        interface{}
@@ -971,6 +1046,7 @@ func (l *MidStudentResumeEnterpriseJobList) NewModel() nborm.Model {
 	m := &MidStudentResumeEnterpriseJob{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -999,6 +1075,16 @@ func (l MidStudentResumeEnterpriseJobList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeEnterpriseJobList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeEnterpriseJobList) Filter(f func(m *MidStudentResumeEnterpriseJob) bool) []*MidStudentResumeEnterpriseJob {
+	ll := make([]*MidStudentResumeEnterpriseJob, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseJob() *EnterpriseJob {
@@ -1094,7 +1180,7 @@ func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseJob) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID              interface{}
 			EnterpriseID    interface{}
@@ -1165,6 +1251,7 @@ func (l *EnterpriseJobList) NewModel() nborm.Model {
 	m := &EnterpriseJob{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1202,6 +1289,16 @@ func (l *EnterpriseJobList) Collapse() {
 		lm.StudentResumes.List = append(lm.StudentResumes.List, rm.StudentResumes.List...)
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *EnterpriseJobList) Filter(f func(m *EnterpriseJob) bool) []*EnterpriseJob {
+	ll := make([]*EnterpriseJob, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentJobFairRead() *MidStudentJobFairRead {
@@ -1250,7 +1347,7 @@ func (m *MidStudentJobFairRead) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairRead) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			IntelUserCode interface{}
 			JobFairID     interface{}
@@ -1287,6 +1384,7 @@ func (l *MidStudentJobFairReadList) NewModel() nborm.Model {
 	m := &MidStudentJobFairRead{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1315,6 +1413,16 @@ func (l MidStudentJobFairReadList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentJobFairReadList) Collapse() {
 	return
+}
+
+func (l *MidStudentJobFairReadList) Filter(f func(m *MidStudentJobFairRead) bool) []*MidStudentJobFairRead {
+	ll := make([]*MidStudentJobFairRead, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentJobFairEnroll() *MidStudentJobFairEnroll {
@@ -1363,7 +1471,7 @@ func (m *MidStudentJobFairEnroll) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairEnroll) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			IntelUserCode interface{}
 			JobFairID     interface{}
@@ -1400,6 +1508,7 @@ func (l *MidStudentJobFairEnrollList) NewModel() nborm.Model {
 	m := &MidStudentJobFairEnroll{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1428,6 +1537,16 @@ func (l MidStudentJobFairEnrollList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentJobFairEnrollList) Collapse() {
 	return
+}
+
+func (l *MidStudentJobFairEnrollList) Filter(f func(m *MidStudentJobFairEnroll) bool) []*MidStudentJobFairEnroll {
+	ll := make([]*MidStudentJobFairEnroll, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentJobFairShare() *MidStudentJobFairShare {
@@ -1476,7 +1595,7 @@ func (m *MidStudentJobFairShare) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairShare) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			IntelUserCode interface{}
 			JobFairID     interface{}
@@ -1513,6 +1632,7 @@ func (l *MidStudentJobFairShareList) NewModel() nborm.Model {
 	m := &MidStudentJobFairShare{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1541,6 +1661,16 @@ func (l MidStudentJobFairShareList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentJobFairShareList) Collapse() {
 	return
+}
+
+func (l *MidStudentJobFairShareList) Filter(f func(m *MidStudentJobFairShare) bool) []*MidStudentJobFairShare {
+	ll := make([]*MidStudentJobFairShare, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewJobFairStatistic() *JobFairStatistic {
@@ -1590,7 +1720,7 @@ func (m *JobFairStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFairStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID          interface{}
 			JobFairID   interface{}
@@ -1631,6 +1761,7 @@ func (l *JobFairStatisticList) NewModel() nborm.Model {
 	m := &JobFairStatistic{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1659,6 +1790,16 @@ func (l JobFairStatisticList) MarshalJSON() ([]byte, error) {
 
 func (l *JobFairStatisticList) Collapse() {
 	return
+}
+
+func (l *JobFairStatisticList) Filter(f func(m *JobFairStatistic) bool) []*JobFairStatistic {
+	ll := make([]*JobFairStatistic, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewJobFair() *JobFair {
@@ -1711,7 +1852,7 @@ func (m *JobFair) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFair) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID          interface{}
 			Name        interface{}
@@ -1758,6 +1899,7 @@ func (l *JobFairList) NewModel() nborm.Model {
 	m := &JobFair{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1786,6 +1928,16 @@ func (l JobFairList) MarshalJSON() ([]byte, error) {
 
 func (l *JobFairList) Collapse() {
 	return
+}
+
+func (l *JobFairList) Filter(f func(m *JobFair) bool) []*JobFair {
+	ll := make([]*JobFair, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewJobFlag() *JobFlag {
@@ -1840,7 +1992,7 @@ func (m *JobFlag) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFlag) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID         interface{}
 			Name       interface{}
@@ -1891,6 +2043,7 @@ func (l *JobFlagList) NewModel() nborm.Model {
 	m := &JobFlag{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -1919,6 +2072,16 @@ func (l JobFlagList) MarshalJSON() ([]byte, error) {
 
 func (l *JobFlagList) Collapse() {
 	return
+}
+
+func (l *JobFlagList) Filter(f func(m *JobFlag) bool) []*JobFlag {
+	ll := make([]*JobFlag, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeLanguageSkill() *MidStudentResumeLanguageSkill {
@@ -1965,7 +2128,7 @@ func (m *MidStudentResumeLanguageSkill) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeLanguageSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID        interface{}
 			LanguageSkillID interface{}
@@ -1998,6 +2161,7 @@ func (l *MidStudentResumeLanguageSkillList) NewModel() nborm.Model {
 	m := &MidStudentResumeLanguageSkill{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2026,6 +2190,16 @@ func (l MidStudentResumeLanguageSkillList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeLanguageSkillList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeLanguageSkillList) Filter(f func(m *MidStudentResumeLanguageSkill) bool) []*MidStudentResumeLanguageSkill {
+	ll := make([]*MidStudentResumeLanguageSkill, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeStudentTrain() *MidStudentResumeStudentTrain {
@@ -2072,7 +2246,7 @@ func (m *MidStudentResumeStudentTrain) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentTrain) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID interface{}
 			TrainID  interface{}
@@ -2105,6 +2279,7 @@ func (l *MidStudentResumeStudentTrainList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentTrain{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2133,6 +2308,16 @@ func (l MidStudentResumeStudentTrainList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeStudentTrainList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeStudentTrainList) Filter(f func(m *MidStudentResumeStudentTrain) bool) []*MidStudentResumeStudentTrain {
+	ll := make([]*MidStudentResumeStudentTrain, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeStudentHonor() *MidStudentResumeStudentHonor {
@@ -2179,7 +2364,7 @@ func (m *MidStudentResumeStudentHonor) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentHonor) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID interface{}
 			HonorID  interface{}
@@ -2212,6 +2397,7 @@ func (l *MidStudentResumeStudentHonorList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentHonor{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2240,6 +2426,16 @@ func (l MidStudentResumeStudentHonorList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeStudentHonorList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeStudentHonorList) Filter(f func(m *MidStudentResumeStudentHonor) bool) []*MidStudentResumeStudentHonor {
+	ll := make([]*MidStudentResumeStudentHonor, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeStudentExperience() *MidStudentResumeStudentExperience {
@@ -2286,7 +2482,7 @@ func (m *MidStudentResumeStudentExperience) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentExperience) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID     interface{}
 			ExperienceID interface{}
@@ -2319,6 +2515,7 @@ func (l *MidStudentResumeStudentExperienceList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentExperience{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2347,6 +2544,16 @@ func (l MidStudentResumeStudentExperienceList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeStudentExperienceList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeStudentExperienceList) Filter(f func(m *MidStudentResumeStudentExperience) bool) []*MidStudentResumeStudentExperience {
+	ll := make([]*MidStudentResumeStudentExperience, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewMidStudentResumeStudentSkill() *MidStudentResumeStudentSkill {
@@ -2393,7 +2600,7 @@ func (m *MidStudentResumeStudentSkill) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ResumeID interface{}
 			SkillID  interface{}
@@ -2426,6 +2633,7 @@ func (l *MidStudentResumeStudentSkillList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentSkill{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2454,6 +2662,16 @@ func (l MidStudentResumeStudentSkillList) MarshalJSON() ([]byte, error) {
 
 func (l *MidStudentResumeStudentSkillList) Collapse() {
 	return
+}
+
+func (l *MidStudentResumeStudentSkillList) Filter(f func(m *MidStudentResumeStudentSkill) bool) []*MidStudentResumeStudentSkill {
+	ll := make([]*MidStudentResumeStudentSkill, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentTrain() *StudentTrain {
@@ -2530,7 +2748,7 @@ func (m *StudentTrain) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentTrain) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID              interface{}
 			IntelUserCode   interface{}
@@ -2583,6 +2801,7 @@ func (l *StudentTrainList) NewModel() nborm.Model {
 	m := &StudentTrain{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2619,6 +2838,16 @@ func (l *StudentTrainList) Collapse() {
 		lm.StudentResume = rm.StudentResume
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *StudentTrainList) Filter(f func(m *StudentTrain) bool) []*StudentTrain {
+	ll := make([]*StudentTrain, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentHonor() *StudentHonor {
@@ -2692,7 +2921,7 @@ func (m *StudentHonor) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentHonor) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID            interface{}
 			IntelUserCode interface{}
@@ -2739,6 +2968,7 @@ func (l *StudentHonorList) NewModel() nborm.Model {
 	m := &StudentHonor{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2775,6 +3005,16 @@ func (l *StudentHonorList) Collapse() {
 		lm.StudentResume = rm.StudentResume
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *StudentHonorList) Filter(f func(m *StudentHonor) bool) []*StudentHonor {
+	ll := make([]*StudentHonor, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentExperience() *StudentExperience {
@@ -2851,7 +3091,7 @@ func (m *StudentExperience) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentExperience) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID            interface{}
 			IntelUserCode interface{}
@@ -2904,6 +3144,7 @@ func (l *StudentExperienceList) NewModel() nborm.Model {
 	m := &StudentExperience{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -2940,6 +3181,16 @@ func (l *StudentExperienceList) Collapse() {
 		lm.StudentResume = rm.StudentResume
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *StudentExperienceList) Filter(f func(m *StudentExperience) bool) []*StudentExperience {
+	ll := make([]*StudentExperience, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentSkill() *StudentSkill {
@@ -3012,7 +3263,7 @@ func (m *StudentSkill) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID            interface{}
 			IntelUserCode interface{}
@@ -3057,6 +3308,7 @@ func (l *StudentSkillList) NewModel() nborm.Model {
 	m := &StudentSkill{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -3093,6 +3345,16 @@ func (l *StudentSkillList) Collapse() {
 		lm.StudentResume = rm.StudentResume
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *StudentSkillList) Filter(f func(m *StudentSkill) bool) []*StudentSkill {
+	ll := make([]*StudentSkill, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentResume() *StudentResume {
@@ -3227,7 +3489,7 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentResume) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID                  interface{}
 			IntelUserCode       interface{}
@@ -3276,6 +3538,7 @@ func (l *StudentResumeList) NewModel() nborm.Model {
 	m := &StudentResume{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -3316,6 +3579,16 @@ func (l *StudentResumeList) Collapse() {
 		lm.StudentLanguageType.List = append(lm.StudentLanguageType.List, rm.StudentLanguageType.List...)
 		l.List = l.List[:len(l.List)-1]
 	}
+}
+
+func (l *StudentResumeList) Filter(f func(m *StudentResume) bool) []*StudentResume {
+	ll := make([]*StudentResume, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseSnapshot() *EnterpriseSnapshot {
@@ -3362,7 +3635,7 @@ func (m *EnterpriseSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID           interface{}
 			EnterpriseID interface{}
@@ -3397,6 +3670,7 @@ func (l *EnterpriseSnapshotList) NewModel() nborm.Model {
 	m := &EnterpriseSnapshot{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -3425,6 +3699,16 @@ func (l EnterpriseSnapshotList) MarshalJSON() ([]byte, error) {
 
 func (l *EnterpriseSnapshotList) Collapse() {
 	return
+}
+
+func (l *EnterpriseSnapshotList) Filter(f func(m *EnterpriseSnapshot) bool) []*EnterpriseSnapshot {
+	ll := make([]*EnterpriseSnapshot, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewEnterpriseJobSnapshot() *EnterpriseJobSnapshot {
@@ -3471,7 +3755,7 @@ func (m *EnterpriseJobSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseJobSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID    interface{}
 			JobID interface{}
@@ -3506,6 +3790,7 @@ func (l *EnterpriseJobSnapshotList) NewModel() nborm.Model {
 	m := &EnterpriseJobSnapshot{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -3534,6 +3819,16 @@ func (l EnterpriseJobSnapshotList) MarshalJSON() ([]byte, error) {
 
 func (l *EnterpriseJobSnapshotList) Collapse() {
 	return
+}
+
+func (l *EnterpriseJobSnapshotList) Filter(f func(m *EnterpriseJobSnapshot) bool) []*EnterpriseJobSnapshot {
+	ll := make([]*EnterpriseJobSnapshot, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }
 
 func NewStudentResumeSnapshot() *StudentResumeSnapshot {
@@ -3580,7 +3875,7 @@ func (m *StudentResumeSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentResumeSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() {
+	if m.IsSynced() || m.IsContainValue() {
 		return json.Marshal(struct {
 			ID       interface{}
 			ResumeID interface{}
@@ -3615,6 +3910,7 @@ func (l *StudentResumeSnapshotList) NewModel() nborm.Model {
 	m := &StudentResumeSnapshot{}
 	m.SetParent(l.GetParent())
 	nborm.InitModel(m)
+	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
@@ -3643,4 +3939,14 @@ func (l StudentResumeSnapshotList) MarshalJSON() ([]byte, error) {
 
 func (l *StudentResumeSnapshotList) Collapse() {
 	return
+}
+
+func (l *StudentResumeSnapshotList) Filter(f func(m *StudentResumeSnapshot) bool) []*StudentResumeSnapshot {
+	ll := make([]*StudentResumeSnapshot, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
 }

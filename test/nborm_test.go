@@ -142,14 +142,51 @@ var testList = []test{
 	{
 		name: "joinQuery",
 		f: func() error {
-			e := model.NewEnterpriseAccountList()
-			e.Enterprise.SetForJoin()
-			e.Phone.Distinct()
-			e.Enterprise.Contact.Distinct()
-			if err := nborm.JoinQuery(db, e); err != nil {
+			aForDel := model.NewEnterpriseAccount()
+			eForDel := model.NewEnterprise()
+			if _, err := nborm.Delete(db, aForDel); err != nil {
 				return err
 			}
-			fmt.Println(nbcolor.Yellow(e.Len()))
+			if _, err := nborm.Delete(db, eForDel); err != nil {
+				return err
+			}
+			a := model.NewEnterpriseAccount()
+			a.Email.SetString("email")
+			a.Password.SetString("password")
+			a.Phone.SetString("phone")
+			if err := nborm.InsertOne(db, a); err != nil {
+				return err
+			}
+			for i := 0; i < 10; i++ {
+				e := model.NewEnterprise()
+				e.AccountID.SetInt(a.ID.Int())
+				e.Contact.SetString(fmt.Sprintf("contact%d", i))
+				e.EmployeeFromThis.SetInt(i)
+				e.Introduction.SetString(fmt.Sprintf("introduction%d", i))
+				e.Name.SetString(fmt.Sprintf("name%d", i))
+				e.NatureID.SetInt(i)
+				e.RegisterAddress.SetString(fmt.Sprintf("register_address%d", i))
+				e.RegisterCityID.SetInt(i)
+				e.ScopeID.SetInt(i)
+				e.SectorID.SetInt(i)
+				e.UniformCode.SetString(fmt.Sprintf("uniform_code%d", i))
+				e.Website.SetString(fmt.Sprintf("website%d", i))
+				e.ZipCode.SetString(fmt.Sprintf("zipcode%d", i))
+				if err := nborm.InsertOne(db, e); err != nil {
+					return err
+				}
+			}
+			qa := model.NewEnterpriseAccountList()
+			qa.Enterprise.SetForJoin()
+			qa.Email.AndWhere("=", "email")
+			qa.Enterprise.Contact.AndWhere(">", "contact5")
+			if err := nborm.JoinQuery(db, qa); err != nil {
+				return err
+			}
+			for _, e := range qa.Enterprise.List {
+				fmt.Println(nbcolor.Yellow(e.Contact.String()))
+			}
+			fmt.Println(nbcolor.Cyan(qa.Len()))
 			return nil
 		},
 	},

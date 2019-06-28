@@ -203,10 +203,6 @@ func joinScanRows(rows *sql.Rows, m Model) error {
 			classModels = append(classModels, relModel)
 		}
 	}
-	selectFields := make(FieldList, 0, 64)
-	for _, cm := range classModels {
-		selectFields = append(selectFields, getSelectFields(cm)...)
-	}
 	for rows.Next() {
 		instModels := make([]Model, 0, len(classModels))
 		for _, cm := range classModels {
@@ -217,9 +213,10 @@ func joinScanRows(rows *sql.Rows, m Model) error {
 			}
 		}
 		addrs := make([]interface{}, 0, 64)
-		for _, im := range instModels {
+		for i, im := range instModels {
 			im.addModelStatus(synced)
-			addrs = append(addrs, getFieldsForScan(im, selectFields...))
+			selectFields := getSelectFields(classModels[i])
+			addrs = append(addrs, getFieldsForScan(im, selectFields...)...)
 		}
 		if err := rows.Scan(addrs...); err != nil {
 			return err
@@ -589,6 +586,23 @@ func genWhereClause(model Model) (string, []interface{}) {
 			}
 		default:
 			where = where.append(model.getWhere())
+		}
+	}
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
+	where.toClause(&cl, &vl)
+	if len(cl) == 0 {
+		return "", nil
+	}
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
+func genJoinWhereClause(model Model) (string, []interface{}) {
+	where := model.getWhere()
+	for _, relInfo := range model.Relations() {
+		relModel := relInfo.Object.(Model)
+		if relModel.getModelStatus()&forModelWhere == forModelWhere {
+			where = where.append(relModel.getWhere())
 		}
 	}
 	cl := make([]string, 0, 8)

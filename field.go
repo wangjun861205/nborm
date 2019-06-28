@@ -32,6 +32,7 @@ const (
 	forModelOrder  modelStatus = 1 << 7
 	forModelRef    modelStatus = 1 << 8
 	forJoin        modelStatus = 1 << 9
+	containValue   modelStatus = 1 << 10
 )
 
 type Meta struct {
@@ -122,6 +123,10 @@ func (m *Meta) SelectDistinct() {
 
 func (m *Meta) IsSynced() bool {
 	return m.status&synced == synced
+}
+
+func (m *Meta) IsContainValue() bool {
+	return m.status&containValue == containValue
 }
 
 func (m *Meta) IsRelInited() bool {
@@ -399,12 +404,14 @@ func (f *String) JSONValue() interface{} {
 func (f *String) SetString(v string) {
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	f.value = v
 }
 
 func (f *String) Set(v interface{}) {
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	f.value = v.(string)
 }
 
@@ -536,12 +543,14 @@ func (f *Int) JSONValue() interface{} {
 func (f *Int) SetInt(v int) {
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	f.value = v
 }
 
 func (f *Int) Set(v interface{}) {
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	f.value = v.(int)
 }
 
@@ -686,6 +695,7 @@ func (f *Date) SetDate(v time.Time) {
 	f.setValid()
 	f.unsetNull()
 	f.value = v
+	f.addModelStatus(containValue)
 }
 
 func (f *Date) Set(v interface{}) {
@@ -703,6 +713,7 @@ func (f *Date) Set(v interface{}) {
 	}
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 }
 
 func (f *Date) Date() time.Time {
@@ -854,6 +865,7 @@ func (f *Datetime) SetDatetime(v time.Time) {
 	f.setValid()
 	f.unsetNull()
 	f.value = v
+	f.addModelStatus(containValue)
 }
 
 func (f *Datetime) Set(v interface{}) {
@@ -871,6 +883,7 @@ func (f *Datetime) Set(v interface{}) {
 	}
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 }
 
 func (f *Datetime) Datetime() time.Time {
@@ -1009,13 +1022,16 @@ func (f *Decimal) JSONValue() interface{} {
 func (f *Decimal) SetDecimal(v float64) {
 	f.setValid()
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	f.value = v
+
 }
 
 func (f *Decimal) Set(v interface{}) {
 	f.setValid()
 	f.unsetNull()
 	f.value = v.(float64)
+	f.addModelStatus(containValue)
 }
 
 func (f *Decimal) Decimal() float64 {

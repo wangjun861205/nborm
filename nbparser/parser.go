@@ -285,7 +285,7 @@ func (m *ModelInfo) relationsFunc() string {
 func (m *ModelInfo) modelMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
-		if m.IsSynced() {
+		if m.IsSynced() || m.IsContainValue() {
 			return json.Marshal(struct{
 				{{ for _, f in model.FieldInfos }}
 					{{ f.Field }} interface{}
@@ -350,6 +350,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.SetParent(l.GetParent())
 		nborm.InitModel(m)
+		m.InitRel()
 		l.List = append(l.List, m)
 		return m
 	}
@@ -428,6 +429,24 @@ func (m *ModelInfo) listCollapseFunc() string {
 				l.List = l.List[:len(l.List)-1]
 			}
 		{{ endif }}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listFilterFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) Filter(f func(m *{{ model.Name }}) bool) []*{{ model.Name }} {
+		ll := make([]*{{ model.Name }}, 0, l.Len())
+		for _, m := range l.List {
+			if f(m) {
+				ll = append(ll, m)
+			}
+		}
+		return ll
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -632,6 +651,7 @@ func main() {
 			nf.WriteString(m.listLenFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
 			nf.WriteString(m.listCollapseFunc())
+			nf.WriteString(m.listFilterFunc())
 		}
 		nf.Sync()
 	}

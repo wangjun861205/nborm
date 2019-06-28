@@ -7,12 +7,11 @@ import "github.com/wangjun861205/nborm"
 //pk:ID
 type EnterpriseAccount struct {
 	nborm.Meta
-	ID           nborm.Int `auto_increment:"true"`
-	EnterpriseID nborm.Int
-	Phone        nborm.String
-	Email        nborm.String
-	Password     nborm.String
-	Enterprise   *EnterpriseList `rel:"EnterpriseID->ID(Name='xxx')"`
+	ID         nborm.Int `auto_increment:"true"`
+	Phone      nborm.String
+	Email      nborm.String
+	Password   nborm.String
+	Enterprise *EnterpriseList `rel:"ID->AccountID"`
 }
 
 //db:qdxg
@@ -45,6 +44,7 @@ type EnterpriseStatistic struct {
 type Enterprise struct {
 	nborm.Meta
 	ID               nborm.Int `auto_increment:"true"`
+	AccountID        nborm.Int
 	UniformCode      nborm.String
 	Name             nborm.String
 	RegisterCityID   nborm.Int
@@ -59,7 +59,7 @@ type Enterprise struct {
 	ZipCode          nborm.String
 	CreateTime       nborm.Datetime
 	UpdateTime       nborm.Datetime
-	Account          *EnterpriseAccountList `rel:"ID->EnterpriseID"`
+	Account          *EnterpriseAccount `rel:"AccountID->ID"`
 }
 
 //db:qdxg

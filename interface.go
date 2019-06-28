@@ -72,6 +72,7 @@ type Field interface {
 	updateSet() *updateSet
 	genAndWhere(string, interface{}) *where
 	genOrWhere(string, interface{}) *where
+	Distinct()
 }
 
 type Model interface {

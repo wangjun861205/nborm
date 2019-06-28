@@ -2,6 +2,7 @@ package test
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -187,6 +188,25 @@ var testList = []test{
 				fmt.Println(nbcolor.Yellow(e.Contact.String()))
 			}
 			fmt.Println(nbcolor.Cyan(qa.Len()))
+			return nil
+		},
+	},
+	{
+		name: "setValueForJSON",
+		f: func() error {
+			e := model.NewEnterprise()
+			e.Contact.SetString("hello")
+			b, err := json.Marshal(e)
+			if err != nil {
+				return err
+			}
+			ne := model.NewEnterprise()
+			nb, err := json.Marshal(ne)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(string(b)))
+			fmt.Println(nbcolor.Yellow(string(nb)))
 			return nil
 		},
 	},

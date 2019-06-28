@@ -50,7 +50,6 @@ type BaseField interface {
 	AscOrder()
 	DscOrder()
 	String() string
-	Distinct()
 }
 
 type Field interface {

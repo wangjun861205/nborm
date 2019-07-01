@@ -102,13 +102,12 @@ func FullQueryOne(exe Executor, model Model) error {
 }
 
 func Query(exe Executor, l ModelList) error {
-	// selectFields := getFields(l, forSelect)
-	selectColumns := genSelectColumns(l)
+	selectClause := genSelectClause(l)
 	whereClause, whereValues := genWhereClause(l)
 	tabRef := genTabRef(l)
 	orderClause := genOrderClause(l)
 	limitClause := genLimitClause(l)
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s %s", selectColumns, tabRef, whereClause, orderClause, limitClause)
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
@@ -117,15 +116,6 @@ func Query(exe Executor, l ModelList) error {
 	if err != nil {
 		return err
 	}
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	if err := scanRows(rows, l.NewModel(), selectFields...); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if err := rows.Err(); err != nil {
-	// 	return err
-	// }
 	if err := scanRows(rows, l); err != nil {
 		return err
 	}
@@ -140,13 +130,12 @@ func Query(exe Executor, l ModelList) error {
 }
 
 func FullQuery(exe Executor, l ModelList) error {
-	// selectFields := getFields(l, forSelect)
-	selectColumns := genSelectColumns(l)
+	selectClause := genSelectClause(l)
 	whereClause, whereValues := genFullWhereClause(l)
 	tabRef := genFullTabRef(l)
 	orderClause := genFullOrderClause(l)
 	limitClause := genLimitClause(l)
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s %s", selectColumns, tabRef, whereClause, orderClause, limitClause)
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
@@ -155,15 +144,6 @@ func FullQuery(exe Executor, l ModelList) error {
 	if err != nil {
 		return err
 	}
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	if err := scanRows(rows, l.NewModel(), selectFields...); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if err := rows.Err(); err != nil {
-	// 	return err
-	// }
 	if err := scanRows(rows, l); err != nil {
 		return err
 	}
@@ -178,17 +158,12 @@ func FullQuery(exe Executor, l ModelList) error {
 }
 
 func JoinQuery(exe Executor, model Model) error {
-	selectColumns := genJoinSelectColumns(model)
+	selectClause := genJoinSelectClause(model)
 	tabRef := genJoinTabRef(model)
 	whereClause, whereValues := genJoinWhereClause(model)
 	limitClause := genLimitClause(model)
 	orderClause := genOrderClause(model)
-	var stmt string
-	if _, ok := model.(ModelList); ok {
-		stmt = fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s %s", selectColumns, tabRef, whereClause, orderClause, limitClause)
-	} else {
-		stmt = fmt.Sprintf("SELECT %s FROM %s %s %s %s", selectColumns, tabRef, whereClause, orderClause, limitClause)
-	}
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
 		fmt.Println(nbcolor.Green(whereValues))

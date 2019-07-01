@@ -33,6 +33,7 @@ const (
 	forModelRef    modelStatus = 1 << 8
 	forJoin        modelStatus = 1 << 9
 	containValue   modelStatus = 1 << 10
+	selectAll      modelStatus = 1 << 11
 )
 
 type Meta struct {
@@ -164,6 +165,10 @@ func (m *Meta) getLimit() (limit, offset int) {
 func (m *Meta) SetForJoin() {
 	m.addModelStatus(forJoin)
 	m.addModelStatus(forModelRef)
+}
+
+func (m *Meta) SelectAll() {
+	m.addModelStatus(selectAll)
 }
 
 type fieldStatus int

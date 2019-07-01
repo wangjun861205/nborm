@@ -396,7 +396,7 @@ func genOrderClause(model Model) string {
 			if f.getStatus()&forAscOrder == forAscOrder {
 				colList = append(colList, f.fullColName())
 			} else {
-				colList = append(colList, fmt.Sprintf("%s DESC"))
+				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
 			}
 		}
 	}
@@ -405,7 +405,7 @@ func genOrderClause(model Model) string {
 			if f.getStatus()&forAscOrder == forAscOrder {
 				colList = append(colList, f.fullColName())
 			} else {
-				colList = append(colList, fmt.Sprintf("%s DESC"))
+				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
 			}
 		}
 	}
@@ -630,4 +630,77 @@ func genLimitClause(model Model) string {
 		return ""
 	}
 	return fmt.Sprintf("LIMIT %d, %d", offset, limit)
+}
+
+func genSelectClause(model Model) string {
+	var builder strings.Builder
+	if _, ok := model.(ModelList); ok {
+		builder.WriteString("SELECT SQL_CALC_FOUND_ROWS ")
+		if model.getModelStatus()&distinct == distinct {
+			builder.WriteString("DISTINCT ")
+		}
+	} else {
+		builder.WriteString("SELECT ")
+	}
+	if model.getModelStatus()&selectAll == selectAll {
+		builder.WriteString(fmt.Sprintf("%s.* ", model.fullTabName()))
+	} else {
+		if selectFields := getSelectFields(model); len(selectFields) == 0 {
+			for _, f := range getAllFields(model) {
+				builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			}
+		} else {
+			for _, f := range selectFields {
+				builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			}
+		}
+	}
+	return strings.TrimSuffix(builder.String(), ", ")
+}
+
+func genJoinSelectClause(model Model) string {
+	var dist string
+	var foundRows string
+	var builder strings.Builder
+	if _, ok := model.(ModelList); ok {
+		foundRows = "SQL_CALC_FOUND_ROWS"
+		if model.getModelStatus()&distinct == distinct {
+			dist = "DISTINCT"
+		}
+	}
+	if model.getModelStatus()&selectAll == selectAll {
+		builder.WriteString(fmt.Sprintf("%s.* ", model.fullTabName()))
+	} else {
+		if selectFields := getSelectFields(model); len(selectFields) == 0 {
+			for _, f := range getAllFields(model) {
+				builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			}
+		} else {
+			for _, f := range selectFields {
+				builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			}
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.getModelStatus()&forJoin == forJoin {
+			if subModel.getModelStatus()&distinct == distinct {
+				dist = "DISTINCT"
+			}
+			if subModel.getModelStatus()&selectAll == selectAll {
+				builder.WriteString(fmt.Sprintf("%s.*, ", subModel.fullTabName()))
+			} else {
+				if selectFields := getSelectFields(subModel); len(selectFields) == 0 {
+					for _, f := range getAllFields(model) {
+						builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+					}
+				} else {
+					for _, f := range selectFields {
+						builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+					}
+				}
+			}
+		}
+	}
+	return fmt.Sprintf("SELECT %s %s %s", foundRows, dist, strings.Trim(builder.String(), ", "))
 }

@@ -66,6 +66,8 @@ var testList = []test{
 			j := model.NewEnterpriseJobList()
 			j.Address.AndWhere("IN", []string{"address1", "address2"})
 			j.AndExprWhere(nborm.NewExpr("(@ = 'test1' OR @ = 'test2')", &j.Comment, &j.Comment))
+			j.EnterpriseID.DscOrder()
+			j.SetLimit(10, 0)
 			if err := nborm.Query(db, j); err != nil {
 				return err
 			}

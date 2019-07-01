@@ -124,17 +124,7 @@ var testList = []test{
 		},
 	},
 	{
-		name: "backQuery",
-		f: func() error {
-			e := model.NewEnterpriseAccountList()
-			if err := nborm.Query(db, e); err != nil {
-				return err
-			}
-			return nil
-		},
-	},
-	{
-		name: "fullUpdate",
+		name: "update",
 		f: func() error {
 			e := model.NewEnterpriseAccountList()
 			e.Email.SetUpdate("test")

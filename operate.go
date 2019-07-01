@@ -103,7 +103,7 @@ func Count(exe Executor, model Model) (int, error) {
 // 	return queryAndScan(exe, model, stmt, whereValues...)
 // }
 
-func Query(exe Executor, l ModelList) error {
+func Query(exe Executor, l Model) error {
 	selectClause := genSelectClause(l)
 	whereClause, whereValues := genWhereClause(l)
 	tabRef := genTabRef(l)

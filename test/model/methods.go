@@ -415,6 +415,11 @@ func (m *Enterprise) InitRel() {
 	m.Account = &EnterpriseAccount{}
 	m.Account.SetParent(m)
 	nborm.InitModel(m.Account)
+	m.Sector = &JobFlag{}
+	m.Sector.SetParent(m)
+	nborm.InitModel(m.Sector)
+	m.Sector.Type.AndWhere("=", "Sector")
+	m.Sector.Status.AndWhere("=", 1)
 	m.AddRelInited()
 }
 func (m *Enterprise) DB() string {
@@ -471,6 +476,13 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 			},
 			m.Account,
 		},
+		nborm.RelationInfo{
+			nborm.FieldList{
+				&m.SectorID,
+				&m.Sector.ID,
+			},
+			m.Sector,
+		},
 	}
 }
 
@@ -494,6 +506,7 @@ func (m Enterprise) MarshalJSON() ([]byte, error) {
 			CreateTime       interface{}
 			UpdateTime       interface{}
 			Account          *EnterpriseAccount
+			Sector           *JobFlag
 		}{
 			ID:               m.ID.JSONValue(),
 			AccountID:        m.AccountID.JSONValue(),
@@ -512,6 +525,7 @@ func (m Enterprise) MarshalJSON() ([]byte, error) {
 			CreateTime:       m.CreateTime.JSONValue(),
 			UpdateTime:       m.UpdateTime.JSONValue(),
 			Account:          m.Account,
+			Sector:           m.Sector,
 		})
 	}
 	return []byte("null"), nil
@@ -573,6 +587,7 @@ func (l *EnterpriseList) Collapse() {
 	rm := l.List[len(l.List)-1]
 	if nborm.IsPrimaryKeyEqual(lm, rm) {
 		lm.Account = rm.Account
+		lm.Sector = rm.Sector
 		l.List = l.List[:len(l.List)-1]
 	}
 }

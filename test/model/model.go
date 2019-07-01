@@ -60,6 +60,7 @@ type Enterprise struct {
 	CreateTime       nborm.Datetime
 	UpdateTime       nborm.Datetime
 	Account          *EnterpriseAccount `rel:"AccountID->ID"`
+	Sector           *JobFlag           `rel:"SectorID->ID(Type='Sector',Status=1)"`
 }
 
 //db:qdxg

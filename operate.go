@@ -52,56 +52,56 @@ func Count(exe Executor, model Model) (int, error) {
 	return count, nil
 }
 
-func FullCount(exe Executor, model Model) (int, error) {
-	whereClause, whereValues := genFullWhereClause(model)
-	tabRef := genFullTabRef(model)
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, whereClause)
-	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(whereValues))
-	}
-	var count int
-	if err := exe.QueryRow(stmt, whereValues...).Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
-}
+// func FullCount(exe Executor, model Model) (int, error) {
+// 	whereClause, whereValues := genFullWhereClause(model)
+// 	tabRef := genFullTabRef(model)
+// 	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, whereClause)
+// 	if DEBUG {
+// 		fmt.Println(nbcolor.Green(stmt))
+// 		fmt.Println(nbcolor.Green(whereValues))
+// 	}
+// 	var count int
+// 	if err := exe.QueryRow(stmt, whereValues...).Scan(&count); err != nil {
+// 		return 0, err
+// 	}
+// 	return count, nil
+// }
 
-func QueryOne(exe Executor, model Model) error {
-	// selectFields := getFields(model, forSelect)
-	selectColumns := genSelectColumns(model)
-	whereClause, whereValues := genWhereClause(model)
-	tabRef := genTabRef(model)
-	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
-	if DEBUG {
-		log.Println(nbcolor.Green(stmt))
-		log.Println(nbcolor.Green(whereValues))
-	}
-	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
-	// if err != nil {
-	// 	return err
-	// }
-	// return nil
-	return queryAndScan(exe, model, stmt, whereValues...)
-}
+// func QueryOne(exe Executor, model Model) error {
+// 	// selectFields := getFields(model, forSelect)
+// 	selectColumns := genSelectColumns(model)
+// 	whereClause, whereValues := genWhereClause(model)
+// 	tabRef := genTabRef(model)
+// 	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
+// 	if DEBUG {
+// 		log.Println(nbcolor.Green(stmt))
+// 		log.Println(nbcolor.Green(whereValues))
+// 	}
+// 	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// return nil
+// 	return queryAndScan(exe, model, stmt, whereValues...)
+// }
 
-func FullQueryOne(exe Executor, model Model) error {
-	// selectFields := getFields(model, forSelect)
-	selectColumns := genSelectColumns(model)
-	whereClause, whereValues := genFullWhereClause(model)
-	tabRef := genFullTabRef(model)
-	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
-	if DEBUG {
-		log.Println(nbcolor.Green(stmt))
-		log.Println(nbcolor.Green(whereValues))
-	}
-	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
-	// if err != nil {
-	// 	return err
-	// }
-	// return nil
-	return queryAndScan(exe, model, stmt, whereValues...)
-}
+// func FullQueryOne(exe Executor, model Model) error {
+// 	// selectFields := getFields(model, forSelect)
+// 	selectColumns := genSelectColumns(model)
+// 	whereClause, whereValues := genFullWhereClause(model)
+// 	tabRef := genFullTabRef(model)
+// 	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
+// 	if DEBUG {
+// 		log.Println(nbcolor.Green(stmt))
+// 		log.Println(nbcolor.Green(whereValues))
+// 	}
+// 	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// return nil
+// 	return queryAndScan(exe, model, stmt, whereValues...)
+// }
 
 func Query(exe Executor, l ModelList) error {
 	selectClause := genSelectClause(l)
@@ -132,66 +132,66 @@ func Query(exe Executor, l ModelList) error {
 	return queryAndScan(exe, l, stmt, whereValues...)
 }
 
-func FullQuery(exe Executor, l ModelList) error {
-	selectClause := genSelectClause(l)
-	whereClause, whereValues := genFullWhereClause(l)
-	tabRef := genFullTabRef(l)
-	orderClause := genFullOrderClause(l)
-	limitClause := genLimitClause(l)
-	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
-	if DEBUG {
-		log.Println(nbcolor.Green(stmt))
-		log.Println(nbcolor.Green(whereValues))
-	}
-	// rows, err := exe.Query(stmt, whereValues...)
-	// if err != nil {
-	// 	return err
-	// }
-	// if err := scanRows(rows, l); err != nil {
-	// 	return err
-	// }
-	// stmt = `SELECT FOUND_ROWS()`
-	// var total int
-	// if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-	// 	return err
-	// }
-	// l.SetTotal(total)
-	// l.addModelStatus(synced)
-	// return nil
-	return queryAndScan(exe, l, stmt, whereValues...)
-}
+// func FullQuery(exe Executor, l ModelList) error {
+// 	selectClause := genSelectClause(l)
+// 	whereClause, whereValues := genFullWhereClause(l)
+// 	tabRef := genFullTabRef(l)
+// 	orderClause := genFullOrderClause(l)
+// 	limitClause := genLimitClause(l)
+// 	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+// 	if DEBUG {
+// 		log.Println(nbcolor.Green(stmt))
+// 		log.Println(nbcolor.Green(whereValues))
+// 	}
+// 	// rows, err := exe.Query(stmt, whereValues...)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// if err := scanRows(rows, l); err != nil {
+// 	// 	return err
+// 	// }
+// 	// stmt = `SELECT FOUND_ROWS()`
+// 	// var total int
+// 	// if err := exe.QueryRow(stmt).Scan(&total); err != nil {
+// 	// 	return err
+// 	// }
+// 	// l.SetTotal(total)
+// 	// l.addModelStatus(synced)
+// 	// return nil
+// 	return queryAndScan(exe, l, stmt, whereValues...)
+// }
 
-func JoinQuery(exe Executor, model Model) error {
-	selectClause := genJoinSelectClause(model)
-	tabRef := genJoinTabRef(model)
-	whereClause, whereValues := genJoinWhereClause(model)
-	limitClause := genLimitClause(model)
-	orderClause := genOrderClause(model)
-	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
-	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(whereValues))
-	}
-	// if l, ok := model.(ModelList); ok {
-	// 	rows, err := exe.Query(stmt, whereValues...)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if err := joinScanRows(rows, l); err != nil {
-	// 		return err
-	// 	}
-	// 	stmt = `SELECT FOUND_ROWS()`
-	// 	var total int
-	// 	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-	// 		return err
-	// 	}
-	// 	l.SetTotal(total)
-	// 	l.addModelStatus(synced)
-	// 	return nil
-	// }
-	// return joinScanRow(exe.QueryRow(stmt, whereValues...), model)
-	return queryAndScan(exe, model, stmt, whereValues...)
-}
+// func JoinQuery(exe Executor, model Model) error {
+// 	selectClause := genJoinSelectClause(model)
+// 	tabRef := genJoinTabRef(model)
+// 	whereClause, whereValues := genJoinWhereClause(model)
+// 	limitClause := genLimitClause(model)
+// 	orderClause := genOrderClause(model)
+// 	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+// 	if DEBUG {
+// 		fmt.Println(nbcolor.Green(stmt))
+// 		fmt.Println(nbcolor.Green(whereValues))
+// 	}
+// 	// if l, ok := model.(ModelList); ok {
+// 	// 	rows, err := exe.Query(stmt, whereValues...)
+// 	// 	if err != nil {
+// 	// 		return err
+// 	// 	}
+// 	// 	if err := joinScanRows(rows, l); err != nil {
+// 	// 		return err
+// 	// 	}
+// 	// 	stmt = `SELECT FOUND_ROWS()`
+// 	// 	var total int
+// 	// 	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
+// 	// 		return err
+// 	// 	}
+// 	// 	l.SetTotal(total)
+// 	// 	l.addModelStatus(synced)
+// 	// 	return nil
+// 	// }
+// 	// return joinScanRow(exe.QueryRow(stmt, whereValues...), model)
+// 	return queryAndScan(exe, model, stmt, whereValues...)
+// }
 
 func Update(exe Executor, model Model) (sql.Result, error) {
 	tabRef := genTabRef(model)
@@ -206,18 +206,18 @@ func Update(exe Executor, model Model) (sql.Result, error) {
 	return exe.Exec(stmt, append(updateValues, whereValues...)...)
 }
 
-func FullUpdate(exe Executor, model Model) (sql.Result, error) {
-	tabRef := genFullTabRef(model)
-	updateClause, updateValues := genFullUpdateSetClause(model)
-	whereClause, whereValues := genFullWhereClause(model)
-	stmt := fmt.Sprintf("UPDATE %s %s %s", tabRef, updateClause, whereClause)
-	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(updateValues))
-		fmt.Println(nbcolor.Green(whereValues))
-	}
-	return exe.Exec(stmt, append(updateValues, whereValues...)...)
-}
+// func FullUpdate(exe Executor, model Model) (sql.Result, error) {
+// 	tabRef := genFullTabRef(model)
+// 	updateClause, updateValues := genFullUpdateSetClause(model)
+// 	whereClause, whereValues := genFullWhereClause(model)
+// 	stmt := fmt.Sprintf("UPDATE %s %s %s", tabRef, updateClause, whereClause)
+// 	if DEBUG {
+// 		fmt.Println(nbcolor.Green(stmt))
+// 		fmt.Println(nbcolor.Green(updateValues))
+// 		fmt.Println(nbcolor.Green(whereValues))
+// 	}
+// 	return exe.Exec(stmt, append(updateValues, whereValues...)...)
+// }
 
 func Delete(exe Executor, model Model) (sql.Result, error) {
 	whereClause, whereValues := genSimpleWhereClause(model)

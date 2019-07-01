@@ -61,7 +61,7 @@ var testList = []test{
 		},
 	},
 	{
-		name: "queryTest",
+		name: "query",
 		f: func() error {
 			j := model.NewEnterpriseJobList()
 			j.Address.AndWhere("IN", []string{"address1", "address2"})
@@ -112,8 +112,12 @@ var testList = []test{
 	{
 		name: "addedCondQuery",
 		f: func() error {
-			e := model.NewEnterpriseAccountList()
-			if err := nborm.FullQuery(db, e); err != nil {
+			a := model.NewEnterpriseAccountList()
+			a.Enterprise.InitRel()
+			a.Email.AndWhere("=", "parent_query")
+			a.Enterprise.UniformCode.AndWhere("=", "local_query")
+			a.Enterprise.Sector.Name.AndWhere("=", "children_query")
+			if err := nborm.Query(db, a); err != nil {
 				return err
 			}
 			return nil
@@ -136,7 +140,7 @@ var testList = []test{
 			e.Email.SetUpdate("test")
 			e.Enterprise.ID.AndWhere("=", 1)
 			e.Enterprise.Contact.SetUpdate("yyy")
-			if _, err := nborm.FullUpdate(db, e); err != nil {
+			if _, err := nborm.Update(db, e); err != nil {
 				return err
 			}
 			return nil
@@ -183,7 +187,7 @@ var testList = []test{
 			qa.Enterprise.SetForJoin()
 			qa.Email.AndWhere("=", "email")
 			qa.Enterprise.Contact.AndWhere(">", "contact5")
-			if err := nborm.JoinQuery(db, qa); err != nil {
+			if err := nborm.Query(db, qa); err != nil {
 				return err
 			}
 			for _, e := range qa.Enterprise.List {

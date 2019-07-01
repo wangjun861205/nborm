@@ -1,7 +1,6 @@
 package nborm
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 )
@@ -62,25 +61,141 @@ func getField(model Model, fieldName string) Field {
 	panic(fmt.Sprintf("field not exists(%s.%s.%s)", model.DB(), model.Tab(), fieldName))
 }
 
-func getFieldsForScan(model Model, fields ...Field) []interface{} {
-	allFields := getAllFields(model)
-	addrs := make([]interface{}, 0, len(allFields))
-	if len(fields) == 0 {
-		for _, f := range allFields {
-			addrs = append(addrs, f)
-		}
-		return addrs
-	}
-OUTER:
-	for _, tf := range fields {
-		for _, af := range allFields {
-			if tf.colName() == af.colName() {
-				addrs = append(addrs, af)
-				continue OUTER
+// func getFieldsForScan(model Model, fields ...Field) []interface{} {
+// 	allFields := getAllFields(model)
+// 	addrs := make([]interface{}, 0, len(allFields))
+// 	if len(fields) == 0 {
+// 		for _, f := range allFields {
+// 			addrs = append(addrs, f)
+// 		}
+// 		return addrs
+// 	}
+// OUTER:
+// 	for _, tf := range fields {
+// 		for _, af := range allFields {
+// 			if tf.colName() == af.colName() {
+// 				addrs = append(addrs, af)
+// 				continue OUTER
+// 			}
+// 		}
+// 	}
+// 	return addrs
+// }
+
+func getFieldsForScan(model Model) ([]interface{}, []Model) {
+	addrs := make([]interface{}, 0, 32)
+	models := make([]Model, 0, 16)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forJoin == forJoin {
+		if selectFields := getSelectFields(parent); len(selectFields) == 0 {
+			if l, ok := parent.(ModelList); ok {
+				newModel := l.NewModel()
+				for _, f := range getAllFields(newModel) {
+					addrs = append(addrs, f)
+				}
+				models = append(models, newModel)
+			} else {
+				for _, f := range getAllFields(parent) {
+					addrs = append(addrs, f)
+				}
+				models = append(models, parent)
+			}
+		} else {
+			if l, ok := parent.(ModelList); ok {
+				newModel := l.NewModel()
+				allFields := getAllFields(newModel)
+			PARENT_OUTER:
+				for _, sf := range selectFields {
+					for _, af := range allFields {
+						if sf.colName() == af.colName() {
+							addrs = append(addrs, af)
+							continue PARENT_OUTER
+						}
+					}
+				}
+				models = append(models, newModel)
+			} else {
+				for _, f := range selectFields {
+					addrs = append(addrs, f)
+				}
+				models = append(models, parent)
 			}
 		}
 	}
-	return addrs
+	if selectFields := getSelectFields(model); len(selectFields) == 0 {
+		if l, ok := model.(ModelList); ok {
+			newModel := l.NewModel()
+			for _, f := range getAllFields(newModel) {
+				addrs = append(addrs, f)
+			}
+			models = append(models, newModel)
+		} else {
+			for _, f := range getAllFields(model) {
+				addrs = append(addrs, f)
+			}
+			models = append(models, model)
+		}
+	} else {
+		if l, ok := model.(ModelList); ok {
+			newModel := l.NewModel()
+			allFields := getAllFields(newModel)
+		OUTER:
+			for _, sf := range selectFields {
+				for _, af := range allFields {
+					if sf.colName() == af.colName() {
+						addrs = append(addrs, af)
+						continue OUTER
+					}
+				}
+			}
+			models = append(models, newModel)
+		} else {
+			for _, f := range selectFields {
+				addrs = append(addrs, f)
+			}
+			models = append(models, model)
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.getModelStatus()&forJoin == forJoin {
+			if selectFields := getSelectFields(subModel); len(selectFields) == 0 {
+				if l, ok := subModel.(ModelList); ok {
+					newModel := l.NewModel()
+					for _, f := range getAllFields(newModel) {
+						addrs = append(addrs, f)
+					}
+					models = append(models, newModel)
+				} else {
+					for _, f := range getAllFields(subModel) {
+						addrs = append(addrs, f)
+					}
+					models = append(models, subModel)
+				}
+			} else {
+				if l, ok := subModel.(ModelList); ok {
+					newModel := l.NewModel()
+					allFields := getAllFields(newModel)
+				SUB_OUTER:
+					for _, sf := range selectFields {
+						for _, af := range allFields {
+							if sf.colName() == af.colName() {
+								addrs = append(addrs, af)
+								continue SUB_OUTER
+							}
+						}
+					}
+					models = append(models, newModel)
+				} else {
+					for _, f := range selectFields {
+						addrs = append(addrs, f)
+					}
+					models = append(models, subModel)
+				}
+			}
+		}
+	}
+	return addrs, models
 }
 
 func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
@@ -90,8 +205,125 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*vl = append(*vl, field.Value())
 }
 
-// func scanRow(row *sql.Row, model Model, fields ...Field) error {
-// 	scanFields := getFieldsForScan(model, fields...)
+func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
+	collFuncs := make([]func(), 0, 2)
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forJoin == forJoin {
+		if l, ok := parent.(ModelList); ok {
+			collFunc := func() { l.Collapse() }
+			collFuncs = append(collFuncs, collFunc)
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.getModelStatus()&forJoin == forJoin {
+			if l, ok := model.(ModelList); ok {
+				collFunc := func() { l.Collapse() }
+				collFuncs = append(collFuncs, collFunc)
+				break
+			}
+		}
+	}
+	switch {
+	case parent != nil && parent.getModelStatus()&forJoin == forJoin:
+		rows, err := exe.Query(stmt, whereValues...)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			fields, models := getFieldsForScan(model)
+			if err := rows.Scan(fields...); err != nil {
+				return err
+			}
+			for i := len(collFuncs); i > 0; i-- {
+				collFuncs[i-1]()
+			}
+			for _, m := range models {
+				m.addModelStatus(synced)
+			}
+		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		var rowCount int
+		if err := exe.QueryRow(`SELECT FOUND_ROWS()`).Scan(&rowCount); err != nil {
+			return err
+		}
+		if l, ok := parent.(ModelList); ok {
+			l.SetTotal(rowCount)
+		}
+	default:
+		if l, ok := model.(ModelList); ok {
+			rows, err := exe.Query(stmt, whereValues...)
+			if err != nil {
+				return err
+			}
+			defer rows.Close()
+			for rows.Next() {
+				fields, models := getFieldsForScan(model)
+				if err := rows.Scan(fields...); err != nil {
+					return err
+				}
+				for i := len(collFuncs); i > 0; i-- {
+					collFuncs[i-1]()
+				}
+				for _, m := range models {
+					m.addModelStatus(synced)
+				}
+			}
+			if err := rows.Err(); err != nil {
+				return err
+			}
+			var rowCount int
+			if err := exe.QueryRow(`SELECT FOUND_ROWS()`).Scan(&rowCount); err != nil {
+				return err
+			}
+			l.SetTotal(rowCount)
+		} else {
+			if len(collFuncs) > 0 {
+				rows, err := exe.Query(stmt, whereValues...)
+				if err != nil {
+					return err
+				}
+				defer rows.Close()
+				for rows.Next() {
+					fields, models := getFieldsForScan(model)
+					if err := rows.Scan(fields...); err != nil {
+						return err
+					}
+					for i := len(collFuncs); i > 0; i-- {
+						collFuncs[i-1]()
+					}
+					for _, m := range models {
+						m.addModelStatus(synced)
+					}
+				}
+				if err := rows.Err(); err != nil {
+					return err
+				}
+			} else {
+				fields, models := getFieldsForScan(model)
+				if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
+					return err
+				}
+				for _, m := range models {
+					m.addModelStatus(synced)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// func scanRow(row *sql.Row, model Model) error {
+// 	selectFields := getSelectFields(model)
+// 	if l, ok := model.(ModelList); ok {
+// 		newModel := l.NewModel()
+// 		scanFields := getFieldsForScan(newModel, selectFields...)
+// 		return row.Scan(scanFields...)
+// 	}
+// 	scanFields := getSelectFields(model)
 // 	addrs := make([]interface{}, 0, len(scanFields))
 // 	for _, f := range scanFields {
 // 		addrs = append(addrs, f)
@@ -99,88 +331,48 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 // 	if err := row.Scan(addrs...); err != nil {
 // 		return err
 // 	}
-// 	if model.getModelStatus()&inited == 0 {
-// 		InitModel(model)
+// 	if model.getModelStatus()&relInited == 0 {
+// 		model.InitRel()
 // 	}
-// 	// setRelWhere(model)
 // 	model.addModelStatus(synced)
 // 	return nil
 // }
 
-// func scanRows(rows *sql.Rows, model Model, fields ...Field) error {
-// 	scanFields := getFieldsForScan(model, fields...)
-// 	addrs := make([]interface{}, 0, len(scanFields))
-// 	for _, f := range scanFields {
+// func scanRows(rows *sql.Rows, l ModelList) error {
+// 	defer rows.Close()
+// 	selectFields := getSelectFields(l)
+// 	for rows.Next() {
+// 		newModel := l.NewModel()
+// 		scanFields := getFieldsForScan(newModel, selectFields...)
+// 		rows.Scan(scanFields...)
+// 	}
+// 	return rows.Err()
+// }
+
+// func joinScanRow(row *sql.Row, m Model) error {
+// 	addrs := make([]interface{}, 0, 64)
+// 	for _, f := range getSelectFields(m) {
 // 		addrs = append(addrs, f)
 // 	}
-// 	if err := rows.Scan(addrs...); err != nil {
-// 		return err
+// 	for _, relInfo := range m.Relations() {
+// 		if relInfo.Object.(Model).getModelStatus()&forJoin == forJoin {
+// 			if l, ok := m.(ModelList); ok {
+// 				selectFields := getSelectFields(l)
+// 				nm := l.NewModel()
+// 				for _, f := range getFieldsForScan(nm, selectFields...) {
+// 					addrs = append(addrs, f)
+// 				}
+// 				nm.addModelStatus(synced)
+// 			} else {
+// 				for _, f := range getSelectFields(relInfo.Object.(Model)) {
+// 					addrs = append(addrs, f)
+// 				}
+// 				relInfo.Object.(Model).addModelStatus(synced)
+// 			}
+// 		}
 // 	}
-// 	if model.getModelStatus()&inited == 0 {
-// 		InitModel(model)
-// 	}
-// 	// setRelWhere(model)
-// 	model.addModelStatus(synced)
-// 	return nil
+// 	return row.Scan(addrs...)
 // }
-
-func scanRow(row *sql.Row, model Model) error {
-	selectFields := getSelectFields(model)
-	if l, ok := model.(ModelList); ok {
-		newModel := l.NewModel()
-		scanFields := getFieldsForScan(newModel, selectFields...)
-		return row.Scan(scanFields...)
-	}
-	scanFields := getSelectFields(model)
-	addrs := make([]interface{}, 0, len(scanFields))
-	for _, f := range scanFields {
-		addrs = append(addrs, f)
-	}
-	if err := row.Scan(addrs...); err != nil {
-		return err
-	}
-	if model.getModelStatus()&relInited == 0 {
-		model.InitRel()
-	}
-	model.addModelStatus(synced)
-	return nil
-}
-
-func scanRows(rows *sql.Rows, l ModelList) error {
-	defer rows.Close()
-	selectFields := getSelectFields(l)
-	for rows.Next() {
-		newModel := l.NewModel()
-		scanFields := getFieldsForScan(newModel, selectFields...)
-		rows.Scan(scanFields...)
-	}
-	return rows.Err()
-}
-
-func joinScanRow(row *sql.Row, m Model) error {
-	addrs := make([]interface{}, 0, 64)
-	for _, f := range getSelectFields(m) {
-		addrs = append(addrs, f)
-	}
-	for _, relInfo := range m.Relations() {
-		if relInfo.Object.(Model).getModelStatus()&forJoin == forJoin {
-			if l, ok := m.(ModelList); ok {
-				selectFields := getSelectFields(l)
-				nm := l.NewModel()
-				for _, f := range getFieldsForScan(nm, selectFields...) {
-					addrs = append(addrs, f)
-				}
-				nm.addModelStatus(synced)
-			} else {
-				for _, f := range getSelectFields(relInfo.Object.(Model)) {
-					addrs = append(addrs, f)
-				}
-				relInfo.Object.(Model).addModelStatus(synced)
-			}
-		}
-	}
-	return row.Scan(addrs...)
-}
 
 func IsPrimaryKeyEqual(lm, rm Model) bool {
 	lpk := lm.PrimaryKey()
@@ -193,40 +385,40 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	return true
 }
 
-func joinScanRows(rows *sql.Rows, m Model) error {
-	defer rows.Close()
-	classModels := make([]Model, 0, 8)
-	classModels = append(classModels, m)
-	for _, relInfo := range m.Relations() {
-		relModel := relInfo.Object.(Model)
-		if relModel.getModelStatus()&forJoin == forJoin {
-			classModels = append(classModels, relModel)
-		}
-	}
-	for rows.Next() {
-		instModels := make([]Model, 0, len(classModels))
-		for _, cm := range classModels {
-			if cl, ok := cm.(ModelList); ok {
-				instModels = append(instModels, cl.NewModel())
-			} else {
-				instModels = append(instModels, cm)
-			}
-		}
-		addrs := make([]interface{}, 0, 64)
-		for i, im := range instModels {
-			im.addModelStatus(synced)
-			selectFields := getSelectFields(classModels[i])
-			addrs = append(addrs, getFieldsForScan(im, selectFields...)...)
-		}
-		if err := rows.Scan(addrs...); err != nil {
-			return err
-		}
-		if l, ok := m.(ModelList); ok {
-			l.Collapse()
-		}
-	}
-	return rows.Err()
-}
+// func joinScanRows(rows *sql.Rows, m Model) error {
+// 	defer rows.Close()
+// 	classModels := make([]Model, 0, 8)
+// 	classModels = append(classModels, m)
+// 	for _, relInfo := range m.Relations() {
+// 		relModel := relInfo.Object.(Model)
+// 		if relModel.getModelStatus()&forJoin == forJoin {
+// 			classModels = append(classModels, relModel)
+// 		}
+// 	}
+// 	for rows.Next() {
+// 		instModels := make([]Model, 0, len(classModels))
+// 		for _, cm := range classModels {
+// 			if cl, ok := cm.(ModelList); ok {
+// 				instModels = append(instModels, cl.NewModel())
+// 			} else {
+// 				instModels = append(instModels, cm)
+// 			}
+// 		}
+// 		addrs := make([]interface{}, 0, 64)
+// 		for i, im := range instModels {
+// 			im.addModelStatus(synced)
+// 			selectFields := getSelectFields(classModels[i])
+// 			addrs = append(addrs, getFieldsForScan(im, selectFields...)...)
+// 		}
+// 		if err := rows.Scan(addrs...); err != nil {
+// 			return err
+// 		}
+// 		if l, ok := m.(ModelList); ok {
+// 			l.Collapse()
+// 		}
+// 	}
+// 	return rows.Err()
+// }
 
 func genFullUpdateSetClause(model Model) (string, []interface{}) {
 	updates := make(updateSetList, 0, 16)
@@ -482,6 +674,11 @@ func genTabRef(model Model) string {
 			}
 		default:
 			builder.WriteString(model.fullTabName())
+			for _, relInfo := range model.Relations() {
+				if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+					builder.WriteString(relInfo.toAppendJoinClause())
+				}
+			}
 		}
 	}
 	return builder.String()
@@ -586,6 +783,16 @@ func genWhereClause(model Model) (string, []interface{}) {
 			}
 		default:
 			where = where.append(model.getWhere())
+			for _, relInfo := range model.Relations() {
+				subModel := relInfo.Object.(Model)
+				if subModel.getModelStatus()&forModelWhere == forModelWhere {
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+				}
+			}
 		}
 	}
 	cl := make([]string, 0, 8)

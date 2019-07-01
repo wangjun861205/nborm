@@ -77,11 +77,12 @@ func QueryOne(exe Executor, model Model) error {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
 	}
-	err := scanRow(exe.QueryRow(stmt, whereValues...), model)
-	if err != nil {
-		return err
-	}
-	return nil
+	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
+	// if err != nil {
+	// 	return err
+	// }
+	// return nil
+	return queryAndScan(exe, model, stmt, whereValues...)
 }
 
 func FullQueryOne(exe Executor, model Model) error {
@@ -94,11 +95,12 @@ func FullQueryOne(exe Executor, model Model) error {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
 	}
-	err := scanRow(exe.QueryRow(stmt, whereValues...), model)
-	if err != nil {
-		return err
-	}
-	return nil
+	// err := scanRow(exe.QueryRow(stmt, whereValues...), model)
+	// if err != nil {
+	// 	return err
+	// }
+	// return nil
+	return queryAndScan(exe, model, stmt, whereValues...)
 }
 
 func Query(exe Executor, l ModelList) error {
@@ -112,21 +114,22 @@ func Query(exe Executor, l ModelList) error {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
 	}
-	rows, err := exe.Query(stmt, whereValues...)
-	if err != nil {
-		return err
-	}
-	if err := scanRows(rows, l); err != nil {
-		return err
-	}
-	stmt = `SELECT FOUND_ROWS()`
-	var total int
-	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-		return err
-	}
-	l.SetTotal(total)
-	l.addModelStatus(synced)
-	return nil
+	// rows, err := exe.Query(stmt, whereValues...)
+	// if err != nil {
+	// 	return err
+	// }
+	// if err := scanRows(rows, l); err != nil {
+	// 	return err
+	// }
+	// stmt = `SELECT FOUND_ROWS()`
+	// var total int
+	// if err := exe.QueryRow(stmt).Scan(&total); err != nil {
+	// 	return err
+	// }
+	// l.SetTotal(total)
+	// l.addModelStatus(synced)
+	// return nil
+	return queryAndScan(exe, l, stmt, whereValues...)
 }
 
 func FullQuery(exe Executor, l ModelList) error {
@@ -140,21 +143,22 @@ func FullQuery(exe Executor, l ModelList) error {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))
 	}
-	rows, err := exe.Query(stmt, whereValues...)
-	if err != nil {
-		return err
-	}
-	if err := scanRows(rows, l); err != nil {
-		return err
-	}
-	stmt = `SELECT FOUND_ROWS()`
-	var total int
-	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-		return err
-	}
-	l.SetTotal(total)
-	l.addModelStatus(synced)
-	return nil
+	// rows, err := exe.Query(stmt, whereValues...)
+	// if err != nil {
+	// 	return err
+	// }
+	// if err := scanRows(rows, l); err != nil {
+	// 	return err
+	// }
+	// stmt = `SELECT FOUND_ROWS()`
+	// var total int
+	// if err := exe.QueryRow(stmt).Scan(&total); err != nil {
+	// 	return err
+	// }
+	// l.SetTotal(total)
+	// l.addModelStatus(synced)
+	// return nil
+	return queryAndScan(exe, l, stmt, whereValues...)
 }
 
 func JoinQuery(exe Executor, model Model) error {
@@ -168,24 +172,25 @@ func JoinQuery(exe Executor, model Model) error {
 		fmt.Println(nbcolor.Green(stmt))
 		fmt.Println(nbcolor.Green(whereValues))
 	}
-	if l, ok := model.(ModelList); ok {
-		rows, err := exe.Query(stmt, whereValues...)
-		if err != nil {
-			return err
-		}
-		if err := joinScanRows(rows, l); err != nil {
-			return err
-		}
-		stmt = `SELECT FOUND_ROWS()`
-		var total int
-		if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-			return err
-		}
-		l.SetTotal(total)
-		l.addModelStatus(synced)
-		return nil
-	}
-	return joinScanRow(exe.QueryRow(stmt, whereValues...), model)
+	// if l, ok := model.(ModelList); ok {
+	// 	rows, err := exe.Query(stmt, whereValues...)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if err := joinScanRows(rows, l); err != nil {
+	// 		return err
+	// 	}
+	// 	stmt = `SELECT FOUND_ROWS()`
+	// 	var total int
+	// 	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
+	// 		return err
+	// 	}
+	// 	l.SetTotal(total)
+	// 	l.addModelStatus(synced)
+	// 	return nil
+	// }
+	// return joinScanRow(exe.QueryRow(stmt, whereValues...), model)
+	return queryAndScan(exe, model, stmt, whereValues...)
 }
 
 func Update(exe Executor, model Model) (sql.Result, error) {

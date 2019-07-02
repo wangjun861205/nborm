@@ -88,3 +88,39 @@ func Delete(exe Executor, model Model) (sql.Result, error) {
 	}
 	return exe.Exec(stmt, whereValues...)
 }
+
+func Agg(exe Executor, model Model) (AggResult, error) {
+	selectClause, tempFields := genAggSelectClause(model)
+	tabRef := genTabRef(model)
+	whereClause, whereValues := genWhereClause(model)
+	groupByClause := genGroupByClause(model)
+	havingClause, havingValues := genHavingClause(model)
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, groupByClause, havingClause)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(whereValues))
+	}
+	result := make(AggResult, 0, 64)
+	rows, err := exe.Query(stmt, append(whereValues, havingValues...)...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		nl := make(FieldList, 0, len(tempFields))
+		al := make([]interface{}, 0, len(tempFields))
+		for i := 0; i < len(tempFields); i++ {
+			nf := tempFields[i].dup()
+			nl = append(nl, nf)
+			al = append(al, nf)
+		}
+		if err := rows.Scan(al...); err != nil {
+			return nil, err
+		}
+		result = append(result, nl)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
+}

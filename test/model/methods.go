@@ -1970,7 +1970,7 @@ func (m *JobFlag) DB() string {
 }
 
 func (m *JobFlag) Tab() string {
-	return "job_fair"
+	return "job_flag"
 }
 
 func (m *JobFlag) FieldInfos() nborm.FieldInfoList {

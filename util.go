@@ -763,3 +763,107 @@ func genSelectClause(model Model) string {
 	}
 	return fmt.Sprintf("SELECT %s %s %s", foundRows, dist, strings.TrimSuffix(builder.String(), ", "))
 }
+
+func genAggSelectClause(model Model) (string, FieldList) {
+	var builder strings.Builder
+	var foundRows string
+	var dist string
+	fieldList := make(FieldList, 0, 16)
+	parent := model.GetParent()
+	if parent != nil {
+		if _, ok := parent.(ModelList); ok {
+			foundRows = "SQL_CALC_FOUND_ROWS"
+		}
+		if parent.getModelStatus()&distinct == distinct {
+			dist = "DISTINCT"
+		}
+		for _, f := range getFields(parent, forSelect) {
+			builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			fieldList = append(fieldList, f.dup())
+		}
+		if parent.getModelStatus()&forModelAgg == forModelAgg {
+			for _, exp := range parent.getAggExps() {
+				builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+				fieldList = append(fieldList, exp.field.dup())
+			}
+		}
+	}
+	if _, ok := model.(ModelList); ok {
+		foundRows = "SQL_CALC_FOUND_ROWS"
+	}
+	if model.getModelStatus()&distinct == distinct {
+		dist = "DISTINCT"
+	}
+	for _, f := range getFields(model, forSelect) {
+		builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+		fieldList = append(fieldList, f.dup())
+	}
+	if model.getModelStatus()&forModelAgg == forModelAgg {
+		for _, exp := range model.getAggExps() {
+			builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+			fieldList = append(fieldList, exp.field.dup())
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		for _, f := range getFields(subModel, forSelect) {
+			builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+			fieldList = append(fieldList, f.dup())
+		}
+		if subModel.getModelStatus()&forModelAgg == forModelAgg {
+			for _, exp := range subModel.getAggExps() {
+				builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+				fieldList = append(fieldList, exp.field.dup())
+			}
+		}
+	}
+	return fmt.Sprintf("SELECT %s %s %s", foundRows, dist, strings.TrimSuffix(builder.String(), ", ")), fieldList
+}
+
+func genGroupByClause(model Model) string {
+	l := make([]string, 0, 16)
+	parent := model.GetParent()
+	if parent != nil {
+		for _, f := range getFields(parent, forGroup) {
+			l = append(l, fmt.Sprintf("%s", f.fullColName()))
+		}
+	}
+	for _, f := range getFields(model, forGroup) {
+		l = append(l, fmt.Sprintf("%s", f.fullColName()))
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		for _, f := range getFields(subModel, forGroup) {
+			l = append(l, fmt.Sprintf("%s", f.fullColName()))
+		}
+	}
+	if len(l) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("GROUP BY %s", strings.Join(l, ", "))
+
+}
+
+func genHavingClause(model Model) (string, []interface{}) {
+	var having *where
+	parent := model.GetParent()
+	if parent != nil && parent.getModelStatus()&forModelHaving == forModelHaving {
+		having = having.append(parent.getHaving())
+	}
+	if model.getModelStatus()&forModelHaving == forModelHaving {
+		having = having.append(model.getHaving())
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.getModelStatus()&forModelHaving == forModelHaving {
+			having = having.append(subModel.getHaving())
+		}
+	}
+	cl := make([]string, 0, 8)
+	vl := make([]interface{}, 0, 8)
+	having.toClause(&cl, &vl)
+	if len(cl) == 0 {
+		return "", nil
+	}
+	return fmt.Sprintf("HAVING %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}

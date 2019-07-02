@@ -206,6 +206,23 @@ var testList = []test{
 			return nil
 		},
 	},
+	{
+		name: "agg",
+		f: func() error {
+			j := model.NewEnterpriseJob()
+			j.IntAgg(nborm.NewExpr("SUM(@)", &j.Vacancies), "Total")
+			j.StrAgg(nborm.NewExpr("GROUP_CONCAT(@)", &j.Comment), "Comment")
+			j.AndHaving(nborm.NewExpr("Total>5"))
+			j.CityID.GroupBy()
+			j.Address.GroupBy()
+			res, err := nborm.Agg(db, j)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(res.ToSimpleList()))
+			return nil
+		},
+	},
 }
 
 func TestNBorm(t *testing.T) {

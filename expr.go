@@ -19,6 +19,9 @@ type Expr struct {
 }
 
 func NewExpr(sqlexpr string, fields ...Field) *Expr {
+	for _, f := range fields {
+		f.addModelStatus(forModelRef)
+	}
 	return &Expr{
 		sqlexpr,
 		fields,

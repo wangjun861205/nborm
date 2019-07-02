@@ -24,7 +24,7 @@ const (
 	none           modelStatus = 0
 	synced         modelStatus = 1
 	distinct       modelStatus = 1 << 1
-	forAgg         modelStatus = 1 << 2
+	forModelAgg    modelStatus = 1 << 2
 	forModelWhere  modelStatus = 1 << 3
 	inited         modelStatus = 1 << 4
 	relInited      modelStatus = 1 << 5
@@ -34,6 +34,7 @@ const (
 	forJoin        modelStatus = 1 << 9
 	containValue   modelStatus = 1 << 10
 	selectAll      modelStatus = 1 << 11
+	forModelHaving modelStatus = 1 << 12
 )
 
 type Meta struct {
@@ -45,6 +46,8 @@ type Meta struct {
 	parent  Model
 	index   int
 	limit   [2]int
+	aggExps []*aggExp
+	having  *where
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -88,6 +91,10 @@ func (m *Meta) getWhere() *where {
 	return m.where
 }
 
+func (m *Meta) getHaving() *where {
+	return m.having
+}
+
 func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
 	m.where = m.where.append(newWhere(and, expr, val...))
 	m.addModelStatus(forModelWhere)
@@ -99,6 +106,18 @@ func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
 	m.where = m.where.append(newWhere(or, expr, val...))
 	m.addModelStatus(forModelWhere)
 	m.addModelStatus(forModelRef)
+	return m
+}
+
+func (m *Meta) AndHaving(expr *Expr, val ...interface{}) Model {
+	m.having = m.having.append(newWhere(and, expr, val...))
+	m.addModelStatus(forModelHaving)
+	return m
+}
+
+func (m *Meta) OrHaving(expr *Expr, val ...interface{}) Model {
+	m.having = m.having.append(newWhere(and, expr, val...))
+	m.addModelStatus(forModelHaving)
 	return m
 }
 
@@ -171,6 +190,40 @@ func (m *Meta) SelectAll() {
 	m.addModelStatus(selectAll)
 }
 
+func (m *Meta) StrAgg(expr *Expr, name string) {
+	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	m.aggExps = append(m.aggExps, newStrAgg(expr, name))
+	m.addModelStatus(forModelAgg)
+}
+
+func (m *Meta) IntAgg(expr *Expr, name string) {
+	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	m.aggExps = append(m.aggExps, newIntAgg(expr, name))
+	m.addModelStatus(forModelAgg)
+}
+
+func (m *Meta) DateAgg(expr *Expr, name string) {
+	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	m.aggExps = append(m.aggExps, newDateAgg(expr, name))
+	m.addModelStatus(forModelAgg)
+}
+
+func (m *Meta) DatetimeAgg(expr *Expr, name string) {
+	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	m.aggExps = append(m.aggExps, newDatetimeAgg(expr, name))
+	m.addModelStatus(forModelAgg)
+}
+
+func (m *Meta) DecAgg(expr *Expr, name string) {
+	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	m.aggExps = append(m.aggExps, newDecAgg(expr, name))
+	m.addModelStatus(forModelAgg)
+}
+
+func (m *Meta) getAggExps() []*aggExp {
+	return m.aggExps
+}
+
 type fieldStatus int
 
 const (
@@ -185,6 +238,8 @@ const (
 	forSum      fieldStatus = 1 << 7
 	forAscOrder fieldStatus = 1 << 8
 	forDscOrder fieldStatus = 1 << 9
+	forAgg      fieldStatus = 1 << 10
+	forGroup    fieldStatus = 1 << 11
 )
 
 type baseField struct {
@@ -294,6 +349,9 @@ func (f *baseField) mustValid() {
 }
 
 func (f *baseField) fullColName() string {
+	if f.Model == nil {
+		return f.col
+	}
 	if f.Model.getAlias() != "" {
 		return fmt.Sprintf("%s.%s", f.Model.getAlias(), f.col)
 	}
@@ -311,7 +369,7 @@ func (f *baseField) ForSelect() {
 func (f *baseField) ForSum() {
 	f.addStatus(forSelect)
 	f.addStatus(forSum)
-	f.addModelStatus(forAgg)
+	f.addModelStatus(forModelAgg)
 }
 
 func (f *baseField) AscOrder() {
@@ -335,6 +393,10 @@ func (f *baseField) Distinct() {
 
 func (f *baseField) String() string {
 	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
+}
+
+func (f *baseField) GroupBy() {
+	f.addStatus(forGroup | forSelect)
 }
 
 type clauseField struct {
@@ -482,6 +544,11 @@ func (f *String) SetUpdate(value interface{}) {
 	f.addModelStatus(forModelRef)
 }
 
+func (f *String) dup() Field {
+	nf := *f
+	return &nf
+}
+
 //=============================================================================================================
 
 type Int struct {
@@ -619,6 +686,11 @@ func (f *Int) SetUpdate(value interface{}) {
 	f.addStatus(forUpdate)
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+}
+
+func (f *Int) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=======================================================================================================
@@ -789,6 +861,11 @@ func (f *Date) SetUpdate(value interface{}) {
 	f.addStatus(forUpdate)
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+}
+
+func (f *Date) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=========================================================================================
@@ -963,6 +1040,11 @@ func (f *Datetime) SetUpdate(value interface{}) {
 	f.addModelStatus(forModelRef)
 }
 
+func (f *Datetime) dup() Field {
+	nf := *f
+	return &nf
+}
+
 //=============================================================================================================
 
 type Decimal struct {
@@ -1099,4 +1181,9 @@ func (f *Decimal) SetUpdate(value interface{}) {
 	f.addStatus(forUpdate)
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+}
+
+func (f *Decimal) dup() Field {
+	nf := *f
+	return &nf
 }

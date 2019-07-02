@@ -50,6 +50,8 @@ type BaseField interface {
 	AscOrder()
 	DscOrder()
 	String() string
+	addModelStatus(modelStatus)
+	GroupBy()
 }
 
 type Field interface {
@@ -64,6 +66,7 @@ type Field interface {
 	SetU()
 	SetUpdate(interface{})
 	updateSet() *updateSet
+	dup() Field
 }
 
 type Model interface {
@@ -94,9 +97,11 @@ type Model interface {
 	SetParent(Model)
 	getIndex() int
 	getWhere() *where
+	getHaving() *where
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)
+	getAggExps() []*aggExp
 }
 
 type ModelList interface {

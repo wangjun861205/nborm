@@ -200,7 +200,7 @@ type JobFair struct {
 }
 
 //db:qdxg
-//tab:job_fair
+//tab:job_flag
 //pk:ID
 type JobFlag struct {
 	nborm.Meta

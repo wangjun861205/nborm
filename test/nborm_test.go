@@ -91,6 +91,7 @@ var testList = []test{
 		f: func() error {
 			j := model.NewEnterpriseJobList()
 			j.StudentResumes.InitRel()
+			j.StudentResumes.StudentSkill.ForReverseQuery()
 			j.StudentResumes.StudentSkill.ID.AndWhere("=", 1)
 			if err := nborm.Query(db, j.StudentResumes); err != nil {
 				return err
@@ -128,6 +129,7 @@ var testList = []test{
 		f: func() error {
 			e := model.NewEnterpriseAccountList()
 			e.Email.SetUpdate("test")
+			e.Enterprise.ForReverseQuery()
 			e.Enterprise.ID.AndWhere("=", 1)
 			e.Enterprise.Contact.SetUpdate("yyy")
 			if _, err := nborm.Update(db, e); err != nil {
@@ -210,6 +212,7 @@ var testList = []test{
 		name: "agg",
 		f: func() error {
 			j := model.NewEnterpriseJob()
+			j.Enterprise.AccountID.AndWhere(">", 1)
 			j.IntAgg(nborm.NewExpr("SUM(@)", &j.Vacancies), "Total")
 			j.StrAgg(nborm.NewExpr("GROUP_CONCAT(@)", &j.Comment), "Comment")
 			j.AndHaving(nborm.NewExpr("Total>5"))

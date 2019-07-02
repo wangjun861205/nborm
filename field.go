@@ -21,20 +21,21 @@ type FieldList []Field
 type modelStatus int
 
 const (
-	none           modelStatus = 0
-	synced         modelStatus = 1
-	distinct       modelStatus = 1 << 1
-	forModelAgg    modelStatus = 1 << 2
-	forModelWhere  modelStatus = 1 << 3
-	inited         modelStatus = 1 << 4
-	relInited      modelStatus = 1 << 5
-	forModelUpdate modelStatus = 1 << 6
-	forModelOrder  modelStatus = 1 << 7
-	forModelRef    modelStatus = 1 << 8
-	forJoin        modelStatus = 1 << 9
-	containValue   modelStatus = 1 << 10
-	selectAll      modelStatus = 1 << 11
-	forModelHaving modelStatus = 1 << 12
+	none            modelStatus = 0
+	synced          modelStatus = 1
+	distinct        modelStatus = 1 << 1
+	forModelAgg     modelStatus = 1 << 2
+	forModelWhere   modelStatus = 1 << 3
+	inited          modelStatus = 1 << 4
+	relInited       modelStatus = 1 << 5
+	forModelUpdate  modelStatus = 1 << 6
+	forModelOrder   modelStatus = 1 << 7
+	forModelRef     modelStatus = 1 << 8
+	forJoin         modelStatus = 1 << 9
+	containValue    modelStatus = 1 << 10
+	selectAll       modelStatus = 1 << 11
+	forModelHaving  modelStatus = 1 << 12
+	forReverseQuery modelStatus = 1 << 13
 )
 
 type Meta struct {
@@ -184,6 +185,7 @@ func (m *Meta) getLimit() (limit, offset int) {
 func (m *Meta) SetForJoin() {
 	m.addModelStatus(forJoin)
 	m.addModelStatus(forModelRef)
+	m.addModelStatus(forReverseQuery)
 }
 
 func (m *Meta) SelectAll() {
@@ -222,6 +224,10 @@ func (m *Meta) DecAgg(expr *Expr, name string) {
 
 func (m *Meta) getAggExps() []*aggExp {
 	return m.aggExps
+}
+
+func (m *Meta) ForReverseQuery() {
+	m.addModelStatus(forReverseQuery)
 }
 
 type fieldStatus int

@@ -524,9 +524,14 @@ func genTabRef(model Model) string {
 	if model.GetParent() == nil {
 		builder.WriteString(model.fullTabName())
 		for _, relInfo := range model.Relations() {
-			if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+			subModel := relInfo.Object.(Model)
+			modelStatus := subModel.getModelStatus()
+			if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
 				builder.WriteString(relInfo.toAppendJoinClause())
 			}
+			// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+			// 	builder.WriteString(relInfo.toAppendJoinClause())
+			// }
 		}
 	} else {
 		parent := model.GetParent()
@@ -539,29 +544,49 @@ func genTabRef(model Model) string {
 					break
 				}
 			}
+			for _, relInfo := range model.Relations() {
+				subModel := relInfo.Object.(Model)
+				modelStatus := subModel.getModelStatus()
+				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
+					builder.WriteString(relInfo.toAppendJoinClause())
+				}
+				// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+				// 	builder.WriteString(relInfo.toAppendJoinClause())
+				// }
+			}
 		default:
 			builder.WriteString(model.fullTabName())
 			for _, relInfo := range model.Relations() {
-				if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+				subModel := relInfo.Object.(Model)
+				modelStatus := subModel.getModelStatus()
+				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
 					builder.WriteString(relInfo.toAppendJoinClause())
 				}
+				// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+				// 	builder.WriteString(relInfo.toAppendJoinClause())
+				// }
 			}
+			// for _, relInfo := range model.Relations() {
+			// 	if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
+			// 		builder.WriteString(relInfo.toAppendJoinClause())
+			// 	}
+			// }
 		}
 	}
 	return builder.String()
 }
 
-func genJoinTabRef(model Model) string {
-	var builder strings.Builder
-	builder.WriteString(model.fullTabName())
-	for _, relInfo := range model.Relations() {
-		relModel := relInfo.Object.(Model)
-		if relModel.getModelStatus()&forJoin == forJoin {
-			builder.WriteString(relInfo.toAppendJoinClause())
-		}
-	}
-	return builder.String()
-}
+// func genJoinTabRef(model Model) string {
+// 	var builder strings.Builder
+// 	builder.WriteString(model.fullTabName())
+// 	for _, relInfo := range model.Relations() {
+// 		relModel := relInfo.Object.(Model)
+// 		if relModel.getModelStatus()&forJoin == forJoin {
+// 			builder.WriteString(relInfo.toAppendJoinClause())
+// 		}
+// 	}
+// 	return builder.String()
+// }
 
 func genFullWhereClause(model Model) (string, []interface{}) {
 	var where *where
@@ -623,7 +648,7 @@ func genWhereClause(model Model) (string, []interface{}) {
 		where = where.append(model.getWhere())
 		for _, relInfo := range model.Relations() {
 			subModel := relInfo.Object.(Model)
-			if subModel.getModelStatus()&forModelWhere == forModelWhere {
+			if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
 				for i, f := range relInfo.Fields[1:] {
 					if i%2 == 0 {
 						where = where.append(f.(Model).getWhere())
@@ -646,6 +671,16 @@ func genWhereClause(model Model) (string, []interface{}) {
 					break
 				}
 			}
+			for _, relInfo := range model.Relations() {
+				subModel := relInfo.Object.(Model)
+				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+				}
+			}
 		case parent.getModelStatus()&forModelWhere == forModelWhere:
 			for _, relInfo := range parent.Relations() {
 				if relInfo.Object.(Model) == model {
@@ -658,11 +693,21 @@ func genWhereClause(model Model) (string, []interface{}) {
 					break
 				}
 			}
+			for _, relInfo := range model.Relations() {
+				subModel := relInfo.Object.(Model)
+				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
+					for i, f := range relInfo.Fields[1:] {
+						if i%2 == 0 {
+							where = where.append(f.(Model).getWhere())
+						}
+					}
+				}
+			}
 		default:
 			where = where.append(model.getWhere())
 			for _, relInfo := range model.Relations() {
 				subModel := relInfo.Object.(Model)
-				if subModel.getModelStatus()&forModelWhere == forModelWhere {
+				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
 					for i, f := range relInfo.Fields[1:] {
 						if i%2 == 0 {
 							where = where.append(f.(Model).getWhere())

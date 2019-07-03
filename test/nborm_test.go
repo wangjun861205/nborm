@@ -231,6 +231,18 @@ var testList = []test{
 			return nil
 		},
 	},
+	{
+		name: "unsignedTinyint",
+		f: func() error {
+			b := make([]byte, 0, 8)
+			// var i int64
+			if err := db.QueryRow("SELECT t FROM qdxg.test").Scan(&b); err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Red(string(b)))
+			return nil
+		},
+	},
 }
 
 func TestNBorm(t *testing.T) {

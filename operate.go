@@ -9,6 +9,10 @@ import (
 	"github.com/wangjun861205/nbcolor"
 )
 
+// func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
+
+// }
+
 func InsertOne(exe Executor, model Model) error {
 	validFields := getFields(model, valid)
 	cl := make([]string, 0, len(validFields))

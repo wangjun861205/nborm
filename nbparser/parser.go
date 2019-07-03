@@ -28,7 +28,7 @@ var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
 var masterRelFieldRe = regexp.MustCompile(`(\w+)(\(.+\))?\.(\w+)`)
-var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?(".*?"|\d+|\d+\.\d+)(?:,|$)`)
+var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?('.*?'|\d+|\d+\.\d+)(?:,|$)`)
 
 type FieldInfo struct {
 	Type  string
@@ -461,7 +461,7 @@ func parseRelation(dstModel, tag string) error {
 						HasMidWhere: true,
 					}
 					for _, w := range midWhereGroup {
-						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), w[3]})
+						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
 					}
 				}
 				// lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])

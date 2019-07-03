@@ -117,7 +117,7 @@ func getFieldsForScan(model Model) ([]interface{}, []Model, []func()) {
 						}
 					}
 				}
-				models = append(models, subModel)
+				models = append(models, newModel)
 			}
 		}
 	}

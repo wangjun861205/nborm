@@ -186,6 +186,11 @@ var testList = []test{
 				fmt.Println(nbcolor.Yellow(e.Contact.String()))
 			}
 			fmt.Println(nbcolor.Cyan(qa.Len()))
+			b, err := json.Marshal(qa)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(string(b)))
 			return nil
 		},
 	},

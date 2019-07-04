@@ -4,29 +4,48 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/wangjun861205/nbcolor"
 )
 
-// func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
-
-// }
-
-func InsertOne(exe Executor, model Model) error {
-	validFields := getFields(model, valid)
-	cl := make([]string, 0, len(validFields))
-	pl := make([]string, 0, len(validFields))
-	vl := make([]interface{}, 0, len(validFields))
-	for _, f := range validFields {
-		toInsert(f, &cl, &pl, &vl)
-	}
-	stmt := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, model.rawFullTabName(), strings.Join(cl, ", "), strings.Join(pl, ", "))
+func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
+	insertClause, insertValues := genInsertClause(model)
+	updateClause, updateValues := genSimpleUpdateClause(model)
+	stmt := fmt.Sprintf("INSERT INTO %s %s ON DUPLICATE KEY UPDATE %s", model.rawFullTabName(), insertClause, updateClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(vl))
+		fmt.Println(nbcolor.Green(insertValues))
+		fmt.Println(nbcolor.Green(updateValues))
 	}
-	res, err := exe.Exec(stmt, vl...)
+	res, err := exe.Exec(stmt, append(insertValues, updateValues...)...)
+	if err != nil {
+		return
+	}
+	affectedRows, err := res.RowsAffected()
+	if err != nil {
+		return
+	}
+	if affectedRows == 1 {
+		isInsert = true
+	}
+	if affectedRows == 1 || affectedRows == 2 {
+		lastInsertID, err := res.LastInsertId()
+		if err != nil {
+			return false, err
+		}
+		model.AutoIncField().Set(int(lastInsertID))
+	}
+	return
+}
+
+func InsertOne(exe Executor, model Model) error {
+	insertClause, insertValues := genInsertClause(model)
+	stmt := fmt.Sprintf(`INSERT INTO %s %s`, model.rawFullTabName(), insertClause)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(stmt))
+		fmt.Println(nbcolor.Green(insertValues))
+	}
+	res, err := exe.Exec(stmt, insertValues...)
 	if err != nil {
 		return err
 	}
@@ -72,9 +91,9 @@ func Query(exe Executor, m Model) error {
 
 func Update(exe Executor, model Model) (sql.Result, error) {
 	tabRef := genTabRef(model)
-	updateClause, updateValues := genUpdateSetClause(model)
+	updateClause, updateValues := genUpdateClause(model)
 	whereClause, whereValues := genWhereClause(model)
-	stmt := fmt.Sprintf(`UPDATE %s %s %s`, tabRef, updateClause, whereClause)
+	stmt := fmt.Sprintf(`UPDATE %s SET %s %s`, tabRef, updateClause, whereClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
 		fmt.Println(nbcolor.Green(updateValues))

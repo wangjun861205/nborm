@@ -49,6 +49,7 @@ type Meta struct {
 	limit   [2]int
 	aggExps []*aggExp
 	having  *where
+	updates updateList
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -65,9 +66,9 @@ func (m *Meta) setModel(model Model) {
 
 func (m *Meta) rawFullTabName() string {
 	if m.DB() == "*" {
-		return m.Tab()
+		return fmt.Sprintf("`%s`", m.Tab())
 	}
-	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
+	return fmt.Sprintf("`%s`.`%s`", m.DB(), m.Tab())
 }
 
 func (m *Meta) fullTabName() string {
@@ -77,7 +78,7 @@ func (m *Meta) fullTabName() string {
 	if m.DB() == "*" {
 		return m.Tab()
 	}
-	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
+	return fmt.Sprintf("`%s`.`%s`", m.DB(), m.Tab())
 }
 
 func (m *Meta) getAlias() string {
@@ -230,6 +231,20 @@ func (m *Meta) ForReverseQuery() {
 	m.addModelStatus(forReverseQuery)
 }
 
+func (m *Meta) appendUpdate(u *update) {
+	m.updates = append(m.updates, u)
+}
+
+func (m *Meta) getUpdateList() updateList {
+	return m.updates
+}
+
+func (m *Meta) NewUpdate(field Field, expr *Expr, values ...interface{}) {
+	expr.exp = fmt.Sprintf("@ = %s", expr.exp)
+	expr.fields = append([]Field{field}, expr.fields...)
+	m.appendUpdate(newUpdate(expr, values...))
+}
+
 type fieldStatus int
 
 const (
@@ -359,13 +374,13 @@ func (f *baseField) fullColName() string {
 		return f.col
 	}
 	if f.Model.getAlias() != "" {
-		return fmt.Sprintf("%s.%s", f.Model.getAlias(), f.col)
+		return fmt.Sprintf("%s.`%s`", f.Model.getAlias(), f.col)
 	}
-	return fmt.Sprintf("%s.%s", f.rawFullTabName(), f.col)
+	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
 func (f *baseField) rawFullColName() string {
-	return fmt.Sprintf("%s.%s", f.rawFullTabName(), f.col)
+	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
 func (f *baseField) ForSelect() {
@@ -405,21 +420,21 @@ func (f *baseField) GroupBy() {
 	f.addStatus(forGroup | forSelect)
 }
 
-type clauseField struct {
-	update *updateSet
-}
+// type clauseField struct {
+// 	update *updateSet
+// }
 
-func (f *clauseField) setUpdate(field Field, value interface{}) {
-	f.update = newUpdateSet(field, value)
-}
+// func (f *clauseField) setUpdate(field Field, value interface{}) {
+// 	f.update = newUpdateSet(field, value)
+// }
 
-func (f *clauseField) updateSet() *updateSet {
-	return f.update
-}
+// func (f *clauseField) updateSet() *updateSet {
+// 	return f.update
+// }
 
 type String struct {
 	baseField
-	clauseField
+	// clauseField
 	value string
 }
 
@@ -536,18 +551,18 @@ func (f *String) OrWhere(op string, value interface{}) Field {
 	return f
 }
 
-func (f *String) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *String) SetU() Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
-func (f *String) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
+func (f *String) SetUpdate(value interface{}) Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
 func (f *String) dup() Field {
@@ -559,7 +574,7 @@ func (f *String) dup() Field {
 
 type Int struct {
 	baseField
-	clauseField
+	// clauseField
 	value int
 }
 
@@ -680,18 +695,18 @@ func (f *Int) OrWhere(op string, value interface{}) Field {
 	return f
 }
 
-func (f *Int) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *Int) SetU() Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
-func (f *Int) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
+func (f *Int) SetUpdate(value interface{}) Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
 func (f *Int) dup() Field {
@@ -703,7 +718,7 @@ func (f *Int) dup() Field {
 
 type Date struct {
 	baseField
-	clauseField
+	// clauseField
 	value time.Time
 }
 
@@ -855,18 +870,18 @@ func (f *Date) OrWhere(op string, value interface{}) Field {
 	return f
 }
 
-func (f *Date) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *Date) SetU() Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
-func (f *Date) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
+func (f *Date) SetUpdate(value interface{}) Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
 func (f *Date) dup() Field {
@@ -878,7 +893,7 @@ func (f *Date) dup() Field {
 
 type Datetime struct {
 	baseField
-	clauseField
+	// clauseField
 	value time.Time
 }
 
@@ -1032,18 +1047,18 @@ func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	return f
 }
 
-func (f *Datetime) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *Datetime) SetU() Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
-func (f *Datetime) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
+func (f *Datetime) SetUpdate(value interface{}) Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
 func (f *Datetime) dup() Field {
@@ -1055,7 +1070,7 @@ func (f *Datetime) dup() Field {
 
 type Decimal struct {
 	baseField
-	clauseField
+	// clauseField
 	value   float64
 	exprVal *Expr
 }
@@ -1175,18 +1190,18 @@ func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	return f
 }
 
-func (f *Decimal) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *Decimal) SetU() Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
-func (f *Decimal) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
+func (f *Decimal) SetUpdate(value interface{}) Field {
+	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
 	f.addModelStatus(forModelUpdate)
 	f.addModelStatus(forModelRef)
+	return f
 }
 
 func (f *Decimal) dup() Field {

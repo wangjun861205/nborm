@@ -8,49 +8,96 @@ import (
 
 type clauseStatus int
 
-const (
-	byValue clauseStatus = iota
-	byExpr
-)
+// const (
+// 	byValue clauseStatus = iota
+// 	byExpr
+// )
 
-type updateSet struct {
-	field  Field
-	value  interface{}
+type update struct {
 	expr   *Expr
-	status clauseStatus
+	values []interface{}
 }
 
-func newUpdateSet(field Field, value interface{}) *updateSet {
-	set := &updateSet{field: field}
-	if v, ok := value.(*Expr); ok {
-		set.expr = v
-		set.status = byExpr
-	} else {
-		set.value = value
-		set.status = byValue
+func newUpdate(expr *Expr, values ...interface{}) *update {
+	return &update{expr, values}
+}
+
+func (u *update) toClause() (string, []interface{}) {
+	return u.expr.String(), u.values
+}
+
+func (u *update) toSimpleClause() (string, []interface{}) {
+	return u.expr.SimpleString(), u.values
+}
+
+type updateList []*update
+
+func (ul updateList) toClause() (string, []interface{}) {
+	if len(ul) == 0 {
+		return "", nil
 	}
-	return set
-}
-
-func (u *updateSet) toClause(cl *[]string, vl *[]interface{}) {
-	if u.status == byValue {
-		*cl = append(*cl, fmt.Sprintf("%s = ?", u.field.fullColName()))
-		*vl = append(*vl, u.value)
-		return
+	cl := make([]string, 0, len(ul))
+	vl := make([]interface{}, 0, len(ul))
+	for _, u := range ul {
+		c, v := u.toClause()
+		cl = append(cl, c)
+		vl = append(vl, v...)
 	}
-	*cl = append(*cl, fmt.Sprintf("%s = %s", u.field.fullColName()))
+	return strings.Join(cl, ", "), vl
 }
 
-type updateSetList []*updateSet
-
-func (l updateSetList) toClause() (string, []interface{}) {
-	cl := make([]string, 0, len(l))
-	vl := make([]interface{}, 0, len(l))
-	for _, u := range l {
-		u.toClause(&cl, &vl)
+func (ul updateList) toSimpleClause() (string, []interface{}) {
+	if len(ul) == 0 {
+		return "", nil
 	}
-	return fmt.Sprintf("SET %s", strings.Join(cl, ",")), vl
+	cl := make([]string, 0, len(ul))
+	vl := make([]interface{}, 0, len(ul))
+	for _, u := range ul {
+		c, v := u.toSimpleClause()
+		cl = append(cl, c)
+		vl = append(vl, v...)
+	}
+	return strings.Join(cl, ", "), vl
 }
+
+// type updateSet struct {
+// 	field  Field
+// 	value  interface{}
+// 	expr   *Expr
+// 	status clauseStatus
+// }
+
+// func newUpdateSet(field Field, value interface{}) *updateSet {
+// 	set := &updateSet{field: field}
+// 	if v, ok := value.(*Expr); ok {
+// 		set.expr = v
+// 		set.status = byExpr
+// 	} else {
+// 		set.value = value
+// 		set.status = byValue
+// 	}
+// 	return set
+// }
+
+// func (u *updateSet) toClause(cl *[]string, vl *[]interface{}) {
+// 	if u.status == byValue {
+// 		*cl = append(*cl, fmt.Sprintf("%s = ?", u.field.fullColName()))
+// 		*vl = append(*vl, u.value)
+// 		return
+// 	}
+// 	*cl = append(*cl, fmt.Sprintf("%s = %s", u.field.fullColName(), u.expr.String()))
+// }
+
+// type updateSetList []*updateSet
+
+// func (l updateSetList) toClause() (string, []interface{}) {
+// 	cl := make([]string, 0, len(l))
+// 	vl := make([]interface{}, 0, len(l))
+// 	for _, u := range l {
+// 		u.toClause(&cl, &vl)
+// 	}
+// 	return fmt.Sprintf("SET %s", strings.Join(cl, ",")), vl
+// }
 
 type operator string
 

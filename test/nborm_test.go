@@ -243,6 +243,31 @@ var testList = []test{
 			return nil
 		},
 	},
+	{
+		name: "insertOrUpdate",
+		f: func() error {
+			flag := model.NewJobFlag()
+			if _, err := nborm.Delete(db, flag); err != nil {
+				return err
+			}
+			flag.Name.SetString("name")
+			flag.Type.SetString("type")
+			flag.Status.SetString("正常")
+			flag.Comment.SetString("comment")
+			flag.Order.SetInt(1)
+			if err := nborm.InsertOne(db, flag); err != nil {
+				return err
+			}
+			flag.Name.SetUpdate("name 2")
+			isInsert, err := nborm.InsertOrUpdateOne(db, flag)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Red(isInsert))
+			fmt.Println(nbcolor.Red(flag.ID.Int()))
+			return nil
+		},
+	},
 }
 
 func TestNBorm(t *testing.T) {

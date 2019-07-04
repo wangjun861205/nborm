@@ -63,9 +63,9 @@ type Field interface {
 	OrW() Field
 	AndWhere(string, interface{}) Field
 	OrWhere(string, interface{}) Field
-	SetU()
-	SetUpdate(interface{})
-	updateSet() *updateSet
+	SetU() Field
+	SetUpdate(interface{}) Field
+	// updateSet() *updateSet
 	dup() Field
 }
 
@@ -102,6 +102,8 @@ type Model interface {
 	SetLimit(int, int)
 	getLimit() (int, int)
 	getAggExps() []*aggExp
+	appendUpdate(*update)
+	getUpdateList() updateList
 }
 
 type ModelList interface {

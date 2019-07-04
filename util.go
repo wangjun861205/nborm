@@ -184,51 +184,57 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	return true
 }
 
-func genFullUpdateSetClause(model Model) (string, []interface{}) {
-	updates := make(updateSetList, 0, 16)
+// func genFullUpdateSetClause(model Model) (string, []interface{}) {
+// 	updates := make(updateList, 0, 16)
+// 	parent := model.GetParent()
+// 	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
+// 		updates = append(updates, parent.getUpdateList()...)
+// 	}
+// 	if model.getModelStatus()&forModelUpdate == forModelUpdate {
+// 		updates = append(updates, model.getUpdateList()...)
+// 	}
+// 	for _, relInfo := range model.Relations() {
+// 		if relInfo.Object.(Model).getModelStatus()&forModelUpdate == forModelUpdate {
+// 			updates = append(updates, relInfo.Object.(Model).getUpdateList()...)
+// 		}
+// 	}
+// 	return updates.toClause()
+// }
+
+func genUpdateClause(model Model) (string, []interface{}) {
+	updates := make(updateList, 0, 16)
 	parent := model.GetParent()
 	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
-		for _, f := range getFields(model, forUpdate) {
-			updates = append(updates, f.updateSet())
-		}
+		updates = append(updates, parent.getUpdateList()...)
 	}
 	if model.getModelStatus()&forModelUpdate == forModelUpdate {
-		for _, f := range getFields(model, forUpdate) {
-			updates = append(updates, f.updateSet())
-		}
+		updates = append(updates, model.getUpdateList()...)
 	}
 	for _, relInfo := range model.Relations() {
-		if relInfo.Object.(Model).getModelStatus()&forModelUpdate == forModelUpdate {
-			for _, f := range getFields(relInfo.Object.(Model), forUpdate) {
-				updates = append(updates, f.updateSet())
-			}
+		subModel := relInfo.Object.(Model)
+		if subModel.getModelStatus()&forModelUpdate == forModelUpdate {
+			updates = append(updates, subModel.getUpdateList()...)
 		}
 	}
 	return updates.toClause()
 }
 
-func genUpdateSetClause(model Model) (string, []interface{}) {
-	updates := make(updateSetList, 0, 16)
+func genSimpleUpdateClause(model Model) (string, []interface{}) {
+	updates := make(updateList, 0, 16)
 	parent := model.GetParent()
 	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
-		for _, f := range getFields(model, forUpdate) {
-			updates = append(updates, f.updateSet())
-		}
+		updates = append(updates, parent.getUpdateList()...)
 	}
 	if model.getModelStatus()&forModelUpdate == forModelUpdate {
-		for _, f := range getFields(model, forUpdate) {
-			updates = append(updates, f.updateSet())
-		}
+		updates = append(updates, model.getUpdateList()...)
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.Object.(Model)
 		if subModel.getModelStatus()&forModelUpdate == forModelUpdate {
-			for _, f := range getFields(subModel, forUpdate) {
-				updates = append(updates, f.updateSet())
-			}
+			updates = append(updates, subModel.getUpdateList()...)
 		}
 	}
-	return updates.toClause()
+	return updates.toSimpleClause()
 }
 
 func genSimpleSelectColumns(model Model) string {
@@ -407,9 +413,6 @@ func genTabRef(model Model) string {
 			if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
 				builder.WriteString(relInfo.toAppendJoinClause())
 			}
-			// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
-			// 	builder.WriteString(relInfo.toAppendJoinClause())
-			// }
 		}
 	} else {
 		parent := model.GetParent()
@@ -428,9 +431,6 @@ func genTabRef(model Model) string {
 				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
 					builder.WriteString(relInfo.toAppendJoinClause())
 				}
-				// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
-				// 	builder.WriteString(relInfo.toAppendJoinClause())
-				// }
 			}
 		default:
 			builder.WriteString(model.fullTabName())
@@ -440,31 +440,11 @@ func genTabRef(model Model) string {
 				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
 					builder.WriteString(relInfo.toAppendJoinClause())
 				}
-				// if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
-				// 	builder.WriteString(relInfo.toAppendJoinClause())
-				// }
 			}
-			// for _, relInfo := range model.Relations() {
-			// 	if relInfo.Object.(Model).getModelStatus()&forModelRef == forModelRef {
-			// 		builder.WriteString(relInfo.toAppendJoinClause())
-			// 	}
-			// }
 		}
 	}
 	return builder.String()
 }
-
-// func genJoinTabRef(model Model) string {
-// 	var builder strings.Builder
-// 	builder.WriteString(model.fullTabName())
-// 	for _, relInfo := range model.Relations() {
-// 		relModel := relInfo.Object.(Model)
-// 		if relModel.getModelStatus()&forJoin == forJoin {
-// 			builder.WriteString(relInfo.toAppendJoinClause())
-// 		}
-// 	}
-// 	return builder.String()
-// }
 
 func genFullWhereClause(model Model) (string, []interface{}) {
 	var where *where
@@ -789,4 +769,16 @@ func genHavingClause(model Model) (string, []interface{}) {
 		return "", nil
 	}
 	return fmt.Sprintf("HAVING %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
+func genInsertClause(model Model) (string, []interface{}) {
+	validFields := getFields(model, valid)
+	cl := make([]string, 0, len(validFields))
+	vl := make([]interface{}, 0, len(validFields))
+	ip := strings.TrimSuffix(strings.Repeat("?, ", len(validFields)), ", ")
+	for _, f := range validFields {
+		cl = append(cl, f.rawFullColName())
+		vl = append(vl, f.Value())
+	}
+	return fmt.Sprintf("(%s) VALUES (%s)", strings.Join(cl, ", "), ip), vl
 }

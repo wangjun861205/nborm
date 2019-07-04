@@ -247,18 +247,12 @@ var testList = []test{
 		name: "insertOrUpdate",
 		f: func() error {
 			flag := model.NewJobFlag()
-			if _, err := nborm.Delete(db, flag); err != nil {
-				return err
-			}
-			flag.Name.SetString("name")
-			flag.Type.SetString("type")
+			flag.ID.SetInt(2)
+			flag.Name.SetString("name").SetUpdate("name 3")
+			flag.Type.SetString("type").SetUpdate("type 3")
 			flag.Status.SetString("正常")
-			flag.Comment.SetString("comment")
-			flag.Order.SetInt(1)
-			if err := nborm.InsertOne(db, flag); err != nil {
-				return err
-			}
-			flag.Name.SetUpdate("name 2")
+			flag.Comment.SetString("comment").SetUpdate("comment 3")
+			flag.Order.SetInt(1).SetUpdate(3)
 			isInsert, err := nborm.InsertOrUpdateOne(db, flag)
 			if err != nil {
 				return err

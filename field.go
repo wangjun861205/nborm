@@ -420,18 +420,6 @@ func (f *baseField) GroupBy() {
 	f.addStatus(forGroup | forSelect)
 }
 
-// type clauseField struct {
-// 	update *updateSet
-// }
-
-// func (f *clauseField) setUpdate(field Field, value interface{}) {
-// 	f.update = newUpdateSet(field, value)
-// }
-
-// func (f *clauseField) updateSet() *updateSet {
-// 	return f.update
-// }
-
 type String struct {
 	baseField
 	// clauseField
@@ -489,18 +477,20 @@ func (f *String) JSONValue() interface{} {
 	return f.value
 }
 
-func (f *String) SetString(v string) {
+func (f *String) SetString(v string) *String {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
 	f.value = v
+	return f
 }
 
-func (f *String) Set(v interface{}) {
+func (f *String) Set(v interface{}) Field {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
 	f.value = v.(string)
+	return f
 }
 
 func (f *String) String() string {
@@ -633,18 +623,20 @@ func (f *Int) JSONValue() interface{} {
 	return f.value
 }
 
-func (f *Int) SetInt(v int) {
+func (f *Int) SetInt(v int) *Int {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
 	f.value = v
+	return f
 }
 
-func (f *Int) Set(v interface{}) {
+func (f *Int) Set(v interface{}) Field {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
 	f.value = v.(int)
+	return f
 }
 
 func (f *Int) Int() int {
@@ -789,14 +781,15 @@ func (f *Date) JSONValue() interface{} {
 	return f.value.Format("2006-01-02")
 }
 
-func (f *Date) SetDate(v time.Time) {
+func (f *Date) SetDate(v time.Time) *Date {
 	f.setValid()
 	f.unsetNull()
 	f.value = v
 	f.addModelStatus(containValue)
+	return f
 }
 
-func (f *Date) Set(v interface{}) {
+func (f *Date) Set(v interface{}) Field {
 	switch val := v.(type) {
 	case string:
 		t, err := time.Parse("2006-01-02", val)
@@ -812,6 +805,7 @@ func (f *Date) Set(v interface{}) {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
+	return f
 }
 
 func (f *Date) Date() time.Time {
@@ -964,14 +958,15 @@ func (f *Datetime) JSONValue() interface{} {
 	return f.value.Format("2006-01-02 15:04:05")
 }
 
-func (f *Datetime) SetDatetime(v time.Time) {
+func (f *Datetime) SetDatetime(v time.Time) *Datetime {
 	f.setValid()
 	f.unsetNull()
 	f.value = v
 	f.addModelStatus(containValue)
+	return f
 }
 
-func (f *Datetime) Set(v interface{}) {
+func (f *Datetime) Set(v interface{}) Field {
 	switch val := v.(type) {
 	case string:
 		t, err := time.Parse("2006-01-02", val)
@@ -987,6 +982,7 @@ func (f *Datetime) Set(v interface{}) {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
+	return f
 }
 
 func (f *Datetime) Datetime() time.Time {
@@ -1127,19 +1123,20 @@ func (f *Decimal) JSONValue() interface{} {
 	return f.value
 }
 
-func (f *Decimal) SetDecimal(v float64) {
+func (f *Decimal) SetDecimal(v float64) *Decimal {
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
 	f.value = v
-
+	return f
 }
 
-func (f *Decimal) Set(v interface{}) {
+func (f *Decimal) Set(v interface{}) Field {
 	f.setValid()
 	f.unsetNull()
 	f.value = v.(float64)
 	f.addModelStatus(containValue)
+	return f
 }
 
 func (f *Decimal) Decimal() float64 {

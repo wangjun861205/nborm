@@ -58,14 +58,13 @@ type Field interface {
 	BaseField
 	Scan(interface{}) error
 	Value() interface{}
-	Set(interface{})
+	Set(interface{}) Field
 	AndW() Field
 	OrW() Field
 	AndWhere(string, interface{}) Field
 	OrWhere(string, interface{}) Field
 	SetU() Field
 	SetUpdate(interface{}) Field
-	// updateSet() *updateSet
 	dup() Field
 }
 

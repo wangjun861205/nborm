@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"github.com/wangjun861205/nborm"
 )
 
@@ -418,8 +419,6 @@ func (m *Enterprise) InitRel() {
 	m.Sector = &JobFlag{}
 	m.Sector.SetParent(m)
 	nborm.InitModel(m.Sector)
-	m.Sector.Type.AndWhere("=", "Sector")
-	m.Sector.Status.AndWhere("=", 1)
 	m.AddRelInited()
 }
 func (m *Enterprise) DB() string {
@@ -1120,10 +1119,11 @@ func (m *EnterpriseJob) InitRel() {
 	mm0 = &MidStudentResumeEnterpriseJob{}
 	mm0.SetParent(m)
 	nborm.InitModel(mm0)
-	mm0.ReviewStatus.AndWhere("=", 1)
+	mm0.AndExprWhere(nborm.NewExpr("@=1", &mm0.ReviewStatus))
 	m.AppendMidTab(mm0)
 	m.AddRelInited()
 }
+
 func (m *EnterpriseJob) DB() string {
 	return "qdxg"
 }

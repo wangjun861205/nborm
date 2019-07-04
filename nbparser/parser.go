@@ -27,9 +27,9 @@ var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
-var masterRelFieldRe = regexp.MustCompile(`(\w+)(\(.+\))?\.(\w+)`)
-var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?('.*?'|\d+|\d+\.\d+)(?:,|$)`)
 var dstFieldRelRe = regexp.MustCompile(`(\w+)(\(.+\))?`)
+var masterRelFieldRe = regexp.MustCompile(`(\w+)(\[.+?\])?\.(\w+)`)
+var midWhereFieldRe = regexp.MustCompile(`@(\w+)`)
 
 type FieldInfo struct {
 	Type  string
@@ -39,14 +39,13 @@ type FieldInfo struct {
 }
 
 type MidWhere struct {
-	Field string
-	Op    string
-	Value string
+	Fields string
+	Expr   string
 }
 
 type MidModel struct {
 	Name        string
-	MidWheres   []MidWhere
+	MidWhere    MidWhere
 	HasMidWhere bool
 }
 
@@ -57,7 +56,7 @@ type RelInfo struct {
 	Fields []string
 	//=======================================
 	HasAddedCond bool
-	AddedConds   []MidWhere
+	AddedCond    MidWhere
 	IsList       bool
 }
 
@@ -126,6 +125,7 @@ func (m *ModelInfo) initRelFunc() string {
 				{{ for _, aw in rel.AddedConds }}
 					m.{{ rel.Field }}.{{ aw.Field }}.AndWhere({{ aw.Op }}, {{ aw.Value }})
 				{{ endfor }}
+				m.{{ rel.Field }}.AndExprWhere(nborm.NewExpr("{{ rel.AddedCond.Expr }}", &{{ rel.Field }}.{{ rel.AddedCond.Fields }}))
 			{{ endif }}
 		{{ endfor }}
 		{{ if model.HasMidModels == true }}
@@ -137,9 +137,7 @@ func (m *ModelInfo) initRelFunc() string {
 				mm{{ i }}.SetParent(m)
 				nborm.InitModel(mm{{ i }})
 				{{ if mm.HasMidWhere == true }}
-					{{ for _, w in mm.MidWheres }}
-						mm{{ i }}.{{ w.Field }}.AndWhere({{ w.Op }}, {{ w.Value }})
-					{{ endfor }}
+					mm{{ i }}.AndExprWhere(nborm.NewExpr("{{ mm.MidWhere.Expr }}", &mm{{ i }}.{{ mm.MidWhere.Fields }}))
 				{{ endif }}
 				m.AppendMidTab(mm{{ i }})
 			{{ endfor }}
@@ -511,15 +509,19 @@ func parseRelation(dstModel, tag string) error {
 		case i == len(fields)-1:
 			fieldGroup := dstFieldRelRe.FindStringSubmatch(field)
 			fieldName, addedConds := fieldGroup[1], fieldGroup[2]
-			condGroup := midWhereRe.FindAllStringSubmatch(strings.Trim(addedConds, "()"), -1)
+			condGroup := midWhereFieldRe.FindAllStringSubmatch(addedConds, -1)
 			if len(condGroup) == 0 {
 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
 			} else {
 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
 				lastRel.HasAddedCond = true
-				for _, w := range condGroup {
-					lastRel.AddedConds = append(lastRel.AddedConds, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
+				fields := make([]string, 0, len(condGroup))
+				for _, c := range condGroup {
+					fields = append(fields, c[1])
 				}
+				fieldsStr := strings.Join(fields, ", ")
+				expr := midWhereFieldRe.ReplaceAllString(strings.Trim(addedConds, "[]"), "@")
+				lastRel.AddedCond = MidWhere{fieldsStr, expr}
 			}
 			//======================================================
 			// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
@@ -527,24 +529,25 @@ func parseRelation(dstModel, tag string) error {
 			if i%2 == 1 {
 				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
 				modelName, midWhereStr, fieldName := fieldGroup[1], fieldGroup[2], fieldGroup[3]
-				midWhereGroup := midWhereRe.FindAllStringSubmatch(strings.Trim(midWhereStr, "()"), -1)
+				midWhereGroup := midWhereFieldRe.FindAllStringSubmatch(midWhereStr, -1)
 				var midModel MidModel
 				if len(midWhereGroup) == 0 {
 					midModel = MidModel{
 						Name: modelName,
 					}
 				} else {
+					fields := make([]string, 0, len(midWhereGroup))
+					for _, w := range midWhereGroup {
+						fields = append(fields, w[1])
+					}
+					fieldsStr := strings.Join(fields, ", ")
+					whereExpr := midWhereFieldRe.ReplaceAllString(strings.Trim(midWhereStr, "[]"), "@")
 					midModel = MidModel{
 						Name:        modelName,
-						MidWheres:   make([]MidWhere, 0, len(midWhereGroup)),
+						MidWhere:    MidWhere{fieldsStr, whereExpr},
 						HasMidWhere: true,
 					}
-					for _, w := range midWhereGroup {
-						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
-					}
 				}
-				// lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])
-				// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
 				lastModel.MidModels = append(lastModel.MidModels, midModel)
 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, fieldName))
 			} else {

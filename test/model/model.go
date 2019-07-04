@@ -60,7 +60,7 @@ type Enterprise struct {
 	CreateTime       nborm.Datetime
 	UpdateTime       nborm.Datetime
 	Account          *EnterpriseAccount `rel:"AccountID->ID"`
-	Sector           *JobFlag           `rel:"SectorID->ID(Type='Sector',Status=1)"`
+	Sector           *JobFlag           `rel:"SectorID->ID[@Type='Sector' AND @Status=1]"`
 }
 
 //db:qdxg
@@ -134,7 +134,7 @@ type EnterpriseJob struct {
 	CreateTime      nborm.Datetime
 	UpdateTime      nborm.Datetime
 	Enterprise      *EnterpriseList    `rel:"EnterpriseID->ID"`
-	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob(ReviewStatus=1).JobID->MidEnterpriseJobStudentResume.ResumeID->ID"`
+	StudentResumes  *StudentResumeList `rel:"ID->MidStudentResumeEnterpriseJob[@ReviewStatus=1].JobID->MidEnterpriseJobStudentResume.ResumeID->ID"`
 }
 
 //db:qdxg

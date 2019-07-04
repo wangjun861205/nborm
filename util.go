@@ -177,7 +177,7 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	lpk := lm.PrimaryKey()
 	rpk := rm.PrimaryKey()
 	for i := 0; i < len(lpk); i++ {
-		if lpk[i].Value() != rpk[i].Value() {
+		if !lpk[i].IsValid() || !rpk[i].IsValid() || lpk[i].Value() != rpk[i].Value() {
 			return false
 		}
 	}

@@ -35,6 +35,7 @@ func (e *Expr) String() string {
 	reader := strings.NewReader(e.exp)
 	stat := normal
 	quoteStack := make([]rune, 0, 8)
+	var fieldIndex int
 	var builder strings.Builder
 	for r, _, err := reader.ReadRune(); ; r, _, err = reader.ReadRune() {
 		if err != nil {
@@ -60,8 +61,8 @@ func (e *Expr) String() string {
 		}
 		if r == '@' {
 			if stat == normal {
-				builder.WriteString(e.fields[0].fullColName())
-				e.fields = e.fields[1:]
+				builder.WriteString(e.fields[fieldIndex].fullColName())
+				fieldIndex++
 			} else {
 				builder.WriteRune(r)
 			}

@@ -131,6 +131,22 @@ func (l EnterpriseAccountList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseAccountList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseAccount
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseAccountList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -268,6 +284,22 @@ func (l EnterpriseReviewStatusList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseReviewStatusList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseReviewStatus
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseReviewStatusList) Collapse() {
 	return
 }
@@ -389,6 +421,22 @@ func (l EnterpriseStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseStatisticList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseStatistic
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *EnterpriseStatisticList) Collapse() {
@@ -578,6 +626,22 @@ func (l EnterpriseList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*Enterprise
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -719,6 +783,22 @@ func (l EnterpriseAttachmentList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseAttachmentList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseAttachment
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseAttachmentList) Collapse() {
 	return
 }
@@ -835,6 +915,22 @@ func (l MidEnterpriseTagList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidEnterpriseTagList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidEnterpriseTag
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *MidEnterpriseTagList) Collapse() {
@@ -958,6 +1054,22 @@ func (l EnterpriseJobStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *EnterpriseJobStatisticList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseJobStatistic
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *EnterpriseJobStatisticList) Collapse() {
@@ -1087,6 +1199,22 @@ func (l MidStudentResumeEnterpriseJobList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeEnterpriseJobList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeEnterpriseJob
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *MidStudentResumeEnterpriseJobList) Collapse() {
 	return
 }
@@ -1123,7 +1251,6 @@ func (m *EnterpriseJob) InitRel() {
 	m.AppendMidTab(mm0)
 	m.AddRelInited()
 }
-
 func (m *EnterpriseJob) DB() string {
 	return "qdxg"
 }
@@ -1293,6 +1420,22 @@ func (l EnterpriseJobList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseJobList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseJob
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseJobList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -1426,6 +1569,22 @@ func (l MidStudentJobFairReadList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentJobFairReadList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentJobFairRead
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *MidStudentJobFairReadList) Collapse() {
 	return
 }
@@ -1550,6 +1709,22 @@ func (l MidStudentJobFairEnrollList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentJobFairEnrollList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentJobFairEnroll
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *MidStudentJobFairEnrollList) Collapse() {
 	return
 }
@@ -1672,6 +1847,22 @@ func (l MidStudentJobFairShareList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentJobFairShareList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentJobFairShare
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *MidStudentJobFairShareList) Collapse() {
@@ -1801,6 +1992,22 @@ func (l JobFairStatisticList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *JobFairStatisticList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*JobFairStatistic
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *JobFairStatisticList) Collapse() {
@@ -1939,6 +2146,22 @@ func (l JobFairList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *JobFairList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*JobFair
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *JobFairList) Collapse() {
@@ -2085,6 +2308,22 @@ func (l JobFlagList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *JobFlagList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*JobFlag
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *JobFlagList) Collapse() {
 	return
 }
@@ -2201,6 +2440,22 @@ func (l MidStudentResumeLanguageSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeLanguageSkillList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeLanguageSkill
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *MidStudentResumeLanguageSkillList) Collapse() {
@@ -2321,6 +2576,22 @@ func (l MidStudentResumeStudentTrainList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeStudentTrainList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeStudentTrain
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *MidStudentResumeStudentTrainList) Collapse() {
 	return
 }
@@ -2437,6 +2708,22 @@ func (l MidStudentResumeStudentHonorList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeStudentHonorList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeStudentHonor
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *MidStudentResumeStudentHonorList) Collapse() {
@@ -2557,6 +2844,22 @@ func (l MidStudentResumeStudentExperienceList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *MidStudentResumeStudentExperienceList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeStudentExperience
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *MidStudentResumeStudentExperienceList) Collapse() {
 	return
 }
@@ -2673,6 +2976,22 @@ func (l MidStudentResumeStudentSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *MidStudentResumeStudentSkillList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*MidStudentResumeStudentSkill
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *MidStudentResumeStudentSkillList) Collapse() {
@@ -2843,6 +3162,22 @@ func (l StudentTrainList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentTrainList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentTrain
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *StudentTrainList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -3008,6 +3343,22 @@ func (l StudentHonorList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentHonorList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentHonor
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *StudentHonorList) Collapse() {
@@ -3186,6 +3537,22 @@ func (l StudentExperienceList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentExperienceList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentExperience
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *StudentExperienceList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -3348,6 +3715,22 @@ func (l StudentSkillList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentSkillList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentSkill
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *StudentSkillList) Collapse() {
@@ -3580,6 +3963,22 @@ func (l StudentResumeList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *StudentResumeList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentResume
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *StudentResumeList) Collapse() {
 	if len(l.List) < 2 {
 		return
@@ -3712,6 +4111,22 @@ func (l EnterpriseSnapshotList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseSnapshotList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseSnapshot
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseSnapshotList) Collapse() {
 	return
 }
@@ -3832,6 +4247,22 @@ func (l EnterpriseJobSnapshotList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (l *EnterpriseJobSnapshotList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*EnterpriseJobSnapshot
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
+}
+
 func (l *EnterpriseJobSnapshotList) Collapse() {
 	return
 }
@@ -3950,6 +4381,22 @@ func (l StudentResumeSnapshotList) MarshalJSON() ([]byte, error) {
 		s.List = l.List
 	}
 	return json.Marshal(s)
+}
+
+func (l *StudentResumeSnapshotList) UnmarshalJSON(b []byte) error {
+	ll := struct {
+		List  []*StudentResumeSnapshot
+		Total int
+	}{
+		l.List,
+		0,
+	}
+	if err := json.Unmarshal(b, &ll); err != nil {
+		return err
+	}
+	l.List = ll.List
+	l.Total = ll.Total
+	return nil
 }
 
 func (l *StudentResumeSnapshotList) Collapse() {

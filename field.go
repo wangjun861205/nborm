@@ -459,6 +459,7 @@ func (f *String) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	return json.Unmarshal(b, &f.value)
 }
 
@@ -605,6 +606,7 @@ func (f *Int) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	return json.Unmarshal(b, &f.value)
 }
 
@@ -758,11 +760,12 @@ func (f *Date) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	f.unsetNull()
-	t, err := time.Parse("2006-01-02", string(b))
+	t, err := time.Parse("2006-01-02", strings.Trim(string(b), "\""))
 	if err != nil {
 		return err
 	}
 	f.value = t
+	f.addModelStatus(containValue)
 	return nil
 }
 
@@ -935,11 +938,12 @@ func (f *Datetime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	f.unsetNull()
-	t, err := time.Parse("2006-01-02 15:04:05", string(b))
+	t, err := time.Parse("2006-01-02 15:04:05", strings.Trim(string(b), "\""))
 	if err != nil {
 		return err
 	}
 	f.value = t
+	f.addModelStatus(containValue)
 	return nil
 }
 
@@ -1104,6 +1108,7 @@ func (f *Decimal) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	f.unsetNull()
+	f.addModelStatus(containValue)
 	return json.Unmarshal(b, &f.value)
 
 }

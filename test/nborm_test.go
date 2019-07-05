@@ -262,6 +262,29 @@ var testList = []test{
 			return nil
 		},
 	},
+	{
+		name: "unmarshal",
+		f: func() error {
+			e := model.NewEnterprise()
+			if err := nborm.Query(db, e); err != nil {
+				return err
+			}
+			jb, err := json.Marshal(e)
+			if err != nil {
+				return err
+			}
+			ne := model.NewEnterprise()
+			if err := json.Unmarshal(jb, ne); err != nil {
+				return err
+			}
+			nj, err := json.Marshal(ne)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(string(nj)))
+			return nil
+		},
+	},
 }
 
 func TestNBorm(t *testing.T) {

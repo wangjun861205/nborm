@@ -405,6 +405,30 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) listUnmarshalJSONFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
+		ll := struct {
+			List []*{{ model.Name }}
+			Total int
+		} {
+			l.List,
+			0,
+		}
+		if err := json.Unmarshal(b, &ll); err != nil {
+			return err
+		}
+		l.List = ll.List
+		l.Total = ll.Total
+		return nil
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func (m *ModelInfo) listCollapseFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) Collapse() {
@@ -523,8 +547,6 @@ func parseRelation(dstModel, tag string) error {
 				expr := midWhereFieldRe.ReplaceAllString(strings.Trim(addedConds, "[]"), "@")
 				lastRel.AddedCond = MidWhere{fieldsStr, expr}
 			}
-			//======================================================
-			// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
 		default:
 			if i%2 == 1 {
 				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
@@ -653,6 +675,7 @@ func main() {
 			nf.WriteString(m.listSetTotalFunc())
 			nf.WriteString(m.listLenFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
+			nf.WriteString(m.listUnmarshalJSONFunc())
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
 		}

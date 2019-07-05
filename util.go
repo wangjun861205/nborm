@@ -160,6 +160,33 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		l.SetTotal(rowCount)
 	} else {
 		fields, models, collFuncs := getFieldsForScan(model)
+		var isJoin bool
+		for _, rel := range model.Relations() {
+			if rel.Object.(Model).getModelStatus()&forJoin == forJoin {
+				isJoin = true
+				break
+			}
+		}
+		if isJoin {
+			rows, err := exe.Query(stmt, whereValues...)
+			if err != nil {
+				return err
+			}
+			defer rows.Close()
+			for rows.Next() {
+				fields, models, collFuncs := getFieldsForScan(model)
+				if err := rows.Scan(fields...); err != nil {
+					return err
+				}
+				for _, f := range collFuncs {
+					f()
+				}
+				for _, m := range models {
+					m.addModelStatus(synced)
+				}
+			}
+			return rows.Err()
+		}
 		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
 			return err
 		}

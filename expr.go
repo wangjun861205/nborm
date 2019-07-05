@@ -73,7 +73,7 @@ func (e *Expr) String() string {
 	if stat != normal {
 		panic(fmt.Errorf("no closed expression (exp: %s)", e.exp))
 	}
-	if len(e.fields) != 0 {
+	if len(e.fields) != fieldIndex {
 		panic(fmt.Errorf("extra field for express (fields: %v)", e.fields))
 	}
 	return builder.String()

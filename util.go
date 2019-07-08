@@ -211,23 +211,6 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	return true
 }
 
-// func genFullUpdateSetClause(model Model) (string, []interface{}) {
-// 	updates := make(updateList, 0, 16)
-// 	parent := model.GetParent()
-// 	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
-// 		updates = append(updates, parent.getUpdateList()...)
-// 	}
-// 	if model.getModelStatus()&forModelUpdate == forModelUpdate {
-// 		updates = append(updates, model.getUpdateList()...)
-// 	}
-// 	for _, relInfo := range model.Relations() {
-// 		if relInfo.Object.(Model).getModelStatus()&forModelUpdate == forModelUpdate {
-// 			updates = append(updates, relInfo.Object.(Model).getUpdateList()...)
-// 		}
-// 	}
-// 	return updates.toClause()
-// }
-
 func genUpdateClause(model Model) (string, []interface{}) {
 	updates := make(updateList, 0, 16)
 	parent := model.GetParent()
@@ -808,4 +791,20 @@ func genInsertClause(model Model) (string, []interface{}) {
 		vl = append(vl, f.Value())
 	}
 	return fmt.Sprintf("(%s) VALUES (%s)", strings.Join(cl, ", "), ip), vl
+}
+
+func newModelAndSelectFields(l ModelList) (Model, []Field) {
+	newModel := l.NewModel()
+	listSelectFields := getSelectFields(l)
+	modelSelectFields := make([]Field, 0, len(listSelectFields))
+OUTER:
+	for _, lsf := range listSelectFields {
+		for _, mf := range getAllFields(newModel) {
+			if lsf.colName() == mf.colName() {
+				modelSelectFields = append(modelSelectFields, mf)
+				continue OUTER
+			}
+		}
+	}
+	return newModel, modelSelectFields
 }

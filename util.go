@@ -134,7 +134,7 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 func getJoinModels(classModel Model, instanceModel Model, models *[]Model, fields *[]Field, collFuncs *[]func()) {
 	if instanceModel == nil {
 		if l, ok := classModel.(ModelList); ok {
-			m, fs := newModelAndSelectFields(l)
+			m, fs := newModelAndSelectFields(l, l)
 			*models = append(*models, m)
 			*fields = append(*fields, fs...)
 			*collFuncs = append(*collFuncs, l.Collapse)
@@ -151,14 +151,14 @@ func getJoinModels(classModel Model, instanceModel Model, models *[]Model, field
 			subInstanceModel := instanceModel.Relations()[i].Object.(Model)
 			if subClassModel.getModelStatus()&forJoin == forJoin {
 				if l, ok := subClassModel.(ModelList); ok {
-					newSubModel, selectFields := newModelAndSelectFields(subInstanceModel.(ModelList))
+					newSubModel, selectFields := newModelAndSelectFields(l, subInstanceModel.(ModelList))
 					*models = append(*models, newSubModel)
 					*fields = append(*fields, selectFields...)
 					*collFuncs = append(*collFuncs, l.Collapse)
 					getJoinModels(subClassModel, newSubModel, models, fields, collFuncs)
 				} else {
 					*models = append(*models, subInstanceModel)
-					*fields = append(*fields, getSelectFields(subInstanceModel)...)
+					*fields = append(*fields, getJoinInstanceSelectFields(subClassModel, subInstanceModel)...)
 					getJoinModels(subClassModel, subInstanceModel, models, fields, collFuncs)
 				}
 			}
@@ -917,18 +917,49 @@ func genInsertClause(model Model) (string, []interface{}) {
 	return fmt.Sprintf("(%s) VALUES (%s)", strings.Join(cl, ", "), ip), vl
 }
 
-func newModelAndSelectFields(l ModelList) (Model, []Field) {
-	newModel := l.NewModel()
-	listSelectFields := getSelectFields(l)
-	modelSelectFields := make([]Field, 0, len(listSelectFields))
+// func newModelAndSelectFields(l ModelList) (Model, []Field) {
+// 	newModel := l.NewModel()
+// 	listSelectFields := getSelectFields(l)
+// 	modelSelectFields := make([]Field, 0, len(listSelectFields))
+// OUTER:
+// 	for _, lsf := range listSelectFields {
+// 		for _, mf := range getAllFields(newModel) {
+// 			if lsf.colName() == mf.colName() {
+// 				modelSelectFields = append(modelSelectFields, mf)
+// 				continue OUTER
+// 			}
+// 		}
+// 	}
+// 	return newModel, modelSelectFields
+// }
+
+func newModelAndSelectFields(classList ModelList, instanceList ModelList) (Model, []Field) {
+	newModel := instanceList.NewModel()
+	classSelectFields := getSelectFields(classList)
+	instanceSelectFields := make([]Field, 0, len(classSelectFields))
 OUTER:
-	for _, lsf := range listSelectFields {
+	for _, lsf := range classSelectFields {
 		for _, mf := range getAllFields(newModel) {
 			if lsf.colName() == mf.colName() {
-				modelSelectFields = append(modelSelectFields, mf)
+				instanceSelectFields = append(instanceSelectFields, mf)
 				continue OUTER
 			}
 		}
 	}
-	return newModel, modelSelectFields
+	return newModel, instanceSelectFields
+}
+
+func getJoinInstanceSelectFields(classModel, instanceModel Model) (selectFields []Field) {
+	classSelectFields := getSelectFields(classModel)
+	instanceFields := getAllFields(instanceModel)
+OUTER:
+	for _, cf := range classSelectFields {
+		for _, inf := range instanceFields {
+			if cf.colName() == inf.colName() {
+				selectFields = append(selectFields, inf)
+				continue OUTER
+			}
+		}
+	}
+	return
 }

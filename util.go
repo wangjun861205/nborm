@@ -131,6 +131,111 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*vl = append(*vl, field.Value())
 }
 
+func getJoinModels(classModel Model, instanceModel Model, models *[]Model, fields *[]Field, collFuncs *[]func()) {
+	if instanceModel == nil {
+		if l, ok := classModel.(ModelList); ok {
+			m, fs := newModelAndSelectFields(l)
+			*models = append(*models, m)
+			*fields = append(*fields, fs...)
+			*collFuncs = append(*collFuncs, l.Collapse)
+			instanceModel = m
+		} else {
+			*models = append(*models, classModel)
+			*fields = append(*fields, getSelectFields(classModel)...)
+			instanceModel = classModel
+		}
+	}
+	if classModel.getModelStatus()&containSubJoin == containSubJoin {
+		for i, relInfo := range classModel.Relations() {
+			subClassModel := relInfo.Object.(Model)
+			subInstanceModel := instanceModel.Relations()[i].Object.(Model)
+			if subClassModel.getModelStatus()&forJoin == forJoin {
+				if l, ok := subClassModel.(ModelList); ok {
+					newSubModel, selectFields := newModelAndSelectFields(subInstanceModel.(ModelList))
+					*models = append(*models, newSubModel)
+					*fields = append(*fields, selectFields...)
+					*collFuncs = append(*collFuncs, l.Collapse)
+					getJoinModels(subClassModel, newSubModel, models, fields, collFuncs)
+				} else {
+					*models = append(*models, subInstanceModel)
+					*fields = append(*fields, getSelectFields(subInstanceModel)...)
+					getJoinModels(subClassModel, subInstanceModel, models, fields, collFuncs)
+				}
+			}
+		}
+	}
+}
+
+func getJoinSelectFields(model Model, fields *[]Field) {
+	*fields = append(*fields, getSelectFields(model)...)
+	if model.getModelStatus()&containSubJoin == containSubJoin {
+		for _, relInfo := range model.Relations() {
+			subModel := relInfo.Object.(Model)
+			if subModel.getModelStatus()&forJoin == forJoin {
+				getJoinSelectFields(subModel, fields)
+			}
+		}
+	}
+}
+
+func genJoinSelectClause(model Model) string {
+	fields := make([]Field, 0, 64)
+	getJoinSelectFields(model, &fields)
+	var builder strings.Builder
+	if _, ok := model.(ModelList); ok {
+		builder.WriteString("SELECT SQL_CALC_FOUND_ROWS ")
+	} else {
+		builder.WriteString("SELECT ")
+	}
+	if model.getModelStatus()&distinct == distinct {
+		builder.WriteString("DISTINCT ")
+	}
+	for _, field := range fields {
+		builder.WriteString(fmt.Sprintf("%s, ", field.fullColName()))
+	}
+	return strings.TrimSuffix(builder.String(), ", ")
+}
+
+func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
+	rows, err := exe.Query(stmt, whereValues...)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		models := make([]Model, 0, 8)
+		fields := make([]Field, 0, 64)
+		collFuncs := make([]func(), 0, 8)
+		getJoinModels(model, nil, &models, &fields, &collFuncs)
+		addrs := make([]interface{}, 0, len(fields))
+		for _, f := range fields {
+			addrs = append(addrs, f)
+		}
+		if err := rows.Scan(addrs...); err != nil {
+			return err
+		}
+		for _, f := range collFuncs {
+			f()
+		}
+		for _, m := range models {
+			m.addModelStatus(synced)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if l, ok := model.(ModelList); ok {
+		var foundRows int
+		if err := exe.QueryRow("SELECT FOUND_ROWS()").Scan(&foundRows); err != nil {
+			return err
+		}
+		l.SetTotal(foundRows)
+	}
+	return nil
+}
+
 func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
 	if l, ok := model.(ModelList); ok {
 		rows, err := exe.Query(stmt, whereValues...)
@@ -454,6 +559,25 @@ func genTabRef(model Model) string {
 		}
 	}
 	return builder.String()
+}
+
+func getJoinClassModels(model Model, refs *[]string) {
+	if model.getModelStatus()&containSubJoin == containSubJoin {
+		for _, relInfo := range model.Relations() {
+			subModel := relInfo.Object.(Model)
+			if subModel.getModelStatus()&forJoin == forJoin {
+				*refs = append(*refs, relInfo.toAppendJoinClause())
+				getJoinClassModels(subModel, refs)
+			}
+		}
+	}
+}
+
+func genJoinTabRef(model Model) string {
+	refs := make([]string, 0, 8)
+	refs = append(refs, model.fullTabName())
+	getJoinClassModels(model, &refs)
+	return strings.Join(refs, " ")
 }
 
 func genFullWhereClause(model Model) (string, []interface{}) {

@@ -177,15 +177,17 @@ var testList = []test{
 			}
 			qa := model.NewEnterpriseAccountList()
 			qa.Enterprise.SetForJoin()
-			qa.Email.AndWhere("=", "email")
-			qa.Enterprise.Contact.AndWhere(">", "contact5")
-			if err := nborm.Query(db, qa); err != nil {
+			qa.Enterprise.InitRel()
+			qa.Enterprise.Sector.SetForJoin()
+			// qa.Email.AndWhere("=", "email")
+			// qa.Enterprise.Contact.AndWhere(">", "contact5")
+			if err := nborm.JoinQuery(db, qa); err != nil {
 				return err
 			}
 			for _, e := range qa.Enterprise.List {
 				fmt.Println(nbcolor.Yellow(e.Contact.String()))
 			}
-			fmt.Println(nbcolor.Cyan(qa.Len()))
+			fmt.Println(nbcolor.Cyan(qa.List[0].Enterprise.List[0].Sector))
 			b, err := json.Marshal(qa)
 			if err != nil {
 				return err

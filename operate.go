@@ -89,6 +89,20 @@ func Query(exe Executor, m Model) error {
 	return queryAndScan(exe, m, stmt, whereValues...)
 }
 
+func JoinQuery(exe Executor, m Model) error {
+	selectClause := genJoinSelectClause(m)
+	whereClause, whereValues := genWhereClause(m)
+	tabRef := genJoinTabRef(m)
+	orderClause := genOrderClause(m)
+	limitClause := genLimitClause(m)
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+	if DEBUG {
+		log.Println(nbcolor.Green(stmt))
+		log.Println(nbcolor.Green(whereValues))
+	}
+	return joinQueryAndScan(exe, m, stmt, whereValues...)
+}
+
 func Update(exe Executor, model Model) (sql.Result, error) {
 	tabRef := genTabRef(model)
 	updateClause, updateValues := genUpdateClause(model)

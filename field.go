@@ -36,6 +36,7 @@ const (
 	selectAll       modelStatus = 1 << 11
 	forModelHaving  modelStatus = 1 << 12
 	forReverseQuery modelStatus = 1 << 13
+	containSubJoin  modelStatus = 1 << 14
 )
 
 type Meta struct {
@@ -184,6 +185,7 @@ func (m *Meta) getLimit() (limit, offset int) {
 }
 
 func (m *Meta) SetForJoin() {
+	m.GetParent().addModelStatus(containSubJoin)
 	m.addModelStatus(forJoin)
 	m.addModelStatus(forModelRef)
 	m.addModelStatus(forReverseQuery)

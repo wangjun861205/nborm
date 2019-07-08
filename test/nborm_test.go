@@ -180,6 +180,7 @@ var testList = []test{
 			qa.Enterprise.InitRel()
 			qa.Enterprise.Sector.SetForJoin()
 			qa.Enterprise.Sector.Name.ForSelect()
+			qa.Enterprise.Sector.Name.AndWhere("=", "name 3")
 			// qa.Email.AndWhere("=", "email")
 			// qa.Enterprise.Contact.AndWhere(">", "contact5")
 			if err := nborm.JoinQuery(db, qa); err != nil {

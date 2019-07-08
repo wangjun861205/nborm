@@ -719,20 +719,32 @@ func genWhereClause(model Model) (string, []interface{}) {
 }
 
 func genJoinWhereClause(model Model) (string, []interface{}) {
-	where := model.getWhere()
-	for _, relInfo := range model.Relations() {
-		relModel := relInfo.Object.(Model)
-		if relModel.getModelStatus()&forModelWhere == forModelWhere {
-			where = where.append(relModel.getWhere())
-		}
+	wheres := make([]*where, 0, 8)
+	getJoinWhere(model, &wheres)
+	if len(wheres) == 0 {
+		return "", nil
+	}
+	where := wheres[0]
+	for _, w := range wheres[1:] {
+		where = where.append(w)
 	}
 	cl := make([]string, 0, 8)
 	vl := make([]interface{}, 0, 8)
 	where.toClause(&cl, &vl)
-	if len(cl) == 0 {
-		return "", nil
-	}
 	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+}
+
+func getJoinWhere(model Model, wheres *[]*where) {
+	if model.getModelStatus()&forModelWhere == forModelWhere {
+		if w := model.getWhere(); w != nil {
+			*wheres = append(*wheres, w)
+		}
+	}
+	if model.getModelStatus()&containSubWhere == containSubWhere {
+		for _, relInfo := range model.Relations() {
+			getJoinWhere(relInfo.Object.(Model), wheres)
+		}
+	}
 }
 
 func genSimpleWhereClause(model Model) (string, []interface{}) {
@@ -916,22 +928,6 @@ func genInsertClause(model Model) (string, []interface{}) {
 	}
 	return fmt.Sprintf("(%s) VALUES (%s)", strings.Join(cl, ", "), ip), vl
 }
-
-// func newModelAndSelectFields(l ModelList) (Model, []Field) {
-// 	newModel := l.NewModel()
-// 	listSelectFields := getSelectFields(l)
-// 	modelSelectFields := make([]Field, 0, len(listSelectFields))
-// OUTER:
-// 	for _, lsf := range listSelectFields {
-// 		for _, mf := range getAllFields(newModel) {
-// 			if lsf.colName() == mf.colName() {
-// 				modelSelectFields = append(modelSelectFields, mf)
-// 				continue OUTER
-// 			}
-// 		}
-// 	}
-// 	return newModel, modelSelectFields
-// }
 
 func newModelAndSelectFields(classList ModelList, instanceList ModelList) (Model, []Field) {
 	newModel := instanceList.NewModel()

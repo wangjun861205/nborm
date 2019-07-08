@@ -37,6 +37,7 @@ const (
 	forModelHaving  modelStatus = 1 << 12
 	forReverseQuery modelStatus = 1 << 13
 	containSubJoin  modelStatus = 1 << 14
+	containSubWhere modelStatus = 1 << 15
 )
 
 type Meta struct {
@@ -102,6 +103,9 @@ func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
 	m.where = m.where.append(newWhere(and, expr, val...))
 	m.addModelStatus(forModelWhere)
 	m.addModelStatus(forModelRef)
+	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubWhere)
+	}
 	return m
 }
 
@@ -109,6 +113,9 @@ func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
 	m.where = m.where.append(newWhere(or, expr, val...))
 	m.addModelStatus(forModelWhere)
 	m.addModelStatus(forModelRef)
+	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubWhere)
+	}
 	return m
 }
 

@@ -520,12 +520,8 @@ func genPlaceHolder(val []interface{}) string {
 
 func getTabRef(model Model, refs *[]string) {
 	if parent := model.GetParent(); parent != nil {
-		for _, refInfo := range parent.Relations() {
-			m := refInfo.Object.(Model)
-			if m.getAlias() == model.getAlias() {
-				*refs = append(*refs, refInfo.toAppendJoinClause())
-			}
-		}
+		relInfo := searchRelation(parent, model)
+		*refs = append(*refs, relInfo.toAppendJoinClause())
 	} else {
 		*refs = append(*refs, model.fullTabName())
 	}
@@ -569,10 +565,10 @@ func genJoinTabRef(model Model) string {
 }
 
 func getWheres(model Model, wheres *whereList) {
-	if parent := model.GetParent(); parent != nil {
-		*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
-	}
 	if model.checkStatus(containWhere) {
+		if parent := model.GetParent(); parent != nil {
+			*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
+		}
 		*wheres = append(*wheres, model.getWheres()...)
 	}
 	if model.checkStatus(containSubWhere) {

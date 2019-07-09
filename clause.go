@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -136,7 +137,6 @@ type where struct {
 	rel  rel
 	expr *Expr
 	val  []interface{}
-	next *where
 }
 
 func newWhere(rel rel, expr *Expr, val ...interface{}) *where {
@@ -144,121 +144,197 @@ func newWhere(rel rel, expr *Expr, val ...interface{}) *where {
 		rel,
 		expr,
 		val,
-		nil,
 	}
 }
 
-func (w *where) append(nw *where) *where {
-	if w == nil {
-		return nw
-	}
-	if nw == nil {
-		return w
-	}
-	lastWhere := w
-	for lastWhere.next != nil {
-		lastWhere = lastWhere.next
-	}
-	lastWhere.next = nw
-	return w
-}
+type whereList []*where
 
-func (w *where) toClause(cl *[]string, vl *[]interface{}) {
-	if w == nil {
-		return
+func (l whereList) toClause() (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
 	}
-	*cl = append(*cl, fmt.Sprintf("%s %s", w.rel, w.expr.String()))
-	for _, value := range w.val {
-		switch v := value.(type) {
-		case []int:
-			for _, i := range v {
-				*vl = append(*vl, i)
-			}
-		case []float32:
-			for _, f := range v {
-				*vl = append(*vl, f)
-			}
-		case []float64:
-			for _, f := range v {
-				*vl = append(*vl, f)
-			}
-		case []string:
-			for _, s := range v {
-				*vl = append(*vl, s)
-			}
-		case []time.Time:
-			switch w.expr.fields[0].(type) {
-			case *Date:
-				for _, t := range v {
-					*vl = append(*vl, t.Format("2006-01-02"))
+	var builder strings.Builder
+	vals := make([]interface{}, 0, 8)
+	for _, w := range l {
+		builder.WriteString(fmt.Sprintf("%s %s ", w.rel, w.expr.String()))
+		for i, val := range w.val {
+			switch v := val.(type) {
+			case []string:
+				for _, s := range v {
+					vals = append(vals, s)
+				}
+			case []int:
+				for _, i := range v {
+					vals = append(vals, i)
+				}
+			case []float32:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []float64:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []time.Time:
+				switch w.expr.fields[i].(type) {
+				case *Date:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02"))
+					}
+				case *Datetime:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02 15:04:05"))
+					}
+				default:
+					panic(errors.New("invalid field type for []time.Time where value"))
 				}
 			default:
-				for _, t := range v {
-					*vl = append(*vl, t.Format("2006-01-02"))
-				}
+				vals = append(vals, w.val...)
 			}
-		case time.Time:
-			switch w.expr.fields[0].(type) {
-			case *Date:
-				*vl = append(*vl, v.Format("2006-01-02"))
-			default:
-				*vl = append(*vl, v.Format("2006-01-02"))
-			}
-		default:
-			*vl = append(*vl, v)
 		}
 	}
-	if w.next != nil {
-		w.next.toClause(cl, vl)
-	}
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(builder.String(), "AND "), "OR ")), vals
 }
 
-func (w *where) toSimpleClause(cl *[]string, vl *[]interface{}) {
-	if w == nil {
-		return
+func (l whereList) toSimpleClause() (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
 	}
-	*cl = append(*cl, fmt.Sprintf("%s %s", w.rel, w.expr.SimpleString()))
-	if len(w.val) > 0 {
-		switch v := w.val[0].(type) {
-		case []int:
-			for _, i := range v {
-				*vl = append(*vl, i)
-			}
-		case []float32:
-			for _, f := range v {
-				*vl = append(*vl, f)
-			}
-		case []float64:
-			for _, f := range v {
-				*vl = append(*vl, f)
-			}
-		case []string:
-			for _, s := range v {
-				*vl = append(*vl, s)
-			}
-		case []time.Time:
-			switch w.expr.fields[0].(type) {
-			case *Date:
-				for _, t := range v {
-					*vl = append(*vl, t.Format("2006-01-02"))
+	var builder strings.Builder
+	vals := make([]interface{}, 0, 8)
+	for _, w := range l {
+		builder.WriteString(fmt.Sprintf("%s %s ", w.rel, w.expr.SimpleString()))
+		for i, val := range w.val {
+			switch v := val.(type) {
+			case []string:
+				for _, s := range v {
+					vals = append(vals, s)
+				}
+			case []int:
+				for _, i := range v {
+					vals = append(vals, i)
+				}
+			case []float32:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []float64:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []time.Time:
+				switch w.expr.fields[i].(type) {
+				case *Date:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02"))
+					}
+				case *Datetime:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02 15:04:05"))
+					}
+				default:
+					panic(errors.New("invalid field type for []time.Time where value"))
 				}
 			default:
-				for _, t := range v {
-					*vl = append(*vl, t.Format("2006-01-02"))
-				}
+				vals = append(vals, w.val...)
 			}
-		case time.Time:
-			switch w.expr.fields[0].(type) {
-			case *Date:
-				*vl = append(*vl, v.Format("2006-01-02"))
-			default:
-				*vl = append(*vl, v.Format("2006-01-02"))
-			}
-		default:
-			*vl = append(*vl, w.val[0])
 		}
 	}
-	if w.next != nil {
-		w.next.toClause(cl, vl)
+	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(builder.String(), "AND "), "OR ")), vals
+}
+
+type havingList []*where
+
+func (l havingList) toClause() (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
 	}
+	var builder strings.Builder
+	vals := make([]interface{}, 0, 8)
+	for _, w := range l {
+		builder.WriteString(fmt.Sprintf("%s %s ", w.rel, w.expr.String()))
+		for i, val := range w.val {
+			switch v := val.(type) {
+			case []string:
+				for _, s := range v {
+					vals = append(vals, s)
+				}
+			case []int:
+				for _, i := range v {
+					vals = append(vals, i)
+				}
+			case []float32:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []float64:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []time.Time:
+				switch w.expr.fields[i].(type) {
+				case *Date:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02"))
+					}
+				case *Datetime:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02 15:04:05"))
+					}
+				default:
+					panic(errors.New("invalid field type for []time.Time where value"))
+				}
+			default:
+				vals = append(vals, w.val...)
+			}
+		}
+	}
+	return fmt.Sprintf("HAVING %s", strings.TrimPrefix(strings.TrimPrefix(builder.String(), "AND "), "OR ")), vals
+}
+
+func (l havingList) toSimpleClause() (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
+	}
+	var builder strings.Builder
+	vals := make([]interface{}, 0, 8)
+	for _, w := range l {
+		builder.WriteString(fmt.Sprintf("%s %s ", w.rel, w.expr.SimpleString()))
+		for i, val := range w.val {
+			switch v := val.(type) {
+			case []string:
+				for _, s := range v {
+					vals = append(vals, s)
+				}
+			case []int:
+				for _, i := range v {
+					vals = append(vals, i)
+				}
+			case []float32:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []float64:
+				for _, f := range v {
+					vals = append(vals, f)
+				}
+			case []time.Time:
+				switch w.expr.fields[i].(type) {
+				case *Date:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02"))
+					}
+				case *Datetime:
+					for _, t := range v {
+						vals = append(vals, t.Format("2006-01-02 15:04:05"))
+					}
+				default:
+					panic(errors.New("invalid field type for []time.Time where value"))
+				}
+			default:
+				vals = append(vals, w.val...)
+			}
+		}
+	}
+	return fmt.Sprintf("HAVING %s", strings.TrimPrefix(strings.TrimPrefix(builder.String(), "AND "), "OR ")), vals
 }

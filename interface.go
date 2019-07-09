@@ -86,6 +86,7 @@ type Model interface {
 	addModelStatus(modelStatus)
 	setModelStatus(modelStatus)
 	removeModelStatus(modelStatus)
+	checkStatus(modelStatus) bool
 	SelectDistinct()
 	setModel(Model)
 	rawFullTabName() string
@@ -95,8 +96,9 @@ type Model interface {
 	GetParent() Model
 	SetParent(Model)
 	getIndex() int
-	getWhere() *where
-	getHaving() *where
+	getWheres() whereList
+	getJoinWheres() whereList
+	getHavings() havingList
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)

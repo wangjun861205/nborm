@@ -27,7 +27,7 @@ var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 var relRe = regexp.MustCompile(`rel:"(.*?)"`)
-var dstFieldRelRe = regexp.MustCompile(`(\w+)(\(.+\))?`)
+var dstFieldRelRe = regexp.MustCompile(`(\w+)(\[.+\])?`)
 var masterRelFieldRe = regexp.MustCompile(`(\w+)(\[.+?\])?\.(\w+)`)
 var midWhereFieldRe = regexp.MustCompile(`@(\w+)`)
 
@@ -122,10 +122,7 @@ func (m *ModelInfo) initRelFunc() string {
 			m.{{ rel.Field }}.SetParent(m)
 			nborm.InitModel(m.{{ rel.Field }})
 			{{ if rel.HasAddedCond == true }}
-				{{ for _, aw in rel.AddedConds }}
-					m.{{ rel.Field }}.{{ aw.Field }}.AndWhere({{ aw.Op }}, {{ aw.Value }})
-				{{ endfor }}
-				m.{{ rel.Field }}.AndExprWhere(nborm.NewExpr("{{ rel.AddedCond.Expr }}", &{{ rel.Field }}.{{ rel.AddedCond.Fields }}))
+				m.{{ rel.Field }}.AndExprJoinWhere(nborm.NewExpr("{{ rel.AddedCond.Expr }}", {{ rel.AddedCond.Fields }}))
 			{{ endif }}
 		{{ endfor }}
 		{{ if model.HasMidModels == true }}
@@ -137,7 +134,7 @@ func (m *ModelInfo) initRelFunc() string {
 				mm{{ i }}.SetParent(m)
 				nborm.InitModel(mm{{ i }})
 				{{ if mm.HasMidWhere == true }}
-					mm{{ i }}.AndExprWhere(nborm.NewExpr("{{ mm.MidWhere.Expr }}", &mm{{ i }}.{{ mm.MidWhere.Fields }}))
+					mm{{ i }}.AndExprJoinWhere(nborm.NewExpr("{{ mm.MidWhere.Expr }}", {{ mm.MidWhere.Fields }}))
 				{{ endif }}
 				m.AppendMidTab(mm{{ i }})
 			{{ endfor }}
@@ -541,7 +538,7 @@ func parseRelation(dstModel, tag string) error {
 				lastRel.HasAddedCond = true
 				fields := make([]string, 0, len(condGroup))
 				for _, c := range condGroup {
-					fields = append(fields, c[1])
+					fields = append(fields, fmt.Sprintf("&m.%s.%s", lastRel.Field, c[1]))
 				}
 				fieldsStr := strings.Join(fields, ", ")
 				expr := midWhereFieldRe.ReplaceAllString(strings.Trim(addedConds, "[]"), "@")
@@ -560,7 +557,7 @@ func parseRelation(dstModel, tag string) error {
 				} else {
 					fields := make([]string, 0, len(midWhereGroup))
 					for _, w := range midWhereGroup {
-						fields = append(fields, w[1])
+						fields = append(fields, fmt.Sprintf("&%s.%s", fmt.Sprintf("mm%d", i/2), w[1]))
 					}
 					fieldsStr := strings.Join(fields, ", ")
 					whereExpr := midWhereFieldRe.ReplaceAllString(strings.Trim(midWhereStr, "[]"), "@")

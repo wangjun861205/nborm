@@ -80,6 +80,7 @@ var testList = []test{
 			j := model.NewEnterpriseJobList()
 			j.EnterpriseID.AndWhere("=", 1)
 			j.StudentResumes.IntelUserCode.AndWhere("=", "xxx")
+			j.StudentResumes.ForReverseQuery()
 			if err := nborm.Query(db, j); err != nil {
 				return err
 			}
@@ -93,7 +94,7 @@ var testList = []test{
 			j.StudentResumes.InitRel()
 			j.StudentResumes.StudentSkill.ForReverseQuery()
 			j.StudentResumes.StudentSkill.ID.AndWhere("=", 1)
-			if err := nborm.Query(db, j.StudentResumes); err != nil {
+			if err := nborm.Query(db, j); err != nil {
 				return err
 			}
 			return nil
@@ -116,7 +117,9 @@ var testList = []test{
 			a := model.NewEnterpriseAccountList()
 			a.Enterprise.InitRel()
 			a.Email.AndWhere("=", "parent_query")
+			a.Enterprise.ForReverseQuery()
 			a.Enterprise.UniformCode.AndWhere("=", "local_query")
+			a.Enterprise.Sector.ForReverseQuery()
 			a.Enterprise.Sector.Name.AndWhere("=", "children_query")
 			if err := nborm.Query(db, a); err != nil {
 				return err
@@ -189,7 +192,6 @@ var testList = []test{
 			for _, e := range qa.Enterprise.List {
 				fmt.Println(nbcolor.Yellow(e.Contact.String()))
 			}
-			fmt.Println(nbcolor.Cyan(qa.List[0].Enterprise.List[0].Sector))
 			b, err := json.Marshal(qa)
 			if err != nil {
 				return err

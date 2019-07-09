@@ -518,243 +518,121 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func genTabRef(model Model) string {
-	var builder strings.Builder
-	if model.GetParent() == nil {
-		builder.WriteString(model.fullTabName())
-		for _, relInfo := range model.Relations() {
-			subModel := relInfo.Object.(Model)
-			modelStatus := subModel.getModelStatus()
-			if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
-				builder.WriteString(relInfo.toAppendJoinClause())
+func getTabRef(model Model, refs *[]string) {
+	if parent := model.GetParent(); parent != nil {
+		for _, refInfo := range parent.Relations() {
+			m := refInfo.Object.(Model)
+			if m.getAlias() == model.getAlias() {
+				*refs = append(*refs, refInfo.toAppendJoinClause())
 			}
 		}
 	} else {
-		parent := model.GetParent()
-		switch {
-		case (parent.getModelStatus()&synced)|(parent.getModelStatus()&forModelRef) > 0:
-			for _, relInfo := range parent.Relations() {
-				if relInfo.Object.(Model) == model {
-					builder.WriteString(parent.fullTabName())
-					builder.WriteString(relInfo.toAppendJoinClause())
-					break
-				}
-			}
-			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
-				modelStatus := subModel.getModelStatus()
-				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
-					builder.WriteString(relInfo.toAppendJoinClause())
-				}
-			}
-		default:
-			builder.WriteString(model.fullTabName())
-			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
-				modelStatus := subModel.getModelStatus()
-				if modelStatus&forReverseQuery == forReverseQuery || modelStatus&forJoin == forJoin || modelStatus&forModelUpdate == forModelUpdate {
-					builder.WriteString(relInfo.toAppendJoinClause())
-				}
-			}
+		*refs = append(*refs, model.fullTabName())
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.checkStatus(containWhere | containSubWhere) {
+			getTabRef(subModel, refs)
 		}
 	}
-	return builder.String()
 }
 
-func getJoinClassModels(model Model, refs *[]string) {
-	if model.getModelStatus()&containSubJoin == containSubJoin {
-		for _, relInfo := range model.Relations() {
-			subModel := relInfo.Object.(Model)
-			if subModel.getModelStatus()&forJoin == forJoin {
-				*refs = append(*refs, relInfo.toAppendJoinClause())
-				getJoinClassModels(subModel, refs)
+func genTabRef(model Model) string {
+	refs := make([]string, 0, 8)
+	getTabRef(model, &refs)
+	return strings.Join(refs, " ")
+}
+
+func getJoinTabRef(model Model, refs *[]string) {
+	if parent := model.GetParent(); parent != nil {
+		for _, refInfo := range parent.Relations() {
+			m := refInfo.Object.(Model)
+			if m.getAlias() == model.getAlias() {
+				*refs = append(*refs, refInfo.toAppendJoinClause())
 			}
+		}
+	} else {
+		*refs = append(*refs, model.fullTabName())
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
+			getTabRef(subModel, refs)
 		}
 	}
 }
 
 func genJoinTabRef(model Model) string {
 	refs := make([]string, 0, 8)
-	refs = append(refs, model.fullTabName())
-	getJoinClassModels(model, &refs)
+	getJoinTabRef(model, &refs)
 	return strings.Join(refs, " ")
 }
 
-func genFullWhereClause(model Model) (string, []interface{}) {
-	var where *where
-	if model.GetParent() == nil {
-		where = where.append(model.getWhere())
+func getWheres(model Model, wheres *whereList) {
+	if model.checkStatus(containWhere) {
+		*wheres = append(*wheres, model.getWheres()...)
+	}
+	if model.checkStatus(containSubWhere) {
 		for _, relInfo := range model.Relations() {
-			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
-				where = where.append(relInfo.Object.(Model).getWhere())
-			}
-		}
-	} else {
-		parent := model.GetParent()
-		switch {
-		case parent.getModelStatus()&synced == synced:
-			for _, relInfo := range parent.Relations() {
-				if relInfo.Object.(Model) == model {
-					where = where.append(newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-					break
-				}
-			}
-		case parent.getModelStatus()&forModelWhere == forModelWhere:
-			for _, relInfo := range parent.Relations() {
-				if relInfo.Object.(Model) == model {
-					where = where.append(parent.getWhere())
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-					break
-				}
-			}
-		default:
-			where = where.append(model.getWhere())
-		}
-		for _, relInfo := range model.Relations() {
-			if relInfo.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
-				where = where.append(relInfo.Object.(Model).getWhere())
-			}
+			subModel := relInfo.Object.(Model)
+			getWheres(subModel, wheres)
 		}
 	}
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	where.toClause(&cl, &vl)
-	if len(cl) == 0 {
-		return "", nil
-	}
-	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
 }
 
 func genWhereClause(model Model) (string, []interface{}) {
-	var where *where
-	if model.GetParent() == nil {
-		where = where.append(model.getWhere())
-		for _, relInfo := range model.Relations() {
-			subModel := relInfo.Object.(Model)
-			if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
+	wheres := make(whereList, 0, 8)
+	if parent := model.GetParent(); parent != nil && parent.getModelStatus()&synced == synced {
+		for _, relInfo := range parent.Relations() {
+			if relInfo.Object.(Model) == model {
+				wheres = append(wheres, newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
 				for i, f := range relInfo.Fields[1:] {
 					if i%2 == 0 {
-						where = where.append(f.(Model).getWhere())
+						wheres = append(wheres, f.(Model).getWheres()...)
 					}
 				}
-			}
-		}
-	} else {
-		parent := model.GetParent()
-		switch {
-		case parent.getModelStatus()&synced == synced:
-			for _, relInfo := range parent.Relations() {
-				if relInfo.Object.(Model) == model {
-					where = where.append(newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-					break
-				}
-			}
-			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
-				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-				}
-			}
-		case parent.getModelStatus()&forModelWhere == forModelWhere:
-			for _, relInfo := range parent.Relations() {
-				if relInfo.Object.(Model) == model {
-					where = where.append(parent.getWhere())
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-					break
-				}
-			}
-			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
-				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-				}
-			}
-		default:
-			where = where.append(model.getWhere())
-			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
-				if subModel.getModelStatus()&forReverseQuery == forReverseQuery && subModel.getModelStatus()&forModelWhere == forModelWhere {
-					for i, f := range relInfo.Fields[1:] {
-						if i%2 == 0 {
-							where = where.append(f.(Model).getWhere())
-						}
-					}
-				}
+				break
 			}
 		}
 	}
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	where.toClause(&cl, &vl)
-	if len(cl) == 0 {
-		return "", nil
-	}
-	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
-}
-
-func genJoinWhereClause(model Model) (string, []interface{}) {
-	wheres := make([]*where, 0, 8)
-	getJoinWhere(model, &wheres)
+	getWheres(model, &wheres)
 	if len(wheres) == 0 {
 		return "", nil
 	}
-	where := wheres[0]
-	for _, w := range wheres[1:] {
-		where = where.append(w)
-	}
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	where.toClause(&cl, &vl)
-	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+	return wheres.toClause()
 }
 
-func getJoinWhere(model Model, wheres *[]*where) {
-	if model.getModelStatus()&forModelWhere == forModelWhere {
-		if w := model.getWhere(); w != nil {
-			*wheres = append(*wheres, w)
+func getJoinWheres(model Model, wheres *whereList) {
+	if model.checkStatus(forJoin | containSubJoin) {
+		if model.checkStatus(containJoinWhere) {
+			*wheres = append(*wheres, model.getJoinWheres()...)
 		}
 	}
-	if model.getModelStatus()&containSubWhere == containSubWhere {
+	if model.checkStatus(containWhere) {
+		*wheres = append(*wheres, model.getWheres()...)
+	}
+	if model.checkStatus(containSubWhere | containSubJoinWhere) {
 		for _, relInfo := range model.Relations() {
-			getJoinWhere(relInfo.Object.(Model), wheres)
+			getJoinWheres(relInfo.Object.(Model), wheres)
 		}
 	}
+}
+
+func genJoinWhereClause(model Model) (string, []interface{}) {
+	wheres := make(whereList, 0, 8)
+	getJoinWheres(model, &wheres)
+	if len(wheres) == 0 {
+		return "", nil
+	}
+	return wheres.toClause()
 }
 
 func genSimpleWhereClause(model Model) (string, []interface{}) {
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	model.getWhere().toSimpleClause(&cl, &vl)
-	if len(cl) == 0 {
+	wheres := model.getWheres()
+	if len(wheres) == 0 {
 		return "", nil
 	}
-	return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+	return wheres.toSimpleClause()
 }
 
 func genLimitClause(model Model) string {
@@ -894,27 +772,24 @@ func genGroupByClause(model Model) string {
 }
 
 func genHavingClause(model Model) (string, []interface{}) {
-	var having *where
+	havings := make(havingList, 0, 8)
 	parent := model.GetParent()
 	if parent != nil && parent.getModelStatus()&forModelHaving == forModelHaving {
-		having = having.append(parent.getHaving())
+		havings = append(havings, parent.getHavings()...)
 	}
 	if model.getModelStatus()&forModelHaving == forModelHaving {
-		having = having.append(model.getHaving())
+		havings = append(havings, model.getHavings()...)
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.Object.(Model)
 		if subModel.getModelStatus()&forModelHaving == forModelHaving {
-			having = having.append(subModel.getHaving())
+			havings = append(havings, subModel.getHavings()...)
 		}
 	}
-	cl := make([]string, 0, 8)
-	vl := make([]interface{}, 0, 8)
-	having.toClause(&cl, &vl)
-	if len(cl) == 0 {
+	if len(havings) == 0 {
 		return "", nil
 	}
-	return fmt.Sprintf("HAVING %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), "AND "), "OR ")), vl
+	return havings.toClause()
 }
 
 func genInsertClause(model Model) (string, []interface{}) {

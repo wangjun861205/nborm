@@ -1247,7 +1247,7 @@ func (m *EnterpriseJob) InitRel() {
 	mm0 = &MidStudentResumeEnterpriseJob{}
 	mm0.SetParent(m)
 	nborm.InitModel(mm0)
-	mm0.AndExprWhere(nborm.NewExpr("@=1", &mm0.ReviewStatus))
+	mm0.AndExprJoinWhere(nborm.NewExpr("@=1 OR @=2", &mm0.ReviewStatus, &mm0.ReviewStatus))
 	m.AppendMidTab(mm0)
 	m.AddRelInited()
 }

@@ -21,37 +21,41 @@ type FieldList []Field
 type modelStatus int
 
 const (
-	none            modelStatus = 0
-	synced          modelStatus = 1
-	distinct        modelStatus = 1 << 1
-	forModelAgg     modelStatus = 1 << 2
-	forModelWhere   modelStatus = 1 << 3
-	inited          modelStatus = 1 << 4
-	relInited       modelStatus = 1 << 5
-	forModelUpdate  modelStatus = 1 << 6
-	forModelOrder   modelStatus = 1 << 7
-	forModelRef     modelStatus = 1 << 8
-	forJoin         modelStatus = 1 << 9
-	containValue    modelStatus = 1 << 10
-	selectAll       modelStatus = 1 << 11
-	forModelHaving  modelStatus = 1 << 12
-	forReverseQuery modelStatus = 1 << 13
-	containSubJoin  modelStatus = 1 << 14
-	containSubWhere modelStatus = 1 << 15
+	none        modelStatus = 0
+	synced      modelStatus = 1
+	distinct    modelStatus = 1 << 1
+	forModelAgg modelStatus = 1 << 2
+	// forModelWhere       modelStatus = 1 << 3
+	inited              modelStatus = 1 << 4
+	relInited           modelStatus = 1 << 5
+	forModelUpdate      modelStatus = 1 << 6
+	forModelOrder       modelStatus = 1 << 7
+	forModelRef         modelStatus = 1 << 8
+	forJoin             modelStatus = 1 << 9
+	containValue        modelStatus = 1 << 10
+	selectAll           modelStatus = 1 << 11
+	forModelHaving      modelStatus = 1 << 12
+	forReverseQuery     modelStatus = 1 << 13
+	containSubJoin      modelStatus = 1 << 14
+	containSubWhere     modelStatus = 1 << 15
+	containJoinWhere    modelStatus = 1 << 16
+	containSubJoinWhere modelStatus = 1 << 17
+	containWhere        modelStatus = 1 << 18
 )
 
 type Meta struct {
 	Model
-	status  modelStatus
-	midTabs []Model
-	where   *where
-	alias   string
-	parent  Model
-	index   int
-	limit   [2]int
-	aggExps []*aggExp
-	having  *where
-	updates updateList
+	status     modelStatus
+	midTabs    []Model
+	wheres     whereList
+	alias      string
+	parent     Model
+	index      int
+	limit      [2]int
+	aggExps    []*aggExp
+	havings    havingList
+	updates    updateList
+	joinWheres whereList
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -91,17 +95,21 @@ func (m *Meta) setAlias() {
 	m.alias = fmt.Sprintf("t%d", m.getIndex())
 }
 
-func (m *Meta) getWhere() *where {
-	return m.where
+func (m *Meta) getWheres() whereList {
+	return m.wheres
 }
 
-func (m *Meta) getHaving() *where {
-	return m.having
+func (m *Meta) getJoinWheres() whereList {
+	return m.joinWheres
+}
+
+func (m *Meta) getHavings() havingList {
+	return m.havings
 }
 
 func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
-	m.where = m.where.append(newWhere(and, expr, val...))
-	m.addModelStatus(forModelWhere)
+	m.wheres = append(m.wheres, newWhere(and, expr, val...))
+	m.addModelStatus(containWhere)
 	m.addModelStatus(forModelRef)
 	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
 		parent.addModelStatus(containSubWhere)
@@ -110,8 +118,8 @@ func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
 }
 
 func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
-	m.where = m.where.append(newWhere(or, expr, val...))
-	m.addModelStatus(forModelWhere)
+	m.wheres = append(m.wheres, newWhere(or, expr, val...))
+	m.addModelStatus(containWhere)
 	m.addModelStatus(forModelRef)
 	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
 		parent.addModelStatus(containSubWhere)
@@ -119,14 +127,32 @@ func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
 	return m
 }
 
+func (m *Meta) AndExprJoinWhere(expr *Expr, val ...interface{}) Model {
+	m.joinWheres = append(m.joinWheres, newWhere(and, expr, val...))
+	m.addModelStatus(containJoinWhere)
+	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubJoinWhere)
+	}
+	return m
+}
+
+func (m *Meta) OrExprJoinWhere(expr *Expr, val ...interface{}) Model {
+	m.joinWheres = append(m.joinWheres, newWhere(or, expr, val...))
+	m.addModelStatus(containJoinWhere)
+	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubJoinWhere)
+	}
+	return m
+}
+
 func (m *Meta) AndHaving(expr *Expr, val ...interface{}) Model {
-	m.having = m.having.append(newWhere(and, expr, val...))
+	m.havings = append(m.havings, newWhere(and, expr, val...))
 	m.addModelStatus(forModelHaving)
 	return m
 }
 
 func (m *Meta) OrHaving(expr *Expr, val ...interface{}) Model {
-	m.having = m.having.append(newWhere(and, expr, val...))
+	m.havings = append(m.havings, newWhere(or, expr, val...))
 	m.addModelStatus(forModelHaving)
 	return m
 }
@@ -145,6 +171,10 @@ func (m *Meta) setModelStatus(status modelStatus) {
 
 func (m *Meta) removeModelStatus(status modelStatus) {
 	m.status &^= status
+}
+
+func (m *Meta) checkStatus(status modelStatus) bool {
+	return m.status&status > 0
 }
 
 func (m *Meta) SelectDistinct() {
@@ -509,15 +539,15 @@ func (f *String) String() string {
 
 func (f *String) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *String) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -531,8 +561,8 @@ func (f *String) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -546,8 +576,8 @@ func (f *String) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -656,15 +686,15 @@ func (f *Int) Int() int {
 
 func (f *Int) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Int) OrW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -678,8 +708,8 @@ func (f *Int) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -693,8 +723,8 @@ func (f *Int) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -826,15 +856,15 @@ func (f *Date) Date() time.Time {
 
 func (f *Date) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Date) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -852,8 +882,8 @@ func (f *Date) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -871,8 +901,8 @@ func (f *Date) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1005,16 +1035,16 @@ func (f *Datetime) Datetime() time.Time {
 func (f *Datetime) AndW() Field {
 	f.mustValid()
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Datetime) OrW() Field {
 	f.mustValid()
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1032,8 +1062,8 @@ func (f *Datetime) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1051,8 +1081,8 @@ func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1159,15 +1189,15 @@ func (f *Decimal) Decimal() float64 {
 
 func (f *Decimal) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Decimal) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1181,8 +1211,8 @@ func (f *Decimal) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1196,8 +1226,8 @@ func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	f.addModelStatus(forModelWhere)
-	f.addModelStatus(forModelRef)
+	// f.addModelStatus(forModelWhere)
+	// f.addModelStatus(forModelRef)
 	return f
 }
 

@@ -569,6 +569,9 @@ func genJoinTabRef(model Model) string {
 }
 
 func getWheres(model Model, wheres *whereList) {
+	if parent := model.GetParent(); parent != nil {
+		*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
+	}
 	if model.checkStatus(containWhere) {
 		*wheres = append(*wheres, model.getWheres()...)
 	}
@@ -603,6 +606,9 @@ func genWhereClause(model Model) (string, []interface{}) {
 }
 
 func getJoinWheres(model Model, wheres *whereList) {
+	if parent := model.GetParent(); parent != nil {
+		*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
+	}
 	if model.checkStatus(forJoin | containSubJoin) {
 		if model.checkStatus(containJoinWhere) {
 			*wheres = append(*wheres, model.getJoinWheres()...)
@@ -833,4 +839,14 @@ OUTER:
 		}
 	}
 	return
+}
+
+func searchRelation(parent Model, child Model) RelationInfo {
+	for _, relInfo := range parent.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.getAlias() == child.getAlias() {
+			return relInfo
+		}
+	}
+	panic(fmt.Errorf("cannot find relation (parent: %s, child: %s)", parent.fullTabName(), child.fullTabName()))
 }

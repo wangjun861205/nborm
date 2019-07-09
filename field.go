@@ -539,15 +539,11 @@ func (f *String) String() string {
 
 func (f *String) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *String) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -561,8 +557,6 @@ func (f *String) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -576,8 +570,6 @@ func (f *String) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -604,7 +596,6 @@ func (f *String) dup() Field {
 
 type Int struct {
 	baseField
-	// clauseField
 	value int
 }
 
@@ -686,15 +677,11 @@ func (f *Int) Int() int {
 
 func (f *Int) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Int) OrW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -708,8 +695,6 @@ func (f *Int) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -723,8 +708,6 @@ func (f *Int) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -751,7 +734,6 @@ func (f *Int) dup() Field {
 
 type Date struct {
 	baseField
-	// clauseField
 	value time.Time
 }
 
@@ -856,15 +838,11 @@ func (f *Date) Date() time.Time {
 
 func (f *Date) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Date) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -882,8 +860,6 @@ func (f *Date) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -901,8 +877,6 @@ func (f *Date) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -929,7 +903,6 @@ func (f *Date) dup() Field {
 
 type Datetime struct {
 	baseField
-	// clauseField
 	value time.Time
 }
 
@@ -1035,16 +1008,12 @@ func (f *Datetime) Datetime() time.Time {
 func (f *Datetime) AndW() Field {
 	f.mustValid()
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Datetime) OrW() Field {
 	f.mustValid()
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1062,8 +1031,6 @@ func (f *Datetime) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1081,8 +1048,6 @@ func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1109,7 +1074,6 @@ func (f *Datetime) dup() Field {
 
 type Decimal struct {
 	baseField
-	// clauseField
 	value   float64
 	exprVal *Expr
 }
@@ -1189,15 +1153,11 @@ func (f *Decimal) Decimal() float64 {
 
 func (f *Decimal) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
 func (f *Decimal) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1211,8 +1171,6 @@ func (f *Decimal) AndWhere(op string, value interface{}) Field {
 	default:
 		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 
@@ -1226,8 +1184,6 @@ func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	default:
 		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
 	}
-	// f.addModelStatus(forModelWhere)
-	// f.addModelStatus(forModelRef)
 	return f
 }
 

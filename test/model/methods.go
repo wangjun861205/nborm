@@ -1,8 +1,6 @@
 package model
 
 import (
-	"encoding/json"
-
 	"github.com/wangjun861205/nborm"
 )
 
@@ -60,27 +58,17 @@ func (m *EnterpriseAccount) Relations() nborm.RelationInfoList {
 				&m.Enterprise.AccountID,
 			},
 			m.Enterprise,
+			"Enterprise",
 		},
 	}
 }
 
 func (m EnterpriseAccount) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID         interface{}
-			Phone      interface{}
-			Email      interface{}
-			Password   interface{}
-			Enterprise *EnterpriseList
-		}{
-			ID:         m.ID.JSONValue(),
-			Phone:      m.Phone.JSONValue(),
-			Email:      m.Email.JSONValue(),
-			Password:   m.Password.JSONValue(),
-			Enterprise: m.Enterprise,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseAccount) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseAccountList struct {
@@ -113,38 +101,28 @@ func (l *EnterpriseAccountList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseAccountList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseAccountList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseAccountList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseAccountList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseAccount
-		Total int
-	}{
-		make([]*EnterpriseAccount, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseAccountList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseAccount
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseAccountList) Collapse() {
@@ -216,24 +194,11 @@ func (m *EnterpriseReviewStatus) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseReviewStatus) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID           interface{}
-			EnterpriseID interface{}
-			ReviewStatus interface{}
-			Operator     interface{}
-			CreateTime   interface{}
-			UpdateTime   interface{}
-		}{
-			ID:           m.ID.JSONValue(),
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			ReviewStatus: m.ReviewStatus.JSONValue(),
-			Operator:     m.Operator.JSONValue(),
-			CreateTime:   m.CreateTime.JSONValue(),
-			UpdateTime:   m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseReviewStatus) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseReviewStatusList struct {
@@ -266,38 +231,28 @@ func (l *EnterpriseReviewStatusList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseReviewStatusList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseReviewStatusList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseReviewStatusList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseReviewStatusList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseReviewStatus
-		Total int
-	}{
-		make([]*EnterpriseReviewStatus, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseReviewStatusList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseReviewStatus
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseReviewStatusList) Collapse() {
@@ -359,20 +314,11 @@ func (m *EnterpriseStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID           interface{}
-			EnterpriseID interface{}
-			SubmitCount  interface{}
-			CreateDate   interface{}
-		}{
-			ID:           m.ID.JSONValue(),
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			SubmitCount:  m.SubmitCount.JSONValue(),
-			CreateDate:   m.CreateDate.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseStatistic) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseStatisticList struct {
@@ -405,38 +351,28 @@ func (l *EnterpriseStatisticList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseStatisticList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseStatisticList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseStatisticList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseStatisticList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseStatistic
-		Total int
-	}{
-		make([]*EnterpriseStatistic, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseStatisticList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseStatistic
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseStatisticList) Collapse() {
@@ -522,6 +458,7 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 				&m.Account.ID,
 			},
 			m.Account,
+			"Account",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -529,53 +466,17 @@ func (m *Enterprise) Relations() nborm.RelationInfoList {
 				&m.Sector.ID,
 			},
 			m.Sector,
+			"Sector",
 		},
 	}
 }
 
 func (m Enterprise) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID               interface{}
-			AccountID        interface{}
-			UniformCode      interface{}
-			Name             interface{}
-			RegisterCityID   interface{}
-			RegisterAddress  interface{}
-			SectorID         interface{}
-			NatureID         interface{}
-			ScopeID          interface{}
-			Website          interface{}
-			Contact          interface{}
-			EmployeeFromThis interface{}
-			Introduction     interface{}
-			ZipCode          interface{}
-			CreateTime       interface{}
-			UpdateTime       interface{}
-			Account          *EnterpriseAccount
-			Sector           *JobFlag
-		}{
-			ID:               m.ID.JSONValue(),
-			AccountID:        m.AccountID.JSONValue(),
-			UniformCode:      m.UniformCode.JSONValue(),
-			Name:             m.Name.JSONValue(),
-			RegisterCityID:   m.RegisterCityID.JSONValue(),
-			RegisterAddress:  m.RegisterAddress.JSONValue(),
-			SectorID:         m.SectorID.JSONValue(),
-			NatureID:         m.NatureID.JSONValue(),
-			ScopeID:          m.ScopeID.JSONValue(),
-			Website:          m.Website.JSONValue(),
-			Contact:          m.Contact.JSONValue(),
-			EmployeeFromThis: m.EmployeeFromThis.JSONValue(),
-			Introduction:     m.Introduction.JSONValue(),
-			ZipCode:          m.ZipCode.JSONValue(),
-			CreateTime:       m.CreateTime.JSONValue(),
-			UpdateTime:       m.UpdateTime.JSONValue(),
-			Account:          m.Account,
-			Sector:           m.Sector,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *Enterprise) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseList struct {
@@ -608,38 +509,28 @@ func (l *EnterpriseList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*Enterprise
-		Total int
-	}{
-		make([]*Enterprise, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*Enterprise
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseList) Collapse() {
@@ -713,26 +604,11 @@ func (m *EnterpriseAttachment) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseAttachment) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID           interface{}
-			EnterpriseID interface{}
-			Type         interface{}
-			URL          interface{}
-			Status       interface{}
-			CreateTime   interface{}
-			UpdateTime   interface{}
-		}{
-			ID:           m.ID.JSONValue(),
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			Type:         m.Type.JSONValue(),
-			URL:          m.URL.JSONValue(),
-			Status:       m.Status.JSONValue(),
-			CreateTime:   m.CreateTime.JSONValue(),
-			UpdateTime:   m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseAttachment) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseAttachmentList struct {
@@ -765,38 +641,28 @@ func (l *EnterpriseAttachmentList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseAttachmentList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseAttachmentList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseAttachmentList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseAttachmentList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseAttachment
-		Total int
-	}{
-		make([]*EnterpriseAttachment, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseAttachmentList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseAttachment
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseAttachmentList) Collapse() {
@@ -857,16 +723,11 @@ func (m *MidEnterpriseTag) Relations() nborm.RelationInfoList {
 }
 
 func (m MidEnterpriseTag) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			EnterpriseID interface{}
-			TagID        interface{}
-		}{
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			TagID:        m.TagID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidEnterpriseTag) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidEnterpriseTagList struct {
@@ -899,38 +760,28 @@ func (l *MidEnterpriseTagList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidEnterpriseTagList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidEnterpriseTagList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidEnterpriseTagList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidEnterpriseTagList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidEnterpriseTag
-		Total int
-	}{
-		make([]*MidEnterpriseTag, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidEnterpriseTagList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidEnterpriseTag
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidEnterpriseTagList) Collapse() {
@@ -992,20 +843,11 @@ func (m *EnterpriseJobStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseJobStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID          interface{}
-			JobID       interface{}
-			SubmitCount interface{}
-			CreateDate  interface{}
-		}{
-			ID:          m.ID.JSONValue(),
-			JobID:       m.JobID.JSONValue(),
-			SubmitCount: m.SubmitCount.JSONValue(),
-			CreateDate:  m.CreateDate.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseJobStatistic) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseJobStatisticList struct {
@@ -1038,38 +880,28 @@ func (l *EnterpriseJobStatisticList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseJobStatisticList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseJobStatisticList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseJobStatisticList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseJobStatisticList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseJobStatistic
-		Total int
-	}{
-		make([]*EnterpriseJobStatistic, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseJobStatisticList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseJobStatistic
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseJobStatisticList) Collapse() {
@@ -1133,22 +965,11 @@ func (m *MidStudentResumeEnterpriseJob) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeEnterpriseJob) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID     interface{}
-			JobID        interface{}
-			ReviewStatus interface{}
-			CreateTime   interface{}
-			UpdateTime   interface{}
-		}{
-			ResumeID:     m.ResumeID.JSONValue(),
-			JobID:        m.JobID.JSONValue(),
-			ReviewStatus: m.ReviewStatus.JSONValue(),
-			CreateTime:   m.CreateTime.JSONValue(),
-			UpdateTime:   m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeEnterpriseJob) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeEnterpriseJobList struct {
@@ -1181,38 +1002,28 @@ func (l *MidStudentResumeEnterpriseJobList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeEnterpriseJobList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeEnterpriseJobList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeEnterpriseJobList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeEnterpriseJobList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeEnterpriseJob
-		Total int
-	}{
-		make([]*MidStudentResumeEnterpriseJob, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeEnterpriseJobList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeEnterpriseJob
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeEnterpriseJobList) Collapse() {
@@ -1308,6 +1119,7 @@ func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
 				&m.Enterprise.ID,
 			},
 			m.Enterprise,
+			"Enterprise",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -1317,59 +1129,17 @@ func (m *EnterpriseJob) Relations() nborm.RelationInfoList {
 				&m.StudentResumes.ID,
 			},
 			m.StudentResumes,
+			"StudentResumes",
 		},
 	}
 }
 
 func (m EnterpriseJob) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID              interface{}
-			EnterpriseID    interface{}
-			Name            interface{}
-			CityID          interface{}
-			Address         interface{}
-			TypeID          interface{}
-			Gender          interface{}
-			MajorCode       interface{}
-			DegreeID        interface{}
-			LanguageSkillID interface{}
-			Description     interface{}
-			SalaryRangeID   interface{}
-			Welfare         interface{}
-			Vacancies       interface{}
-			ExpiredAt       interface{}
-			Status          interface{}
-			Comment         interface{}
-			CreateTime      interface{}
-			UpdateTime      interface{}
-			Enterprise      *EnterpriseList
-			StudentResumes  *StudentResumeList
-		}{
-			ID:              m.ID.JSONValue(),
-			EnterpriseID:    m.EnterpriseID.JSONValue(),
-			Name:            m.Name.JSONValue(),
-			CityID:          m.CityID.JSONValue(),
-			Address:         m.Address.JSONValue(),
-			TypeID:          m.TypeID.JSONValue(),
-			Gender:          m.Gender.JSONValue(),
-			MajorCode:       m.MajorCode.JSONValue(),
-			DegreeID:        m.DegreeID.JSONValue(),
-			LanguageSkillID: m.LanguageSkillID.JSONValue(),
-			Description:     m.Description.JSONValue(),
-			SalaryRangeID:   m.SalaryRangeID.JSONValue(),
-			Welfare:         m.Welfare.JSONValue(),
-			Vacancies:       m.Vacancies.JSONValue(),
-			ExpiredAt:       m.ExpiredAt.JSONValue(),
-			Status:          m.Status.JSONValue(),
-			Comment:         m.Comment.JSONValue(),
-			CreateTime:      m.CreateTime.JSONValue(),
-			UpdateTime:      m.UpdateTime.JSONValue(),
-			Enterprise:      m.Enterprise,
-			StudentResumes:  m.StudentResumes,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseJob) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseJobList struct {
@@ -1402,38 +1172,28 @@ func (l *EnterpriseJobList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseJobList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseJobList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseJobList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseJobList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseJob
-		Total int
-	}{
-		make([]*EnterpriseJob, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseJobList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseJob
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseJobList) Collapse() {
@@ -1505,20 +1265,11 @@ func (m *MidStudentJobFairRead) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairRead) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			IntelUserCode interface{}
-			JobFairID     interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-		}{
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			JobFairID:     m.JobFairID.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentJobFairRead) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentJobFairReadList struct {
@@ -1551,38 +1302,28 @@ func (l *MidStudentJobFairReadList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentJobFairReadList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentJobFairReadList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentJobFairReadList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentJobFairReadList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentJobFairRead
-		Total int
-	}{
-		make([]*MidStudentJobFairRead, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentJobFairReadList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentJobFairRead
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentJobFairReadList) Collapse() {
@@ -1645,20 +1386,11 @@ func (m *MidStudentJobFairEnroll) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairEnroll) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			IntelUserCode interface{}
-			JobFairID     interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-		}{
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			JobFairID:     m.JobFairID.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentJobFairEnroll) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentJobFairEnrollList struct {
@@ -1691,38 +1423,28 @@ func (l *MidStudentJobFairEnrollList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentJobFairEnrollList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentJobFairEnrollList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentJobFairEnrollList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentJobFairEnrollList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentJobFairEnroll
-		Total int
-	}{
-		make([]*MidStudentJobFairEnroll, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentJobFairEnrollList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentJobFairEnroll
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentJobFairEnrollList) Collapse() {
@@ -1785,20 +1507,11 @@ func (m *MidStudentJobFairShare) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentJobFairShare) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			IntelUserCode interface{}
-			JobFairID     interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-		}{
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			JobFairID:     m.JobFairID.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentJobFairShare) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentJobFairShareList struct {
@@ -1831,38 +1544,28 @@ func (l *MidStudentJobFairShareList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentJobFairShareList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentJobFairShareList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentJobFairShareList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentJobFairShareList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentJobFairShare
-		Total int
-	}{
-		make([]*MidStudentJobFairShare, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentJobFairShareList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentJobFairShare
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentJobFairShareList) Collapse() {
@@ -1926,24 +1629,11 @@ func (m *JobFairStatistic) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFairStatistic) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID          interface{}
-			JobFairID   interface{}
-			ReadCount   interface{}
-			EnrollCount interface{}
-			ShareCount  interface{}
-			CreateDate  interface{}
-		}{
-			ID:          m.ID.JSONValue(),
-			JobFairID:   m.JobFairID.JSONValue(),
-			ReadCount:   m.ReadCount.JSONValue(),
-			EnrollCount: m.EnrollCount.JSONValue(),
-			ShareCount:  m.ShareCount.JSONValue(),
-			CreateDate:  m.CreateDate.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *JobFairStatistic) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type JobFairStatisticList struct {
@@ -1976,38 +1666,28 @@ func (l *JobFairStatisticList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *JobFairStatisticList) GetTotal() int {
+	return l.Total
+}
+
 func (l *JobFairStatisticList) Len() int {
 	return len(l.List)
 }
 
+func (l *JobFairStatisticList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l JobFairStatisticList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*JobFairStatistic
-		Total int
-	}{
-		make([]*JobFairStatistic, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *JobFairStatisticList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*JobFairStatistic
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *JobFairStatisticList) Collapse() {
@@ -2074,30 +1754,11 @@ func (m *JobFair) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFair) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID          interface{}
-			Name        interface{}
-			StartTime   interface{}
-			EndTime     interface{}
-			Description interface{}
-			Status      interface{}
-			Comment     interface{}
-			CreateTime  interface{}
-			UpdateTime  interface{}
-		}{
-			ID:          m.ID.JSONValue(),
-			Name:        m.Name.JSONValue(),
-			StartTime:   m.StartTime.JSONValue(),
-			EndTime:     m.EndTime.JSONValue(),
-			Description: m.Description.JSONValue(),
-			Status:      m.Status.JSONValue(),
-			Comment:     m.Comment.JSONValue(),
-			CreateTime:  m.CreateTime.JSONValue(),
-			UpdateTime:  m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *JobFair) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type JobFairList struct {
@@ -2130,38 +1791,28 @@ func (l *JobFairList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *JobFairList) GetTotal() int {
+	return l.Total
+}
+
 func (l *JobFairList) Len() int {
 	return len(l.List)
 }
 
+func (l *JobFairList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l JobFairList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*JobFair
-		Total int
-	}{
-		make([]*JobFair, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *JobFairList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*JobFair
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *JobFairList) Collapse() {
@@ -2230,34 +1881,11 @@ func (m *JobFlag) Relations() nborm.RelationInfoList {
 }
 
 func (m JobFlag) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID         interface{}
-			Name       interface{}
-			Type       interface{}
-			Value      interface{}
-			Order      interface{}
-			ParentID   interface{}
-			Status     interface{}
-			Operator   interface{}
-			Comment    interface{}
-			CreateTime interface{}
-			UpdateTime interface{}
-		}{
-			ID:         m.ID.JSONValue(),
-			Name:       m.Name.JSONValue(),
-			Type:       m.Type.JSONValue(),
-			Value:      m.Value.JSONValue(),
-			Order:      m.Order.JSONValue(),
-			ParentID:   m.ParentID.JSONValue(),
-			Status:     m.Status.JSONValue(),
-			Operator:   m.Operator.JSONValue(),
-			Comment:    m.Comment.JSONValue(),
-			CreateTime: m.CreateTime.JSONValue(),
-			UpdateTime: m.UpdateTime.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *JobFlag) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type JobFlagList struct {
@@ -2290,38 +1918,28 @@ func (l *JobFlagList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *JobFlagList) GetTotal() int {
+	return l.Total
+}
+
 func (l *JobFlagList) Len() int {
 	return len(l.List)
 }
 
+func (l *JobFlagList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l JobFlagList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*JobFlag
-		Total int
-	}{
-		make([]*JobFlag, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *JobFlagList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*JobFlag
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *JobFlagList) Collapse() {
@@ -2382,16 +2000,11 @@ func (m *MidStudentResumeLanguageSkill) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeLanguageSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID        interface{}
-			LanguageSkillID interface{}
-		}{
-			ResumeID:        m.ResumeID.JSONValue(),
-			LanguageSkillID: m.LanguageSkillID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeLanguageSkill) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeLanguageSkillList struct {
@@ -2424,38 +2037,28 @@ func (l *MidStudentResumeLanguageSkillList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeLanguageSkillList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeLanguageSkillList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeLanguageSkillList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeLanguageSkillList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeLanguageSkill
-		Total int
-	}{
-		make([]*MidStudentResumeLanguageSkill, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeLanguageSkillList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeLanguageSkill
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeLanguageSkillList) Collapse() {
@@ -2516,16 +2119,11 @@ func (m *MidStudentResumeStudentTrain) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentTrain) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID interface{}
-			TrainID  interface{}
-		}{
-			ResumeID: m.ResumeID.JSONValue(),
-			TrainID:  m.TrainID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeStudentTrain) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeStudentTrainList struct {
@@ -2558,38 +2156,28 @@ func (l *MidStudentResumeStudentTrainList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeStudentTrainList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeStudentTrainList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeStudentTrainList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeStudentTrainList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeStudentTrain
-		Total int
-	}{
-		make([]*MidStudentResumeStudentTrain, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeStudentTrainList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeStudentTrain
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeStudentTrainList) Collapse() {
@@ -2650,16 +2238,11 @@ func (m *MidStudentResumeStudentHonor) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentHonor) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID interface{}
-			HonorID  interface{}
-		}{
-			ResumeID: m.ResumeID.JSONValue(),
-			HonorID:  m.HonorID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeStudentHonor) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeStudentHonorList struct {
@@ -2692,38 +2275,28 @@ func (l *MidStudentResumeStudentHonorList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeStudentHonorList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeStudentHonorList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeStudentHonorList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeStudentHonorList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeStudentHonor
-		Total int
-	}{
-		make([]*MidStudentResumeStudentHonor, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeStudentHonorList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeStudentHonor
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeStudentHonorList) Collapse() {
@@ -2784,16 +2357,11 @@ func (m *MidStudentResumeStudentExperience) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentExperience) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID     interface{}
-			ExperienceID interface{}
-		}{
-			ResumeID:     m.ResumeID.JSONValue(),
-			ExperienceID: m.ExperienceID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeStudentExperience) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeStudentExperienceList struct {
@@ -2826,38 +2394,28 @@ func (l *MidStudentResumeStudentExperienceList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeStudentExperienceList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeStudentExperienceList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeStudentExperienceList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeStudentExperienceList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeStudentExperience
-		Total int
-	}{
-		make([]*MidStudentResumeStudentExperience, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeStudentExperienceList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeStudentExperience
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeStudentExperienceList) Collapse() {
@@ -2918,16 +2476,11 @@ func (m *MidStudentResumeStudentSkill) Relations() nborm.RelationInfoList {
 }
 
 func (m MidStudentResumeStudentSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ResumeID interface{}
-			SkillID  interface{}
-		}{
-			ResumeID: m.ResumeID.JSONValue(),
-			SkillID:  m.SkillID.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *MidStudentResumeStudentSkill) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type MidStudentResumeStudentSkillList struct {
@@ -2960,38 +2513,28 @@ func (l *MidStudentResumeStudentSkillList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *MidStudentResumeStudentSkillList) GetTotal() int {
+	return l.Total
+}
+
 func (l *MidStudentResumeStudentSkillList) Len() int {
 	return len(l.List)
 }
 
+func (l *MidStudentResumeStudentSkillList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l MidStudentResumeStudentSkillList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*MidStudentResumeStudentSkill
-		Total int
-	}{
-		make([]*MidStudentResumeStudentSkill, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *MidStudentResumeStudentSkillList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*MidStudentResumeStudentSkill
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *MidStudentResumeStudentSkillList) Collapse() {
@@ -3077,41 +2620,17 @@ func (m *StudentTrain) Relations() nborm.RelationInfoList {
 				&m.StudentResume.ID,
 			},
 			m.StudentResume,
+			"StudentResume",
 		},
 	}
 }
 
 func (m StudentTrain) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID              interface{}
-			IntelUserCode   interface{}
-			InstitutionName interface{}
-			StartDate       interface{}
-			EndDate         interface{}
-			Degree          interface{}
-			Major           interface{}
-			Description     interface{}
-			Status          interface{}
-			CreateTime      interface{}
-			UpdateTime      interface{}
-			StudentResume   *StudentResume
-		}{
-			ID:              m.ID.JSONValue(),
-			IntelUserCode:   m.IntelUserCode.JSONValue(),
-			InstitutionName: m.InstitutionName.JSONValue(),
-			StartDate:       m.StartDate.JSONValue(),
-			EndDate:         m.EndDate.JSONValue(),
-			Degree:          m.Degree.JSONValue(),
-			Major:           m.Major.JSONValue(),
-			Description:     m.Description.JSONValue(),
-			Status:          m.Status.JSONValue(),
-			CreateTime:      m.CreateTime.JSONValue(),
-			UpdateTime:      m.UpdateTime.JSONValue(),
-			StudentResume:   m.StudentResume,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentTrain) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentTrainList struct {
@@ -3144,38 +2663,28 @@ func (l *StudentTrainList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentTrainList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentTrainList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentTrainList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentTrainList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentTrain
-		Total int
-	}{
-		make([]*StudentTrain, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentTrainList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentTrain
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentTrainList) Collapse() {
@@ -3266,35 +2775,17 @@ func (m *StudentHonor) Relations() nborm.RelationInfoList {
 				&m.StudentResume.ID,
 			},
 			m.StudentResume,
+			"StudentResume",
 		},
 	}
 }
 
 func (m StudentHonor) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID            interface{}
-			IntelUserCode interface{}
-			Name          interface{}
-			Description   interface{}
-			GrantDate     interface{}
-			Status        interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-			StudentResume *StudentResume
-		}{
-			ID:            m.ID.JSONValue(),
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			Name:          m.Name.JSONValue(),
-			Description:   m.Description.JSONValue(),
-			GrantDate:     m.GrantDate.JSONValue(),
-			Status:        m.Status.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-			StudentResume: m.StudentResume,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentHonor) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentHonorList struct {
@@ -3327,38 +2818,28 @@ func (l *StudentHonorList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentHonorList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentHonorList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentHonorList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentHonorList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentHonor
-		Total int
-	}{
-		make([]*StudentHonor, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentHonorList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentHonor
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentHonorList) Collapse() {
@@ -3452,41 +2933,17 @@ func (m *StudentExperience) Relations() nborm.RelationInfoList {
 				&m.StudentResume.ID,
 			},
 			m.StudentResume,
+			"StudentResume",
 		},
 	}
 }
 
 func (m StudentExperience) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID            interface{}
-			IntelUserCode interface{}
-			CompanyName   interface{}
-			StartDate     interface{}
-			EndDate       interface{}
-			SectorID      interface{}
-			Position      interface{}
-			Description   interface{}
-			Status        interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-			StudentResume *StudentResume
-		}{
-			ID:            m.ID.JSONValue(),
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			CompanyName:   m.CompanyName.JSONValue(),
-			StartDate:     m.StartDate.JSONValue(),
-			EndDate:       m.EndDate.JSONValue(),
-			SectorID:      m.SectorID.JSONValue(),
-			Position:      m.Position.JSONValue(),
-			Description:   m.Description.JSONValue(),
-			Status:        m.Status.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-			StudentResume: m.StudentResume,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentExperience) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentExperienceList struct {
@@ -3519,38 +2976,28 @@ func (l *StudentExperienceList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentExperienceList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentExperienceList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentExperienceList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentExperienceList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentExperience
-		Total int
-	}{
-		make([]*StudentExperience, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentExperienceList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentExperience
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentExperienceList) Collapse() {
@@ -3640,33 +3087,17 @@ func (m *StudentSkill) Relations() nborm.RelationInfoList {
 				&m.StudentResume.ID,
 			},
 			m.StudentResume,
+			"StudentResume",
 		},
 	}
 }
 
 func (m StudentSkill) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID            interface{}
-			IntelUserCode interface{}
-			Name          interface{}
-			Description   interface{}
-			Status        interface{}
-			CreateTime    interface{}
-			UpdateTime    interface{}
-			StudentResume *StudentResume
-		}{
-			ID:            m.ID.JSONValue(),
-			IntelUserCode: m.IntelUserCode.JSONValue(),
-			Name:          m.Name.JSONValue(),
-			Description:   m.Description.JSONValue(),
-			Status:        m.Status.JSONValue(),
-			CreateTime:    m.CreateTime.JSONValue(),
-			UpdateTime:    m.UpdateTime.JSONValue(),
-			StudentResume: m.StudentResume,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentSkill) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentSkillList struct {
@@ -3699,38 +3130,28 @@ func (l *StudentSkillList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentSkillList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentSkillList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentSkillList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentSkillList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentSkill
-		Total int
-	}{
-		make([]*StudentSkill, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentSkillList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentSkill
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentSkillList) Collapse() {
@@ -3848,6 +3269,7 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 				&m.StudentTrain.ID,
 			},
 			m.StudentTrain,
+			"StudentTrain",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -3857,6 +3279,7 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 				&m.StudentHonor.ID,
 			},
 			m.StudentHonor,
+			"StudentHonor",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -3866,6 +3289,7 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 				&m.StudentExperience.ID,
 			},
 			m.StudentExperience,
+			"StudentExperience",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -3875,6 +3299,7 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 				&m.StudentSkill.ID,
 			},
 			m.StudentSkill,
+			"StudentSkill",
 		},
 		nborm.RelationInfo{
 			nborm.FieldList{
@@ -3882,37 +3307,17 @@ func (m *StudentResume) Relations() nborm.RelationInfoList {
 				&m.StudentLanguageType.ID,
 			},
 			m.StudentLanguageType,
+			"StudentLanguageType",
 		},
 	}
 }
 
 func (m StudentResume) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID                  interface{}
-			IntelUserCode       interface{}
-			Introduction        interface{}
-			CreateTime          interface{}
-			UpdateTime          interface{}
-			StudentTrain        *StudentTrainList
-			StudentHonor        *StudentHonorList
-			StudentExperience   *StudentExperienceList
-			StudentSkill        *StudentSkillList
-			StudentLanguageType *JobFlagList
-		}{
-			ID:                  m.ID.JSONValue(),
-			IntelUserCode:       m.IntelUserCode.JSONValue(),
-			Introduction:        m.Introduction.JSONValue(),
-			CreateTime:          m.CreateTime.JSONValue(),
-			UpdateTime:          m.UpdateTime.JSONValue(),
-			StudentTrain:        m.StudentTrain,
-			StudentHonor:        m.StudentHonor,
-			StudentExperience:   m.StudentExperience,
-			StudentSkill:        m.StudentSkill,
-			StudentLanguageType: m.StudentLanguageType,
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentResume) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentResumeList struct {
@@ -3945,38 +3350,28 @@ func (l *StudentResumeList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentResumeList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentResumeList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentResumeList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentResumeList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentResume
-		Total int
-	}{
-		make([]*StudentResume, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentResumeList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentResume
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentResumeList) Collapse() {
@@ -4049,18 +3444,11 @@ func (m *EnterpriseSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID           interface{}
-			EnterpriseID interface{}
-			Info         interface{}
-		}{
-			ID:           m.ID.JSONValue(),
-			EnterpriseID: m.EnterpriseID.JSONValue(),
-			Info:         m.Info.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseSnapshot) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseSnapshotList struct {
@@ -4093,38 +3481,28 @@ func (l *EnterpriseSnapshotList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseSnapshotList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseSnapshotList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseSnapshotList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseSnapshotList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseSnapshot
-		Total int
-	}{
-		make([]*EnterpriseSnapshot, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseSnapshotList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseSnapshot
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseSnapshotList) Collapse() {
@@ -4185,18 +3563,11 @@ func (m *EnterpriseJobSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m EnterpriseJobSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID    interface{}
-			JobID interface{}
-			Into  interface{}
-		}{
-			ID:    m.ID.JSONValue(),
-			JobID: m.JobID.JSONValue(),
-			Into:  m.Into.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *EnterpriseJobSnapshot) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type EnterpriseJobSnapshotList struct {
@@ -4229,38 +3600,28 @@ func (l *EnterpriseJobSnapshotList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *EnterpriseJobSnapshotList) GetTotal() int {
+	return l.Total
+}
+
 func (l *EnterpriseJobSnapshotList) Len() int {
 	return len(l.List)
 }
 
+func (l *EnterpriseJobSnapshotList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l EnterpriseJobSnapshotList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*EnterpriseJobSnapshot
-		Total int
-	}{
-		make([]*EnterpriseJobSnapshot, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *EnterpriseJobSnapshotList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*EnterpriseJobSnapshot
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *EnterpriseJobSnapshotList) Collapse() {
@@ -4321,18 +3682,11 @@ func (m *StudentResumeSnapshot) Relations() nborm.RelationInfoList {
 }
 
 func (m StudentResumeSnapshot) MarshalJSON() ([]byte, error) {
-	if m.IsSynced() || m.IsContainValue() {
-		return json.Marshal(struct {
-			ID       interface{}
-			ResumeID interface{}
-			Info     interface{}
-		}{
-			ID:       m.ID.JSONValue(),
-			ResumeID: m.ResumeID.JSONValue(),
-			Info:     m.Info.JSONValue(),
-		})
-	}
-	return []byte("null"), nil
+	return nborm.MarshalModel(&m), nil
+}
+
+func (m *StudentResumeSnapshot) UnmarshalJSON(data []byte) error {
+	return nborm.UnmarshalModel(data, m)
 }
 
 type StudentResumeSnapshotList struct {
@@ -4365,38 +3719,28 @@ func (l *StudentResumeSnapshotList) SetTotal(total int) {
 	l.Total = total
 }
 
+func (l *StudentResumeSnapshotList) GetTotal() int {
+	return l.Total
+}
+
 func (l *StudentResumeSnapshotList) Len() int {
 	return len(l.List)
 }
 
+func (l *StudentResumeSnapshotList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
 func (l StudentResumeSnapshotList) MarshalJSON() ([]byte, error) {
-	s := struct {
-		List  []*StudentResumeSnapshot
-		Total int
-	}{
-		make([]*StudentResumeSnapshot, 0, 1),
-		l.Total,
-	}
-	if l.Len() > 0 {
-		s.List = l.List
-	}
-	return json.Marshal(s)
+	return nborm.MarshalModel(&l), nil
 }
 
 func (l *StudentResumeSnapshotList) UnmarshalJSON(b []byte) error {
-	ll := struct {
-		List  []*StudentResumeSnapshot
-		Total int
-	}{
-		l.List,
-		0,
-	}
-	if err := json.Unmarshal(b, &ll); err != nil {
-		return err
-	}
-	l.List = ll.List
-	l.Total = ll.Total
-	return nil
+	return nborm.UnmarshalModel(b, l)
 }
 
 func (l *StudentResumeSnapshotList) Collapse() {

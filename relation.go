@@ -8,6 +8,7 @@ import (
 type RelationInfo struct {
 	Fields FieldList
 	Object interface{}
+	Name   string
 }
 
 type RelationInfoList []RelationInfo

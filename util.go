@@ -1,6 +1,8 @@
 package nborm
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -845,4 +847,116 @@ func searchRelation(parent Model, child Model) RelationInfo {
 		}
 	}
 	panic(fmt.Errorf("cannot find relation (parent: %s, child: %s)", parent.fullTabName(), child.fullTabName()))
+}
+
+func getSelectedFieldsForCount(model Model, fieldList *FieldList) {
+	if model.GetParent() == nil || model.checkStatus(forJoin) {
+		selectedFields := getFields(model, forSelect)
+		*fieldList = append(*fieldList, selectedFields...)
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.Object.(Model)
+		if subModel.checkStatus(forJoin | containSubJoin) {
+			getSelectedFieldsForCount(subModel, fieldList)
+		}
+	}
+}
+
+func genCountClause(model Model) string {
+	selectedFields := make(FieldList, 0, 8)
+	getSelectedFieldsForCount(model, &selectedFields)
+	if len(selectedFields) == 0 {
+		return "SELECT COUNT(*)"
+	}
+	var builder strings.Builder
+	for _, f := range selectedFields {
+		builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
+	}
+	return fmt.Sprintf("SELECT COUNT(DISTINCT CONCAT(%s))", strings.TrimSuffix(builder.String(), ", "))
+}
+
+func marshalModel(model Model, bs *[]byte) {
+	if l, ok := model.(ModelList); ok {
+		*bs = append(*bs, []byte(`{ "List": [`)...)
+		for _, m := range l.GetList() {
+			marshalModel(m, bs)
+			*bs = append(*bs, []byte(`, `)...)
+		}
+		*bs = bytes.TrimSuffix(*bs, []byte(", "))
+		*bs = append(*bs, []byte(fmt.Sprintf(`], "Total": %d }`, l.GetTotal()))...)
+	} else {
+		if model.checkStatus(synced | containValue) {
+			*bs = append(*bs, []byte(`{`)...)
+			for _, f := range getFields(model, valid) {
+				*bs = append(*bs, []byte(fmt.Sprintf(`"%s": `, f.fieldName()))...)
+				b, _ := json.Marshal(f)
+				*bs = append(*bs, b...)
+				*bs = append(*bs, []byte(`, `)...)
+			}
+			for _, relInfo := range model.Relations() {
+				subModel := relInfo.Object.(Model)
+				if subModel.checkStatus(synced | containValue) {
+					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.Name))...)
+					marshalModel(subModel, bs)
+				}
+			}
+			*bs = bytes.TrimSuffix(*bs, []byte(", "))
+			*bs = append(*bs, []byte("}")...)
+		}
+	}
+}
+
+func MarshalModel(model Model) []byte {
+	bs := make([]byte, 0, 1024)
+	marshalModel(model, &bs)
+	return bs
+}
+
+func UnmarshalModel(bs []byte, model Model) error {
+	m := make(map[string]interface{})
+	if err := json.Unmarshal(bs, &m); err != nil {
+		return err
+	}
+	if l, ok := model.(ModelList); ok {
+		list := m["List"].([]interface{})
+		for _, obj := range list {
+			mm := obj.(map[string]interface{})
+			newModel := l.NewModel()
+			bytes := []byte(strings.Replace(fmt.Sprintf("%#v", mm), "map[string]interface {}", "", -1))
+			if err := UnmarshalModel(bytes, newModel); err != nil {
+				return err
+			}
+		}
+		total := int(m["Total"].(float64))
+		l.SetTotal(total)
+		l.addModelStatus(containValue)
+	} else {
+		fields := getAllFields(model)
+		for _, f := range fields {
+			if obj, ok := m[f.fieldName()]; ok {
+				bytes := []byte(fmt.Sprintf("%#v", obj))
+				if err := json.Unmarshal(bytes, f); err != nil {
+					return err
+				}
+				f.addStatus(valid)
+			}
+		}
+		for _, relInfo := range model.Relations() {
+			if obj, ok := m[relInfo.Name]; ok {
+				if l, ok := relInfo.Object.(ModelList); ok {
+					bytes := []byte(fmt.Sprintf("%#v", obj))
+					if err := UnmarshalModel(bytes, l); err != nil {
+						return err
+					}
+				} else {
+					bytes := []byte(strings.Replace(fmt.Sprintf("%#v", obj), "map[string]interface {}", "", -1))
+					if err := UnmarshalModel(bytes, relInfo.Object.(Model)); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		model.addModelStatus(containValue)
+	}
+	return nil
 }

@@ -265,6 +265,7 @@ func (m *ModelInfo) relationsFunc() string {
 							{{ endfor }}
 						},
 						m.{{ info.Field }},
+						"{{ info.Field }}",
 					},
 				{{ endfor }}
 			}
@@ -277,27 +278,51 @@ func (m *ModelInfo) relationsFunc() string {
 	return s
 }
 
+// func (m *ModelInfo) modelMarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
+// 		if m.IsSynced() || m.IsContainValue() {
+// 			return json.Marshal(struct{
+// 				{{ for _, f in model.FieldInfos }}
+// 					{{ f.Field }} interface{}
+// 				{{ endfor }}
+// 				{{ for _, r in model.RelInfos }}
+// 					{{ r.Field }} *{{ r.Type }}
+// 				{{ endfor }}
+// 			}{
+// 				{{ for _, f in model.FieldInfos }}
+// 					{{ f.Field }}: m.{{ f.Field }}.JSONValue(),
+// 				{{ endfor }}
+// 				{{ for _, r in model.RelInfos }}
+// 					{{ r.Field }}: m.{{ r.Field }},
+// 				{{ endfor }}
+// 			})
+// 		}
+// 		return []byte("null"), nil
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) modelMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
-		if m.IsSynced() || m.IsContainValue() {
-			return json.Marshal(struct{
-				{{ for _, f in model.FieldInfos }}
-					{{ f.Field }} interface{}
-				{{ endfor }}
-				{{ for _, r in model.RelInfos }}
-					{{ r.Field }} *{{ r.Type }}
-				{{ endfor }}
-			}{
-				{{ for _, f in model.FieldInfos }}
-					{{ f.Field }}: m.{{ f.Field }}.JSONValue(),
-				{{ endfor }}
-				{{ for _, r in model.RelInfos }}
-					{{ r.Field }}: m.{{ r.Field }},
-				{{ endfor }}
-			})
-		}
-		return []byte("null"), nil
+		return nborm.MarshalModel(&m), nil
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelUnmarshalJSONFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) UnmarshalJSON(data []byte) error {
+		return nborm.UnmarshalModel(data, m)
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -368,6 +393,18 @@ func (m *ModelInfo) listSetTotalFunc() string {
 	return s
 }
 
+func (m *ModelInfo) listGetTotalFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) GetTotal() int {
+		return l.Total
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func (m *ModelInfo) listLenFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) Len() int {
@@ -380,20 +417,72 @@ func (m *ModelInfo) listLenFunc() string {
 	return s
 }
 
+func (m *ModelInfo) getInnerListFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) GetList() []nborm.Model {
+		modelList := make([]nborm.Model, 0, l.Len())
+		for _, m := range l.List {
+			modelList = append(modelList, m)
+		}
+		return modelList
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+// func (m *ModelInfo) listMarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
+// 		s := struct{
+// 			List []*{{ model.Name }}
+// 			Total int
+// 		} {
+// 			make([]*{{ model.Name }}, 0, 1),
+// 			l.Total,
+// 		}
+// 		if l.Len() > 0 {
+// 			s.List = l.List
+// 		}
+// 		return json.Marshal(s)
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
+// func (m *ModelInfo) listUnmarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
+// 		ll := struct {
+// 			List []*{{ model.Name }}
+// 			Total int
+// 		} {
+// 			l.List,
+// 			0,
+// 		}
+// 		if err := json.Unmarshal(b, &ll); err != nil {
+// 			return err
+// 		}
+// 		l.List = ll.List
+// 		l.Total = ll.Total
+// 		return nil
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) listMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
-		s := struct{
-			List []*{{ model.Name }}
-			Total int
-		} {
-			make([]*{{ model.Name }}, 0, 1),
-			l.Total,
-		}
-		if l.Len() > 0 {
-			s.List = l.List
-		}
-		return json.Marshal(s)
+		return nborm.MarshalModel(&l), nil
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -405,19 +494,7 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
-		ll := struct {
-			List []*{{ model.Name }}
-			Total int
-		} {
-			l.List,
-			0,
-		}
-		if err := json.Unmarshal(b, &ll); err != nil {
-			return err
-		}
-		l.List = ll.List
-		l.Total = ll.Total
-		return nil
+		return nborm.UnmarshalModel(b, l)
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -666,15 +743,19 @@ func main() {
 			nf.WriteString(m.uniqueKeysFunc())
 			nf.WriteString(m.relationsFunc())
 			nf.WriteString(m.modelMarshalJSONFunc())
+			nf.WriteString(m.modelUnmarshalJSONFunc())
 			nf.WriteString(m.modelListType())
 			nf.WriteString(m.newListFunc())
 			nf.WriteString(m.listNewModelFunc())
 			nf.WriteString(m.listSetTotalFunc())
+			nf.WriteString(m.listGetTotalFunc())
 			nf.WriteString(m.listLenFunc())
+			nf.WriteString(m.getInnerListFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
 			nf.WriteString(m.listUnmarshalJSONFunc())
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
+
 		}
 		nf.Sync()
 	}

@@ -111,6 +111,8 @@ type ModelList interface {
 	Model
 	NewModel() Model
 	SetTotal(int)
+	GetTotal() int
 	Len() int
 	Collapse()
+	GetList() []Model
 }

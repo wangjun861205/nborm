@@ -63,7 +63,8 @@ func InsertOne(exe Executor, model Model) error {
 func Count(exe Executor, model Model) (int, error) {
 	whereClause, whereValues := genWhereClause(model)
 	tabRef := genTabRef(model)
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, whereClause)
+	countClause := genCountClause(model)
+	stmt := fmt.Sprintf("%s FROM %s %s", countClause, tabRef, whereClause)
 	if DEBUG {
 		fmt.Println(nbcolor.Green(stmt))
 		fmt.Println(nbcolor.Green(whereValues))

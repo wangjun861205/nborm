@@ -120,6 +120,9 @@ func (m *ModelInfo) initRelFunc() string {
 		{{ for _, rel in model.RelInfos }}
 			m.{{ rel.Field }} = &{{ rel.Type }}{}
 			m.{{ rel.Field }}.SetParent(m)
+			{{ if rel.IsList == true }}
+				m.{{ rel.Field }}.dupMap = make(map[string]int)
+			{{ endif }}
 			nborm.InitModel(m.{{ rel.Field }})
 			{{ if rel.HasAddedCond == true }}
 				m.{{ rel.Field }}.AndExprJoinWhere(nborm.NewExpr("{{ rel.AddedCond.Expr }}", {{ rel.AddedCond.Fields }}))
@@ -331,12 +334,52 @@ func (m *ModelInfo) modelUnmarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) modelCollapseFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) Collapse() {
+		{{ for _, relInfo in model.RelInfos }}
+			if m.{{ relInfo.Field }}.IsSynced() {
+				m.{{ relInfo.Field }}.Collapse()
+			}
+		{{ endfor }}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func (m *ModelInfo) modelListType() string {
 	s, err := nbfmt.Fmt(`
 	type {{ model.Name }}List struct {
 		{{ model.Name }}
+		dupMap map[string]int
 		List []*{{ model.Name }}
 		Total int
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listCheckDupFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) checkDup() int {
+		var builder strings.Builder
+		lastModel := l.List[l.Len()-1]
+		{{ for _, f in model.FieldInfos }}
+			if lastModel.{{ f.Field }}.IsValid() {
+				builder.WriteString(fmt.Sprintf("%v", lastModel.{{ f.Field }}.Value()))
+			}
+		{{ endfor }}
+		if idx, ok := l.dupMap[builder.String()]; ok {
+			return idx
+		}
+		l.dupMap[builder.String()] = l.Len() - 1
+		return -1
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -350,6 +393,7 @@ func (m *ModelInfo) newListFunc() string {
 	func New{{ model.Name }}List() *{{ model.Name }}List {
 		l := &{{ model.Name }}List {
 			{{ model.Name }}{},
+			make(map[string]int),
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
@@ -369,6 +413,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 	func (l *{{ model.Name }}List) NewModel() nborm.Model {
 		m := &{{ model.Name }}{}
 		m.SetParent(l.GetParent())
+		m.SetConList(l)
 		nborm.InitModel(m)
 		m.InitRel()
 		l.List = append(l.List, m)
@@ -503,28 +548,54 @@ func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	return s
 }
 
+// func (m *ModelInfo) listCollapseFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l *{{ model.Name }}List) Collapse() {
+// 		{{ if model.HasRel == false }}
+// 			return
+// 		{{ else }}
+// 			if len(l.List) < 2 {
+// 				return
+// 			}
+// 			lm := l.List[len(l.List)-2]
+// 			rm := l.List[len(l.List)-1]
+// 			if nborm.IsPrimaryKeyEqual(lm, rm) {
+// 				{{ for _, relInfo in model.RelInfos }}
+// 					{{ if relInfo.IsList == true }}
+// 						lm.{{ relInfo.Field }}.List = append(lm.{{ relInfo.Field }}.List, rm.{{ relInfo.Field }}.List...)
+// 					{{ else }}
+// 						lm.{{ relInfo.Field }} = rm.{{ relInfo.Field }}
+// 					{{ endif }}
+// 				{{ endfor }}
+// 				l.List = l.List[:len(l.List)-1]
+// 			}
+// 		{{ endif }}
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) listCollapseFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) Collapse() {
-		{{ if model.HasRel == false }}
-			return
-		{{ else }}
-			if len(l.List) < 2 {
-				return
-			}
-			lm := l.List[len(l.List)-2]
-			rm := l.List[len(l.List)-1]
-			if nborm.IsPrimaryKeyEqual(lm, rm) {
+		idx := l.checkDup()
+		if idx >= 0 {
+			{{ if model.HasRel == true }}
 				{{ for _, relInfo in model.RelInfos }}
 					{{ if relInfo.IsList == true }}
-						lm.{{ relInfo.Field }}.List = append(lm.{{ relInfo.Field }}.List, rm.{{ relInfo.Field }}.List...)
+						l.List[idx].{{ relInfo.Field }}.checkDup()
+						l.List[idx].{{ relInfo.Field }}.List = append(l.List[idx].{{ relInfo.Field }}.List, l.List[l.Len()-1].{{ relInfo.Field }}.List...)
 					{{ else }}
-						lm.{{ relInfo.Field }} = rm.{{ relInfo.Field }}
+						l.List[idx].{{ relInfo.Field }} = l.List[l.Len()-1].{{ relInfo.Field }}
 					{{ endif }}
 				{{ endfor }}
-				l.List = l.List[:len(l.List)-1]
-			}
-		{{ endif }}
+			{{ endif }}
+			l.List = l.List[:len(l.List)-1]
+			l.List[idx].Collapse()
+		}
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -728,7 +799,8 @@ func main() {
 		nf.WriteString(`
 		import (
 			"github.com/wangjun861205/nborm"
-			"encoding/json"
+			"strings"
+			"fmt"
 		)
 		`)
 		for _, m := range modelInfos {
@@ -745,6 +817,7 @@ func main() {
 			nf.WriteString(m.modelMarshalJSONFunc())
 			nf.WriteString(m.modelUnmarshalJSONFunc())
 			nf.WriteString(m.modelListType())
+			nf.WriteString(m.modelCollapseFunc())
 			nf.WriteString(m.newListFunc())
 			nf.WriteString(m.listNewModelFunc())
 			nf.WriteString(m.listSetTotalFunc())
@@ -755,7 +828,7 @@ func main() {
 			nf.WriteString(m.listUnmarshalJSONFunc())
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
-
+			nf.WriteString(m.listCheckDupFunc())
 		}
 		nf.Sync()
 	}

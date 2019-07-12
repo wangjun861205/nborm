@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/wangjun861205/nbcolor"
 	"github.com/wangjun861205/nborm"
@@ -22,44 +21,44 @@ type test struct {
 }
 
 var testList = []test{
-	{
-		name: "deleteTest",
-		f: func() error {
-			e := model.NewEnterpriseJob()
-			if _, err := nborm.Delete(db, e); err != nil {
-				return err
-			}
-			return nil
-		},
-	},
-	{
-		name: "insertTest",
-		f: func() error {
-			for i := 0; i < 10; i++ {
-				j := model.NewEnterpriseJob()
-				j.Address.SetString(fmt.Sprintf("address%d", i))
-				j.CityID.SetInt(i)
-				j.Comment.SetString(fmt.Sprintf("comment%d", i))
-				j.DegreeID.SetInt(i)
-				j.Description.SetString(fmt.Sprintf("Description%d", i))
-				j.EnterpriseID.SetInt(i)
-				j.ExpiredAt.SetDatetime(time.Now())
-				j.Gender.SetString("男")
-				j.LanguageSkillID.SetInt(i)
-				j.MajorCode.SetString(fmt.Sprintf("major_code%d", i))
-				j.Name.SetString(fmt.Sprintf("name%d", i))
-				j.SalaryRangeID.SetInt(i)
-				j.Status.SetString("待审核")
-				j.Vacancies.SetInt(i)
-				j.Welfare.SetString(fmt.Sprintf("welfare%d", 1))
-				j.TypeID.SetInt(i)
-				if err := nborm.InsertOne(db, j); err != nil {
-					return err
-				}
-			}
-			return nil
-		},
-	},
+	// {
+	// 	name: "deleteTest",
+	// 	f: func() error {
+	// 		e := model.NewEnterpriseJob()
+	// 		if _, err := nborm.Delete(db, e); err != nil {
+	// 			return err
+	// 		}
+	// 		return nil
+	// 	},
+	// },
+	// {
+	// 	name: "insertTest",
+	// 	f: func() error {
+	// 		for i := 0; i < 10; i++ {
+	// 			j := model.NewEnterpriseJob()
+	// 			j.Address.SetString(fmt.Sprintf("address%d", i))
+	// 			j.CityID.SetInt(i)
+	// 			j.Comment.SetString(fmt.Sprintf("comment%d", i))
+	// 			j.DegreeID.SetInt(i)
+	// 			j.Description.SetString(fmt.Sprintf("Description%d", i))
+	// 			j.EnterpriseID.SetInt(i)
+	// 			j.ExpiredAt.SetDatetime(time.Now())
+	// 			j.Gender.SetString("男")
+	// 			j.LanguageSkillID.SetInt(i)
+	// 			j.MajorCode.SetString(fmt.Sprintf("major_code%d", i))
+	// 			j.Name.SetString(fmt.Sprintf("name%d", i))
+	// 			j.SalaryRangeID.SetInt(i)
+	// 			j.Status.SetString("待审核")
+	// 			j.Vacancies.SetInt(i)
+	// 			j.Welfare.SetString(fmt.Sprintf("welfare%d", 1))
+	// 			j.TypeID.SetInt(i)
+	// 			if err := nborm.InsertOne(db, j); err != nil {
+	// 				return err
+	// 			}
+	// 		}
+	// 		return nil
+	// 	},
+	// },
 	// {
 	// 	name: "query",
 	// 	f: func() error {
@@ -141,65 +140,67 @@ var testList = []test{
 	// 		return nil
 	// 	},
 	// },
-	// {
-	// 	name: "joinQuery",
-	// 	f: func() error {
-	// 		aForDel := model.NewEnterpriseAccount()
-	// 		eForDel := model.NewEnterprise()
-	// 		if _, err := nborm.Delete(db, aForDel); err != nil {
-	// 			return err
-	// 		}
-	// 		if _, err := nborm.Delete(db, eForDel); err != nil {
-	// 			return err
-	// 		}
-	// 		a := model.NewEnterpriseAccount()
-	// 		a.Email.SetString("email")
-	// 		a.Password.SetString("password")
-	// 		a.Phone.SetString("phone")
-	// 		if err := nborm.InsertOne(db, a); err != nil {
-	// 			return err
-	// 		}
-	// 		for i := 0; i < 10; i++ {
-	// 			e := model.NewEnterprise()
-	// 			e.AccountID.SetInt(a.ID.Int())
-	// 			e.Contact.SetString(fmt.Sprintf("contact%d", i))
-	// 			e.EmployeeFromThis.SetInt(i)
-	// 			e.Introduction.SetString(fmt.Sprintf("introduction%d", i))
-	// 			e.Name.SetString(fmt.Sprintf("name%d", i))
-	// 			e.NatureID.SetInt(i)
-	// 			e.RegisterAddress.SetString(fmt.Sprintf("register_address%d", i))
-	// 			e.RegisterCityID.SetInt(i)
-	// 			e.ScopeID.SetInt(i)
-	// 			e.SectorID.SetInt(i)
-	// 			e.UniformCode.SetString(fmt.Sprintf("uniform_code%d", i))
-	// 			e.Website.SetString(fmt.Sprintf("website%d", i))
-	// 			e.ZipCode.SetString(fmt.Sprintf("zipcode%d", i))
-	// 			if err := nborm.InsertOne(db, e); err != nil {
-	// 				return err
-	// 			}
-	// 		}
-	// 		qa := model.NewEnterpriseAccountList()
-	// 		qa.Enterprise.SetForJoin()
-	// 		qa.Enterprise.InitRel()
-	// 		qa.Enterprise.Sector.SetForJoin()
-	// 		qa.Enterprise.Sector.Name.ForSelect()
-	// 		qa.Enterprise.Sector.Name.AndWhere("=", "name 3")
-	// 		// qa.Email.AndWhere("=", "email")
-	// 		// qa.Enterprise.Contact.AndWhere(">", "contact5")
-	// 		if err := nborm.JoinQuery(db, qa); err != nil {
-	// 			return err
-	// 		}
-	// 		for _, e := range qa.Enterprise.List {
-	// 			fmt.Println(nbcolor.Yellow(e.Contact.String()))
-	// 		}
-	// 		b, err := json.Marshal(qa)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		fmt.Println(nbcolor.Yellow(string(b)))
-	// 		return nil
-	// 	},
-	// },
+	{
+		name: "joinQuery",
+		f: func() error {
+			aForDel := model.NewEnterpriseAccount()
+			eForDel := model.NewEnterprise()
+			if _, err := nborm.Delete(db, aForDel); err != nil {
+				return err
+			}
+			if _, err := nborm.Delete(db, eForDel); err != nil {
+				return err
+			}
+			a := model.NewEnterpriseAccount()
+			a.Email.SetString("email")
+			a.Password.SetString("password")
+			a.Phone.SetString("phone")
+			if err := nborm.InsertOne(db, a); err != nil {
+				return err
+			}
+			for i := 0; i < 10; i++ {
+				e := model.NewEnterprise()
+				e.AccountID.SetInt(a.ID.Int())
+				e.Contact.SetString("contact")
+				e.EmployeeFromThis.SetInt(i)
+				e.Introduction.SetString(fmt.Sprintf("introduction%d", i))
+				e.Name.SetString(fmt.Sprintf("name%d", i))
+				e.NatureID.SetInt(i)
+				e.RegisterAddress.SetString(fmt.Sprintf("register_address%d", i))
+				e.RegisterCityID.SetInt(i)
+				e.ScopeID.SetInt(i)
+				e.SectorID.SetInt(i)
+				e.UniformCode.SetString(fmt.Sprintf("uniform_code%d", i))
+				e.Website.SetString(fmt.Sprintf("website%d", i))
+				e.ZipCode.SetString(fmt.Sprintf("zipcode%d", i))
+				if err := nborm.InsertOne(db, e); err != nil {
+					return err
+				}
+			}
+			qa := model.NewEnterpriseAccountList()
+			qa.Enterprise.InitRel()
+			qa.Email.ForSelect()
+			qa.Enterprise.SetForJoin()
+			qa.Enterprise.ID.ForSelect()
+			qa.Enterprise.Contact.ForSelect()
+			// qa.Enterprise.Sector.SetForJoin()
+			// qa.Enterprise.Sector.Name.ForSelect()
+			// qa.Enterprise.Sector.Name.AndWhere("=", "name 3")
+			if err := nborm.JoinQuery(db, qa); err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Red(qa.Len()))
+			for _, e := range qa.List[0].Enterprise.List {
+				fmt.Println(nbcolor.Yellow(e.Contact.String()))
+			}
+			b, err := json.Marshal(qa)
+			if err != nil {
+				return err
+			}
+			fmt.Println(nbcolor.Yellow(string(b)))
+			return nil
+		},
+	},
 	// {
 	// 	name: "setValueForJSON",
 	// 	f: func() error {
@@ -214,6 +215,7 @@ var testList = []test{
 	// 		if err != nil {
 	// 			return err
 	// 		}
+	// 		fmt.Println(nbcolor.Red(string(nb)))
 	// 		fmt.Println(nbcolor.Yellow(string(b)))
 	// 		fmt.Println(nbcolor.Yellow(string(nb)))
 	// 		return nil
@@ -291,46 +293,46 @@ var testList = []test{
 	// 		return nil
 	// 	},
 	// },
-	{
-		name: "newMarshalModel",
-		f: func() error {
-			e := model.NewEnterprise()
-			e.Contact.ForSelect()
-			if err := nborm.Query(db, e); err != nil {
-				return err
-			}
-			bs, err := json.Marshal(e)
-			if err != nil {
-				return err
-			}
-			fmt.Println(nbcolor.Brown(string(bs)))
-			return nil
-		},
-	},
-	{
-		name: "newMarshalModelList",
-		f: func() error {
-			es := model.NewEnterpriseList()
-			es.Contact.ForSelect()
-			es.Account.SetForJoin()
-			es.Account.Email.ForSelect()
-			if err := nborm.JoinQuery(db, es); err != nil {
-				return err
-			}
-			bs, err := json.Marshal(es)
-			if err != nil {
-				return err
-			}
-			fmt.Println(nbcolor.Brown(string(bs)))
-			nes := model.NewEnterpriseList()
-			if err := json.Unmarshal(bs, nes); err != nil {
-				return err
-			}
-			fmt.Println(nbcolor.Brown(nes.List[0].Contact.String()))
-			fmt.Println(nbcolor.Brown(nes.List[0].Account.Phone.String()))
-			return nil
-		},
-	},
+	// {
+	// 	name: "newMarshalModel",
+	// 	f: func() error {
+	// 		e := model.NewEnterprise()
+	// 		e.Contact.ForSelect()
+	// 		if err := nborm.Query(db, e); err != nil {
+	// 			return err
+	// 		}
+	// 		bs, err := json.Marshal(e)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		fmt.Println(nbcolor.Brown(string(bs)))
+	// 		return nil
+	// 	},
+	// },
+	// {
+	// 	name: "newMarshalModelList",
+	// 	f: func() error {
+	// 		es := model.NewEnterpriseList()
+	// 		es.Contact.ForSelect()
+	// 		es.Account.SetForJoin()
+	// 		es.Account.Email.ForSelect()
+	// 		if err := nborm.JoinQuery(db, es); err != nil {
+	// 			return err
+	// 		}
+	// 		bs, err := json.Marshal(es)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		fmt.Println(nbcolor.Brown(string(bs)))
+	// 		nes := model.NewEnterpriseList()
+	// 		if err := json.Unmarshal(bs, nes); err != nil {
+	// 			return err
+	// 		}
+	// 		fmt.Println(nbcolor.Brown(nes.List[0].Contact.String()))
+	// 		fmt.Println(nbcolor.Brown(nes.List[0].Account.Phone.String()))
+	// 		return nil
+	// 	},
+	// },
 }
 
 func TestNBorm(t *testing.T) {

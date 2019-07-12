@@ -1,7 +1,9 @@
 package model
 
 import (
+	"fmt"
 	"github.com/wangjun861205/nborm"
+	"strings"
 )
 
 func NewEnterpriseAccount() *EnterpriseAccount {
@@ -14,6 +16,7 @@ func NewEnterpriseAccount() *EnterpriseAccount {
 func (m *EnterpriseAccount) InitRel() {
 	m.Enterprise = &EnterpriseList{}
 	m.Enterprise.SetParent(m)
+	m.Enterprise.dupMap = make(map[string]int)
 	nborm.InitModel(m.Enterprise)
 	m.AddRelInited()
 }
@@ -73,13 +76,21 @@ func (m *EnterpriseAccount) UnmarshalJSON(data []byte) error {
 
 type EnterpriseAccountList struct {
 	EnterpriseAccount
-	List  []*EnterpriseAccount
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseAccount
+	Total  int
+}
+
+func (m *EnterpriseAccount) Collapse() {
+	if m.Enterprise.IsSynced() {
+		m.Enterprise.Collapse()
+	}
 }
 
 func NewEnterpriseAccountList() *EnterpriseAccountList {
 	l := &EnterpriseAccountList{
 		EnterpriseAccount{},
+		make(map[string]int),
 		make([]*EnterpriseAccount, 0, 32),
 		0,
 	}
@@ -91,6 +102,7 @@ func NewEnterpriseAccountList() *EnterpriseAccountList {
 func (l *EnterpriseAccountList) NewModel() nborm.Model {
 	m := &EnterpriseAccount{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -126,14 +138,12 @@ func (l *EnterpriseAccountList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseAccountList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.Enterprise.List = append(lm.Enterprise.List, rm.Enterprise.List...)
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].Enterprise.checkDup()
+		l.List[idx].Enterprise.List = append(l.List[idx].Enterprise.List, l.List[l.Len()-1].Enterprise.List...)
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -145,6 +155,28 @@ func (l *EnterpriseAccountList) Filter(f func(m *EnterpriseAccount) bool) []*Ent
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseAccountList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.Phone.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Phone.Value()))
+	}
+	if lastModel.Email.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Email.Value()))
+	}
+	if lastModel.Password.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Password.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseReviewStatus() *EnterpriseReviewStatus {
@@ -203,13 +235,18 @@ func (m *EnterpriseReviewStatus) UnmarshalJSON(data []byte) error {
 
 type EnterpriseReviewStatusList struct {
 	EnterpriseReviewStatus
-	List  []*EnterpriseReviewStatus
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseReviewStatus
+	Total  int
+}
+
+func (m *EnterpriseReviewStatus) Collapse() {
 }
 
 func NewEnterpriseReviewStatusList() *EnterpriseReviewStatusList {
 	l := &EnterpriseReviewStatusList{
 		EnterpriseReviewStatus{},
+		make(map[string]int),
 		make([]*EnterpriseReviewStatus, 0, 32),
 		0,
 	}
@@ -221,6 +258,7 @@ func NewEnterpriseReviewStatusList() *EnterpriseReviewStatusList {
 func (l *EnterpriseReviewStatusList) NewModel() nborm.Model {
 	m := &EnterpriseReviewStatus{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -256,7 +294,11 @@ func (l *EnterpriseReviewStatusList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseReviewStatusList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseReviewStatusList) Filter(f func(m *EnterpriseReviewStatus) bool) []*EnterpriseReviewStatus {
@@ -267,6 +309,34 @@ func (l *EnterpriseReviewStatusList) Filter(f func(m *EnterpriseReviewStatus) bo
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseReviewStatusList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.ReviewStatus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ReviewStatus.Value()))
+	}
+	if lastModel.Operator.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Operator.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseStatistic() *EnterpriseStatistic {
@@ -323,13 +393,18 @@ func (m *EnterpriseStatistic) UnmarshalJSON(data []byte) error {
 
 type EnterpriseStatisticList struct {
 	EnterpriseStatistic
-	List  []*EnterpriseStatistic
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseStatistic
+	Total  int
+}
+
+func (m *EnterpriseStatistic) Collapse() {
 }
 
 func NewEnterpriseStatisticList() *EnterpriseStatisticList {
 	l := &EnterpriseStatisticList{
 		EnterpriseStatistic{},
+		make(map[string]int),
 		make([]*EnterpriseStatistic, 0, 32),
 		0,
 	}
@@ -341,6 +416,7 @@ func NewEnterpriseStatisticList() *EnterpriseStatisticList {
 func (l *EnterpriseStatisticList) NewModel() nborm.Model {
 	m := &EnterpriseStatistic{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -376,7 +452,11 @@ func (l *EnterpriseStatisticList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseStatisticList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseStatisticList) Filter(f func(m *EnterpriseStatistic) bool) []*EnterpriseStatistic {
@@ -387,6 +467,28 @@ func (l *EnterpriseStatisticList) Filter(f func(m *EnterpriseStatistic) bool) []
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseStatisticList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.SubmitCount.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SubmitCount.Value()))
+	}
+	if lastModel.CreateDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateDate.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterprise() *Enterprise {
@@ -481,13 +583,24 @@ func (m *Enterprise) UnmarshalJSON(data []byte) error {
 
 type EnterpriseList struct {
 	Enterprise
-	List  []*Enterprise
-	Total int
+	dupMap map[string]int
+	List   []*Enterprise
+	Total  int
+}
+
+func (m *Enterprise) Collapse() {
+	if m.Account.IsSynced() {
+		m.Account.Collapse()
+	}
+	if m.Sector.IsSynced() {
+		m.Sector.Collapse()
+	}
 }
 
 func NewEnterpriseList() *EnterpriseList {
 	l := &EnterpriseList{
 		Enterprise{},
+		make(map[string]int),
 		make([]*Enterprise, 0, 32),
 		0,
 	}
@@ -499,6 +612,7 @@ func NewEnterpriseList() *EnterpriseList {
 func (l *EnterpriseList) NewModel() nborm.Model {
 	m := &Enterprise{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -534,15 +648,12 @@ func (l *EnterpriseList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.Account = rm.Account
-		lm.Sector = rm.Sector
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].Account = l.List[l.Len()-1].Account
+		l.List[idx].Sector = l.List[l.Len()-1].Sector
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -554,6 +665,64 @@ func (l *EnterpriseList) Filter(f func(m *Enterprise) bool) []*Enterprise {
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.AccountID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AccountID.Value()))
+	}
+	if lastModel.UniformCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UniformCode.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.RegisterCityID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RegisterCityID.Value()))
+	}
+	if lastModel.RegisterAddress.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RegisterAddress.Value()))
+	}
+	if lastModel.SectorID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SectorID.Value()))
+	}
+	if lastModel.NatureID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.NatureID.Value()))
+	}
+	if lastModel.ScopeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ScopeID.Value()))
+	}
+	if lastModel.Website.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Website.Value()))
+	}
+	if lastModel.Contact.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Contact.Value()))
+	}
+	if lastModel.EmployeeFromThis.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EmployeeFromThis.Value()))
+	}
+	if lastModel.Introduction.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Introduction.Value()))
+	}
+	if lastModel.ZipCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ZipCode.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseAttachment() *EnterpriseAttachment {
@@ -613,13 +782,18 @@ func (m *EnterpriseAttachment) UnmarshalJSON(data []byte) error {
 
 type EnterpriseAttachmentList struct {
 	EnterpriseAttachment
-	List  []*EnterpriseAttachment
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseAttachment
+	Total  int
+}
+
+func (m *EnterpriseAttachment) Collapse() {
 }
 
 func NewEnterpriseAttachmentList() *EnterpriseAttachmentList {
 	l := &EnterpriseAttachmentList{
 		EnterpriseAttachment{},
+		make(map[string]int),
 		make([]*EnterpriseAttachment, 0, 32),
 		0,
 	}
@@ -631,6 +805,7 @@ func NewEnterpriseAttachmentList() *EnterpriseAttachmentList {
 func (l *EnterpriseAttachmentList) NewModel() nborm.Model {
 	m := &EnterpriseAttachment{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -666,7 +841,11 @@ func (l *EnterpriseAttachmentList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseAttachmentList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseAttachmentList) Filter(f func(m *EnterpriseAttachment) bool) []*EnterpriseAttachment {
@@ -677,6 +856,37 @@ func (l *EnterpriseAttachmentList) Filter(f func(m *EnterpriseAttachment) bool) 
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseAttachmentList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.Type.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Type.Value()))
+	}
+	if lastModel.URL.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.URL.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidEnterpriseTag() *MidEnterpriseTag {
@@ -732,13 +942,18 @@ func (m *MidEnterpriseTag) UnmarshalJSON(data []byte) error {
 
 type MidEnterpriseTagList struct {
 	MidEnterpriseTag
-	List  []*MidEnterpriseTag
-	Total int
+	dupMap map[string]int
+	List   []*MidEnterpriseTag
+	Total  int
+}
+
+func (m *MidEnterpriseTag) Collapse() {
 }
 
 func NewMidEnterpriseTagList() *MidEnterpriseTagList {
 	l := &MidEnterpriseTagList{
 		MidEnterpriseTag{},
+		make(map[string]int),
 		make([]*MidEnterpriseTag, 0, 32),
 		0,
 	}
@@ -750,6 +965,7 @@ func NewMidEnterpriseTagList() *MidEnterpriseTagList {
 func (l *MidEnterpriseTagList) NewModel() nborm.Model {
 	m := &MidEnterpriseTag{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -785,7 +1001,11 @@ func (l *MidEnterpriseTagList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidEnterpriseTagList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidEnterpriseTagList) Filter(f func(m *MidEnterpriseTag) bool) []*MidEnterpriseTag {
@@ -796,6 +1016,22 @@ func (l *MidEnterpriseTagList) Filter(f func(m *MidEnterpriseTag) bool) []*MidEn
 		}
 	}
 	return ll
+}
+
+func (l *MidEnterpriseTagList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.TagID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TagID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseJobStatistic() *EnterpriseJobStatistic {
@@ -852,13 +1088,18 @@ func (m *EnterpriseJobStatistic) UnmarshalJSON(data []byte) error {
 
 type EnterpriseJobStatisticList struct {
 	EnterpriseJobStatistic
-	List  []*EnterpriseJobStatistic
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseJobStatistic
+	Total  int
+}
+
+func (m *EnterpriseJobStatistic) Collapse() {
 }
 
 func NewEnterpriseJobStatisticList() *EnterpriseJobStatisticList {
 	l := &EnterpriseJobStatisticList{
 		EnterpriseJobStatistic{},
+		make(map[string]int),
 		make([]*EnterpriseJobStatistic, 0, 32),
 		0,
 	}
@@ -870,6 +1111,7 @@ func NewEnterpriseJobStatisticList() *EnterpriseJobStatisticList {
 func (l *EnterpriseJobStatisticList) NewModel() nborm.Model {
 	m := &EnterpriseJobStatistic{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -905,7 +1147,11 @@ func (l *EnterpriseJobStatisticList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseJobStatisticList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseJobStatisticList) Filter(f func(m *EnterpriseJobStatistic) bool) []*EnterpriseJobStatistic {
@@ -916,6 +1162,28 @@ func (l *EnterpriseJobStatisticList) Filter(f func(m *EnterpriseJobStatistic) bo
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseJobStatisticList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.JobID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobID.Value()))
+	}
+	if lastModel.SubmitCount.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SubmitCount.Value()))
+	}
+	if lastModel.CreateDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateDate.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeEnterpriseJob() *MidStudentResumeEnterpriseJob {
@@ -974,13 +1242,18 @@ func (m *MidStudentResumeEnterpriseJob) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeEnterpriseJobList struct {
 	MidStudentResumeEnterpriseJob
-	List  []*MidStudentResumeEnterpriseJob
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeEnterpriseJob
+	Total  int
+}
+
+func (m *MidStudentResumeEnterpriseJob) Collapse() {
 }
 
 func NewMidStudentResumeEnterpriseJobList() *MidStudentResumeEnterpriseJobList {
 	l := &MidStudentResumeEnterpriseJobList{
 		MidStudentResumeEnterpriseJob{},
+		make(map[string]int),
 		make([]*MidStudentResumeEnterpriseJob, 0, 32),
 		0,
 	}
@@ -992,6 +1265,7 @@ func NewMidStudentResumeEnterpriseJobList() *MidStudentResumeEnterpriseJobList {
 func (l *MidStudentResumeEnterpriseJobList) NewModel() nborm.Model {
 	m := &MidStudentResumeEnterpriseJob{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1027,7 +1301,11 @@ func (l *MidStudentResumeEnterpriseJobList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeEnterpriseJobList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeEnterpriseJobList) Filter(f func(m *MidStudentResumeEnterpriseJob) bool) []*MidStudentResumeEnterpriseJob {
@@ -1040,6 +1318,31 @@ func (l *MidStudentResumeEnterpriseJobList) Filter(f func(m *MidStudentResumeEnt
 	return ll
 }
 
+func (l *MidStudentResumeEnterpriseJobList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.JobID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobID.Value()))
+	}
+	if lastModel.ReviewStatus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ReviewStatus.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
+}
+
 func NewEnterpriseJob() *EnterpriseJob {
 	m := &EnterpriseJob{}
 	nborm.InitModel(m)
@@ -1050,9 +1353,11 @@ func NewEnterpriseJob() *EnterpriseJob {
 func (m *EnterpriseJob) InitRel() {
 	m.Enterprise = &EnterpriseList{}
 	m.Enterprise.SetParent(m)
+	m.Enterprise.dupMap = make(map[string]int)
 	nborm.InitModel(m.Enterprise)
 	m.StudentResumes = &StudentResumeList{}
 	m.StudentResumes.SetParent(m)
+	m.StudentResumes.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentResumes)
 	var mm0 *MidStudentResumeEnterpriseJob
 	mm0 = &MidStudentResumeEnterpriseJob{}
@@ -1144,13 +1449,24 @@ func (m *EnterpriseJob) UnmarshalJSON(data []byte) error {
 
 type EnterpriseJobList struct {
 	EnterpriseJob
-	List  []*EnterpriseJob
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseJob
+	Total  int
+}
+
+func (m *EnterpriseJob) Collapse() {
+	if m.Enterprise.IsSynced() {
+		m.Enterprise.Collapse()
+	}
+	if m.StudentResumes.IsSynced() {
+		m.StudentResumes.Collapse()
+	}
 }
 
 func NewEnterpriseJobList() *EnterpriseJobList {
 	l := &EnterpriseJobList{
 		EnterpriseJob{},
+		make(map[string]int),
 		make([]*EnterpriseJob, 0, 32),
 		0,
 	}
@@ -1162,6 +1478,7 @@ func NewEnterpriseJobList() *EnterpriseJobList {
 func (l *EnterpriseJobList) NewModel() nborm.Model {
 	m := &EnterpriseJob{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1197,15 +1514,14 @@ func (l *EnterpriseJobList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseJobList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.Enterprise.List = append(lm.Enterprise.List, rm.Enterprise.List...)
-		lm.StudentResumes.List = append(lm.StudentResumes.List, rm.StudentResumes.List...)
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].Enterprise.checkDup()
+		l.List[idx].Enterprise.List = append(l.List[idx].Enterprise.List, l.List[l.Len()-1].Enterprise.List...)
+		l.List[idx].StudentResumes.checkDup()
+		l.List[idx].StudentResumes.List = append(l.List[idx].StudentResumes.List, l.List[l.Len()-1].StudentResumes.List...)
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -1217,6 +1533,73 @@ func (l *EnterpriseJobList) Filter(f func(m *EnterpriseJob) bool) []*EnterpriseJ
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseJobList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.CityID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CityID.Value()))
+	}
+	if lastModel.Address.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Address.Value()))
+	}
+	if lastModel.TypeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TypeID.Value()))
+	}
+	if lastModel.Gender.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Gender.Value()))
+	}
+	if lastModel.MajorCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.MajorCode.Value()))
+	}
+	if lastModel.DegreeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.DegreeID.Value()))
+	}
+	if lastModel.LanguageSkillID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.LanguageSkillID.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.SalaryRangeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SalaryRangeID.Value()))
+	}
+	if lastModel.Welfare.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Welfare.Value()))
+	}
+	if lastModel.Vacancies.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Vacancies.Value()))
+	}
+	if lastModel.ExpiredAt.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ExpiredAt.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.Comment.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Comment.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentJobFairRead() *MidStudentJobFairRead {
@@ -1274,13 +1657,18 @@ func (m *MidStudentJobFairRead) UnmarshalJSON(data []byte) error {
 
 type MidStudentJobFairReadList struct {
 	MidStudentJobFairRead
-	List  []*MidStudentJobFairRead
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentJobFairRead
+	Total  int
+}
+
+func (m *MidStudentJobFairRead) Collapse() {
 }
 
 func NewMidStudentJobFairReadList() *MidStudentJobFairReadList {
 	l := &MidStudentJobFairReadList{
 		MidStudentJobFairRead{},
+		make(map[string]int),
 		make([]*MidStudentJobFairRead, 0, 32),
 		0,
 	}
@@ -1292,6 +1680,7 @@ func NewMidStudentJobFairReadList() *MidStudentJobFairReadList {
 func (l *MidStudentJobFairReadList) NewModel() nborm.Model {
 	m := &MidStudentJobFairRead{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1327,7 +1716,11 @@ func (l *MidStudentJobFairReadList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentJobFairReadList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentJobFairReadList) Filter(f func(m *MidStudentJobFairRead) bool) []*MidStudentJobFairRead {
@@ -1338,6 +1731,28 @@ func (l *MidStudentJobFairReadList) Filter(f func(m *MidStudentJobFairRead) bool
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentJobFairReadList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.JobFairID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobFairID.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentJobFairEnroll() *MidStudentJobFairEnroll {
@@ -1395,13 +1810,18 @@ func (m *MidStudentJobFairEnroll) UnmarshalJSON(data []byte) error {
 
 type MidStudentJobFairEnrollList struct {
 	MidStudentJobFairEnroll
-	List  []*MidStudentJobFairEnroll
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentJobFairEnroll
+	Total  int
+}
+
+func (m *MidStudentJobFairEnroll) Collapse() {
 }
 
 func NewMidStudentJobFairEnrollList() *MidStudentJobFairEnrollList {
 	l := &MidStudentJobFairEnrollList{
 		MidStudentJobFairEnroll{},
+		make(map[string]int),
 		make([]*MidStudentJobFairEnroll, 0, 32),
 		0,
 	}
@@ -1413,6 +1833,7 @@ func NewMidStudentJobFairEnrollList() *MidStudentJobFairEnrollList {
 func (l *MidStudentJobFairEnrollList) NewModel() nborm.Model {
 	m := &MidStudentJobFairEnroll{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1448,7 +1869,11 @@ func (l *MidStudentJobFairEnrollList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentJobFairEnrollList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentJobFairEnrollList) Filter(f func(m *MidStudentJobFairEnroll) bool) []*MidStudentJobFairEnroll {
@@ -1459,6 +1884,28 @@ func (l *MidStudentJobFairEnrollList) Filter(f func(m *MidStudentJobFairEnroll) 
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentJobFairEnrollList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.JobFairID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobFairID.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentJobFairShare() *MidStudentJobFairShare {
@@ -1516,13 +1963,18 @@ func (m *MidStudentJobFairShare) UnmarshalJSON(data []byte) error {
 
 type MidStudentJobFairShareList struct {
 	MidStudentJobFairShare
-	List  []*MidStudentJobFairShare
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentJobFairShare
+	Total  int
+}
+
+func (m *MidStudentJobFairShare) Collapse() {
 }
 
 func NewMidStudentJobFairShareList() *MidStudentJobFairShareList {
 	l := &MidStudentJobFairShareList{
 		MidStudentJobFairShare{},
+		make(map[string]int),
 		make([]*MidStudentJobFairShare, 0, 32),
 		0,
 	}
@@ -1534,6 +1986,7 @@ func NewMidStudentJobFairShareList() *MidStudentJobFairShareList {
 func (l *MidStudentJobFairShareList) NewModel() nborm.Model {
 	m := &MidStudentJobFairShare{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1569,7 +2022,11 @@ func (l *MidStudentJobFairShareList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentJobFairShareList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentJobFairShareList) Filter(f func(m *MidStudentJobFairShare) bool) []*MidStudentJobFairShare {
@@ -1580,6 +2037,28 @@ func (l *MidStudentJobFairShareList) Filter(f func(m *MidStudentJobFairShare) bo
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentJobFairShareList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.JobFairID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobFairID.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewJobFairStatistic() *JobFairStatistic {
@@ -1638,13 +2117,18 @@ func (m *JobFairStatistic) UnmarshalJSON(data []byte) error {
 
 type JobFairStatisticList struct {
 	JobFairStatistic
-	List  []*JobFairStatistic
-	Total int
+	dupMap map[string]int
+	List   []*JobFairStatistic
+	Total  int
+}
+
+func (m *JobFairStatistic) Collapse() {
 }
 
 func NewJobFairStatisticList() *JobFairStatisticList {
 	l := &JobFairStatisticList{
 		JobFairStatistic{},
+		make(map[string]int),
 		make([]*JobFairStatistic, 0, 32),
 		0,
 	}
@@ -1656,6 +2140,7 @@ func NewJobFairStatisticList() *JobFairStatisticList {
 func (l *JobFairStatisticList) NewModel() nborm.Model {
 	m := &JobFairStatistic{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1691,7 +2176,11 @@ func (l *JobFairStatisticList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *JobFairStatisticList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *JobFairStatisticList) Filter(f func(m *JobFairStatistic) bool) []*JobFairStatistic {
@@ -1702,6 +2191,34 @@ func (l *JobFairStatisticList) Filter(f func(m *JobFairStatistic) bool) []*JobFa
 		}
 	}
 	return ll
+}
+
+func (l *JobFairStatisticList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.JobFairID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobFairID.Value()))
+	}
+	if lastModel.ReadCount.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ReadCount.Value()))
+	}
+	if lastModel.EnrollCount.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnrollCount.Value()))
+	}
+	if lastModel.ShareCount.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ShareCount.Value()))
+	}
+	if lastModel.CreateDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateDate.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewJobFair() *JobFair {
@@ -1763,13 +2280,18 @@ func (m *JobFair) UnmarshalJSON(data []byte) error {
 
 type JobFairList struct {
 	JobFair
-	List  []*JobFair
-	Total int
+	dupMap map[string]int
+	List   []*JobFair
+	Total  int
+}
+
+func (m *JobFair) Collapse() {
 }
 
 func NewJobFairList() *JobFairList {
 	l := &JobFairList{
 		JobFair{},
+		make(map[string]int),
 		make([]*JobFair, 0, 32),
 		0,
 	}
@@ -1781,6 +2303,7 @@ func NewJobFairList() *JobFairList {
 func (l *JobFairList) NewModel() nborm.Model {
 	m := &JobFair{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1816,7 +2339,11 @@ func (l *JobFairList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *JobFairList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *JobFairList) Filter(f func(m *JobFair) bool) []*JobFair {
@@ -1827,6 +2354,43 @@ func (l *JobFairList) Filter(f func(m *JobFair) bool) []*JobFair {
 		}
 	}
 	return ll
+}
+
+func (l *JobFairList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.StartTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StartTime.Value()))
+	}
+	if lastModel.EndTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EndTime.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.Comment.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Comment.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewJobFlag() *JobFlag {
@@ -1890,13 +2454,18 @@ func (m *JobFlag) UnmarshalJSON(data []byte) error {
 
 type JobFlagList struct {
 	JobFlag
-	List  []*JobFlag
-	Total int
+	dupMap map[string]int
+	List   []*JobFlag
+	Total  int
+}
+
+func (m *JobFlag) Collapse() {
 }
 
 func NewJobFlagList() *JobFlagList {
 	l := &JobFlagList{
 		JobFlag{},
+		make(map[string]int),
 		make([]*JobFlag, 0, 32),
 		0,
 	}
@@ -1908,6 +2477,7 @@ func NewJobFlagList() *JobFlagList {
 func (l *JobFlagList) NewModel() nborm.Model {
 	m := &JobFlag{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1943,7 +2513,11 @@ func (l *JobFlagList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *JobFlagList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *JobFlagList) Filter(f func(m *JobFlag) bool) []*JobFlag {
@@ -1954,6 +2528,49 @@ func (l *JobFlagList) Filter(f func(m *JobFlag) bool) []*JobFlag {
 		}
 	}
 	return ll
+}
+
+func (l *JobFlagList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.Type.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Type.Value()))
+	}
+	if lastModel.Value.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Value.Value()))
+	}
+	if lastModel.Order.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Order.Value()))
+	}
+	if lastModel.ParentID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ParentID.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.Operator.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Operator.Value()))
+	}
+	if lastModel.Comment.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Comment.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeLanguageSkill() *MidStudentResumeLanguageSkill {
@@ -2009,13 +2626,18 @@ func (m *MidStudentResumeLanguageSkill) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeLanguageSkillList struct {
 	MidStudentResumeLanguageSkill
-	List  []*MidStudentResumeLanguageSkill
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeLanguageSkill
+	Total  int
+}
+
+func (m *MidStudentResumeLanguageSkill) Collapse() {
 }
 
 func NewMidStudentResumeLanguageSkillList() *MidStudentResumeLanguageSkillList {
 	l := &MidStudentResumeLanguageSkillList{
 		MidStudentResumeLanguageSkill{},
+		make(map[string]int),
 		make([]*MidStudentResumeLanguageSkill, 0, 32),
 		0,
 	}
@@ -2027,6 +2649,7 @@ func NewMidStudentResumeLanguageSkillList() *MidStudentResumeLanguageSkillList {
 func (l *MidStudentResumeLanguageSkillList) NewModel() nborm.Model {
 	m := &MidStudentResumeLanguageSkill{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2062,7 +2685,11 @@ func (l *MidStudentResumeLanguageSkillList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeLanguageSkillList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeLanguageSkillList) Filter(f func(m *MidStudentResumeLanguageSkill) bool) []*MidStudentResumeLanguageSkill {
@@ -2073,6 +2700,22 @@ func (l *MidStudentResumeLanguageSkillList) Filter(f func(m *MidStudentResumeLan
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentResumeLanguageSkillList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.LanguageSkillID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.LanguageSkillID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeStudentTrain() *MidStudentResumeStudentTrain {
@@ -2128,13 +2771,18 @@ func (m *MidStudentResumeStudentTrain) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeStudentTrainList struct {
 	MidStudentResumeStudentTrain
-	List  []*MidStudentResumeStudentTrain
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeStudentTrain
+	Total  int
+}
+
+func (m *MidStudentResumeStudentTrain) Collapse() {
 }
 
 func NewMidStudentResumeStudentTrainList() *MidStudentResumeStudentTrainList {
 	l := &MidStudentResumeStudentTrainList{
 		MidStudentResumeStudentTrain{},
+		make(map[string]int),
 		make([]*MidStudentResumeStudentTrain, 0, 32),
 		0,
 	}
@@ -2146,6 +2794,7 @@ func NewMidStudentResumeStudentTrainList() *MidStudentResumeStudentTrainList {
 func (l *MidStudentResumeStudentTrainList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentTrain{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2181,7 +2830,11 @@ func (l *MidStudentResumeStudentTrainList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeStudentTrainList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeStudentTrainList) Filter(f func(m *MidStudentResumeStudentTrain) bool) []*MidStudentResumeStudentTrain {
@@ -2192,6 +2845,22 @@ func (l *MidStudentResumeStudentTrainList) Filter(f func(m *MidStudentResumeStud
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentResumeStudentTrainList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.TrainID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TrainID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeStudentHonor() *MidStudentResumeStudentHonor {
@@ -2247,13 +2916,18 @@ func (m *MidStudentResumeStudentHonor) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeStudentHonorList struct {
 	MidStudentResumeStudentHonor
-	List  []*MidStudentResumeStudentHonor
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeStudentHonor
+	Total  int
+}
+
+func (m *MidStudentResumeStudentHonor) Collapse() {
 }
 
 func NewMidStudentResumeStudentHonorList() *MidStudentResumeStudentHonorList {
 	l := &MidStudentResumeStudentHonorList{
 		MidStudentResumeStudentHonor{},
+		make(map[string]int),
 		make([]*MidStudentResumeStudentHonor, 0, 32),
 		0,
 	}
@@ -2265,6 +2939,7 @@ func NewMidStudentResumeStudentHonorList() *MidStudentResumeStudentHonorList {
 func (l *MidStudentResumeStudentHonorList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentHonor{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2300,7 +2975,11 @@ func (l *MidStudentResumeStudentHonorList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeStudentHonorList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeStudentHonorList) Filter(f func(m *MidStudentResumeStudentHonor) bool) []*MidStudentResumeStudentHonor {
@@ -2311,6 +2990,22 @@ func (l *MidStudentResumeStudentHonorList) Filter(f func(m *MidStudentResumeStud
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentResumeStudentHonorList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.HonorID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.HonorID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeStudentExperience() *MidStudentResumeStudentExperience {
@@ -2366,13 +3061,18 @@ func (m *MidStudentResumeStudentExperience) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeStudentExperienceList struct {
 	MidStudentResumeStudentExperience
-	List  []*MidStudentResumeStudentExperience
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeStudentExperience
+	Total  int
+}
+
+func (m *MidStudentResumeStudentExperience) Collapse() {
 }
 
 func NewMidStudentResumeStudentExperienceList() *MidStudentResumeStudentExperienceList {
 	l := &MidStudentResumeStudentExperienceList{
 		MidStudentResumeStudentExperience{},
+		make(map[string]int),
 		make([]*MidStudentResumeStudentExperience, 0, 32),
 		0,
 	}
@@ -2384,6 +3084,7 @@ func NewMidStudentResumeStudentExperienceList() *MidStudentResumeStudentExperien
 func (l *MidStudentResumeStudentExperienceList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentExperience{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2419,7 +3120,11 @@ func (l *MidStudentResumeStudentExperienceList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeStudentExperienceList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeStudentExperienceList) Filter(f func(m *MidStudentResumeStudentExperience) bool) []*MidStudentResumeStudentExperience {
@@ -2430,6 +3135,22 @@ func (l *MidStudentResumeStudentExperienceList) Filter(f func(m *MidStudentResum
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentResumeStudentExperienceList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.ExperienceID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ExperienceID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewMidStudentResumeStudentSkill() *MidStudentResumeStudentSkill {
@@ -2485,13 +3206,18 @@ func (m *MidStudentResumeStudentSkill) UnmarshalJSON(data []byte) error {
 
 type MidStudentResumeStudentSkillList struct {
 	MidStudentResumeStudentSkill
-	List  []*MidStudentResumeStudentSkill
-	Total int
+	dupMap map[string]int
+	List   []*MidStudentResumeStudentSkill
+	Total  int
+}
+
+func (m *MidStudentResumeStudentSkill) Collapse() {
 }
 
 func NewMidStudentResumeStudentSkillList() *MidStudentResumeStudentSkillList {
 	l := &MidStudentResumeStudentSkillList{
 		MidStudentResumeStudentSkill{},
+		make(map[string]int),
 		make([]*MidStudentResumeStudentSkill, 0, 32),
 		0,
 	}
@@ -2503,6 +3229,7 @@ func NewMidStudentResumeStudentSkillList() *MidStudentResumeStudentSkillList {
 func (l *MidStudentResumeStudentSkillList) NewModel() nborm.Model {
 	m := &MidStudentResumeStudentSkill{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2538,7 +3265,11 @@ func (l *MidStudentResumeStudentSkillList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *MidStudentResumeStudentSkillList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *MidStudentResumeStudentSkillList) Filter(f func(m *MidStudentResumeStudentSkill) bool) []*MidStudentResumeStudentSkill {
@@ -2549,6 +3280,22 @@ func (l *MidStudentResumeStudentSkillList) Filter(f func(m *MidStudentResumeStud
 		}
 	}
 	return ll
+}
+
+func (l *MidStudentResumeStudentSkillList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.SkillID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SkillID.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewStudentTrain() *StudentTrain {
@@ -2635,13 +3382,21 @@ func (m *StudentTrain) UnmarshalJSON(data []byte) error {
 
 type StudentTrainList struct {
 	StudentTrain
-	List  []*StudentTrain
-	Total int
+	dupMap map[string]int
+	List   []*StudentTrain
+	Total  int
+}
+
+func (m *StudentTrain) Collapse() {
+	if m.StudentResume.IsSynced() {
+		m.StudentResume.Collapse()
+	}
 }
 
 func NewStudentTrainList() *StudentTrainList {
 	l := &StudentTrainList{
 		StudentTrain{},
+		make(map[string]int),
 		make([]*StudentTrain, 0, 32),
 		0,
 	}
@@ -2653,6 +3408,7 @@ func NewStudentTrainList() *StudentTrainList {
 func (l *StudentTrainList) NewModel() nborm.Model {
 	m := &StudentTrain{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2688,14 +3444,11 @@ func (l *StudentTrainList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentTrainList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.StudentResume = rm.StudentResume
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].StudentResume = l.List[l.Len()-1].StudentResume
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -2707,6 +3460,49 @@ func (l *StudentTrainList) Filter(f func(m *StudentTrain) bool) []*StudentTrain 
 		}
 	}
 	return ll
+}
+
+func (l *StudentTrainList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.InstitutionName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.InstitutionName.Value()))
+	}
+	if lastModel.StartDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StartDate.Value()))
+	}
+	if lastModel.EndDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EndDate.Value()))
+	}
+	if lastModel.Degree.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Degree.Value()))
+	}
+	if lastModel.Major.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Major.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewStudentHonor() *StudentHonor {
@@ -2790,13 +3586,21 @@ func (m *StudentHonor) UnmarshalJSON(data []byte) error {
 
 type StudentHonorList struct {
 	StudentHonor
-	List  []*StudentHonor
-	Total int
+	dupMap map[string]int
+	List   []*StudentHonor
+	Total  int
+}
+
+func (m *StudentHonor) Collapse() {
+	if m.StudentResume.IsSynced() {
+		m.StudentResume.Collapse()
+	}
 }
 
 func NewStudentHonorList() *StudentHonorList {
 	l := &StudentHonorList{
 		StudentHonor{},
+		make(map[string]int),
 		make([]*StudentHonor, 0, 32),
 		0,
 	}
@@ -2808,6 +3612,7 @@ func NewStudentHonorList() *StudentHonorList {
 func (l *StudentHonorList) NewModel() nborm.Model {
 	m := &StudentHonor{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -2843,14 +3648,11 @@ func (l *StudentHonorList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentHonorList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.StudentResume = rm.StudentResume
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].StudentResume = l.List[l.Len()-1].StudentResume
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -2862,6 +3664,40 @@ func (l *StudentHonorList) Filter(f func(m *StudentHonor) bool) []*StudentHonor 
 		}
 	}
 	return ll
+}
+
+func (l *StudentHonorList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.GrantDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GrantDate.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewStudentExperience() *StudentExperience {
@@ -2948,13 +3784,21 @@ func (m *StudentExperience) UnmarshalJSON(data []byte) error {
 
 type StudentExperienceList struct {
 	StudentExperience
-	List  []*StudentExperience
-	Total int
+	dupMap map[string]int
+	List   []*StudentExperience
+	Total  int
+}
+
+func (m *StudentExperience) Collapse() {
+	if m.StudentResume.IsSynced() {
+		m.StudentResume.Collapse()
+	}
 }
 
 func NewStudentExperienceList() *StudentExperienceList {
 	l := &StudentExperienceList{
 		StudentExperience{},
+		make(map[string]int),
 		make([]*StudentExperience, 0, 32),
 		0,
 	}
@@ -2966,6 +3810,7 @@ func NewStudentExperienceList() *StudentExperienceList {
 func (l *StudentExperienceList) NewModel() nborm.Model {
 	m := &StudentExperience{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3001,14 +3846,11 @@ func (l *StudentExperienceList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentExperienceList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.StudentResume = rm.StudentResume
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].StudentResume = l.List[l.Len()-1].StudentResume
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -3020,6 +3862,49 @@ func (l *StudentExperienceList) Filter(f func(m *StudentExperience) bool) []*Stu
 		}
 	}
 	return ll
+}
+
+func (l *StudentExperienceList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.CompanyName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CompanyName.Value()))
+	}
+	if lastModel.StartDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StartDate.Value()))
+	}
+	if lastModel.EndDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EndDate.Value()))
+	}
+	if lastModel.SectorID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.SectorID.Value()))
+	}
+	if lastModel.Position.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Position.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewStudentSkill() *StudentSkill {
@@ -3102,13 +3987,21 @@ func (m *StudentSkill) UnmarshalJSON(data []byte) error {
 
 type StudentSkillList struct {
 	StudentSkill
-	List  []*StudentSkill
-	Total int
+	dupMap map[string]int
+	List   []*StudentSkill
+	Total  int
+}
+
+func (m *StudentSkill) Collapse() {
+	if m.StudentResume.IsSynced() {
+		m.StudentResume.Collapse()
+	}
 }
 
 func NewStudentSkillList() *StudentSkillList {
 	l := &StudentSkillList{
 		StudentSkill{},
+		make(map[string]int),
 		make([]*StudentSkill, 0, 32),
 		0,
 	}
@@ -3120,6 +4013,7 @@ func NewStudentSkillList() *StudentSkillList {
 func (l *StudentSkillList) NewModel() nborm.Model {
 	m := &StudentSkill{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3155,14 +4049,11 @@ func (l *StudentSkillList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentSkillList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.StudentResume = rm.StudentResume
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].StudentResume = l.List[l.Len()-1].StudentResume
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -3176,6 +4067,37 @@ func (l *StudentSkillList) Filter(f func(m *StudentSkill) bool) []*StudentSkill 
 	return ll
 }
 
+func (l *StudentSkillList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.Name.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.Value()))
+	}
+	if lastModel.Description.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Description.Value()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
+}
+
 func NewStudentResume() *StudentResume {
 	m := &StudentResume{}
 	nborm.InitModel(m)
@@ -3186,18 +4108,23 @@ func NewStudentResume() *StudentResume {
 func (m *StudentResume) InitRel() {
 	m.StudentTrain = &StudentTrainList{}
 	m.StudentTrain.SetParent(m)
+	m.StudentTrain.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentTrain)
 	m.StudentHonor = &StudentHonorList{}
 	m.StudentHonor.SetParent(m)
+	m.StudentHonor.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentHonor)
 	m.StudentExperience = &StudentExperienceList{}
 	m.StudentExperience.SetParent(m)
+	m.StudentExperience.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentExperience)
 	m.StudentSkill = &StudentSkillList{}
 	m.StudentSkill.SetParent(m)
+	m.StudentSkill.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentSkill)
 	m.StudentLanguageType = &JobFlagList{}
 	m.StudentLanguageType.SetParent(m)
+	m.StudentLanguageType.dupMap = make(map[string]int)
 	nborm.InitModel(m.StudentLanguageType)
 	var mm0 *MidStudentResumeStudentTrain
 	var mm1 *MidStudentResumeStudentHonor
@@ -3322,13 +4249,33 @@ func (m *StudentResume) UnmarshalJSON(data []byte) error {
 
 type StudentResumeList struct {
 	StudentResume
-	List  []*StudentResume
-	Total int
+	dupMap map[string]int
+	List   []*StudentResume
+	Total  int
+}
+
+func (m *StudentResume) Collapse() {
+	if m.StudentTrain.IsSynced() {
+		m.StudentTrain.Collapse()
+	}
+	if m.StudentHonor.IsSynced() {
+		m.StudentHonor.Collapse()
+	}
+	if m.StudentExperience.IsSynced() {
+		m.StudentExperience.Collapse()
+	}
+	if m.StudentSkill.IsSynced() {
+		m.StudentSkill.Collapse()
+	}
+	if m.StudentLanguageType.IsSynced() {
+		m.StudentLanguageType.Collapse()
+	}
 }
 
 func NewStudentResumeList() *StudentResumeList {
 	l := &StudentResumeList{
 		StudentResume{},
+		make(map[string]int),
 		make([]*StudentResume, 0, 32),
 		0,
 	}
@@ -3340,6 +4287,7 @@ func NewStudentResumeList() *StudentResumeList {
 func (l *StudentResumeList) NewModel() nborm.Model {
 	m := &StudentResume{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3375,18 +4323,20 @@ func (l *StudentResumeList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentResumeList) Collapse() {
-	if len(l.List) < 2 {
-		return
-	}
-	lm := l.List[len(l.List)-2]
-	rm := l.List[len(l.List)-1]
-	if nborm.IsPrimaryKeyEqual(lm, rm) {
-		lm.StudentTrain.List = append(lm.StudentTrain.List, rm.StudentTrain.List...)
-		lm.StudentHonor.List = append(lm.StudentHonor.List, rm.StudentHonor.List...)
-		lm.StudentExperience.List = append(lm.StudentExperience.List, rm.StudentExperience.List...)
-		lm.StudentSkill.List = append(lm.StudentSkill.List, rm.StudentSkill.List...)
-		lm.StudentLanguageType.List = append(lm.StudentLanguageType.List, rm.StudentLanguageType.List...)
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].StudentTrain.checkDup()
+		l.List[idx].StudentTrain.List = append(l.List[idx].StudentTrain.List, l.List[l.Len()-1].StudentTrain.List...)
+		l.List[idx].StudentHonor.checkDup()
+		l.List[idx].StudentHonor.List = append(l.List[idx].StudentHonor.List, l.List[l.Len()-1].StudentHonor.List...)
+		l.List[idx].StudentExperience.checkDup()
+		l.List[idx].StudentExperience.List = append(l.List[idx].StudentExperience.List, l.List[l.Len()-1].StudentExperience.List...)
+		l.List[idx].StudentSkill.checkDup()
+		l.List[idx].StudentSkill.List = append(l.List[idx].StudentSkill.List, l.List[l.Len()-1].StudentSkill.List...)
+		l.List[idx].StudentLanguageType.checkDup()
+		l.List[idx].StudentLanguageType.List = append(l.List[idx].StudentLanguageType.List, l.List[l.Len()-1].StudentLanguageType.List...)
 		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
 	}
 }
 
@@ -3398,6 +4348,31 @@ func (l *StudentResumeList) Filter(f func(m *StudentResume) bool) []*StudentResu
 		}
 	}
 	return ll
+}
+
+func (l *StudentResumeList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.Value()))
+	}
+	if lastModel.Introduction.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Introduction.Value()))
+	}
+	if lastModel.CreateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.Value()))
+	}
+	if lastModel.UpdateTime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseSnapshot() *EnterpriseSnapshot {
@@ -3453,13 +4428,18 @@ func (m *EnterpriseSnapshot) UnmarshalJSON(data []byte) error {
 
 type EnterpriseSnapshotList struct {
 	EnterpriseSnapshot
-	List  []*EnterpriseSnapshot
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseSnapshot
+	Total  int
+}
+
+func (m *EnterpriseSnapshot) Collapse() {
 }
 
 func NewEnterpriseSnapshotList() *EnterpriseSnapshotList {
 	l := &EnterpriseSnapshotList{
 		EnterpriseSnapshot{},
+		make(map[string]int),
 		make([]*EnterpriseSnapshot, 0, 32),
 		0,
 	}
@@ -3471,6 +4451,7 @@ func NewEnterpriseSnapshotList() *EnterpriseSnapshotList {
 func (l *EnterpriseSnapshotList) NewModel() nborm.Model {
 	m := &EnterpriseSnapshot{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3506,7 +4487,11 @@ func (l *EnterpriseSnapshotList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseSnapshotList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseSnapshotList) Filter(f func(m *EnterpriseSnapshot) bool) []*EnterpriseSnapshot {
@@ -3517,6 +4502,25 @@ func (l *EnterpriseSnapshotList) Filter(f func(m *EnterpriseSnapshot) bool) []*E
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseSnapshotList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.EnterpriseID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnterpriseID.Value()))
+	}
+	if lastModel.Info.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Info.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewEnterpriseJobSnapshot() *EnterpriseJobSnapshot {
@@ -3572,13 +4576,18 @@ func (m *EnterpriseJobSnapshot) UnmarshalJSON(data []byte) error {
 
 type EnterpriseJobSnapshotList struct {
 	EnterpriseJobSnapshot
-	List  []*EnterpriseJobSnapshot
-	Total int
+	dupMap map[string]int
+	List   []*EnterpriseJobSnapshot
+	Total  int
+}
+
+func (m *EnterpriseJobSnapshot) Collapse() {
 }
 
 func NewEnterpriseJobSnapshotList() *EnterpriseJobSnapshotList {
 	l := &EnterpriseJobSnapshotList{
 		EnterpriseJobSnapshot{},
+		make(map[string]int),
 		make([]*EnterpriseJobSnapshot, 0, 32),
 		0,
 	}
@@ -3590,6 +4599,7 @@ func NewEnterpriseJobSnapshotList() *EnterpriseJobSnapshotList {
 func (l *EnterpriseJobSnapshotList) NewModel() nborm.Model {
 	m := &EnterpriseJobSnapshot{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3625,7 +4635,11 @@ func (l *EnterpriseJobSnapshotList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *EnterpriseJobSnapshotList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *EnterpriseJobSnapshotList) Filter(f func(m *EnterpriseJobSnapshot) bool) []*EnterpriseJobSnapshot {
@@ -3636,6 +4650,25 @@ func (l *EnterpriseJobSnapshotList) Filter(f func(m *EnterpriseJobSnapshot) bool
 		}
 	}
 	return ll
+}
+
+func (l *EnterpriseJobSnapshotList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.JobID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.JobID.Value()))
+	}
+	if lastModel.Into.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Into.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }
 
 func NewStudentResumeSnapshot() *StudentResumeSnapshot {
@@ -3691,13 +4724,18 @@ func (m *StudentResumeSnapshot) UnmarshalJSON(data []byte) error {
 
 type StudentResumeSnapshotList struct {
 	StudentResumeSnapshot
-	List  []*StudentResumeSnapshot
-	Total int
+	dupMap map[string]int
+	List   []*StudentResumeSnapshot
+	Total  int
+}
+
+func (m *StudentResumeSnapshot) Collapse() {
 }
 
 func NewStudentResumeSnapshotList() *StudentResumeSnapshotList {
 	l := &StudentResumeSnapshotList{
 		StudentResumeSnapshot{},
+		make(map[string]int),
 		make([]*StudentResumeSnapshot, 0, 32),
 		0,
 	}
@@ -3709,6 +4747,7 @@ func NewStudentResumeSnapshotList() *StudentResumeSnapshotList {
 func (l *StudentResumeSnapshotList) NewModel() nborm.Model {
 	m := &StudentResumeSnapshot{}
 	m.SetParent(l.GetParent())
+	m.SetConList(l)
 	nborm.InitModel(m)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -3744,7 +4783,11 @@ func (l *StudentResumeSnapshotList) UnmarshalJSON(b []byte) error {
 }
 
 func (l *StudentResumeSnapshotList) Collapse() {
-	return
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
 }
 
 func (l *StudentResumeSnapshotList) Filter(f func(m *StudentResumeSnapshot) bool) []*StudentResumeSnapshot {
@@ -3755,4 +4798,23 @@ func (l *StudentResumeSnapshotList) Filter(f func(m *StudentResumeSnapshot) bool
 		}
 	}
 	return ll
+}
+
+func (l *StudentResumeSnapshotList) checkDup() int {
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.ID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.Value()))
+	}
+	if lastModel.ResumeID.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResumeID.Value()))
+	}
+	if lastModel.Info.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Info.Value()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
 }

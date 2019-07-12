@@ -56,6 +56,8 @@ type Meta struct {
 	havings    havingList
 	updates    updateList
 	joinWheres whereList
+	distMap    map[string]int
+	conList    ModelList
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -282,6 +284,14 @@ func (m *Meta) NewUpdate(field Field, expr *Expr, values ...interface{}) {
 	expr.exp = fmt.Sprintf("@ = %s", expr.exp)
 	expr.fields = append([]Field{field}, expr.fields...)
 	m.appendUpdate(newUpdate(expr, values...))
+}
+
+func (m *Meta) SetConList(l ModelList) {
+	m.conList = l
+}
+
+func (m *Meta) getConList() ModelList {
+	return m.conList
 }
 
 type fieldStatus int

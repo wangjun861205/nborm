@@ -215,12 +215,13 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 		if err := rows.Scan(addrs...); err != nil {
 			return err
 		}
-		for _, f := range collFuncs {
-			f()
-		}
 		for _, m := range models {
 			m.addModelStatus(synced)
+			if conList := m.getConList(); conList != nil {
+				conList.addModelStatus(synced)
+			}
 		}
+		model.Collapse()
 	}
 	if err := rows.Err(); err != nil {
 		return err
@@ -555,7 +556,7 @@ func getJoinTabRef(model Model, refs *[]string) {
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.Object.(Model)
 		if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
-			getTabRef(subModel, refs)
+			getJoinTabRef(subModel, refs)
 		}
 	}
 }
@@ -898,10 +899,19 @@ func marshalModel(model Model, bs *[]byte) {
 				if subModel.checkStatus(synced | containValue) {
 					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.Name))...)
 					marshalModel(subModel, bs)
+				} else {
+					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.Name))...)
+					if _, ok := subModel.(ModelList); ok {
+						*bs = append(*bs, []byte("[], ")...)
+					} else {
+						*bs = append(*bs, []byte("null, ")...)
+					}
 				}
 			}
 			*bs = bytes.TrimSuffix(*bs, []byte(", "))
 			*bs = append(*bs, []byte("}")...)
+		} else {
+			*bs = append(*bs, []byte("null, ")...)
 		}
 	}
 }

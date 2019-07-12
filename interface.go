@@ -105,6 +105,8 @@ type Model interface {
 	getAggExps() []*aggExp
 	appendUpdate(*update)
 	getUpdateList() updateList
+	getConList() ModelList
+	Collapse()
 }
 
 type ModelList interface {
@@ -113,6 +115,5 @@ type ModelList interface {
 	SetTotal(int)
 	GetTotal() int
 	Len() int
-	Collapse()
 	GetList() []Model
 }

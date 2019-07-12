@@ -26,6 +26,19 @@ func (r RelationInfo) toAppendJoinClause() string {
 	return builder.String()
 }
 
+func (r RelationInfo) toRevAppendJoinClause() string {
+	if len(r.Fields)%2 != 0 {
+		panic(fmt.Errorf("invalid RelationInfo.Fields length(%d)", len(r.Fields)))
+	}
+	var builder strings.Builder
+	for i := len(r.Fields) - 2; i >= 0; i-- {
+		if i%2 == 0 {
+			builder.WriteString(fmt.Sprintf(" JOIN %s ON %s = %s", r.Fields[i].fullTabName(), r.Fields[i+1].fullColName(), r.Fields[i].fullColName()))
+		}
+	}
+	return builder.String()
+}
+
 func (r RelationInfo) getMidJoinWheres() whereList {
 	if len(r.Fields)%2 != 0 {
 		panic(fmt.Errorf("invalid RelationInfo.Fields length(%d)", len(r.Fields)))

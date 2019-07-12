@@ -63,10 +63,9 @@ func getField(model Model, fieldName string) Field {
 	panic(fmt.Sprintf("field not exists(%s.%s.%s)", model.DB(), model.Tab(), fieldName))
 }
 
-func getFieldsForScan(model Model) ([]interface{}, []Model, []func()) {
+func getFieldsForScan(model Model) ([]interface{}, []Model) {
 	addrs := make([]interface{}, 0, 32)
 	models := make([]Model, 0, 16)
-	collFuncs := make([]func(), 0, 8)
 	selectFields := getSelectFields(model)
 	if l, ok := model.(ModelList); ok {
 		newModel := l.NewModel()
@@ -81,7 +80,6 @@ func getFieldsForScan(model Model) ([]interface{}, []Model, []func()) {
 			}
 		}
 		models = append(models, newModel)
-		collFuncs = append(collFuncs, func() { l.Collapse() })
 	} else {
 		for _, f := range selectFields {
 			addrs = append(addrs, f)
@@ -106,7 +104,6 @@ func getFieldsForScan(model Model) ([]interface{}, []Model, []func()) {
 					}
 				}
 				models = append(models, newModel)
-				collFuncs = append(collFuncs, func() { sl.Collapse() })
 			} else {
 				newModel := models[0].Relations()[i].Object.(Model)
 				allFields := getAllFields(newModel)
@@ -123,7 +120,7 @@ func getFieldsForScan(model Model) ([]interface{}, []Model, []func()) {
 			}
 		}
 	}
-	return addrs, models, collFuncs
+	return addrs, models
 }
 
 func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
@@ -133,13 +130,12 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*vl = append(*vl, field.Value())
 }
 
-func getJoinModels(classModel Model, instanceModel Model, models *[]Model, fields *[]Field, collFuncs *[]func()) {
+func getJoinModels(classModel Model, instanceModel Model, models *[]Model, fields *[]Field) {
 	if instanceModel == nil {
 		if l, ok := classModel.(ModelList); ok {
 			m, fs := newModelAndSelectFields(l, l)
 			*models = append(*models, m)
 			*fields = append(*fields, fs...)
-			*collFuncs = append(*collFuncs, l.Collapse)
 			instanceModel = m
 		} else {
 			*models = append(*models, classModel)
@@ -156,12 +152,11 @@ func getJoinModels(classModel Model, instanceModel Model, models *[]Model, field
 					newSubModel, selectFields := newModelAndSelectFields(l, subInstanceModel.(ModelList))
 					*models = append(*models, newSubModel)
 					*fields = append(*fields, selectFields...)
-					*collFuncs = append(*collFuncs, l.Collapse)
-					getJoinModels(subClassModel, newSubModel, models, fields, collFuncs)
+					getJoinModels(subClassModel, newSubModel, models, fields)
 				} else {
 					*models = append(*models, subInstanceModel)
 					*fields = append(*fields, getJoinInstanceSelectFields(subClassModel, subInstanceModel)...)
-					getJoinModels(subClassModel, subInstanceModel, models, fields, collFuncs)
+					getJoinModels(subClassModel, subInstanceModel, models, fields)
 				}
 			}
 		}
@@ -206,8 +201,7 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 	for rows.Next() {
 		models := make([]Model, 0, 8)
 		fields := make([]Field, 0, 64)
-		collFuncs := make([]func(), 0, 8)
-		getJoinModels(model, nil, &models, &fields, &collFuncs)
+		getJoinModels(model, nil, &models, &fields)
 		addrs := make([]interface{}, 0, len(fields))
 		for _, f := range fields {
 			addrs = append(addrs, f)
@@ -239,6 +233,18 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 	return nil
 }
 
+func activeRel(model Model) {
+	for _, relInfo := range model.Relations() {
+		if relInfo.Fields[0].IsValid() {
+			srcField := relInfo.Fields[0]
+			dstField := relInfo.Fields[len(relInfo.Fields)-1]
+			dstField.(Model).setRevJoinClause(relInfo.toRevAppendJoinClause())
+			dstField.(Model).appendWhere(relInfo.getMidJoinWheres()...)
+			dstField.AndWhere("=", srcField.Value())
+		}
+	}
+}
+
 func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
 	if l, ok := model.(ModelList); ok {
 		rows, err := exe.Query(stmt, whereValues...)
@@ -247,15 +253,13 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		}
 		defer rows.Close()
 		for rows.Next() {
-			fields, models, collFuncs := getFieldsForScan(model)
+			fields, models := getFieldsForScan(model)
 			if err := rows.Scan(fields...); err != nil {
 				return err
 			}
-			for _, f := range collFuncs {
-				f()
-			}
 			for _, m := range models {
 				m.addModelStatus(synced)
+				activeRel(m)
 			}
 		}
 		if err := rows.Err(); err != nil {
@@ -267,7 +271,7 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		}
 		l.SetTotal(rowCount)
 	} else {
-		fields, models, collFuncs := getFieldsForScan(model)
+		fields, models := getFieldsForScan(model)
 		var isJoin bool
 		for _, rel := range model.Relations() {
 			if rel.Object.(Model).getModelStatus()&forJoin == forJoin {
@@ -282,15 +286,13 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			}
 			defer rows.Close()
 			for rows.Next() {
-				fields, models, collFuncs := getFieldsForScan(model)
+				fields, models := getFieldsForScan(model)
 				if err := rows.Scan(fields...); err != nil {
 					return err
 				}
-				for _, f := range collFuncs {
-					f()
-				}
 				for _, m := range models {
 					m.addModelStatus(synced)
+					activeRel(m)
 				}
 			}
 			return rows.Err()
@@ -298,11 +300,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
 			return err
 		}
-		for _, f := range collFuncs {
-			f()
-		}
 		for _, m := range models {
 			m.addModelStatus(synced)
+			activeRel(m)
 		}
 	}
 	return nil
@@ -522,11 +522,9 @@ func genPlaceHolder(val []interface{}) string {
 }
 
 func getTabRef(model Model, refs *[]string) {
-	if parent := model.GetParent(); parent != nil {
-		relInfo := searchRelation(parent, model)
-		*refs = append(*refs, relInfo.toAppendJoinClause())
-	} else {
-		*refs = append(*refs, model.fullTabName())
+	*refs = append(*refs, model.fullTabName())
+	if model.getRevJoinClause() != "" {
+		*refs = append(*refs, model.getRevJoinClause())
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.Object.(Model)
@@ -569,9 +567,6 @@ func genJoinTabRef(model Model) string {
 
 func getWheres(model Model, wheres *whereList) {
 	if model.checkStatus(containWhere) {
-		if parent := model.GetParent(); parent != nil {
-			*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
-		}
 		*wheres = append(*wheres, model.getWheres()...)
 	}
 	if model.checkStatus(containSubWhere) {
@@ -584,19 +579,6 @@ func getWheres(model Model, wheres *whereList) {
 
 func genWhereClause(model Model) (string, []interface{}) {
 	wheres := make(whereList, 0, 8)
-	if parent := model.GetParent(); parent != nil && parent.getModelStatus()&synced == synced {
-		for _, relInfo := range parent.Relations() {
-			if relInfo.Object.(Model) == model {
-				wheres = append(wheres, newWhere(and, NewExpr("@ = ?", relInfo.Fields[0]), relInfo.Fields[0].Value()))
-				for i, f := range relInfo.Fields[1:] {
-					if i%2 == 0 {
-						wheres = append(wheres, f.(Model).getWheres()...)
-					}
-				}
-				break
-			}
-		}
-	}
 	getWheres(model, &wheres)
 	if len(wheres) == 0 {
 		return "", nil

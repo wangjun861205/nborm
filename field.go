@@ -45,19 +45,20 @@ const (
 
 type Meta struct {
 	Model
-	status     modelStatus
-	midTabs    []Model
-	wheres     whereList
-	alias      string
-	parent     Model
-	index      int
-	limit      [2]int
-	aggExps    []*aggExp
-	havings    havingList
-	updates    updateList
-	joinWheres whereList
-	distMap    map[string]int
-	conList    ModelList
+	status        modelStatus
+	midTabs       []Model
+	wheres        whereList
+	alias         string
+	parent        Model
+	index         int
+	limit         [2]int
+	aggExps       []*aggExp
+	havings       havingList
+	updates       updateList
+	joinWheres    whereList
+	distMap       map[string]int
+	conList       ModelList
+	revJoinClause string
 }
 
 func (m *Meta) GetMidTabs() []Model {
@@ -292,6 +293,22 @@ func (m *Meta) SetConList(l ModelList) {
 
 func (m *Meta) getConList() ModelList {
 	return m.conList
+}
+
+func (m *Meta) setRevJoinClause(clause string) {
+	m.revJoinClause = clause
+}
+
+func (m *Meta) getRevJoinClause() string {
+	return m.revJoinClause
+}
+
+func (m *Meta) appendWhere(wheres ...*where) {
+	m.wheres = append(m.wheres, wheres...)
+}
+
+func (m *Meta) appendJoinWhere(wheres ...*where) {
+	m.joinWheres = append(m.joinWheres, wheres...)
 }
 
 type fieldStatus int

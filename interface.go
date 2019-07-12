@@ -107,6 +107,12 @@ type Model interface {
 	getUpdateList() updateList
 	getConList() ModelList
 	Collapse()
+	setJoinClause(string)
+	getJoinClause() string
+	setRevJoinClause(string)
+	getRevJoinClause() string
+	appendWhere(...*where)
+	appendJoinWhere(...*where)
 }
 
 type ModelList interface {

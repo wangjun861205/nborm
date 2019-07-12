@@ -240,6 +240,7 @@ func activeRel(model Model) {
 			dstField := relInfo.Fields[len(relInfo.Fields)-1]
 			dstField.(Model).setRevJoinClause(relInfo.toRevAppendJoinClause())
 			dstField.(Model).appendWhere(relInfo.getMidJoinWheres()...)
+			dstField.(Model).appendWhere(dstField.(Model).getJoinWheres()...)
 			dstField.AndWhere("=", srcField.Value())
 		}
 	}

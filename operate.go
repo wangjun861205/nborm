@@ -92,7 +92,6 @@ func Query(exe Executor, m Model) error {
 
 func JoinQuery(exe Executor, m Model) error {
 	selectClause := genJoinSelectClause(m)
-	// whereClause, whereValues := genWhereClause(m)
 	whereClause, whereValues := genJoinWhereClause(m)
 	tabRef := genJoinTabRef(m)
 	orderClause := genOrderClause(m)

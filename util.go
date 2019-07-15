@@ -265,6 +265,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			return err
 		}
 		l.SetTotal(rowCount)
+		if l.Len() > 0 {
+			l.addModelStatus(synced)
+		}
 	} else {
 		fields, models := getFieldsForScan(model)
 		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {

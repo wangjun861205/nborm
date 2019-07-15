@@ -534,7 +534,8 @@ func getWheres(model Model, wheres *exprList) {
 	if model.checkStatus(forBackQuery) {
 		for _, relInfo := range model.GetParent().Relations() {
 			if relInfo.DstModel == model {
-				*wheres = append(*wheres, relInfo.JoinWheres...)
+				// *wheres = append(*wheres, relInfo.JoinWheres...)
+				*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
 				for _, pk := range relInfo.SrcModel.PrimaryKey() {
 					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.Value()))
 				}
@@ -565,7 +566,8 @@ func getJoinWheres(model Model, wheres *exprList) {
 	if parent := model.GetParent(); parent != nil {
 		for _, relInfo := range model.GetParent().Relations() {
 			if relInfo.DstModel == model {
-				*wheres = append(*wheres, relInfo.JoinWheres...)
+				// *wheres = append(*wheres, relInfo.JoinWheres...)
+				*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
 			}
 		}
 	}

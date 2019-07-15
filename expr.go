@@ -3,8 +3,15 @@ package nborm
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 )
+
+var startAndOrRe = regexp.MustCompile(`^\s*(AND|And|and|OR|Or|or)\s*`)
+
+func trimPreAndOr(s string) string {
+	return startAndOrRe.ReplaceAllString(s, "")
+}
 
 type expStat int
 
@@ -156,6 +163,9 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 type exprList []*Expr
 
 func (l exprList) toClause(exprType exprType) (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
+	}
 	cl := make([]string, 0, len(l))
 	vl := make([]interface{}, 0, len(l)*2)
 	for _, exp := range l {
@@ -165,7 +175,8 @@ func (l exprList) toClause(exprType exprType) (string, []interface{}) {
 	}
 	switch exprType {
 	case whereExpr:
-		return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
+		// return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
+		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
 	case updateExpr:
 		return strings.Join(cl, ", "), vl
 	default:
@@ -174,6 +185,9 @@ func (l exprList) toClause(exprType exprType) (string, []interface{}) {
 }
 
 func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
+	if len(l) == 0 {
+		return "", nil
+	}
 	cl := make([]string, 0, len(l))
 	vl := make([]interface{}, 0, len(l)*2)
 	for _, exp := range l {
@@ -183,10 +197,31 @@ func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
 	}
 	switch exprType {
 	case whereExpr:
-		return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
+		// return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
+		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
 	case updateExpr:
 		return strings.Join(cl, ", "), vl
 	default:
 		panic(fmt.Errorf("unknown expr type(%d)", exprType))
 	}
+}
+
+func (l exprList) andGroup() *Expr {
+	cl := make([]string, 0, 16)
+	vl := make([]interface{}, 0, 16)
+	for _, e := range l {
+		cl = append(cl, e.exp)
+		vl = append(vl, e.values...)
+	}
+	return NewExpr(fmt.Sprintf("AND (%s)", trimPreAndOr(strings.Join(cl, " "))), vl...)
+}
+
+func (l exprList) orGroup() *Expr {
+	cl := make([]string, 0, 16)
+	vl := make([]interface{}, 0, 16)
+	for _, e := range l {
+		cl = append(cl, strings.Trim(strings.Trim(e.exp, " "), "AND"))
+		vl = append(vl, e.values...)
+	}
+	return NewExpr(fmt.Sprintf("OR (%s)", trimPreAndOr(strings.Join(cl, " "))), vl...)
 }

@@ -61,14 +61,17 @@ func (e *Expr) toClause() (string, []interface{}) {
 			if stat == normal {
 				stat = inQuote
 				quoteStack = append(quoteStack, r)
+				builder.WriteRune(r)
 			} else {
 				if quoteStack[len(quoteStack)-1] == r {
 					quoteStack = quoteStack[:len(quoteStack)-1]
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
+					builder.WriteRune(r)
 				} else {
 					quoteStack = append(quoteStack, r)
+					builder.WriteRune(r)
 				}
 			}
 		case '@':
@@ -121,14 +124,18 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 		case '"', '`', '\'':
 			if stat == normal {
 				stat = inQuote
+				quoteStack = append(quoteStack, r)
+				builder.WriteRune(r)
 			} else {
 				if quoteStack[len(quoteStack)-1] == r {
 					quoteStack = quoteStack[:len(quoteStack)-1]
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
+					builder.WriteRune(r)
 				} else {
 					quoteStack = append(quoteStack, r)
+					builder.WriteRune(r)
 				}
 			}
 		case '@':

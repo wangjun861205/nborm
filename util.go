@@ -179,11 +179,11 @@ func genJoinSelectClause(model Model) string {
 	fields := make([]Field, 0, 64)
 	getJoinSelectFields(model, &fields)
 	var builder strings.Builder
-	if _, ok := model.(ModelList); ok {
-		builder.WriteString("SELECT SQL_CALC_FOUND_ROWS ")
-	} else {
-		builder.WriteString("SELECT ")
-	}
+	// if _, ok := model.(ModelList); ok {
+	// 	builder.WriteString("SELECT SQL_CALC_FOUND_ROWS ")
+	// } else {
+	builder.WriteString("SELECT ")
+	// }
 	if model.getModelStatus()&distinct == distinct {
 		builder.WriteString("DISTINCT ")
 	}
@@ -224,11 +224,12 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 		return err
 	}
 	if l, ok := model.(ModelList); ok {
-		var foundRows int
-		if err := exe.QueryRow("SELECT FOUND_ROWS()").Scan(&foundRows); err != nil {
-			return err
-		}
-		l.SetTotal(foundRows)
+		// var foundRows int
+		// if err := exe.QueryRow("SELECT FOUND_ROWS()").Scan(&foundRows); err != nil {
+		// 	return err
+		// }
+		// l.SetTotal(foundRows)
+		l.SetTotal(l.Len())
 	}
 	return nil
 }

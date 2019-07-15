@@ -34,12 +34,6 @@ type BaseField interface {
 	IsNull() bool
 	SetNull()
 	unsetNull()
-	isForWhere() bool
-	setForWhere()
-	unsetForWhere()
-	isForUpdate() bool
-	setForUpdate()
-	unsetForUpdate()
 	mustValid()
 	rawFullTabName() string
 	fullTabName() string
@@ -63,8 +57,8 @@ type Field interface {
 	OrW() Field
 	AndWhere(string, interface{}) Field
 	OrWhere(string, interface{}) Field
-	SetU() Field
-	SetUpdate(interface{}) Field
+	U() Field
+	Update(interface{}) Field
 	dup() Field
 }
 
@@ -75,7 +69,7 @@ type Model interface {
 	AutoIncField() Field
 	PrimaryKey() FieldList
 	Relations() RelationInfoList
-	setRel(string, *where)
+	setRel(string, *Expr)
 	getRelCols() string
 	setRelCols(string)
 	getRelJoin() string
@@ -91,28 +85,27 @@ type Model interface {
 	setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
-	AndExprWhere(*Expr, ...interface{}) Model
-	OrExprWhere(*Expr, ...interface{}) Model
 	GetParent() Model
 	SetParent(Model)
 	getIndex() int
-	getWheres() whereList
-	getJoinWheres() whereList
-	getHavings() havingList
+	getWheres() exprList
+	getJoinWheres() exprList
+	getHavings() exprList
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)
 	getAggExps() []*aggExp
-	appendUpdate(*update)
-	getUpdateList() updateList
+	ExprUpdate(*Expr)
+	getUpdateList() exprList
 	getConList() ModelList
 	Collapse()
 	setJoinClause(string)
 	getJoinClause() string
-	setRevJoinClause(string)
-	getRevJoinClause() string
-	appendWhere(...*where)
-	appendJoinWhere(...*where)
+	getRevJoinWheres() exprList
+	appendWhere(...*Expr)
+	appendJoinWhere(...*Expr)
+	AndExprWhere(*Expr) Model
+	OrExprWhere(*Expr) Model
 }
 
 type ModelList interface {

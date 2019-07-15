@@ -28,7 +28,8 @@ const (
 	// forModelWhere       modelStatus = 1 << 3
 	inited              modelStatus = 1 << 4
 	relInited           modelStatus = 1 << 5
-	forModelUpdate      modelStatus = 1 << 6
+	forBackQuery        modelStatus = 1 << 6
+	forUpdate           modelStatus = 1 << 6
 	forModelOrder       modelStatus = 1 << 7
 	forModelRef         modelStatus = 1 << 8
 	forJoin             modelStatus = 1 << 9
@@ -41,32 +42,24 @@ const (
 	containJoinWhere    modelStatus = 1 << 16
 	containSubJoinWhere modelStatus = 1 << 17
 	containWhere        modelStatus = 1 << 18
+	containSubUpdate    modelStatus = 1 << 19
 )
 
 type Meta struct {
 	Model
-	status        modelStatus
-	midTabs       []Model
-	wheres        whereList
-	alias         string
-	parent        Model
-	index         int
-	limit         [2]int
-	aggExps       []*aggExp
-	havings       havingList
-	updates       updateList
-	joinWheres    whereList
-	distMap       map[string]int
-	conList       ModelList
-	revJoinClause string
-}
-
-func (m *Meta) GetMidTabs() []Model {
-	return m.midTabs
-}
-
-func (m *Meta) AppendMidTab(model Model) {
-	m.midTabs = append(m.midTabs, model)
+	parent       Model
+	status       modelStatus
+	wheres       exprList
+	alias        string
+	index        int
+	limit        [2]int
+	aggExps      []*aggExp
+	havings      exprList
+	updates      exprList
+	distMap      map[string]int
+	conList      ModelList
+	revJoinWhere exprList
+	Rels         RelationInfoList
 }
 
 func (m *Meta) setModel(model Model) {
@@ -98,20 +91,17 @@ func (m *Meta) setAlias() {
 	m.alias = fmt.Sprintf("t%d", m.getIndex())
 }
 
-func (m *Meta) getWheres() whereList {
+func (m *Meta) getWheres() exprList {
 	return m.wheres
 }
 
-func (m *Meta) getJoinWheres() whereList {
-	return m.joinWheres
-}
-
-func (m *Meta) getHavings() havingList {
+func (m *Meta) getHavings() exprList {
 	return m.havings
 }
 
-func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
-	m.wheres = append(m.wheres, newWhere(and, expr, val...))
+func (m *Meta) AndExprWhere(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("AND %s", expr.exp)
+	m.wheres = append(m.wheres, expr)
 	m.addModelStatus(containWhere)
 	m.addModelStatus(forModelRef)
 	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
@@ -120,8 +110,9 @@ func (m *Meta) AndExprWhere(expr *Expr, val ...interface{}) Model {
 	return m
 }
 
-func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
-	m.wheres = append(m.wheres, newWhere(or, expr, val...))
+func (m *Meta) OrExprWhere(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("OR %s", expr.exp)
+	m.wheres = append(m.wheres, expr)
 	m.addModelStatus(containWhere)
 	m.addModelStatus(forModelRef)
 	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
@@ -130,32 +121,16 @@ func (m *Meta) OrExprWhere(expr *Expr, val ...interface{}) Model {
 	return m
 }
 
-func (m *Meta) AndExprJoinWhere(expr *Expr, val ...interface{}) Model {
-	m.joinWheres = append(m.joinWheres, newWhere(and, expr, val...))
-	m.addModelStatus(containJoinWhere)
-	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
-		parent.addModelStatus(containSubJoinWhere)
-	}
-	return m
-}
-
-func (m *Meta) OrExprJoinWhere(expr *Expr, val ...interface{}) Model {
-	m.joinWheres = append(m.joinWheres, newWhere(or, expr, val...))
-	m.addModelStatus(containJoinWhere)
-	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
-		parent.addModelStatus(containSubJoinWhere)
-	}
-	return m
-}
-
-func (m *Meta) AndHaving(expr *Expr, val ...interface{}) Model {
-	m.havings = append(m.havings, newWhere(and, expr, val...))
+func (m *Meta) AndHaving(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("AND %s", expr.exp)
+	m.havings = append(m.havings, expr)
 	m.addModelStatus(forModelHaving)
 	return m
 }
 
 func (m *Meta) OrHaving(expr *Expr, val ...interface{}) Model {
-	m.havings = append(m.havings, newWhere(or, expr, val...))
+	expr.exp = fmt.Sprintf("OR %s", expr.exp)
+	m.havings = append(m.havings, expr)
 	m.addModelStatus(forModelHaving)
 	return m
 }
@@ -273,19 +248,23 @@ func (m *Meta) ForReverseQuery() {
 	m.addModelStatus(forReverseQuery)
 }
 
-func (m *Meta) appendUpdate(u *update) {
-	m.updates = append(m.updates, u)
+func (m *Meta) ExprUpdate(expr *Expr) {
+	m.updates = append(m.updates, expr)
+	m.addModelStatus(forUpdate)
+	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubUpdate)
+	}
 }
 
-func (m *Meta) getUpdateList() updateList {
+func (m *Meta) getUpdateList() exprList {
 	return m.updates
 }
 
-func (m *Meta) NewUpdate(field Field, expr *Expr, values ...interface{}) {
-	expr.exp = fmt.Sprintf("@ = %s", expr.exp)
-	expr.fields = append([]Field{field}, expr.fields...)
-	m.appendUpdate(newUpdate(expr, values...))
-}
+// func (m *Meta) NewUpdate(field Field, expr *Expr) {
+// 	expr.exp = fmt.Sprintf("@ = %s", expr.exp)
+// 	expr.values = append([]interface{}{field}, expr.values...)
+// 	m.appendUpdate(expr)
+// }
 
 func (m *Meta) SetConList(l ModelList) {
 	m.conList = l
@@ -295,32 +274,36 @@ func (m *Meta) getConList() ModelList {
 	return m.conList
 }
 
-func (m *Meta) setRevJoinClause(clause string) {
-	m.revJoinClause = clause
+// func (m *Meta) setRevJoinClause(clause string) {
+// 	m.revJoinClause = clause
+// }
+
+// func (m *Meta) getRevJoinClause() string {
+// 	return m.revJoinClause
+// }
+
+func (m *Meta) getRevJoinWheres() exprList {
+	return m.revJoinWhere
 }
 
-func (m *Meta) getRevJoinClause() string {
-	return m.revJoinClause
+func (m *Meta) appendWhere(exprs ...*Expr) {
+	m.wheres = append(m.wheres, exprs...)
 }
 
-func (m *Meta) appendWhere(wheres ...*where) {
-	m.wheres = append(m.wheres, wheres...)
-}
-
-func (m *Meta) appendJoinWhere(wheres ...*where) {
-	m.joinWheres = append(m.joinWheres, wheres...)
+func (m *Meta) Relations() RelationInfoList {
+	return m.Rels
 }
 
 type fieldStatus int
 
 const (
-	invalid     fieldStatus = 0
-	valid       fieldStatus = 1
-	notNull     fieldStatus = 1 << 1
-	primaryKey  fieldStatus = 1 << 2
-	autoInc     fieldStatus = 1 << 3
-	forWhere    fieldStatus = 1 << 4
-	forUpdate   fieldStatus = 1 << 5
+	invalid    fieldStatus = 0
+	valid      fieldStatus = 1
+	notNull    fieldStatus = 1 << 1
+	primaryKey fieldStatus = 1 << 2
+	autoInc    fieldStatus = 1 << 3
+	// forWhere   fieldStatus = 1 << 4
+	// forUpdate   fieldStatus = 1 << 5
 	forSelect   fieldStatus = 1 << 6
 	forSum      fieldStatus = 1 << 7
 	forAscOrder fieldStatus = 1 << 8
@@ -405,29 +388,29 @@ func (f *baseField) unsetNull() {
 	f.addStatus(notNull)
 }
 
-func (f *baseField) isForWhere() bool {
-	return f.status&forWhere == forWhere
-}
+// func (f *baseField) isForWhere() bool {
+// 	return f.status&forWhere == forWhere
+// }
 
-func (f *baseField) setForWhere() {
-	f.addStatus(forWhere)
-}
+// func (f *baseField) setForWhere() {
+// 	f.addStatus(forWhere)
+// }
 
-func (f *baseField) unsetForWhere() {
-	f.removeStatus(forWhere)
-}
+// func (f *baseField) unsetForWhere() {
+// 	f.removeStatus(forWhere)
+// }
 
-func (f *baseField) isForUpdate() bool {
-	return f.status&forUpdate == forUpdate
-}
+// func (f *baseField) isForUpdate() bool {
+// 	return f.status&forUpdate == forUpdate
+// }
 
-func (f *baseField) setForUpdate() {
-	f.addStatus(forUpdate)
-}
+// func (f *baseField) setForUpdate() {
+// 	f.addStatus(forUpdate)
+// }
 
-func (f *baseField) unsetForUpdate() {
-	f.removeStatus(forUpdate)
-}
+// func (f *baseField) unsetForUpdate() {
+// 	f.removeStatus(forUpdate)
+// }
 
 func (f *baseField) mustValid() {
 	if !f.IsValid() {
@@ -565,52 +548,34 @@ func (f *String) String() string {
 }
 
 func (f *String) AndW() Field {
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *String) OrW() Field {
-	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.OrExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *String) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
 func (f *String) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]string))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
-func (f *String) SetU() Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *String) U() Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
-func (f *String) SetUpdate(value interface{}) Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *String) Update(value interface{}) Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, value))
 	return f
 }
 
@@ -703,52 +668,34 @@ func (f *Int) Int() int {
 }
 
 func (f *Int) AndW() Field {
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Int) OrW() Field {
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Int) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]int))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
 func (f *Int) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]int))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
-func (f *Int) SetU() Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Int) U() Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
-func (f *Int) SetUpdate(value interface{}) Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Int) Update(value interface{}) Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, value))
 	return f
 }
 
@@ -864,60 +811,56 @@ func (f *Date) Date() time.Time {
 }
 
 func (f *Date) AndW() Field {
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Date) OrW() Field {
-	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.OrExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Date) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		vals := make([]string, 0, len(value.([]time.Time)))
-		for _, t := range value.([]time.Time) {
-			vals = append(vals, t.Format("2006-01-02"))
+	switch v := value.(type) {
+	case time.Time:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v.Format("2006-01-02")))
+	case []time.Time:
+		strList := make([]string, 0, len(v))
+		for _, t := range v {
+			strList = append(strList, t.Format("2006-01-02"))
 		}
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
-	case "IS NULL", "IS NOT NULL":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, strList))
 	default:
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v))
 	}
 	return f
 }
 
 func (f *Date) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		vals := make([]string, 0, len(value.([]time.Time)))
-		for _, t := range value.([]time.Time) {
-			vals = append(vals, t.Format("2006-01-02"))
+	switch v := value.(type) {
+	case time.Time:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v.Format("2006-01-02")))
+	case []time.Time:
+		strList := make([]string, 0, len(v))
+		for _, t := range v {
+			strList = append(strList, t.Format("2006-01-02"))
 		}
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
-	case "IS NULL", "IS NOT NULL":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, strList))
 	default:
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v))
 	}
 	return f
 }
 
-func (f *Date) SetU() Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Date) U() Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
-func (f *Date) SetUpdate(value interface{}) Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Date) Update(value interface{}) Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, value))
 	return f
 }
 
@@ -1034,61 +977,62 @@ func (f *Datetime) Datetime() time.Time {
 
 func (f *Datetime) AndW() Field {
 	f.mustValid()
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Datetime) OrW() Field {
 	f.mustValid()
-	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.OrExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Datetime) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		vals := make([]string, 0, len(value.([]time.Time)))
-		for _, t := range value.([]time.Time) {
-			vals = append(vals, t.Format("2006-01-02 15:04:05"))
+	switch v := value.(type) {
+	case time.Time:
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v.Format("2006-01-02 15:04:05")))
+	case []time.Time:
+		strList := make([]string, 0, len(v))
+		for _, t := range v {
+			strList = append(strList, t.Format("2006-01-02 15:04:05"))
 		}
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
-	case "IS NULL", "IS NOT NULL":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, strList))
 	default:
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
+		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v))
 	}
 	return f
 }
 
 func (f *Datetime) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		vals := make([]string, 0, len(value.([]time.Time)))
-		for _, t := range value.([]time.Time) {
-			vals = append(vals, t.Format("2006-01-02 15:04:05"))
+	switch v := value.(type) {
+	case time.Time:
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v.Format("2006-01-02 15:04:05")))
+	case []time.Time:
+		strList := make([]string, 0, len(v))
+		for _, t := range v {
+			strList = append(strList, t.Format("2006-01-02 15:04:05"))
 		}
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]time.Time))), ", ")), f), vals)
-	case "IS NULL", "IS NOT NULL":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, strList))
 	default:
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
+		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, v))
 	}
 	return f
 }
 
-func (f *Datetime) SetU() Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Datetime) U() Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
-func (f *Datetime) SetUpdate(value interface{}) Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Datetime) Update(value interface{}) Field {
+	switch v := value.(type) {
+	case time.Time:
+		f.ExprUpdate(NewExpr("@ = ?", f, v.Format("2006-01-02 15:04:05")))
+	default:
+		f.ExprUpdate(NewExpr("@ = ?", f, v))
+	}
 	return f
 }
 
@@ -1179,52 +1123,34 @@ func (f *Decimal) Decimal() float64 {
 }
 
 func (f *Decimal) AndW() Field {
-	f.AndExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Decimal) OrW() Field {
-	f.OrExprWhere(NewExpr("@ = ?", f), f.Value())
+	f.OrExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
 func (f *Decimal) AndWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]float64))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
 func (f *Decimal) OrWhere(op string, value interface{}) Field {
 	checkOp(op)
-	switch op {
-	case "IN", "NOT IN":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s (%s)", op, strings.Trim(strings.Repeat("?, ", len(value.([]float64))), ", ")), f), value)
-	case "IS NULL", "IS NOT NULL":
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s", op), f))
-	default:
-		f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f), value)
-	}
+	f.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), f, value))
 	return f
 }
 
-func (f *Decimal) SetU() Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), f.Value()))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Decimal) U() Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
-func (f *Decimal) SetUpdate(value interface{}) Field {
-	f.appendUpdate(newUpdate(NewExpr("@ = ?", f), value))
-	f.addModelStatus(forModelUpdate)
-	f.addModelStatus(forModelRef)
+func (f *Decimal) Update(value interface{}) Field {
+	f.ExprUpdate(NewExpr("@ = ?", f, value))
 	return f
 }
 

@@ -87,11 +87,11 @@ func getFieldsForScan(model Model) ([]interface{}, []Model) {
 		models = append(models, model)
 	}
 	for i, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.getModelStatus()&forJoin == forJoin {
 			selectFields := getSelectFields(subModel)
 			if _, ok := subModel.(ModelList); ok {
-				sl := models[0].Relations()[i].Object.(ModelList)
+				sl := models[0].Relations()[i].DstModel.(ModelList)
 				newModel := sl.NewModel()
 				allFields := getAllFields(newModel)
 			SUB_OUTER:
@@ -105,7 +105,7 @@ func getFieldsForScan(model Model) ([]interface{}, []Model) {
 				}
 				models = append(models, newModel)
 			} else {
-				newModel := models[0].Relations()[i].Object.(Model)
+				newModel := models[0].Relations()[i].DstModel
 				allFields := getAllFields(newModel)
 			SUB_OUTER2:
 				for _, sf := range selectFields {
@@ -145,8 +145,8 @@ func getJoinModels(classModel Model, instanceModel Model, models *[]Model, field
 	}
 	if classModel.getModelStatus()&containSubJoin == containSubJoin {
 		for i, relInfo := range classModel.Relations() {
-			subClassModel := relInfo.Object.(Model)
-			subInstanceModel := instanceModel.Relations()[i].Object.(Model)
+			subClassModel := relInfo.DstModel
+			subInstanceModel := instanceModel.Relations()[i].DstModel
 			if subClassModel.getModelStatus()&forJoin == forJoin {
 				if l, ok := subClassModel.(ModelList); ok {
 					newSubModel, selectFields := newModelAndSelectFields(l, subInstanceModel.(ModelList))
@@ -167,7 +167,7 @@ func getJoinSelectFields(model Model, fields *[]Field) {
 	*fields = append(*fields, getSelectFields(model)...)
 	if model.getModelStatus()&containSubJoin == containSubJoin {
 		for _, relInfo := range model.Relations() {
-			subModel := relInfo.Object.(Model)
+			subModel := relInfo.DstModel
 			if subModel.getModelStatus()&forJoin == forJoin {
 				getJoinSelectFields(subModel, fields)
 			}
@@ -233,16 +233,9 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 	return nil
 }
 
-func activeRel(model Model) {
+func activeBackQuery(model Model) {
 	for _, relInfo := range model.Relations() {
-		if relInfo.Fields[0].IsValid() {
-			srcField := relInfo.Fields[0]
-			dstField := relInfo.Fields[len(relInfo.Fields)-1]
-			dstField.(Model).setRevJoinClause(relInfo.toRevAppendJoinClause())
-			dstField.(Model).appendWhere(relInfo.getMidJoinWheres()...)
-			dstField.(Model).appendWhere(dstField.(Model).getJoinWheres()...)
-			dstField.AndWhere("=", srcField.Value())
-		}
+		relInfo.DstModel.addModelStatus(forBackQuery)
 	}
 }
 
@@ -260,7 +253,7 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			}
 			for _, m := range models {
 				m.addModelStatus(synced)
-				activeRel(m)
+				activeBackQuery(m)
 			}
 		}
 		if err := rows.Err(); err != nil {
@@ -273,37 +266,12 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		l.SetTotal(rowCount)
 	} else {
 		fields, models := getFieldsForScan(model)
-		var isJoin bool
-		for _, rel := range model.Relations() {
-			if rel.Object.(Model).getModelStatus()&forJoin == forJoin {
-				isJoin = true
-				break
-			}
-		}
-		if isJoin {
-			rows, err := exe.Query(stmt, whereValues...)
-			if err != nil {
-				return err
-			}
-			defer rows.Close()
-			for rows.Next() {
-				fields, models := getFieldsForScan(model)
-				if err := rows.Scan(fields...); err != nil {
-					return err
-				}
-				for _, m := range models {
-					m.addModelStatus(synced)
-					activeRel(m)
-				}
-			}
-			return rows.Err()
-		}
 		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
 			return err
 		}
 		for _, m := range models {
 			m.addModelStatus(synced)
-			activeRel(m)
+			activeBackQuery(m)
 		}
 	}
 	return nil
@@ -320,40 +288,28 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	return true
 }
 
-func genUpdateClause(model Model) (string, []interface{}) {
-	updates := make(updateList, 0, 16)
-	parent := model.GetParent()
-	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
-		updates = append(updates, parent.getUpdateList()...)
-	}
-	if model.getModelStatus()&forModelUpdate == forModelUpdate {
-		updates = append(updates, model.getUpdateList()...)
+func getUpdates(model Model, updates *exprList) {
+	if model.checkStatus(forUpdate) {
+		*updates = append(*updates, model.getUpdateList()...)
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
-		if subModel.getModelStatus()&forModelUpdate == forModelUpdate {
-			updates = append(updates, subModel.getUpdateList()...)
+		subModel := relInfo.DstModel
+		if subModel.checkStatus(forUpdate | containSubUpdate) {
+			getUpdates(subModel, updates)
 		}
 	}
-	return updates.toClause()
+}
+
+func genUpdateClause(model Model) (string, []interface{}) {
+	updates := make(exprList, 0, 16)
+	getUpdates(model, &updates)
+	return updates.toClause(updateExpr)
 }
 
 func genSimpleUpdateClause(model Model) (string, []interface{}) {
-	updates := make(updateList, 0, 16)
-	parent := model.GetParent()
-	if parent != nil && parent.getModelStatus()&forModelUpdate == forModelUpdate {
-		updates = append(updates, parent.getUpdateList()...)
-	}
-	if model.getModelStatus()&forModelUpdate == forModelUpdate {
-		updates = append(updates, model.getUpdateList()...)
-	}
-	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
-		if subModel.getModelStatus()&forModelUpdate == forModelUpdate {
-			updates = append(updates, subModel.getUpdateList()...)
-		}
-	}
-	return updates.toSimpleClause()
+	updates := make(exprList, 0, 16)
+	getUpdates(model, &updates)
+	return updates.toSimpleClause(updateExpr)
 }
 
 func genSimpleSelectColumns(model Model) string {
@@ -416,7 +372,7 @@ func genJoinSelectColumns(model Model) string {
 		}
 	}
 	for _, relInfo := range model.Relations() {
-		relModel := relInfo.Object.(Model)
+		relModel := relInfo.DstModel
 		if relModel.getModelStatus()&forJoin == forJoin {
 			subSelectFields := getFields(relModel, forSelect)
 			if len(subSelectFields) == 0 {
@@ -461,8 +417,8 @@ func genFullOrderClause(model Model) string {
 		}
 	}
 	for _, relInfo := range model.Relations() {
-		if relInfo.Object.(Model).getModelStatus()&forModelOrder == forModelOrder {
-			for _, f := range getFields(relInfo.Object.(Model), forAscOrder|forDscOrder) {
+		if relInfo.DstModel.getModelStatus()&forModelOrder == forModelOrder {
+			for _, f := range getFields(relInfo.DstModel, forAscOrder|forDscOrder) {
 				if f.getStatus()&forAscOrder == forAscOrder {
 					colList = append(colList, f.fullColName())
 				} else {
@@ -524,11 +480,15 @@ func genPlaceHolder(val []interface{}) string {
 
 func getTabRef(model Model, refs *[]string) {
 	*refs = append(*refs, model.fullTabName())
-	if model.getRevJoinClause() != "" {
-		*refs = append(*refs, model.getRevJoinClause())
+	if model.checkStatus(forBackQuery) {
+		for _, relInfo := range model.GetParent().Relations() {
+			if relInfo.DstModel == model {
+				*refs = append(*refs, relInfo.toRevAppendJoinClause())
+			}
+		}
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.checkStatus(containWhere | containSubWhere) {
 			getTabRef(subModel, refs)
 		}
@@ -544,7 +504,7 @@ func genTabRef(model Model) string {
 func getJoinTabRef(model Model, refs *[]string) {
 	if parent := model.GetParent(); parent != nil {
 		for _, refInfo := range parent.Relations() {
-			m := refInfo.Object.(Model)
+			m := refInfo.DstModel
 			if m.getAlias() == model.getAlias() {
 				*refs = append(*refs, refInfo.toAppendJoinClause())
 			}
@@ -553,7 +513,7 @@ func getJoinTabRef(model Model, refs *[]string) {
 		*refs = append(*refs, model.fullTabName())
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
 			getJoinTabRef(subModel, refs)
 		}
@@ -566,30 +526,44 @@ func genJoinTabRef(model Model) string {
 	return strings.Join(refs, " ")
 }
 
-func getWheres(model Model, wheres *whereList) {
+func getWheres(model Model, wheres *exprList) {
+	if model.checkStatus(forBackQuery) {
+		for _, relInfo := range model.GetParent().Relations() {
+			if relInfo.DstModel == model {
+				*wheres = append(*wheres, relInfo.JoinWheres...)
+				for _, pk := range relInfo.SrcModel.PrimaryKey() {
+					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.Value()))
+				}
+			}
+		}
+	}
 	if model.checkStatus(containWhere) {
 		*wheres = append(*wheres, model.getWheres()...)
 	}
 	if model.checkStatus(containSubWhere) {
 		for _, relInfo := range model.Relations() {
-			subModel := relInfo.Object.(Model)
+			subModel := relInfo.DstModel
 			getWheres(subModel, wheres)
 		}
 	}
 }
 
 func genWhereClause(model Model) (string, []interface{}) {
-	wheres := make(whereList, 0, 8)
+	wheres := make(exprList, 0, 8)
 	getWheres(model, &wheres)
 	if len(wheres) == 0 {
 		return "", nil
 	}
-	return wheres.toClause()
+	return wheres.toClause(whereExpr)
 }
 
-func getJoinWheres(model Model, wheres *whereList) {
+func getJoinWheres(model Model, wheres *exprList) {
 	if parent := model.GetParent(); parent != nil {
-		*wheres = append(*wheres, searchRelation(parent, model).getMidJoinWheres()...)
+		for _, relInfo := range model.GetParent().Relations() {
+			if relInfo.DstModel == model {
+				*wheres = append(*wheres, relInfo.JoinWheres...)
+			}
+		}
 	}
 	if model.checkStatus(forJoin | containSubJoin) {
 		if model.checkStatus(containJoinWhere) {
@@ -599,20 +573,20 @@ func getJoinWheres(model Model, wheres *whereList) {
 	if model.checkStatus(containWhere) {
 		*wheres = append(*wheres, model.getWheres()...)
 	}
-	if model.checkStatus(containSubWhere | containSubJoinWhere) {
+	if model.checkStatus(containSubWhere | containSubJoin) {
 		for _, relInfo := range model.Relations() {
-			getJoinWheres(relInfo.Object.(Model), wheres)
+			getJoinWheres(relInfo.DstModel, wheres)
 		}
 	}
 }
 
 func genJoinWhereClause(model Model) (string, []interface{}) {
-	wheres := make(whereList, 0, 8)
+	wheres := make(exprList, 0, 8)
 	getJoinWheres(model, &wheres)
 	if len(wheres) == 0 {
 		return "", nil
 	}
-	return wheres.toClause()
+	return wheres.toClause(whereExpr)
 }
 
 func genSimpleWhereClause(model Model) (string, []interface{}) {
@@ -620,7 +594,7 @@ func genSimpleWhereClause(model Model) (string, []interface{}) {
 	if len(wheres) == 0 {
 		return "", nil
 	}
-	return wheres.toSimpleClause()
+	return wheres.toSimpleClause(whereExpr)
 }
 
 func genLimitClause(model Model) string {
@@ -665,7 +639,7 @@ func genSelectClause(model Model) string {
 		}
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.getModelStatus()&forJoin == forJoin {
 			if subModel.getModelStatus()&selectAll == selectAll {
 				builder.WriteString(fmt.Sprintf("%s.*, ", subModel.fullTabName()))
@@ -698,7 +672,8 @@ func genAggSelectClause(model Model) (string, FieldList) {
 		}
 		if parent.getModelStatus()&forModelAgg == forModelAgg {
 			for _, exp := range parent.getAggExps() {
-				builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+				c, _ := exp.expr.toClause()
+				builder.WriteString(fmt.Sprintf("%s, ", c))
 				fieldList = append(fieldList, exp.field.dup())
 			}
 		}
@@ -715,19 +690,21 @@ func genAggSelectClause(model Model) (string, FieldList) {
 	}
 	if model.getModelStatus()&forModelAgg == forModelAgg {
 		for _, exp := range model.getAggExps() {
-			builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+			c, _ := exp.expr.toClause()
+			builder.WriteString(fmt.Sprintf("%s, ", c))
 			fieldList = append(fieldList, exp.field.dup())
 		}
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		for _, f := range getFields(subModel, forSelect) {
 			builder.WriteString(fmt.Sprintf("%s, ", f.fullColName()))
 			fieldList = append(fieldList, f.dup())
 		}
 		if subModel.getModelStatus()&forModelAgg == forModelAgg {
 			for _, exp := range subModel.getAggExps() {
-				builder.WriteString(fmt.Sprintf("%s, ", exp.expr.String()))
+				c, _ := exp.expr.toClause()
+				builder.WriteString(fmt.Sprintf("%s, ", c))
 				fieldList = append(fieldList, exp.field.dup())
 			}
 		}
@@ -747,7 +724,7 @@ func genGroupByClause(model Model) string {
 		l = append(l, fmt.Sprintf("%s", f.fullColName()))
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		for _, f := range getFields(subModel, forGroup) {
 			l = append(l, fmt.Sprintf("%s", f.fullColName()))
 		}
@@ -760,7 +737,7 @@ func genGroupByClause(model Model) string {
 }
 
 func genHavingClause(model Model) (string, []interface{}) {
-	havings := make(havingList, 0, 8)
+	havings := make(exprList, 0, 8)
 	parent := model.GetParent()
 	if parent != nil && parent.getModelStatus()&forModelHaving == forModelHaving {
 		havings = append(havings, parent.getHavings()...)
@@ -769,7 +746,7 @@ func genHavingClause(model Model) (string, []interface{}) {
 		havings = append(havings, model.getHavings()...)
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.getModelStatus()&forModelHaving == forModelHaving {
 			havings = append(havings, subModel.getHavings()...)
 		}
@@ -777,7 +754,7 @@ func genHavingClause(model Model) (string, []interface{}) {
 	if len(havings) == 0 {
 		return "", nil
 	}
-	return havings.toClause()
+	return havings.toClause(whereExpr)
 }
 
 func genInsertClause(model Model) (string, []interface{}) {
@@ -825,7 +802,7 @@ OUTER:
 
 func searchRelation(parent Model, child Model) RelationInfo {
 	for _, relInfo := range parent.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.getAlias() == child.getAlias() {
 			return relInfo
 		}
@@ -839,7 +816,7 @@ func getSelectedFieldsForCount(model Model, fieldList *FieldList) {
 		*fieldList = append(*fieldList, selectedFields...)
 	}
 	for _, relInfo := range model.Relations() {
-		subModel := relInfo.Object.(Model)
+		subModel := relInfo.DstModel
 		if subModel.checkStatus(forJoin | containSubJoin) {
 			getSelectedFieldsForCount(subModel, fieldList)
 		}
@@ -878,7 +855,7 @@ func marshalModel(model Model, bs *[]byte) {
 				*bs = append(*bs, []byte(`, `)...)
 			}
 			for _, relInfo := range model.Relations() {
-				subModel := relInfo.Object.(Model)
+				subModel := relInfo.DstModel
 				if subModel.checkStatus(synced | containValue) {
 					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.Name))...)
 					marshalModel(subModel, bs)
@@ -936,14 +913,14 @@ func UnmarshalModel(bs []byte, model Model) error {
 		}
 		for _, relInfo := range model.Relations() {
 			if obj, ok := m[relInfo.Name]; ok {
-				if l, ok := relInfo.Object.(ModelList); ok {
+				if l, ok := relInfo.DstModel.(ModelList); ok {
 					bytes := []byte(fmt.Sprintf("%#v", obj))
 					if err := UnmarshalModel(bytes, l); err != nil {
 						return err
 					}
 				} else {
 					bytes := []byte(strings.Replace(fmt.Sprintf("%#v", obj), "map[string]interface {}", "", -1))
-					if err := UnmarshalModel(bytes, relInfo.Object.(Model)); err != nil {
+					if err := UnmarshalModel(bytes, relInfo.DstModel); err != nil {
 						return err
 					}
 				}
@@ -952,4 +929,103 @@ func UnmarshalModel(bs []byte, model Model) error {
 		model.addModelStatus(containValue)
 	}
 	return nil
+}
+
+func valToPlaceholder(val interface{}) string {
+	switch v := val.(type) {
+	case string, []byte, int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64, Field:
+		return "?"
+	case []string:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []int:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []uint:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []int8:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []int16:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []uint16:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []int32:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []uint32:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []int64:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []uint64:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []float32:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []float64:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	case []Field:
+		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
+	default:
+		panic("unsupported value type to convert to placeholder")
+	}
+}
+
+func expandArg(val interface{}) (values []interface{}) {
+	switch v := val.(type) {
+	case Field:
+		values = append(values, v.Value())
+	case string, []byte, int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
+		values = append(values, v)
+	case []string:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []int:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []uint:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []int8:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []int16:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []uint16:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []int32:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []uint32:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []int64:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []uint64:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []float32:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []float64:
+		for _, ev := range v {
+			values = append(values, ev)
+		}
+	case []Field:
+		for _, ev := range v {
+			values = append(values, ev.Value())
+		}
+	default:
+		panic("unsupported value type to convert to placeholder")
+	}
+	return
 }

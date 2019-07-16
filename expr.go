@@ -25,13 +25,16 @@ type exprType int
 const (
 	whereExpr exprType = iota
 	updateExpr
+	havingExpr
 )
 
+// Expr 自定义sql表达式
 type Expr struct {
 	exp    string
 	values []interface{}
 }
 
+// NewExpr 创建新的自定义sql表达式
 func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 	return &Expr{
 		sqlexpr,
@@ -39,6 +42,7 @@ func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 	}
 }
 
+// toClause 自定义表达式转化为sql的子句
 func (e *Expr) toClause() (string, []interface{}) {
 	if len(e.values) == 0 {
 		return e.exp, nil
@@ -103,6 +107,7 @@ func (e *Expr) toClause() (string, []interface{}) {
 	return builder.String(), values
 }
 
+// toSimpleClause 自定义表达式转化为sql子句，其中涉及到表名的全部用表的原名而不是用别名
 func (e *Expr) toSimpleClause() (string, []interface{}) {
 	if len(e.values) == 0 {
 		return e.exp, nil
@@ -167,8 +172,10 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 	return builder.String(), values
 }
 
+// exprList 自定义sql表达式列表类型
 type exprList []*Expr
 
+// toClause 将sql自定义表达式列表转化为sql子句
 func (l exprList) toClause(exprType exprType) (string, []interface{}) {
 	if len(l) == 0 {
 		return "", nil
@@ -186,11 +193,14 @@ func (l exprList) toClause(exprType exprType) (string, []interface{}) {
 		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
 	case updateExpr:
 		return strings.Join(cl, ", "), vl
+	case havingExpr:
+		return fmt.Sprintf("HAVING %s", trimPreAndOr(strings.Join(cl, " "))), vl
 	default:
 		panic(fmt.Errorf("unknown expr type(%d)", exprType))
 	}
 }
 
+// toSimpleClause 将sql自定义表达式转化为sql子句, 其中表名全部用原表名而不是别名
 func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
 	if len(l) == 0 {
 		return "", nil
@@ -213,6 +223,7 @@ func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
 	}
 }
 
+// andGroup 将表达式列表包装成一个and group(例如: AND (tab1.field1 = 1 or tab.field2 = 2)), 此方法主要用来包装joinWheres, 以免其中的逻辑关系与其他wheres产生混淆
 func (l exprList) andGroup() *Expr {
 	cl := make([]string, 0, 16)
 	vl := make([]interface{}, 0, 16)
@@ -223,6 +234,7 @@ func (l exprList) andGroup() *Expr {
 	return NewExpr(fmt.Sprintf("AND (%s)", trimPreAndOr(strings.Join(cl, " "))), vl...)
 }
 
+// orGroup 同andGroup, 仅将AND前缀替换成OR
 func (l exprList) orGroup() *Expr {
 	cl := make([]string, 0, 16)
 	vl := make([]interface{}, 0, 16)

@@ -8,24 +8,26 @@ import (
 	"time"
 )
 
+// FieldInfo Field的基本信息
 type FieldInfo struct {
 	ColName   string
 	FieldName string
 	Field     Field
 }
 
+// FieldInfoList FieldInfo的列表
 type FieldInfoList []FieldInfo
 
+// FieldList Field的列表
 type FieldList []Field
 
 type modelStatus int
 
 const (
-	none        modelStatus = 0
-	synced      modelStatus = 1
-	distinct    modelStatus = 1 << 1
-	forModelAgg modelStatus = 1 << 2
-	// forModelWhere       modelStatus = 1 << 3
+	none                modelStatus = 0
+	synced              modelStatus = 1
+	distinct            modelStatus = 1 << 1
+	forModelAgg         modelStatus = 1 << 2
 	inited              modelStatus = 1 << 4
 	relInited           modelStatus = 1 << 5
 	forBackQuery        modelStatus = 1 << 6
@@ -45,21 +47,21 @@ const (
 	containSubUpdate    modelStatus = 1 << 19
 )
 
+// Meta Model的元信息
 type Meta struct {
 	Model
-	parent       Model
-	status       modelStatus
-	wheres       exprList
-	alias        string
-	index        int
-	limit        [2]int
-	aggExps      []*aggExp
-	havings      exprList
-	updates      exprList
-	distMap      map[string]int
-	conList      ModelList
-	revJoinWhere exprList
-	Rels         RelationInfoList
+	parent  Model
+	status  modelStatus
+	wheres  exprList
+	alias   string
+	index   int
+	limit   [2]int
+	aggExps []*aggExp
+	havings exprList
+	updates exprList
+	distMap map[string]int
+	conList ModelList
+	Rels    RelationInfoList
 }
 
 func (m *Meta) setModel(model Model) {
@@ -99,6 +101,7 @@ func (m *Meta) getHavings() exprList {
 	return m.havings
 }
 
+// AndExprWhere 添加表达式where(and关系)
 func (m *Meta) AndExprWhere(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("AND %s", expr.exp)
 	m.wheres = append(m.wheres, expr)
@@ -110,6 +113,7 @@ func (m *Meta) AndExprWhere(expr *Expr) Model {
 	return m
 }
 
+// OrExprWhere 添加表达式where(or关系)
 func (m *Meta) OrExprWhere(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.wheres = append(m.wheres, expr)
@@ -121,6 +125,7 @@ func (m *Meta) OrExprWhere(expr *Expr) Model {
 	return m
 }
 
+// AndHaving 添加表达式having(and关系)
 func (m *Meta) AndHaving(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("AND %s", expr.exp)
 	m.havings = append(m.havings, expr)
@@ -128,6 +133,7 @@ func (m *Meta) AndHaving(expr *Expr) Model {
 	return m
 }
 
+// OrHaving 添加表达式having(or关系)
 func (m *Meta) OrHaving(expr *Expr, val ...interface{}) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.havings = append(m.havings, expr)
@@ -155,30 +161,37 @@ func (m *Meta) checkStatus(status modelStatus) bool {
 	return m.status&status > 0
 }
 
+// SelectDistinct 设定去重标志位
 func (m *Meta) SelectDistinct() {
 	m.addModelStatus(distinct)
 }
 
+// IsSynced 检查是否为synced
 func (m *Meta) IsSynced() bool {
 	return m.status&synced == synced
 }
 
+// IsContainValue 是否包含Value(Scan或直接设置)
 func (m *Meta) IsContainValue() bool {
 	return m.status&containValue == containValue
 }
 
+// IsRelInited 子关系是否已初始化
 func (m *Meta) IsRelInited() bool {
 	return m.status&relInited == relInited
 }
 
+// AddRelInited 添加子关系初始化标志位
 func (m *Meta) AddRelInited() {
 	m.addModelStatus(relInited)
 }
 
+// GetParent 获取当前Model的Father Model
 func (m *Meta) GetParent() Model {
 	return m.parent
 }
 
+// SetParent 设置当前Model的Father Model
 func (m *Meta) SetParent(parent Model) {
 	m.parent = parent
 }
@@ -191,6 +204,7 @@ func (m *Meta) getIndex() int {
 	return m.index
 }
 
+// SetLimit 设置Limit子句信息
 func (m *Meta) SetLimit(limit, offset int) {
 	m.limit = [2]int{limit, offset}
 }
@@ -199,6 +213,7 @@ func (m *Meta) getLimit() (limit, offset int) {
 	return m.limit[0], m.limit[1]
 }
 
+// SetForJoin 设置Join查询标志位(所有Father Model的containSubJoin标志位均会被置为1)
 func (m *Meta) SetForJoin() {
 	m.GetParent().addModelStatus(containSubJoin)
 	m.addModelStatus(forJoin)
@@ -206,34 +221,40 @@ func (m *Meta) SetForJoin() {
 	m.addModelStatus(forReverseQuery)
 }
 
+// SelectAll 显式设置查询所有字段，拼合Select语句时，该Model的字段将以alias.*的方式出现
 func (m *Meta) SelectAll() {
 	m.addModelStatus(selectAll)
 }
 
+// StrAgg 添加字符串结果的汇总
 func (m *Meta) StrAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newStrAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
+// IntAgg 添加整数结果的汇总
 func (m *Meta) IntAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newIntAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
+// DateAgg 添加日期结果的汇总
 func (m *Meta) DateAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDateAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
+// DatetimeAgg 添加日期时间结果的汇总
 func (m *Meta) DatetimeAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDatetimeAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
+// DecAgg 添加浮点数结果的汇总
 func (m *Meta) DecAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDecAgg(expr, name))
@@ -244,10 +265,7 @@ func (m *Meta) getAggExps() []*aggExp {
 	return m.aggExps
 }
 
-func (m *Meta) ForReverseQuery() {
-	m.addModelStatus(forReverseQuery)
-}
-
+// ExprUpdate 添加表达式更新
 func (m *Meta) ExprUpdate(expr *Expr) {
 	m.updates = append(m.updates, expr)
 	m.addModelStatus(forUpdate)
@@ -260,12 +278,7 @@ func (m *Meta) getUpdateList() exprList {
 	return m.updates
 }
 
-// func (m *Meta) NewUpdate(field Field, expr *Expr) {
-// 	expr.exp = fmt.Sprintf("@ = %s", expr.exp)
-// 	expr.values = append([]interface{}{field}, expr.values...)
-// 	m.appendUpdate(expr)
-// }
-
+// SetConList 设置当前Model的Container List
 func (m *Meta) SetConList(l ModelList) {
 	m.conList = l
 }
@@ -274,22 +287,11 @@ func (m *Meta) getConList() ModelList {
 	return m.conList
 }
 
-// func (m *Meta) setRevJoinClause(clause string) {
-// 	m.revJoinClause = clause
-// }
-
-// func (m *Meta) getRevJoinClause() string {
-// 	return m.revJoinClause
-// }
-
-func (m *Meta) getRevJoinWheres() exprList {
-	return m.revJoinWhere
-}
-
 func (m *Meta) appendWhere(exprs ...*Expr) {
 	m.wheres = append(m.wheres, exprs...)
 }
 
+// Relations 获取当前Model的子关系
 func (m *Meta) Relations() RelationInfoList {
 	return m.Rels
 }
@@ -388,30 +390,6 @@ func (f *baseField) unsetNull() {
 	f.addStatus(notNull)
 }
 
-// func (f *baseField) isForWhere() bool {
-// 	return f.status&forWhere == forWhere
-// }
-
-// func (f *baseField) setForWhere() {
-// 	f.addStatus(forWhere)
-// }
-
-// func (f *baseField) unsetForWhere() {
-// 	f.removeStatus(forWhere)
-// }
-
-// func (f *baseField) isForUpdate() bool {
-// 	return f.status&forUpdate == forUpdate
-// }
-
-// func (f *baseField) setForUpdate() {
-// 	f.addStatus(forUpdate)
-// }
-
-// func (f *baseField) unsetForUpdate() {
-// 	f.removeStatus(forUpdate)
-// }
-
 func (f *baseField) mustValid() {
 	if !f.IsValid() {
 		panic(fmt.Sprintf("invalid field (%s.%s.%s(%s))", f.DB(), f.Tab(), f.col, f.field))
@@ -471,7 +449,6 @@ func (f *baseField) GroupBy() {
 
 type String struct {
 	baseField
-	// clauseField
 	value string
 }
 

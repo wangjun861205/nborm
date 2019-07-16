@@ -494,9 +494,25 @@ func getTabRef(model Model, refs *[]string) {
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.DstModel
 		if subModel.checkStatus(containWhere | containSubWhere) {
-			getTabRef(subModel, refs)
+			*refs = append(*refs, relInfo.toAppendJoinClause())
+			if subModel.checkStatus(containSubWhere) {
+				getTabRef(subModel, refs)
+			}
 		}
 	}
+	// if model.checkStatus(forBackQuery) {
+	// 	for _, relInfo := range model.GetParent().Relations() {
+	// 		if relInfo.DstModel == model {
+	// 			*refs = append(*refs, relInfo.toRevAppendJoinClause())
+	// 		}
+	// 	}
+	// }
+	// for _, relInfo := range model.Relations() {
+	// 	subModel := relInfo.DstModel
+	// 	if subModel.checkStatus(containWhere | containSubWhere) {
+	// 		getTabRef(subModel, refs)
+	// 	}
+	// }
 }
 
 func genTabRef(model Model) string {
@@ -534,20 +550,30 @@ func getWheres(model Model, wheres *exprList) {
 	if model.checkStatus(forBackQuery) {
 		for _, relInfo := range model.GetParent().Relations() {
 			if relInfo.DstModel == model {
-				// *wheres = append(*wheres, relInfo.JoinWheres...)
 				*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
 				for _, pk := range relInfo.SrcModel.PrimaryKey() {
 					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.Value()))
 				}
 			}
 		}
+		if model.checkStatus(containWhere) {
+			*wheres = append(*wheres, model.getWheres()...)
+		}
+	} else {
+		if model.checkStatus(containWhere) {
+			if parent := model.GetParent(); parent != nil {
+				for _, relInfo := range parent.Relations() {
+					if relInfo.DstModel == model {
+						*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
+					}
+				}
+			}
+			*wheres = append(*wheres, model.getWheres()...)
+		}
 	}
-	if model.checkStatus(containWhere) {
-		*wheres = append(*wheres, model.getWheres()...)
-	}
-	if model.checkStatus(containSubWhere) {
-		for _, relInfo := range model.Relations() {
-			subModel := relInfo.DstModel
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.DstModel
+		if subModel.checkStatus(containWhere | containSubWhere) {
 			getWheres(subModel, wheres)
 		}
 	}
@@ -760,7 +786,7 @@ func genHavingClause(model Model) (string, []interface{}) {
 	if len(havings) == 0 {
 		return "", nil
 	}
-	return havings.toClause(whereExpr)
+	return havings.toClause(havingExpr)
 }
 
 func genInsertClause(model Model) (string, []interface{}) {

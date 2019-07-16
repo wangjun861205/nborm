@@ -45,6 +45,8 @@ const (
 	containSubJoinWhere modelStatus = 1 << 17
 	containWhere        modelStatus = 1 << 18
 	containSubUpdate    modelStatus = 1 << 19
+	forLeftJoin         modelStatus = 1 << 20
+	forRightJoin        modelStatus = 1 << 21
 )
 
 // Meta Model的元信息
@@ -219,6 +221,16 @@ func (m *Meta) SetForJoin() {
 	m.addModelStatus(forJoin)
 	m.addModelStatus(forModelRef)
 	m.addModelStatus(forReverseQuery)
+}
+
+func (m *Meta) SetForLeftJoin() {
+	m.GetParent().addModelStatus(containSubJoin)
+	m.addModelStatus(forLeftJoin)
+}
+
+func (m *Meta) SetForRightJoin() {
+	m.GetParent().addModelStatus(containSubJoin)
+	m.addModelStatus(forRightJoin)
 }
 
 // SelectAll 显式设置查询所有字段，拼合Select语句时，该Model的字段将以alias.*的方式出现

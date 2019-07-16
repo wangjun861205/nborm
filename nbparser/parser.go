@@ -604,6 +604,25 @@ func (m *ModelInfo) listFilterFunc() string {
 	return s
 }
 
+func (m *ModelInfo) listSliceFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) Slice(low, high int) {
+		switch {
+			case high <= l.Len():
+				l.List = l.List[low: high]
+			case low <= l.Len() && high > l.Len():
+				l.List = l.List[low:]
+			default:
+				l.List = l.List[:0]
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func parseComment(com string) error {
 	fmt.Println(nbcolor.Green(com))
 	lastModelInfo := modelInfos[len(modelInfos)-1]
@@ -858,6 +877,7 @@ func main() {
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
 			nf.WriteString(m.listCheckDupFunc())
+			nf.WriteString(m.listSliceFunc())
 		}
 		nf.Sync()
 	}

@@ -168,7 +168,8 @@ func getJoinSelectFields(model Model, fields *[]Field) {
 	if model.getModelStatus()&containSubJoin == containSubJoin {
 		for _, relInfo := range model.Relations() {
 			subModel := relInfo.DstModel
-			if subModel.getModelStatus()&forJoin == forJoin {
+			// if subModel.getModelStatus()&forJoin == forJoin {
+			if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 				getJoinSelectFields(subModel, fields)
 			}
 		}
@@ -184,9 +185,9 @@ func genJoinSelectClause(model Model) string {
 	// } else {
 	builder.WriteString("SELECT ")
 	// }
-	if model.getModelStatus()&distinct == distinct {
-		builder.WriteString("DISTINCT ")
-	}
+	// if model.getModelStatus()&distinct == distinct {
+	// 	builder.WriteString("DISTINCT ")
+	// }
 	for _, field := range fields {
 		builder.WriteString(fmt.Sprintf("%s, ", field.fullColName()))
 	}
@@ -230,6 +231,9 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 		// }
 		// l.SetTotal(foundRows)
 		l.SetTotal(l.Len())
+		if limit, offset := l.getLimit(); limit > 0 {
+			l.Slice(offset, offset+limit)
+		}
 	}
 	return nil
 }
@@ -526,7 +530,14 @@ func getJoinTabRef(model Model, refs *[]string) {
 		for _, refInfo := range parent.Relations() {
 			m := refInfo.DstModel
 			if m.getAlias() == model.getAlias() {
-				*refs = append(*refs, refInfo.toAppendJoinClause())
+				switch {
+				case m.checkStatus(forLeftJoin):
+					*refs = append(*refs, refInfo.toAppendLeftJoinClause())
+				case m.checkStatus(forRightJoin):
+					*refs = append(*refs, refInfo.toAppendRightJoinClause())
+				default:
+					*refs = append(*refs, refInfo.toAppendJoinClause())
+				}
 			}
 		}
 	} else {
@@ -534,7 +545,8 @@ func getJoinTabRef(model Model, refs *[]string) {
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.DstModel
-		if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
+		// if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubWhere | containWhere) {
 			getJoinTabRef(subModel, refs)
 		}
 	}

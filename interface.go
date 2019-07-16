@@ -115,4 +115,5 @@ type ModelList interface {
 	GetTotal() int
 	Len() int
 	GetList() []Model
+	Slice(int, int)
 }

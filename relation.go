@@ -24,6 +24,25 @@ func (r RelationInfo) toAppendJoinClause() string {
 	return builder.String()
 }
 
+func (r RelationInfo) toAppendLeftJoinClause() string {
+	var builder strings.Builder
+	prevModel := r.SrcModel
+	for _, mm := range r.MidModels {
+		builder.WriteString(fmt.Sprintf("LEFT JOIN %s", mm.fullTabName()))
+	}
+	builder.WriteString(fmt.Sprintf("LEFT JOIN %s", r.DstModel.fullTabName()))
+	return builder.String()
+}
+
+func (r RelationInfo) toAppendRightJoinClause() string {
+	var builder strings.Builder
+	for _, mm := range r.MidModels {
+		builder.WriteString(fmt.Sprintf("RIGHT JOIN %s", mm.fullTabName()))
+	}
+	builder.WriteString(fmt.Sprintf("RIGHT JOIN %s", r.DstModel.fullTabName()))
+	return builder.String()
+}
+
 func (r RelationInfo) toRevAppendJoinClause() string {
 	var builder strings.Builder
 	for _, mm := range r.MidModels {

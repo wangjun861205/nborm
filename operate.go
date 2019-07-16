@@ -95,8 +95,9 @@ func JoinQuery(exe Executor, m Model) error {
 	whereClause, whereValues := genJoinWhereClause(m)
 	tabRef := genJoinTabRef(m)
 	orderClause := genOrderClause(m)
-	limitClause := genLimitClause(m)
-	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+	// limitClause := genLimitClause(m)
+	// stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+	stmt := fmt.Sprintf("%s FROM %s %s %s", selectClause, tabRef, whereClause, orderClause)
 	if DEBUG {
 		log.Println(nbcolor.Green(stmt))
 		log.Println(nbcolor.Green(whereValues))

@@ -47,6 +47,8 @@ const (
 	containSubUpdate    modelStatus = 1 << 19
 	forLeftJoin         modelStatus = 1 << 20
 	forRightJoin        modelStatus = 1 << 21
+	containSubLeftJoin  modelStatus = 1 << 22
+	containSubRightJoin modelStatus = 1 << 23
 )
 
 // Meta Model的元信息
@@ -64,6 +66,7 @@ type Meta struct {
 	distMap map[string]int
 	conList ModelList
 	Rels    RelationInfoList
+	onCond  *Expr
 }
 
 func (m *Meta) setModel(model Model) {
@@ -219,17 +222,15 @@ func (m *Meta) getLimit() (limit, offset int) {
 func (m *Meta) SetForJoin() {
 	m.GetParent().addModelStatus(containSubJoin)
 	m.addModelStatus(forJoin)
-	m.addModelStatus(forModelRef)
-	m.addModelStatus(forReverseQuery)
 }
 
 func (m *Meta) SetForLeftJoin() {
-	m.GetParent().addModelStatus(containSubJoin)
+	m.GetParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forLeftJoin)
 }
 
 func (m *Meta) SetForRightJoin() {
-	m.GetParent().addModelStatus(containSubJoin)
+	m.GetParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forRightJoin)
 }
 
@@ -306,6 +307,14 @@ func (m *Meta) appendWhere(exprs ...*Expr) {
 // Relations 获取当前Model的子关系
 func (m *Meta) Relations() RelationInfoList {
 	return m.Rels
+}
+
+func (m *Meta) SetOnCond(on *Expr) {
+	m.onCond = on
+}
+
+func (m *Meta) getOnCond() *Expr {
+	return m.onCond
 }
 
 type fieldStatus int

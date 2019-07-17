@@ -106,6 +106,7 @@ type Model interface {
 	appendJoinWhere(...*Expr)
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
+	getOnCond() *Expr
 }
 
 type ModelList interface {

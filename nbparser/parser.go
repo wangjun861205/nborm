@@ -27,16 +27,133 @@ var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
 
-// var relRe = regexp.MustCompile(`rel:"(.*?)"`)
-// var dstFieldRelRe = regexp.MustCompile(`(\w+)(\[.+\])?`)
-// var masterRelFieldRe = regexp.MustCompile(`(\w+)(\[.+?\])?\.(\w+)`)
-// var midWhereFieldRe = regexp.MustCompile(`@(\w+)`)
-
 var relWholeRe = regexp.MustCompile(`rel:"(.*?)"`)
-var relModelRe = regexp.MustCompile(`(\w+)(?:->|\[.*?\])`)
+var relModelRe = regexp.MustCompile(`@([\w@\$]+)\[(.+?)\](?:->|$)`)
 var relWhereRe = regexp.MustCompile(`\[(.*?)\]`)
 var relMidModelRe = regexp.MustCompile(`([a-zA-Z0-9]+)(_\d+)?`)
 var relFieldRe = regexp.MustCompile(`@([\w@\$]+)\.(\w+)`)
+
+func getRelTag(s string) string {
+	return relWholeRe.FindStringSubmatch(s)[1]
+}
+
+type relModelStr struct {
+	modelStr string
+	onStr    string
+}
+
+type On struct {
+	Expr       string
+	Fields     []*RelField
+	FieldsExpr string
+}
+
+type RelModel struct {
+	ModelName string
+	ModelType string
+	Index     int
+	On        *On
+}
+
+type RelField struct {
+	Model     *RelModel
+	FieldName string
+}
+
+func getRelModelStr(tag string) []relModelStr {
+	gs := relModelRe.FindAllStringSubmatch(tag, -1)
+	l := make([]relModelStr, 0, len(gs))
+	for _, g := range gs {
+		l = append(l, relModelStr{g[1], g[2]})
+	}
+	return l
+}
+
+type RelInfo struct {
+	Field        string
+	Type         string
+	SrcModel     *RelModel
+	SrcFields    []*RelField
+	MidModels    []*RelModel
+	DstModel     *RelModel
+	DstFields    []*RelField
+	IsList       bool
+	MidModelsLen int
+}
+
+func parseRelation(dstModel, tag string) error {
+	lastModel := modelInfos[len(modelInfos)-1]
+	lastRel := lastModel.RelInfos[len(lastModel.RelInfos)-1]
+	relWholeGroup := relWholeRe.FindStringSubmatch(tag)
+	if len(relWholeGroup) == 0 {
+		return fmt.Errorf("no rel tag: (%s)", tag)
+	}
+	relStr := relWholeGroup[1]
+	relModelsGroup := relModelRe.FindAllStringSubmatch(relStr, -1)
+	for _, mg := range relModelsGroup {
+		switch {
+		case strings.HasPrefix(mg[1], "@"):
+			sm := RelModel{ModelName: "m", ModelType: lastModel.Name}
+			lastRel.SrcModel = &sm
+		case strings.HasPrefix(mg[1], "$"):
+			dm := RelModel{ModelName: fmt.Sprintf("m.%s", lastRel.Field), ModelType: dstModel}
+			lastRel.DstModel = &dm
+		default:
+			midModelGroup := relMidModelRe.FindStringSubmatch(mg[1])
+			mm := RelModel{ModelName: midModelGroup[0], ModelType: midModelGroup[1]}
+			lastRel.MidModels = append(lastRel.MidModels, &mm)
+		}
+	}
+	if lastRel.SrcModel == nil {
+		lastRel.SrcModel = &RelModel{ModelName: "m", ModelType: lastModel.Name}
+	}
+	fieldsRe := regexp.MustCompile(`@([@\$\w]+)\.(\w+)`)
+	for _, mg := range relModelsGroup {
+		onStr := mg[2]
+		on := On{}
+		fieldsGroup := fieldsRe.FindAllStringSubmatch(onStr, -1)
+		for _, fieldGroup := range fieldsGroup {
+			modelName := fieldGroup[1]
+			fieldName := fieldGroup[2]
+			switch {
+			case strings.HasPrefix(modelName, "@"):
+				field := RelField{lastRel.SrcModel, fieldName}
+				on.Fields = append(on.Fields, &field)
+				lastRel.SrcFields = append(lastRel.SrcFields, &field)
+			case strings.HasPrefix(modelName, "$"):
+				field := RelField{lastRel.DstModel, fieldName}
+				on.Fields = append(on.Fields, &field)
+				lastRel.DstFields = append(lastRel.DstFields, &field)
+			default:
+				var tarModel *RelModel
+				for _, mm := range lastRel.MidModels {
+					if modelName == mm.ModelName {
+						tarModel = mm
+						break
+					}
+				}
+				field := RelField{tarModel, fieldName}
+				on.Fields = append(on.Fields, &field)
+			}
+		}
+		on.Expr = fieldsRe.ReplaceAllString(onStr, "@")
+		switch {
+		case strings.HasPrefix(mg[1], "@"):
+			lastRel.SrcModel.On = &on
+		case strings.HasPrefix(mg[1], "$"):
+			lastRel.DstModel.On = &on
+		default:
+			for _, rm := range lastRel.MidModels {
+				if rm.ModelName == mg[1] {
+					rm.On = &on
+					break
+				}
+			}
+		}
+	}
+	lastRel.MidModelsLen = len(lastRel.MidModels)
+	return nil
+}
 
 type FieldInfo struct {
 	Type  string
@@ -50,23 +167,6 @@ type MidWhere struct {
 	Expr   string
 }
 
-// type MidModel struct {
-// 	Name        string
-// 	MidWhere    MidWhere
-// 	HasMidWhere bool
-// }
-
-// type RelInfo struct {
-// 	Field  string
-// 	Type   string
-// 	Models []string
-// 	Fields []string
-// 	//=======================================
-// 	HasAddedCond bool
-// 	AddedCond    MidWhere
-// 	IsList       bool
-// }
-
 type MidModel struct {
 	Name  string
 	Type  string
@@ -77,21 +177,6 @@ type Field struct {
 	MidModel  *MidModel
 	ModelName string
 	FieldName string
-}
-
-type RelInfo struct {
-	Field        string
-	Type         string
-	SrcModel     string
-	SrcFields    []string
-	MidModels    []*MidModel
-	DstModel     string
-	DstFields    []string
-	Fields       []Field
-	FieldsStr    string
-	JoinWheres   string
-	IsList       bool
-	MidModelsLen int
 }
 
 type ModelInfo struct {
@@ -135,21 +220,21 @@ func (m *ModelInfo) proc() {
 	for _, relInfo := range m.RelInfos {
 		for _, midMod := range relInfo.MidModels {
 			midMod.Index = midIdx
+			midMod.ModelName = fmt.Sprintf("mm%d", midMod.Index)
 			midIdx++
 		}
-	}
-	for _, relInfo := range m.RelInfos {
-		for _, field := range relInfo.Fields {
-			switch field.ModelName {
-			case "@":
-				relInfo.FieldsStr += fmt.Sprintf("&m.%s, ", field.FieldName)
-			case "$":
-				relInfo.FieldsStr += fmt.Sprintf("&m.%s.%s, ", relInfo.Field, field.FieldName)
-			default:
-				relInfo.FieldsStr += fmt.Sprintf("&mm%d.%s, ", field.MidModel.Index, field.FieldName)
+		for _, mm := range relInfo.MidModels {
+			l := make([]string, 0, len(mm.On.Fields))
+			for _, f := range mm.On.Fields {
+				l = append(l, fmt.Sprintf("&%s.%s", f.Model.ModelName, f.FieldName))
 			}
+			mm.On.FieldsExpr = strings.Join(l, ", ")
 		}
-		relInfo.FieldsStr = strings.TrimSuffix(relInfo.FieldsStr, ", ")
+		l := make([]string, 0, len(relInfo.DstModel.On.Fields))
+		for _, f := range relInfo.DstModel.On.Fields {
+			l = append(l, fmt.Sprintf("&%s.%s", f.Model.ModelName, f.FieldName))
+		}
+		relInfo.DstModel.On.FieldsExpr = strings.Join(l, ", ")
 	}
 }
 
@@ -182,18 +267,19 @@ func (m *ModelInfo) initRelFunc() string {
 			relInfo{{ i }}.SrcModel = m
 			relInfo{{ i }}.DstModel = m.{{ rel.Field }}
 			{{ for _, srcField in rel.SrcFields }}
-				relInfo{{ i }}.SrcFields = append(relInfo{{ i }}.SrcFields, &m.{{ srcField }})
+				relInfo{{ i }}.SrcFields = append(relInfo{{ i }}.SrcFields, &m.{{ srcField.FieldName }})
 			{{ endfor }}
 			{{ for _, dstField in rel.DstFields }}
-				relInfo{{ i }}.DstFields = append(relInfo{{ i }}.DstFields, &m.{{ rel.Field }}.{{ dstField }})
+				relInfo{{ i }}.DstFields = append(relInfo{{ i }}.DstFields, &m.{{ rel.Field }}.{{ dstField.FieldName }})
 			{{ endfor }}
 			{{ for _, midModel in rel.MidModels }}
-				mm{{ midModel.Index }} := &{{ midModel.Type }}{}
+				mm{{ midModel.Index }} := &{{ midModel.ModelType }}{}
 				mm{{ midModel.Index }}.SetParent(m)
 				nborm.InitModel(mm{{ midModel.Index }})
 				relInfo{{ i }}.MidModels = append(relInfo{{ i }}.MidModels, mm{{ midModel.Index }})
+				mm{{ midModel.Index }}.SetOnCond(nborm.NewExpr("{{ midModel.On.Expr }}", {{ midModel.On.FieldsExpr }}))
 			{{ endfor }}
-			relInfo{{ i }}.JoinWheres = append(relInfo{{ i }}.JoinWheres, nborm.NewExpr("{{ rel.JoinWheres }}", {{ rel.FieldsStr }}))
+			{{ rel.DstModel.ModelName }}.SetOnCond(nborm.NewExpr("{{ rel.DstModel.On.Expr }}", {{ rel.DstModel.On.FieldsExpr }}))
 			m.Rels = append(m.Rels, relInfo{{ i }})
 		{{ endfor }}
 		m.AddRelInited()
@@ -658,118 +744,6 @@ func parseFieldTag(field, tag string) error {
 		lastField.Col = colGroup[1]
 	}
 	lastField.IsInc = incRe.MatchString(tag)
-	return nil
-}
-
-// func parseRelation(dstModel, tag string) error {
-// 	relGroup := relRe.FindStringSubmatch(tag)
-// 	if len(relGroup) != 2 {
-// 		return fmt.Errorf("no rel tag: (%s)", tag)
-// 	}
-// 	fields := strings.Split(relGroup[1], "->")
-// 	if len(fields) < 2 || len(fields)%2 != 0 {
-// 		return fmt.Errorf("invalid rel tag: (%s)", tag)
-// 	}
-// 	lastModel := modelInfos[len(modelInfos)-1]
-// 	lastRel := lastModel.RelInfos[len(lastModel.RelInfos)-1]
-// 	for i, field := range fields {
-// 		switch {
-// 		case i == 0:
-// 			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s", field))
-// 		case i == len(fields)-1:
-// 			fieldGroup := dstFieldRelRe.FindStringSubmatch(field)
-// 			fieldName, addedConds := fieldGroup[1], fieldGroup[2]
-// 			condGroup := midWhereFieldRe.FindAllStringSubmatch(addedConds, -1)
-// 			if len(condGroup) == 0 {
-// 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
-// 			} else {
-// 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, fieldName))
-// 				lastRel.HasAddedCond = true
-// 				fields := make([]string, 0, len(condGroup))
-// 				for _, c := range condGroup {
-// 					fields = append(fields, fmt.Sprintf("&m.%s.%s", lastRel.Field, c[1]))
-// 				}
-// 				fieldsStr := strings.Join(fields, ", ")
-// 				expr := midWhereFieldRe.ReplaceAllString(strings.Trim(addedConds, "[]"), "@")
-// 				lastRel.AddedCond = MidWhere{fieldsStr, expr}
-// 			}
-// 		default:
-// 			if i%2 == 1 {
-// 				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
-// 				modelName, midWhereStr, fieldName := fieldGroup[1], fieldGroup[2], fieldGroup[3]
-// 				midWhereGroup := midWhereFieldRe.FindAllStringSubmatch(midWhereStr, -1)
-// 				var midModel MidModel
-// 				if len(midWhereGroup) == 0 {
-// 					midModel = MidModel{
-// 						Name: modelName,
-// 					}
-// 				} else {
-// 					fields := make([]string, 0, len(midWhereGroup))
-// 					for _, w := range midWhereGroup {
-// 						fields = append(fields, fmt.Sprintf("&%s.%s", fmt.Sprintf("mm%d", i/2), w[1]))
-// 					}
-// 					fieldsStr := strings.Join(fields, ", ")
-// 					whereExpr := midWhereFieldRe.ReplaceAllString(strings.Trim(midWhereStr, "[]"), "@")
-// 					midModel = MidModel{
-// 						Name:        modelName,
-// 						MidWhere:    MidWhere{fieldsStr, whereExpr},
-// 						HasMidWhere: true,
-// 					}
-// 				}
-// 				lastModel.MidModels = append(lastModel.MidModels, midModel)
-// 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, fieldName))
-// 			} else {
-// 				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
-
-func parseRelation(dstModel, tag string) error {
-	lastModel := modelInfos[len(modelInfos)-1]
-	lastRel := lastModel.RelInfos[len(lastModel.RelInfos)-1]
-	relWholeGroup := relWholeRe.FindStringSubmatch(tag)
-	if len(relWholeGroup) == 0 {
-		return fmt.Errorf("no rel tag: (%s)", tag)
-	}
-	relStr := relWholeGroup[1]
-	relModelsGroup := relModelRe.FindAllStringSubmatch(relStr, -1)
-	for _, mg := range relModelsGroup {
-		midModelGroup := relMidModelRe.FindStringSubmatch(mg[1])
-		midModel := MidModel{
-			Name: midModelGroup[0],
-			Type: midModelGroup[1],
-		}
-		lastRel.MidModels = append(lastRel.MidModels, &midModel)
-	}
-	joinWhereGroup := relWhereRe.FindStringSubmatch(relStr)
-	lastRel.MidModelsLen = len(lastRel.MidModels)
-	lastRel.DstModel = dstModel
-	fieldsGroup := relFieldRe.FindAllStringSubmatch(joinWhereGroup[1], -1)
-	for _, fg := range fieldsGroup {
-		switch fg[1] {
-		case "@":
-			lastRel.SrcFields = append(lastRel.SrcFields, fg[2])
-			lastRel.Fields = append(lastRel.Fields, Field{nil, "@", fg[2]})
-		case "$":
-			lastRel.DstFields = append(lastRel.DstFields, fg[2])
-			lastRel.Fields = append(lastRel.Fields, Field{nil, "$", fg[2]})
-		default:
-			midModName, midFieldName := fg[1], fg[2]
-			var midMod *MidModel
-			for i, midModel := range lastRel.MidModels {
-				if midModel.Name == midModName {
-					midMod = lastRel.MidModels[i]
-				}
-			}
-			if midMod == nil {
-				panic(fmt.Errorf("invalid middle model name for field(%s)", midModName))
-			}
-			lastRel.Fields = append(lastRel.Fields, Field{midMod, "", midFieldName})
-		}
-	}
-	lastRel.JoinWheres = relFieldRe.ReplaceAllString(joinWhereGroup[1], "@")
 	return nil
 }
 

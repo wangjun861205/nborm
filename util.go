@@ -143,11 +143,11 @@ func getJoinModels(classModel Model, instanceModel Model, models *[]Model, field
 			instanceModel = classModel
 		}
 	}
-	if classModel.getModelStatus()&containSubJoin == containSubJoin {
+	if classModel.checkStatus(containSubJoin | containSubLeftJoin | containSubRightJoin) {
 		for i, relInfo := range classModel.Relations() {
 			subClassModel := relInfo.DstModel
 			subInstanceModel := instanceModel.Relations()[i].DstModel
-			if subClassModel.getModelStatus()&forJoin == forJoin {
+			if subClassModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 				if l, ok := subClassModel.(ModelList); ok {
 					newSubModel, selectFields := newModelAndSelectFields(l, subInstanceModel.(ModelList))
 					*models = append(*models, newSubModel)
@@ -164,14 +164,13 @@ func getJoinModels(classModel Model, instanceModel Model, models *[]Model, field
 }
 
 func getJoinSelectFields(model Model, fields *[]Field) {
-	*fields = append(*fields, getSelectFields(model)...)
-	if model.getModelStatus()&containSubJoin == containSubJoin {
-		for _, relInfo := range model.Relations() {
-			subModel := relInfo.DstModel
-			// if subModel.getModelStatus()&forJoin == forJoin {
-			if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-				getJoinSelectFields(subModel, fields)
-			}
+	if model.checkStatus(forJoin|forLeftJoin|forRightJoin) || model.GetParent() == nil {
+		*fields = append(*fields, getSelectFields(model)...)
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.DstModel
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubLeftJoin | containSubRightJoin) {
+			getJoinSelectFields(subModel, fields)
 		}
 	}
 }
@@ -180,14 +179,7 @@ func genJoinSelectClause(model Model) string {
 	fields := make([]Field, 0, 64)
 	getJoinSelectFields(model, &fields)
 	var builder strings.Builder
-	// if _, ok := model.(ModelList); ok {
-	// 	builder.WriteString("SELECT SQL_CALC_FOUND_ROWS ")
-	// } else {
 	builder.WriteString("SELECT ")
-	// }
-	// if model.getModelStatus()&distinct == distinct {
-	// 	builder.WriteString("DISTINCT ")
-	// }
 	for _, field := range fields {
 		builder.WriteString(fmt.Sprintf("%s, ", field.fullColName()))
 	}
@@ -225,11 +217,6 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 		return err
 	}
 	if l, ok := model.(ModelList); ok {
-		// var foundRows int
-		// if err := exe.QueryRow("SELECT FOUND_ROWS()").Scan(&foundRows); err != nil {
-		// 	return err
-		// }
-		// l.SetTotal(foundRows)
 		l.SetTotal(l.Len())
 		if limit, offset := l.getLimit(); limit > 0 {
 			l.Slice(offset, offset+limit)
@@ -504,19 +491,6 @@ func getTabRef(model Model, refs *[]string) {
 			}
 		}
 	}
-	// if model.checkStatus(forBackQuery) {
-	// 	for _, relInfo := range model.GetParent().Relations() {
-	// 		if relInfo.DstModel == model {
-	// 			*refs = append(*refs, relInfo.toRevAppendJoinClause())
-	// 		}
-	// 	}
-	// }
-	// for _, relInfo := range model.Relations() {
-	// 	subModel := relInfo.DstModel
-	// 	if subModel.checkStatus(containWhere | containSubWhere) {
-	// 		getTabRef(subModel, refs)
-	// 	}
-	// }
 }
 
 func genTabRef(model Model) string {
@@ -529,11 +503,11 @@ func getJoinTabRef(model Model, refs *[]string) {
 	if parent := model.GetParent(); parent != nil {
 		for _, refInfo := range parent.Relations() {
 			m := refInfo.DstModel
-			if m.getAlias() == model.getAlias() {
+			if m == model {
 				switch {
-				case m.checkStatus(forLeftJoin):
+				case m.checkStatus(forLeftJoin | containSubLeftJoin):
 					*refs = append(*refs, refInfo.toAppendLeftJoinClause())
-				case m.checkStatus(forRightJoin):
+				case m.checkStatus(forRightJoin | containSubRightJoin):
 					*refs = append(*refs, refInfo.toAppendRightJoinClause())
 				default:
 					*refs = append(*refs, refInfo.toAppendJoinClause())
@@ -545,8 +519,7 @@ func getJoinTabRef(model Model, refs *[]string) {
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.DstModel
-		// if subModel.checkStatus(forJoin | containSubJoin | containSubWhere | containWhere) {
-		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubWhere | containWhere) {
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubLeftJoin | containSubRightJoin | containSubWhere | containWhere) {
 			getJoinTabRef(subModel, refs)
 		}
 	}
@@ -562,7 +535,6 @@ func getWheres(model Model, wheres *exprList) {
 	if model.checkStatus(forBackQuery) {
 		for _, relInfo := range model.GetParent().Relations() {
 			if relInfo.DstModel == model {
-				*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
 				for _, pk := range relInfo.SrcModel.PrimaryKey() {
 					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.Value()))
 				}
@@ -573,13 +545,6 @@ func getWheres(model Model, wheres *exprList) {
 		}
 	} else {
 		if model.checkStatus(containWhere) {
-			if parent := model.GetParent(); parent != nil {
-				for _, relInfo := range parent.Relations() {
-					if relInfo.DstModel == model {
-						*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
-					}
-				}
-			}
 			*wheres = append(*wheres, model.getWheres()...)
 		}
 	}
@@ -601,14 +566,6 @@ func genWhereClause(model Model) (string, []interface{}) {
 }
 
 func getJoinWheres(model Model, wheres *exprList) {
-	if parent := model.GetParent(); parent != nil {
-		for _, relInfo := range model.GetParent().Relations() {
-			if relInfo.DstModel == model {
-				// *wheres = append(*wheres, relInfo.JoinWheres...)
-				*wheres = append(*wheres, relInfo.JoinWheres.andGroup())
-			}
-		}
-	}
 	if model.checkStatus(forJoin | containSubJoin) {
 		if model.checkStatus(containJoinWhere) {
 			*wheres = append(*wheres, model.getJoinWheres()...)

@@ -145,8 +145,8 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 			}
 		case '@':
 			if stat == normal {
-				builder.WriteString(e.values[fieldIndex].(Field).fullColName())
-				values = append(values, expandArg(e.values[fieldIndex])...)
+				builder.WriteString(e.values[fieldIndex].(Field).rawFullColName())
+				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
 				builder.WriteRune(r)

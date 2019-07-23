@@ -467,9 +467,9 @@ func (f *baseField) Distinct() {
 	f.addStatus(forSelect)
 }
 
-func (f *baseField) String() string {
-	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
-}
+// func (f *baseField) String() string {
+// 	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
+// }
 
 func (f *baseField) GroupBy() {
 	f.addStatus(forGroup | forSelect)

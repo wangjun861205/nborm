@@ -428,32 +428,58 @@ func genFullOrderClause(model Model) string {
 	return fmt.Sprintf("ORDER BY %s", strings.Join(colList, ", "))
 }
 
-func genOrderClause(model Model) string {
-	colList := make([]string, 0, 8)
-	parent := model.GetParent()
-	if parent != nil && parent.getModelStatus()&forModelOrder == forModelOrder {
-		for _, f := range getFields(parent, forAscOrder|forDscOrder) {
-			if f.getStatus()&forAscOrder == forAscOrder {
-				colList = append(colList, f.fullColName())
-			} else {
-				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
-			}
-		}
-	}
-	if model.getModelStatus()&forModelOrder == forModelOrder {
+func getOrders(model Model, orders *[]string) {
+	if model.checkStatus(forModelOrder) {
 		for _, f := range getFields(model, forAscOrder|forDscOrder) {
 			if f.getStatus()&forAscOrder == forAscOrder {
-				colList = append(colList, f.fullColName())
+				*orders = append(*orders, f.fullColName())
 			} else {
-				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
+				*orders = append(*orders, fmt.Sprintf("%s DESC", f.fullColName()))
 			}
 		}
 	}
-	if len(colList) == 0 {
+	for _, relInfo := range model.Relations() {
+		if relInfo.DstModel.checkStatus(forModelOrder | containSubOrder) {
+			getOrders(relInfo.DstModel, orders)
+		}
+	}
+}
+
+func genOrderClause(model Model) string {
+	orders := make([]string, 0, 0)
+	getOrders(model, &orders)
+	if len(orders) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("ORDER BY %s", strings.Join(colList, ", "))
+	return fmt.Sprintf("ORDER BY %s", strings.Join(orders, ", "))
 }
+
+// func genOrderClause(model Model) string {
+// 	colList := make([]string, 0, 8)
+// 	parent := model.GetParent()
+// 	if parent != nil && parent.getModelStatus()&forModelOrder == forModelOrder {
+// 		for _, f := range getFields(parent, forAscOrder|forDscOrder) {
+// 			if f.getStatus()&forAscOrder == forAscOrder {
+// 				colList = append(colList, f.fullColName())
+// 			} else {
+// 				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
+// 			}
+// 		}
+// 	}
+// 	if model.getModelStatus()&forModelOrder == forModelOrder {
+// 		for _, f := range getFields(model, forAscOrder|forDscOrder) {
+// 			if f.getStatus()&forAscOrder == forAscOrder {
+// 				colList = append(colList, f.fullColName())
+// 			} else {
+// 				colList = append(colList, fmt.Sprintf("%s DESC", f.fullColName()))
+// 			}
+// 		}
+// 	}
+// 	if len(colList) == 0 {
+// 		return ""
+// 	}
+// 	return fmt.Sprintf("ORDER BY %s", strings.Join(colList, ", "))
+// }
 
 func genPlaceHolder(val []interface{}) string {
 	if len(val) == 0 {
@@ -473,6 +499,32 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
+func getUpdateTabRef(model Model, refs *[]string) {
+	*refs = append(*refs, model.fullTabName())
+	if model.checkStatus(forBackQuery) {
+		for _, relInfo := range model.GetParent().Relations() {
+			if relInfo.DstModel == model {
+				*refs = append(*refs, relInfo.toRevAppendJoinClause())
+			}
+		}
+	}
+	for _, relInfo := range model.Relations() {
+		subModel := relInfo.DstModel
+		if subModel.checkStatus(containWhere | containSubWhere | forUpdate | containSubUpdate) {
+			*refs = append(*refs, relInfo.toAppendJoinClause())
+			if subModel.checkStatus(containSubWhere) {
+				getTabRef(subModel, refs)
+			}
+		}
+	}
+}
+
+func genUpdateTabRef(model Model) string {
+	refs := make([]string, 0, 8)
+	getUpdateTabRef(model, &refs)
+	return strings.Join(refs, " ")
+}
+
 func getTabRef(model Model, refs *[]string) {
 	*refs = append(*refs, model.fullTabName())
 	if model.checkStatus(forBackQuery) {
@@ -484,9 +536,9 @@ func getTabRef(model Model, refs *[]string) {
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.DstModel
-		if subModel.checkStatus(containWhere | containSubWhere) {
+		if subModel.checkStatus(containWhere | containSubWhere | forModelOrder | containSubOrder) {
 			*refs = append(*refs, relInfo.toAppendJoinClause())
-			if subModel.checkStatus(containSubWhere) {
+			if subModel.checkStatus(containSubWhere | containSubOrder) {
 				getTabRef(subModel, refs)
 			}
 		}
@@ -519,7 +571,7 @@ func getJoinTabRef(model Model, refs *[]string) {
 	}
 	for _, relInfo := range model.Relations() {
 		subModel := relInfo.DstModel
-		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubLeftJoin | containSubRightJoin | containSubWhere | containWhere) {
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin | containSubJoin | containSubLeftJoin | containSubRightJoin | containSubWhere | containWhere | forModelOrder | containSubOrder) {
 			getJoinTabRef(subModel, refs)
 		}
 	}
@@ -880,7 +932,7 @@ func marshalModel(model Model, bs *[]byte) {
 func MarshalModel(model Model) []byte {
 	bs := make([]byte, 0, 1024)
 	marshalModel(model, &bs)
-	return bs
+	return bytes.TrimSuffix(bs, []byte(", "))
 }
 
 func UnmarshalModel(bs []byte, model Model) error {

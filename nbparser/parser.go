@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -16,6 +19,8 @@ import (
 	"github.com/wangjun861205/nbfmt"
 
 	"github.com/wangjun861205/nbcolor"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var modelInfos = make([]*ModelInfo, 0, 128)
@@ -479,7 +484,7 @@ func (m *ModelInfo) modelCollapseFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m *{{ model.Name }}) Collapse() {
 		{{ for _, relInfo in model.RelInfos }}
-			if m.{{ relInfo.Field }}.IsSynced() {
+			if m.{{ relInfo.Field }} != nil && m.{{ relInfo.Field }}.IsSynced() {
 				m.{{ relInfo.Field }}.Collapse()
 			}
 		{{ endfor }}
@@ -747,9 +752,142 @@ func parseFieldTag(field, tag string) error {
 	return nil
 }
 
+type arrayFlags []string
+
+func (a *arrayFlags) Set(value string) error {
+	*a = append(*a, value)
+	return nil
+}
+
+func (a *arrayFlags) String() string {
+	return strings.Join(*a, ", ")
+}
+
+func newFile(filename string) *os.File {
+	os.Remove(filename)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
+type config struct {
+	User         string
+	Password     string
+	Host         string
+	Port         string
+	Database     string
+	Tables       []string
+	AppendTables []string
+	MatchAllDB   bool
+}
+
+func readConfig(filename string) config {
+	f, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+	var conf config
+	if err := json.Unmarshal(b, &conf); err != nil {
+		panic(err)
+	}
+	return conf
+}
+
 func main() {
+	var command, configFile string
+	// tabs := make(arrayFlags, 0, 8)
+	flag.StringVar(&command, "command", "", "specific command")
+	flag.StringVar(&configFile, "config", "config", "specific config file")
+	// flag.StringVar(&host, "host", "localhost", "specific mysql host")
+	// flag.StringVar(&port, "port", "3306", "specific mysql port")
+	// flag.StringVar(&user, "user", "", "specific mysql user")
+	// flag.StringVar(&password, "password", "", "sepcific mysql password")
+	// flag.StringVar(&db, "db", "information_schema", "specific database")
+	// flag.Var(&tabs, "table", "specific tables")
+
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
+	if command == "model" {
+		conf := readConfig(configFile)
+		conn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", conf.User, conf.Password, conf.Host, conf.Port, conf.Database))
+		if err != nil {
+			panic(err)
+		}
+		defer conn.Close()
+		if len(conf.AppendTables) > 0 {
+			f, err := os.OpenFile("model.go", os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+			ts := getTabs(conn, conf.Database, conf.AppendTables...)
+			getCols(conn, ts)
+			getPK(conn, ts)
+			getUK(conn, ts)
+			procTables(ts)
+			var s string
+			if conf.MatchAllDB {
+				s = createModelsMatchAllDB(ts)
+			} else {
+				s = createModels(ts)
+			}
+			if _, err := f.WriteString(s); err != nil {
+				panic(err)
+			}
+			for _, tab := range conf.AppendTables {
+				conf.Tables = append(conf.Tables, tab)
+			}
+			conf.AppendTables = conf.AppendTables[:0]
+			if err := os.Remove(configFile); err != nil {
+				panic(err)
+			}
+			b, err := json.MarshalIndent(conf, "", "\t")
+			if err != nil {
+				panic(err)
+			}
+			cf, err := os.OpenFile(configFile, os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				panic(err)
+			}
+			defer cf.Close()
+			if _, err := cf.Write(b); err != nil {
+				panic(err)
+			}
+			cmd := exec.Command("gofmt", "-w", "./")
+			if err := cmd.Run(); err != nil {
+				log.Println(nbcolor.Red(err))
+			}
+			return
+		}
+		ts := getTabs(conn, conf.Database, conf.Tables...)
+		getCols(conn, ts)
+		getPK(conn, ts)
+		getUK(conn, ts)
+		procTables(ts)
+		var s string
+		if conf.MatchAllDB {
+			s = createFileMatchAllDB(ts)
+		} else {
+			s = createFile(ts)
+		}
+		f := newFile("model.go")
+		defer f.Close()
+		if _, err := f.WriteString(s); err != nil {
+			panic(err)
+		}
+		cmd := exec.Command("gofmt", "-w", "./")
+		if err := cmd.Run(); err != nil {
+			log.Println(nbcolor.Red(err))
+		}
+		return
+	}
 	os.Remove(path.Join(*dir, "methods.go"))
 	fs := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fs, *dir, nil, parser.ParseComments)
@@ -859,4 +997,323 @@ func main() {
 	if err := cmd.Run(); err != nil {
 		log.Println(nbcolor.Red(err))
 	}
+}
+
+type ConstraintType string
+
+const (
+	PrimaryKey ConstraintType = "PrimaryKey"
+	UniqueKey  ConstraintType = "UniqeuKey"
+)
+
+type Constraint struct {
+	Name    string
+	Type    ConstraintType
+	Columns []*Column
+	Expr    string
+}
+
+type Column struct {
+	Name      string
+	Type      string
+	IsInc     bool
+	FieldName string
+	FieldType string
+}
+
+type Table struct {
+	DB        string
+	Tab       string
+	ModelName string
+	Columns   []*Column
+	Pk        *Constraint
+	Uk        []*Constraint
+}
+
+func getTabs(db *sql.DB, dbname string, tableNames ...string) []*Table {
+	if len(tableNames) > 0 {
+		l := make([]*Table, 0, len(tableNames))
+		for _, tabName := range tableNames {
+			l = append(l, &Table{DB: dbname, Tab: tabName})
+		}
+		return l
+	}
+	stmt := fmt.Sprintf("SHOW TABLES FROM `%s`", dbname)
+	rows, err := db.Query(stmt)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	l := make([]*Table, 0, 16)
+	for rows.Next() {
+		tab := Table{DB: dbname}
+		if err := rows.Scan(&tab.Tab); err != nil {
+			panic(err)
+		}
+		l = append(l, &tab)
+	}
+	return l
+}
+
+func getCols(db *sql.DB, tables []*Table) {
+	for _, tab := range tables {
+		stmt := "SELECT COLUMN_NAME, DATA_TYPE, EXTRA FROM information_schema.columns WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION"
+		rows, err := db.Query(stmt, tab.DB, tab.Tab)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var col, typ, extra string
+			if err := rows.Scan(&col, &typ, &extra); err != nil {
+				panic(err)
+			}
+			column := Column{
+				Name: col,
+				Type: typ,
+			}
+			if extra == "auto_increment" {
+				column.IsInc = true
+			}
+			tab.Columns = append(tab.Columns, &column)
+		}
+		if err := rows.Err(); err != nil {
+			panic(err)
+		}
+	}
+}
+
+func getPK(db *sql.DB, tables []*Table) {
+	for _, tab := range tables {
+		stmt := "SELECT COLUMN_NAME FROM information_schema.key_column_usage WHERE CONSTRAINT_NAME = 'PRIMARY' AND TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION"
+		rows, err := db.Query(stmt, tab.DB, tab.Tab)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		pk := &Constraint{
+			Name:    "PRIMARY",
+			Type:    PrimaryKey,
+			Columns: make([]*Column, 0, 8),
+		}
+	OUTER:
+		for rows.Next() {
+			var colName string
+			if err := rows.Scan(&colName); err != nil {
+				panic(err)
+			}
+			for _, col := range tab.Columns {
+				if col.Name == colName {
+					pk.Columns = append(pk.Columns, col)
+					continue OUTER
+				}
+			}
+			panic(fmt.Errorf("cannot find column for primary key(%s)", colName))
+		}
+		if err := rows.Err(); err != nil {
+			panic(err)
+		}
+		tab.Pk = pk
+	}
+}
+
+func getUK(db *sql.DB, tables []*Table) {
+	for _, tab := range tables {
+		stmt := "SELECT CONSTRAINT_NAME FROM information_schema.table_constraints WHERE TABLE_SCHEMA = ? and TABLE_NAME = ? AND CONSTRAINT_TYPE = 'UNIQUE'"
+		rows, err := db.Query(stmt, tab.DB, tab.Tab)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var conName string
+			if err := rows.Scan(&conName); err != nil {
+				panic(err)
+			}
+			uk := &Constraint{
+				Name:    conName,
+				Type:    UniqueKey,
+				Columns: make([]*Column, 0, 8),
+			}
+			tab.Uk = append(tab.Uk, uk)
+			st := `SELECT COLUMN_NAME FROM information_schema.key_column_usage WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? ORDER BY ORDINAL_POSITION`
+			nr, err := db.Query(st, tab.DB, tab.Tab, conName)
+			if err != nil {
+				panic(err)
+			}
+			defer nr.Close()
+		MID:
+			for nr.Next() {
+				var colName string
+				if err := nr.Scan(&colName); err != nil {
+					panic(err)
+				}
+				for _, col := range tab.Columns {
+					if col.Name == colName {
+						uk.Columns = append(uk.Columns, col)
+						continue MID
+					}
+				}
+				panic(fmt.Errorf("cannot find column for unique key (%s)", colName))
+			}
+			if err := nr.Err(); err != nil {
+				panic(err)
+			}
+		}
+		if err := rows.Err(); err != nil {
+			panic(err)
+		}
+	}
+}
+
+var colToField = map[string]string{
+	"varchar":    "nborm.String",
+	"bigint":     "nborm.Int",
+	"longtext":   "nborm.String",
+	"datetime":   "nborm.Datetime",
+	"int":        "nborm.Int",
+	"tinyint":    "nborm.Int",
+	"decimal":    "nborm.Decimal",
+	"double":     "nborm.Decimal",
+	"text":       "nborm.String",
+	"timestamp":  "nborm.Datetime",
+	"char":       "nborm.String",
+	"smallint":   "nborm.Int",
+	"float":      "nborm.Decimal",
+	"date":       "nborm.Date",
+	"json":       "nborm.String",
+	"time":       "nborm.Datetime",
+	"enum":       "nborm.String",
+	"tinytext":   "nborm.String",
+	"mediumtext": "nborm.String",
+}
+
+func procTables(tables []*Table) {
+	for _, tab := range tables {
+		tab.ModelName = strings.Replace(strings.Title(strings.Replace(tab.Tab, "_", " ", -1)), " ", "", -1)
+		for _, col := range tab.Columns {
+			col.FieldName = strings.Replace(strings.Title(strings.Replace(col.Name, "_", " ", -1)), " ", "", -1)
+			var ok bool
+			col.FieldType, ok = colToField[col.Type]
+			if !ok {
+				panic(fmt.Errorf("unsupport column type (%s)", col.Type))
+			}
+		}
+		pkFields := make([]string, 0, len(tab.Pk.Columns))
+		for _, col := range tab.Pk.Columns {
+			pkFields = append(pkFields, col.FieldName)
+		}
+		tab.Pk.Expr = strings.Join(pkFields, ",")
+		for _, uk := range tab.Uk {
+			ukFields := make([]string, 0, len(uk.Columns))
+			for _, col := range uk.Columns {
+				ukFields = append(ukFields, col.FieldName)
+			}
+			uk.Expr = strings.Join(ukFields, ",")
+		}
+	}
+}
+
+func createFile(tables []*Table) string {
+	s, err := nbfmt.Fmt(`
+	package model
+	
+	import (
+		"github.com/wangjun861205/nborm"
+	)
+	
+	{{ for _, tab in Tables }}
+	//db:{{ tab.DB }}
+	//tab:{{ tab.Tab }}
+	//pk:{{ tab.Pk.Expr }}
+	{{ for _, uk in tab.Uk }}
+	//uk:{{ uk.Expr }}
+	{{ endfor }}
+		type {{ tab.ModelName }} struct {
+			nborm.Meta
+			{{ for _, col in tab.Columns }}
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+			{{ endfor }}
+		}
+	{{ endfor }}
+	`, map[string]interface{}{"Tables": tables})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func createFileMatchAllDB(tables []*Table) string {
+	s, err := nbfmt.Fmt(`
+	package model
+	
+	import (
+		"github.com/wangjun861205/nborm"
+	)
+	
+	{{ for _, tab in Tables }}
+	//db:*
+	//tab:{{ tab.Tab }}
+	//pk:{{ tab.Pk.Expr }}
+	{{ for _, uk in tab.Uk }}
+	//uk:{{ uk.Expr }}
+	{{ endfor }}
+		type {{ tab.ModelName }} struct {
+			nborm.Meta
+			{{ for _, col in tab.Columns }}
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+			{{ endfor }}
+		}
+	{{ endfor }}
+	`, map[string]interface{}{"Tables": tables})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func createModels(tables []*Table) string {
+	s, err := nbfmt.Fmt(`
+	{{ for _, tab in Tables }}
+	//db:{{ tab.DB }}
+	//tab:{{ tab.Tab }}
+	//pk:{{ tab.Pk.Expr }}
+	{{ for _, uk in tab.Uk }}
+	//uk:{{ uk.Expr }}
+	{{ endfor }}
+		type {{ tab.ModelName }} struct {
+			nborm.Meta
+			{{ for _, col in tab.Columns }}
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+			{{ endfor }}
+		}
+	{{ endfor }}
+	`, map[string]interface{}{"Tables": tables})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func createModelsMatchAllDB(tables []*Table) string {
+	s, err := nbfmt.Fmt(`
+	{{ for _, tab in Tables }}
+	//db:*
+	//tab:{{ tab.Tab }}
+	//pk:{{ tab.Pk.Expr }}
+	{{ for _, uk in tab.Uk }}
+	//uk:{{ uk.Expr }}
+	{{ endfor }}
+		type {{ tab.ModelName }} struct {
+			nborm.Meta
+			{{ for _, col in tab.Columns }}
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+			{{ endfor }}
+		}
+	{{ endfor }}
+	`, map[string]interface{}{"Tables": tables})
+	if err != nil {
+		panic(err)
+	}
+	return s
 }

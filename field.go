@@ -31,24 +31,25 @@ const (
 	inited              modelStatus = 1 << 4
 	relInited           modelStatus = 1 << 5
 	forBackQuery        modelStatus = 1 << 6
-	forUpdate           modelStatus = 1 << 6
-	forModelOrder       modelStatus = 1 << 7
-	forModelRef         modelStatus = 1 << 8
-	forJoin             modelStatus = 1 << 9
-	containValue        modelStatus = 1 << 10
-	selectAll           modelStatus = 1 << 11
-	forModelHaving      modelStatus = 1 << 12
-	forReverseQuery     modelStatus = 1 << 13
-	containSubJoin      modelStatus = 1 << 14
-	containSubWhere     modelStatus = 1 << 15
-	containJoinWhere    modelStatus = 1 << 16
-	containSubJoinWhere modelStatus = 1 << 17
-	containWhere        modelStatus = 1 << 18
-	containSubUpdate    modelStatus = 1 << 19
-	forLeftJoin         modelStatus = 1 << 20
-	forRightJoin        modelStatus = 1 << 21
-	containSubLeftJoin  modelStatus = 1 << 22
-	containSubRightJoin modelStatus = 1 << 23
+	forUpdate           modelStatus = 1 << 7
+	forModelOrder       modelStatus = 1 << 8
+	forModelRef         modelStatus = 1 << 9
+	forJoin             modelStatus = 1 << 10
+	containValue        modelStatus = 1 << 11
+	selectAll           modelStatus = 1 << 12
+	forModelHaving      modelStatus = 1 << 13
+	forReverseQuery     modelStatus = 1 << 14
+	containSubJoin      modelStatus = 1 << 15
+	containSubWhere     modelStatus = 1 << 16
+	containJoinWhere    modelStatus = 1 << 17
+	containSubJoinWhere modelStatus = 1 << 18
+	containWhere        modelStatus = 1 << 19
+	containSubUpdate    modelStatus = 1 << 20
+	forLeftJoin         modelStatus = 1 << 21
+	forRightJoin        modelStatus = 1 << 22
+	containSubLeftJoin  modelStatus = 1 << 23
+	containSubRightJoin modelStatus = 1 << 24
+	containSubOrder     modelStatus = 1 << 25
 )
 
 // Meta Model的元信息
@@ -445,14 +446,20 @@ func (f *baseField) AscOrder() {
 	f.removeStatus(forDscOrder)
 	f.addStatus(forAscOrder)
 	f.addModelStatus(forModelOrder)
-	f.addModelStatus(forModelRef)
+	for parent := f.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubOrder)
+	}
+	// f.addModelStatus(forModelRef)
 }
 
 func (f *baseField) DscOrder() {
 	f.removeStatus(forAscOrder)
 	f.addStatus(forDscOrder)
 	f.addModelStatus(forModelOrder)
-	f.addModelStatus(forModelRef)
+	for parent := f.GetParent(); parent != nil; parent = parent.GetParent() {
+		parent.addModelStatus(containSubOrder)
+	}
+	// f.addModelStatus(forModelRef)
 }
 
 func (f *baseField) Distinct() {

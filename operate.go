@@ -104,7 +104,7 @@ func JoinQuery(exe Executor, m Model) error {
 }
 
 func Update(exe Executor, model Model) (sql.Result, error) {
-	tabRef := genTabRef(model)
+	tabRef := genUpdateTabRef(model)
 	updateClause, updateValues := genUpdateClause(model)
 	whereClause, whereValues := genWhereClause(model)
 	stmt := fmt.Sprintf(`UPDATE %s SET %s %s`, tabRef, updateClause, whereClause)

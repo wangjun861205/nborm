@@ -1,9 +1,12 @@
 package nborm
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/wangjun861205/nbcolor"
 )
@@ -90,6 +93,49 @@ func Query(exe Executor, m Model) error {
 	return queryAndScan(exe, m, stmt, whereValues...)
 }
 
+func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
+	selectClause := genSelectClause(m)
+	whereClause, whereValues := genWhereClause(m)
+	tabRef := genTabRef(m)
+	orderClause := genOrderClause(m)
+	limitClause := genLimitClause(m)
+	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, orderClause, limitClause)
+	if DEBUG {
+		log.Println(nbcolor.Green(stmt))
+		log.Println(nbcolor.Green(whereValues))
+	}
+	var builder strings.Builder
+	builder.WriteString(stmt)
+	for _, whereVal := range whereValues {
+		builder.WriteString(fmt.Sprintf("%v", whereVal))
+	}
+	hashValue := fmt.Sprintf("%x", md5.Sum([]byte(stmt)))
+	if l, ok := m.(ModelList); ok {
+		if l.GetListCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
+			}
+			return nil
+		}
+	} else {
+		if m.GetCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
+			}
+			return nil
+		}
+	}
+	if err := queryAndScan(exe, m, stmt, whereValues...); err != nil {
+		return err
+	}
+	if l, ok := m.(ModelList); ok {
+		l.SetListCache(hashValue)
+	} else {
+		m.SetCache(hashValue)
+	}
+	return nil
+}
+
 func JoinQuery(exe Executor, m Model) error {
 	selectClause := genJoinSelectClause(m)
 	whereClause, whereValues := genJoinWhereClause(m)
@@ -101,6 +147,48 @@ func JoinQuery(exe Executor, m Model) error {
 		log.Println(nbcolor.Green(whereValues))
 	}
 	return joinQueryAndScan(exe, m, stmt, whereValues...)
+}
+
+func CacheJoinQuery(exe Executor, m Model, timeout time.Duration) error {
+	selectClause := genJoinSelectClause(m)
+	whereClause, whereValues := genJoinWhereClause(m)
+	tabRef := genJoinTabRef(m)
+	orderClause := genOrderClause(m)
+	stmt := fmt.Sprintf("%s FROM %s %s %s", selectClause, tabRef, whereClause, orderClause)
+	if DEBUG {
+		log.Println(nbcolor.Green(stmt))
+		log.Println(nbcolor.Green(whereValues))
+	}
+	var builder strings.Builder
+	builder.WriteString(stmt)
+	for _, whereVal := range whereValues {
+		builder.WriteString(fmt.Sprintf("%v", whereVal))
+	}
+	hashValue := fmt.Sprintf("%x", md5.Sum([]byte(stmt)))
+	if l, ok := m.(ModelList); ok {
+		if l.GetListCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
+			}
+			return nil
+		}
+	} else {
+		if m.GetCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
+			}
+			return nil
+		}
+	}
+	if err := joinQueryAndScan(exe, m, stmt, whereValues...); err != nil {
+		return err
+	}
+	if l, ok := m.(ModelList); ok {
+		l.SetListCache(hashValue)
+	} else {
+		m.SetCache(hashValue)
+	}
+	return nil
 }
 
 func Update(exe Executor, model Model) (sql.Result, error) {

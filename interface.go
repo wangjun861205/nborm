@@ -1,6 +1,9 @@
 package nborm
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 type RowScanner interface {
 	ScanRow(*sql.Row) error
@@ -107,6 +110,8 @@ type Model interface {
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
 	getOnCond() *Expr
+	GetCache(string, time.Duration) bool
+	SetCache(string)
 }
 
 type ModelList interface {
@@ -117,4 +122,6 @@ type ModelList interface {
 	Len() int
 	GetList() []Model
 	Slice(int, int)
+	GetListCache(string, time.Duration) bool
+	SetListCache(string)
 }

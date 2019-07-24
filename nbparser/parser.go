@@ -714,6 +714,239 @@ func (m *ModelInfo) listSliceFunc() string {
 	return s
 }
 
+func (m *ModelInfo) modelCacheElemType() string {
+	s, err := nbfmt.Fmt(`
+	type {{ model.Name }}CacheElem struct {
+		hashValue string
+		model *{{ model.Name }}
+		modifyTime time.Time
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListCacheElemType() string {
+	s, err := nbfmt.Fmt(`
+	type {{ model.Name }}ListCacheElem struct {
+		hashValue string
+		list *{{ model.Name }}List
+		modifyTime time.Time
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelCacheManagerType() string {
+	s, err := nbfmt.Fmt(`
+	type {{ model.Name }}CacheManager struct {
+		container map[string]*{{ model.Name }}CacheElem
+		query chan string
+		in chan *{{ model.Name }}CacheElem
+		out chan *{{ model.Name }}CacheElem
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) newModelCacheManagerFunc() string {
+	s, err := nbfmt.Fmt(`
+	func new{{ model.Name }}CacheManager() *{{ model.Name }}CacheManager {
+		return &{{ model.Name }}CacheManager{
+			make(map[string]*{{ model.Name }}CacheElem),
+			make(chan string),
+			make(chan *{{ model.Name }}CacheElem),
+			make(chan *{{ model.Name }}CacheElem),
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelCacheManagerRunMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (mgr *{{ model.Name }}CacheManager) run() {
+		for {
+			select {
+				case h := <-mgr.query:
+					mgr.out <- mgr.container[h]
+				case elem := <-mgr.in:
+					mgr.container[elem.hashValue] = elem
+			}
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListCacheMangagerType() string {
+	s, err := nbfmt.Fmt(`
+	type {{ model.Name }}ListCacheManager struct {
+		container map[string]*{{ model.Name }}ListCacheElem
+		query chan string
+		in chan *{{ model.Name }}ListCacheElem
+		out chan *{{ model.Name }}ListCacheElem
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) newModelListCacheManagerFunc() string {
+	s, err := nbfmt.Fmt(`
+	func new{{ model.Name }}ListCacheManager() *{{ model.Name }}ListCacheManager {
+		return &{{ model.Name }}ListCacheManager {
+			make(map[string]*{{ model.Name }}ListCacheElem),
+			make(chan string),
+			make(chan *{{ model.Name }}ListCacheElem),
+			make(chan *{{ model.Name }}ListCacheElem),
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListCacheManagerRunMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (mgr *{{ model.Name }}ListCacheManager) run() {
+		for {
+			select {
+			case h := <-mgr.query:
+				mgr.out <- mgr.container[h]
+			case elem := <-mgr.in:
+				mgr.container[elem.hashValue] = elem
+			}
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) globalModelCacheVar() string {
+	s, err := nbfmt.Fmt(`
+	var {{ model.Name }}Cache = new{{ model.Name }}CacheManager()
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) globalModelListCacheVar() string {
+	s, err := nbfmt.Fmt(`
+	var {{ model.Name }}ListCache = new{{ model.Name }}ListCacheManager()
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func initFunc(l []*ModelInfo) string {
+	s, err := nbfmt.Fmt(`
+	func init() {
+		{{ for _, m in modelList }}
+			go {{ m.Name }}Cache.run()
+			go {{ m.Name }}ListCache.run()
+		{{ endfor }}
+	}
+	`, map[string]interface{}{"modelList": l})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelGetCacheMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) GetCache(hashVal string, timeout time.Duration) bool {
+		{{ model.Name }}Cache.query <- hashVal
+		elem := <-{{ model.Name }}Cache.out
+		if elem == nil || time.Since(elem.modifyTime) > timeout {
+			return false
+		}
+		*m = *elem.model
+		return true
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelSetCacheMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) SetCache(hashValue string) {
+		{{ model.Name }}Cache.in <- &{{ model.Name }}CacheElem {
+			hashValue,
+			m,
+			time.Now(),
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListGetCacheMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) GetListCache(hashValue string, timeout time.Duration) bool {
+		{{ model.Name }}ListCache.query <- hashValue
+		elem := <-{{ model.Name }}ListCache.out
+		if elem == nil || time.Since(elem.modifyTime) > timeout {
+			return false
+		}
+		*l = *elem.list
+		return true
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListSetCacheMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) SetListCache(hashValue string) {
+		{{ model.Name }}ListCache.in <- &{{ model.Name }}ListCacheElem {
+			hashValue,
+			l,
+			time.Now(),
+		}
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func parseComment(com string) error {
 	fmt.Println(nbcolor.Green(com))
 	lastModelInfo := modelInfos[len(modelInfos)-1]
@@ -961,6 +1194,7 @@ func main() {
 			"github.com/wangjun861205/nborm"
 			"strings"
 			"fmt"
+			"time"
 		)
 		`)
 		for _, m := range modelInfos {
@@ -990,7 +1224,24 @@ func main() {
 			nf.WriteString(m.listFilterFunc())
 			nf.WriteString(m.listCheckDupFunc())
 			nf.WriteString(m.listSliceFunc())
+
+			nf.WriteString(m.modelCacheElemType())
+			nf.WriteString(m.modelListCacheElemType())
+			nf.WriteString(m.modelCacheManagerType())
+			nf.WriteString(m.modelListCacheMangagerType())
+			nf.WriteString(m.newModelCacheManagerFunc())
+			nf.WriteString(m.newModelListCacheManagerFunc())
+			nf.WriteString(m.modelCacheManagerRunMethod())
+			nf.WriteString(m.modelListCacheManagerRunMethod())
+
+			nf.WriteString(m.globalModelCacheVar())
+			nf.WriteString(m.globalModelListCacheVar())
+			nf.WriteString(m.modelGetCacheMethod())
+			nf.WriteString(m.modelSetCacheMethod())
+			nf.WriteString(m.modelListGetCacheMethod())
+			nf.WriteString(m.modelListSetCacheMethod())
 		}
+		nf.WriteString(initFunc(modelInfos))
 		nf.Sync()
 	}
 	cmd := exec.Command("gofmt", "-w", *dir)

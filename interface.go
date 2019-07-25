@@ -5,20 +5,24 @@ import (
 	"time"
 )
 
+// RowScanner RowScanner
 type RowScanner interface {
 	ScanRow(*sql.Row) error
 }
 
+// RowsScanner RowsScanner
 type RowsScanner interface {
 	ScanRows(*sql.Rows) error
 }
 
+// Executor 可执行sql语句的对象
 type Executor interface {
 	Query(string, ...interface{}) (*sql.Rows, error)
 	QueryRow(string, ...interface{}) *sql.Row
 	Exec(string, ...interface{}) (sql.Result, error)
 }
 
+// BaseField 基础字段
 type BaseField interface {
 	setModel(Model)
 	dbName() string
@@ -51,6 +55,7 @@ type BaseField interface {
 	GroupBy()
 }
 
+// Field Field
 type Field interface {
 	BaseField
 	Scan(interface{}) error
@@ -65,6 +70,7 @@ type Field interface {
 	dup() Field
 }
 
+// Model Model
 type Model interface {
 	DB() string
 	Tab() string
@@ -114,6 +120,7 @@ type Model interface {
 	SetCache(string)
 }
 
+// ModelList ModelList
 type ModelList interface {
 	Model
 	NewModel() Model

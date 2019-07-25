@@ -225,11 +225,13 @@ func (m *Meta) SetForJoin() {
 	m.addModelStatus(forJoin)
 }
 
+// SetForLeftJoin 左关联
 func (m *Meta) SetForLeftJoin() {
 	m.GetParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forLeftJoin)
 }
 
+// SetForRightJjoin 右关联
 func (m *Meta) SetForRightJoin() {
 	m.GetParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forRightJoin)
@@ -310,10 +312,12 @@ func (m *Meta) Relations() RelationInfoList {
 	return m.Rels
 }
 
+// SetOnCond 设置关联on条件
 func (m *Meta) SetOnCond(on *Expr) {
 	m.onCond = on
 }
 
+// GetOnCond 获取关联on条件
 func (m *Meta) getOnCond() *Expr {
 	return m.onCond
 }
@@ -387,6 +391,7 @@ func (f *baseField) removeStatus(status fieldStatus) {
 	f.status &^= status
 }
 
+// IsValid 是否有值
 func (f *baseField) IsValid() bool {
 	return f.status&valid == valid
 }
@@ -399,10 +404,12 @@ func (f *baseField) unsetValid() {
 	f.removeStatus(valid)
 }
 
+// IsNull 是否为空值
 func (f *baseField) IsNull() bool {
 	return !(f.status&notNull == notNull)
 }
 
+// SetNull 设置为空值
 func (f *baseField) SetNull() {
 	f.addStatus(valid)
 	f.removeStatus(notNull)
@@ -432,16 +439,19 @@ func (f *baseField) rawFullColName() string {
 	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
+// ForSelect 设置为选择字段
 func (f *baseField) ForSelect() {
 	f.addStatus(forSelect)
 }
 
+// ForSum 设置为总和字段
 func (f *baseField) ForSum() {
 	f.addStatus(forSelect)
 	f.addStatus(forSum)
 	f.addModelStatus(forModelAgg)
 }
 
+// AscOrder 设置为正序排序字段
 func (f *baseField) AscOrder() {
 	f.removeStatus(forDscOrder)
 	f.addStatus(forAscOrder)
@@ -452,6 +462,7 @@ func (f *baseField) AscOrder() {
 	// f.addModelStatus(forModelRef)
 }
 
+// DscOrder 设置为倒序排序字段
 func (f *baseField) DscOrder() {
 	f.removeStatus(forAscOrder)
 	f.addStatus(forDscOrder)
@@ -462,6 +473,7 @@ func (f *baseField) DscOrder() {
 	// f.addModelStatus(forModelRef)
 }
 
+// Distinct 设置为去重字段
 func (f *baseField) Distinct() {
 	f.Model.addModelStatus(distinct)
 	f.addStatus(forSelect)
@@ -471,15 +483,18 @@ func (f *baseField) Distinct() {
 // 	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
 // }
 
+// GroupBy 分组
 func (f *baseField) GroupBy() {
 	f.addStatus(forGroup | forSelect)
 }
 
+// String 字符串Field
 type String struct {
 	baseField
 	value string
 }
 
+// Scan 实现Scan接口
 func (f *String) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
@@ -498,6 +513,7 @@ func (f *String) Scan(v interface{}) error {
 	return nil
 }
 
+// MarshalJSON 实现接口
 func (f String) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return json.Marshal(nil)
@@ -505,6 +521,7 @@ func (f String) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.value)
 }
 
+// UnmarshalJSON 实现接口
 func (f *String) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
@@ -517,6 +534,7 @@ func (f *String) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &f.value)
 }
 
+// Value 取值
 func (f *String) Value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
@@ -525,6 +543,7 @@ func (f *String) Value() interface{} {
 	return f.value
 }
 
+// JSONValue JSON Marshal
 func (f *String) JSONValue() interface{} {
 	if !f.IsValid() || f.IsNull() {
 		return nil
@@ -532,6 +551,7 @@ func (f *String) JSONValue() interface{} {
 	return f.value
 }
 
+// SetString 设置字符串值
 func (f *String) SetString(v string) *String {
 	f.setValid()
 	f.unsetNull()
@@ -540,6 +560,7 @@ func (f *String) SetString(v string) *String {
 	return f
 }
 
+// Set 设置值
 func (f *String) Set(v interface{}) Field {
 	f.setValid()
 	f.unsetNull()
@@ -548,15 +569,18 @@ func (f *String) Set(v interface{}) Field {
 	return f
 }
 
+// String 取值
 func (f *String) String() string {
 	return f.value
 }
 
+// AndW 按自身值来生成And Where
 func (f *String) AndW() Field {
 	f.AndExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f
 }
 
+// OrW 按自身值来生成Or Where
 func (f *String) OrW() Field {
 	f.OrExprWhere(NewExpr("@ = ?", f, f.Value()))
 	return f

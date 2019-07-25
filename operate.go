@@ -11,6 +11,7 @@ import (
 	"github.com/wangjun861205/nbcolor"
 )
 
+// InsertOrUpdateOne 插入或更新
 func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 	insertClause, insertValues := genInsertClause(model)
 	updateClause, updateValues := genSimpleUpdateClause(model)
@@ -41,6 +42,7 @@ func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 	return
 }
 
+// InsertOne 插入
 func InsertOne(exe Executor, model Model) error {
 	insertClause, insertValues := genInsertClause(model)
 	stmt := fmt.Sprintf(`INSERT INTO %s %s`, model.rawFullTabName(), insertClause)
@@ -63,6 +65,7 @@ func InsertOne(exe Executor, model Model) error {
 	return nil
 }
 
+// Count 计数
 func Count(exe Executor, model Model) (int, error) {
 	whereClause, whereValues := genWhereClause(model)
 	tabRef := genTabRef(model)
@@ -79,6 +82,7 @@ func Count(exe Executor, model Model) (int, error) {
 	return count, nil
 }
 
+// Query 查询
 func Query(exe Executor, m Model) error {
 	selectClause := genSelectClause(m)
 	whereClause, whereValues := genWhereClause(m)
@@ -93,6 +97,7 @@ func Query(exe Executor, m Model) error {
 	return queryAndScan(exe, m, stmt, whereValues...)
 }
 
+// CacheQuery 缓存查询
 func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
 	selectClause := genSelectClause(m)
 	whereClause, whereValues := genWhereClause(m)
@@ -136,6 +141,7 @@ func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
 	return nil
 }
 
+// JoinQuery 关联查询
 func JoinQuery(exe Executor, m Model) error {
 	selectClause := genJoinSelectClause(m)
 	whereClause, whereValues := genJoinWhereClause(m)
@@ -149,6 +155,7 @@ func JoinQuery(exe Executor, m Model) error {
 	return joinQueryAndScan(exe, m, stmt, whereValues...)
 }
 
+// CacheJoinQuery 缓存关联查询
 func CacheJoinQuery(exe Executor, m Model, timeout time.Duration) error {
 	selectClause := genJoinSelectClause(m)
 	whereClause, whereValues := genJoinWhereClause(m)
@@ -191,6 +198,7 @@ func CacheJoinQuery(exe Executor, m Model, timeout time.Duration) error {
 	return nil
 }
 
+// Update 更新
 func Update(exe Executor, model Model) (sql.Result, error) {
 	tabRef := genUpdateTabRef(model)
 	updateClause, updateValues := genUpdateClause(model)
@@ -204,6 +212,7 @@ func Update(exe Executor, model Model) (sql.Result, error) {
 	return exe.Exec(stmt, append(updateValues, whereValues...)...)
 }
 
+// Delete 删除
 func Delete(exe Executor, model Model) (sql.Result, error) {
 	whereClause, whereValues := genSimpleWhereClause(model)
 	stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
@@ -214,6 +223,7 @@ func Delete(exe Executor, model Model) (sql.Result, error) {
 	return exe.Exec(stmt, whereValues...)
 }
 
+// Agg 汇总查询
 func Agg(exe Executor, model Model) (AggResult, error) {
 	selectClause, tempFields := genAggSelectClause(model)
 	tabRef := genTabRef(model)

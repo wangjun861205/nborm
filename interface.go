@@ -50,7 +50,6 @@ type BaseField interface {
 	ForSum()
 	AscOrder()
 	DscOrder()
-	// String() string
 	addModelStatus(modelStatus)
 	GroupBy()
 }

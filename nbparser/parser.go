@@ -8,6 +8,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -74,90 +75,314 @@ func getRelModelStr(tag string) []relModelStr {
 	return l
 }
 
-type RelInfo struct {
-	Field        string
-	Type         string
-	SrcModel     *RelModel
-	SrcFields    []*RelField
-	MidModels    []*RelModel
-	DstModel     *RelModel
-	DstFields    []*RelField
-	IsList       bool
-	MidModelsLen int
+type RelInfoElem struct {
+	DstModel  *RelModel
+	On        string
+	Fields    []*RelField
+	IsMid     bool
+	Index     int
+	FieldsStr string
 }
 
-func parseRelation(dstModel, tag string) error {
+type RelInfo struct {
+	FieldName string
+	FieldType string
+	IsList    bool
+	Elems     []*RelInfoElem
+}
+
+const (
+	neutral    = "neutral"
+	on         = "on"
+	field      = "field"
+	value      = "value"
+	quote      = "quote"
+	modelName  = "modelName"
+	modelIndex = "modelIndex"
+)
+
+func parseRelation(tag string) error {
 	lastModel := modelInfos[len(modelInfos)-1]
-	lastRel := lastModel.RelInfos[len(lastModel.RelInfos)-1]
-	relWholeGroup := relWholeRe.FindStringSubmatch(tag)
-	if len(relWholeGroup) == 0 {
-		return fmt.Errorf("no rel tag: (%s)", tag)
-	}
-	relStr := relWholeGroup[1]
-	relModelsGroup := relModelRe.FindAllStringSubmatch(relStr, -1)
-	for _, mg := range relModelsGroup {
-		switch {
-		case strings.HasPrefix(mg[1], "@"):
-			sm := RelModel{ModelName: "m", ModelType: lastModel.Name}
-			lastRel.SrcModel = &sm
-		case strings.HasPrefix(mg[1], "$"):
-			dm := RelModel{ModelName: fmt.Sprintf("m.%s", lastRel.Field), ModelType: dstModel}
-			lastRel.DstModel = &dm
-		default:
-			midModelGroup := relMidModelRe.FindStringSubmatch(mg[1])
-			mm := RelModel{ModelName: midModelGroup[0], ModelType: midModelGroup[1]}
-			lastRel.MidModels = append(lastRel.MidModels, &mm)
+	info := lastModel.RelInfos[len(lastModel.RelInfos)-1]
+	statStack := make([]string, 0, 8)
+	statStack = append(statStack, neutral)
+	// popStack := func() string {
+	// 	var stat string
+	// 	statStack, stat = statStack[:len(statStack)-1], statStack[len(statStack)-1]
+	// 	return stat
+	// }
+	// pushStat := func(stat string) {
+	// 	statStack = append(statStack, stat)
+	// }
+	indexStat := func(index int) string {
+		if index >= 0 {
+			return statStack[index]
 		}
+		return statStack[len(statStack)+index]
 	}
-	if lastRel.SrcModel == nil {
-		lastRel.SrcModel = &RelModel{ModelName: "m", ModelType: lastModel.Name}
+	var builder strings.Builder
+	reader := strings.NewReader(tag)
+
+	lastElem := func() *RelInfoElem {
+		return info.Elems[len(info.Elems)-1]
 	}
-	fieldsRe := regexp.MustCompile(`@([@\$\w]+)\.(\w+)`)
-	for _, mg := range relModelsGroup {
-		onStr := mg[2]
-		on := On{}
-		fieldsGroup := fieldsRe.FindAllStringSubmatch(onStr, -1)
-		for _, fieldGroup := range fieldsGroup {
-			modelName := fieldGroup[1]
-			fieldName := fieldGroup[2]
-			switch {
-			case strings.HasPrefix(modelName, "@"):
-				field := RelField{lastRel.SrcModel, fieldName}
-				on.Fields = append(on.Fields, &field)
-				lastRel.SrcFields = append(lastRel.SrcFields, &field)
-			case strings.HasPrefix(modelName, "$"):
-				field := RelField{lastRel.DstModel, fieldName}
-				on.Fields = append(on.Fields, &field)
-				lastRel.DstFields = append(lastRel.DstFields, &field)
+
+	lastField := func() *RelField {
+		e := lastElem()
+		return e.Fields[len(e.Fields)-1]
+	}
+
+	for {
+		r, _, err := reader.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		switch r {
+		case '[':
+			switch statStack[len(statStack)-1] {
+			case neutral:
+				statStack = append(statStack, on)
+				info.Elems = append(info.Elems, &RelInfoElem{
+					DstModel: new(RelModel),
+				})
+			case modelName:
+				statStack[len(statStack)-1] = on
+				info.Elems = append(info.Elems, &RelInfoElem{
+					DstModel: new(RelModel),
+				})
+			case modelIndex:
+				statStack = statStack[:len(statStack)-1]
+				statStack[len(statStack)-1] = on
+				info.Elems = append(info.Elems, &RelInfoElem{
+					DstModel: new(RelModel),
+				})
+			case quote:
+				builder.WriteRune(r)
 			default:
-				var tarModel *RelModel
-				for _, mm := range lastRel.MidModels {
-					if modelName == mm.ModelName {
-						tarModel = mm
-						break
-					}
-				}
-				field := RelField{tarModel, fieldName}
-				on.Fields = append(on.Fields, &field)
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
 			}
-		}
-		on.Expr = fieldsRe.ReplaceAllString(onStr, "@")
-		switch {
-		case strings.HasPrefix(mg[1], "@"):
-			lastRel.SrcModel.On = &on
-		case strings.HasPrefix(mg[1], "$"):
-			lastRel.DstModel.On = &on
-		default:
-			for _, rm := range lastRel.MidModels {
-				if rm.ModelName == mg[1] {
-					rm.On = &on
-					break
+		case ']':
+			switch statStack[len(statStack)-1] {
+			case value, field:
+				statStack = []string{neutral}
+				lastElem := info.Elems[len(info.Elems)-1]
+				lastElem.On = builder.String()
+				builder.Reset()
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '\'':
+			switch statStack[len(statStack)-1] {
+			case value:
+				statStack = append(statStack, quote)
+				builder.WriteRune(r)
+			case quote:
+				statStack = statStack[:len(statStack)-1]
+				builder.WriteRune(r)
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '@':
+			switch statStack[len(statStack)-1] {
+			case neutral:
+				statStack = append(statStack, modelName)
+				lastElem := info.Elems[len(info.Elems)-1]
+				lastElem.DstModel = new(RelModel)
+			case modelName:
+				builder.WriteRune(r)
+				switch statStack[len(statStack)-2] {
+				case neutral:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastElem.DstModel.ModelName = "@"
+					lastElem.DstModel.ModelType = "@"
+					statStack = []string{neutral}
+				case on:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastField := lastElem.Fields[len(lastElem.Fields)-1]
+					lastField.Model.ModelName = "@"
+				default:
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
 				}
+				if statStack[len(statStack)-2] == neutral {
+				}
+			case quote:
+				builder.WriteRune(r)
+			case on:
+				statStack = append(statStack, modelName)
+				builder.WriteRune(r)
+				lastElem := info.Elems[len(info.Elems)-1]
+				lastElem.Fields = append(lastElem.Fields, &RelField{
+					Model: new(RelModel),
+				})
+			case value:
+				switch statStack[len(statStack)-3] {
+				case modelName:
+					statStack = statStack[:len(statStack)-2]
+					builder.WriteRune(r)
+				case modelIndex:
+					statStack = statStack[:len(statStack)-3]
+					builder.WriteRune(r)
+				default:
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+				lastElem := info.Elems[len(info.Elems)-1]
+				lastElem.Fields = append(lastElem.Fields, &RelField{
+					Model: new(RelModel),
+				})
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '$':
+			switch statStack[len(statStack)-1] {
+			case modelName:
+				builder.WriteRune(r)
+				switch statStack[len(statStack)-2] {
+				case neutral:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastElem.DstModel.ModelName = "$"
+					lastElem.DstModel.ModelType = "$"
+					statStack = []string{neutral}
+				case on:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastField := lastElem.Fields[len(lastElem.Fields)-1]
+					lastField.Model.ModelName = "$"
+				default:
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+			case quote:
+				builder.WriteRune(r)
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '<', '>', '^':
+			switch indexStat(-1) {
+			case value, quote:
+				builder.WriteRune(r)
+			case modelName:
+				if indexStat(-2) == on {
+					builder.WriteRune(r)
+					f := lastField()
+					f.Model.ModelName += string(r)
+				} else {
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '.':
+			switch statStack[len(statStack)-1] {
+			case quote:
+				builder.WriteRune(r)
+			case modelName:
+				if statStack[len(statStack)-2] == on {
+					statStack = append(statStack, field)
+					builder.WriteRune(r)
+				} else {
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+			case modelIndex:
+				if statStack[len(statStack)-3] == on {
+					statStack = append(statStack, field)
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastElem.Fields = append(lastElem.Fields, new(RelField))
+					builder.WriteRune(r)
+				} else {
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '_':
+			switch statStack[len(statStack)-1] {
+			case value:
+				builder.WriteRune(r)
+			case modelName:
+				statStack = append(statStack, modelIndex)
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			switch statStack[len(statStack)-1] {
+			case value, quote:
+				builder.WriteRune(r)
+			case modelIndex:
+				switch statStack[len(statStack)-2] {
+				case neutral:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastElem.DstModel.ModelName += string(r)
+				case on:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastField := lastElem.Fields[len(lastElem.Fields)-1]
+					lastField.Model.ModelName += string(r)
+				}
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+
+			}
+		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
+			switch statStack[len(statStack)-1] {
+			case value, quote:
+				builder.WriteRune(r)
+			case modelName:
+				switch statStack[len(statStack)-2] {
+				case neutral:
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastElem.DstModel.ModelName += string(r)
+					lastElem.DstModel.ModelType += string(r)
+				case on:
+					builder.WriteRune(r)
+					lastElem := info.Elems[len(info.Elems)-1]
+					lastField := lastElem.Fields[len(lastElem.Fields)-1]
+					lastField.Model.ModelName += string(r)
+				default:
+					panic(fmt.Errorf("invalid rel tag(%s)", tag))
+				}
+			case field:
+				builder.WriteRune(r)
+				lastElem := info.Elems[len(info.Elems)-1]
+				lastField := lastElem.Fields[len(lastElem.Fields)-1]
+				lastField.FieldName += string(r)
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		case ' ':
+			switch statStack[len(statStack)-1] {
+			case value, quote:
+				builder.WriteRune(r)
+			case modelName:
+				if statStack[len(statStack)-2] == neutral {
+					statStack = []string{neutral}
+				}
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			case modelIndex:
+				if statStack[len(statStack)-3] == neutral {
+					statStack = []string{neutral}
+				}
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			case field:
+				builder.WriteRune(r)
+				statStack = append(statStack, value)
+			case neutral:
+				continue
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
+			}
+		default:
+			switch statStack[len(statStack)-1] {
+			case value, quote:
+				builder.WriteRune(r)
+			case field:
+				builder.WriteRune(r)
+				statStack = append(statStack, value)
+			default:
+				panic(fmt.Errorf("invalid rel tag(%s)", tag))
 			}
 		}
 	}
-	lastRel.MidModelsLen = len(lastRel.MidModels)
-	return nil
 }
 
 type FieldInfo struct {
@@ -221,25 +446,58 @@ func (m *ModelInfo) proc() {
 	if len(m.MidModels) > 0 {
 		m.HasMidModels = true
 	}
-	var midIdx int
+	var midIndex int
 	for _, relInfo := range m.RelInfos {
-		for _, midMod := range relInfo.MidModels {
-			midMod.Index = midIdx
-			midMod.ModelName = fmt.Sprintf("mm%d", midMod.Index)
-			midIdx++
-		}
-		for _, mm := range relInfo.MidModels {
-			l := make([]string, 0, len(mm.On.Fields))
-			for _, f := range mm.On.Fields {
-				l = append(l, fmt.Sprintf("&%s.%s", f.Model.ModelName, f.FieldName))
+		for i, elem := range relInfo.Elems {
+		INNER:
+			for _, field := range elem.Fields {
+				switch field.Model.ModelName {
+				case "@":
+					field.Model.ModelName = "m"
+					field.Model.ModelType = m.Name
+				case "$":
+					field.Model.ModelName = fmt.Sprintf("m.%s", relInfo.FieldName)
+					field.Model.ModelType = relInfo.FieldType
+				case "<":
+					field.Model = relInfo.Elems[i-1].DstModel
+				case ">":
+					field.Model = relInfo.Elems[i+1].DstModel
+				case "^":
+					field.Model = elem.DstModel
+				default:
+					for _, e := range relInfo.Elems {
+						if field.Model.ModelName == e.DstModel.ModelName {
+							field.Model = e.DstModel
+							continue INNER
+						}
+					}
+					panic(fmt.Errorf("cannot find model (%s)", field.Model.ModelName))
+				}
 			}
-			mm.On.FieldsExpr = strings.Join(l, ", ")
 		}
-		l := make([]string, 0, len(relInfo.DstModel.On.Fields))
-		for _, f := range relInfo.DstModel.On.Fields {
-			l = append(l, fmt.Sprintf("&%s.%s", f.Model.ModelName, f.FieldName))
+		for _, elem := range relInfo.Elems {
+			switch elem.DstModel.ModelName {
+			case "@":
+				elem.DstModel.ModelName = "m"
+				elem.DstModel.ModelType = m.Name
+			case "$", "":
+				elem.DstModel.ModelName = fmt.Sprintf("m.%s", relInfo.FieldName)
+				elem.DstModel.ModelType = relInfo.FieldType
+			default:
+				elem.IsMid = true
+				elem.Index = midIndex
+				elem.DstModel.ModelName = fmt.Sprintf("mm%d", elem.Index)
+				midIndex++
+			}
+			elem.On = regexp.MustCompile(`@[@\$<>\^\w]+\.[\w]+`).ReplaceAllString(elem.On, "@")
 		}
-		relInfo.DstModel.On.FieldsExpr = strings.Join(l, ", ")
+		for _, elem := range relInfo.Elems {
+			var builder strings.Builder
+			for _, field := range elem.Fields {
+				builder.WriteString(fmt.Sprintf("&%s.%s, ", field.Model.ModelName, field.FieldName))
+			}
+			elem.FieldsStr = strings.Trim(builder.String(), ", ")
+		}
 	}
 }
 
@@ -247,8 +505,22 @@ func (m *ModelInfo) newModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func New{{ model.Name }}() *{{ model.Name }} {
 		m := &{{ model.Name }}{}
-		nborm.InitModel(m)
+		nborm.InitModel(m, nil, nil)
 		m.InitRel()
+		return m
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) newSubModelFunc() string {
+	s, err := nbfmt.Fmt(`
+	func newSub{{ model.Name }}(parent nborm.Model) *{{ model.Name }} {
+		m := &{{ model.Name }}{}
+		nborm.InitModel(m, parent, nil)
 		return m
 	}
 	`, map[string]interface{}{"model": m})
@@ -262,30 +534,20 @@ func (m *ModelInfo) initRelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m *{{ model.Name }}) InitRel() {
 		{{ for i, rel in model.RelInfos }}
-			m.{{ rel.Field }} = &{{ rel.Type }}{}
-			m.{{ rel.Field }}.SetParent(m)
+			m.{{ rel.FieldName }} = newSub{{ rel.FieldType }}(m)
 			{{ if rel.IsList == true }}
-				m.{{ rel.Field }}.dupMap = make(map[string]int)
+				m.{{ rel.FieldName }}.dupMap = make(map[string]int)
 			{{ endif }}
-			nborm.InitModel(m.{{ rel.Field }})
-			relInfo{{ i }} := nborm.RelationInfo{Name: "{{ rel.Field }}" }
-			relInfo{{ i }}.SrcModel = m
-			relInfo{{ i }}.DstModel = m.{{ rel.Field }}
-			{{ for _, srcField in rel.SrcFields }}
-				relInfo{{ i }}.SrcFields = append(relInfo{{ i }}.SrcFields, &m.{{ srcField.FieldName }})
+			var relInfo{{ i }} *nborm.RelationInfo
+			{{ for _, elem in rel.Elems }}
+				{{ if elem.IsMid == true }}
+					mm{{ elem.Index }} := newSub{{ elem.DstModel.ModelType }}(m)
+					relInfo{{ i }} = relInfo{{ i }}.Append("{{ rel.FieldName }}", mm{{ elem.Index }}, nborm.NewExpr("{{ elem.On }}", {{ elem.FieldsStr }}))
+				{{ else }}
+					relInfo{{ i }} = relInfo{{ i }}.Append("{{ rel.FieldName }}", {{ elem.DstModel.ModelName }}, nborm.NewExpr("{{ elem.On }}", {{ elem.FieldsStr }}))
+				{{ endif }}
 			{{ endfor }}
-			{{ for _, dstField in rel.DstFields }}
-				relInfo{{ i }}.DstFields = append(relInfo{{ i }}.DstFields, &m.{{ rel.Field }}.{{ dstField.FieldName }})
-			{{ endfor }}
-			{{ for _, midModel in rel.MidModels }}
-				mm{{ midModel.Index }} := &{{ midModel.ModelType }}{}
-				mm{{ midModel.Index }}.SetParent(m)
-				nborm.InitModel(mm{{ midModel.Index }})
-				relInfo{{ i }}.MidModels = append(relInfo{{ i }}.MidModels, mm{{ midModel.Index }})
-				mm{{ midModel.Index }}.SetOnCond(nborm.NewExpr("{{ midModel.On.Expr }}", {{ midModel.On.FieldsExpr }}))
-			{{ endfor }}
-			{{ rel.DstModel.ModelName }}.SetOnCond(nborm.NewExpr("{{ rel.DstModel.On.Expr }}", {{ rel.DstModel.On.FieldsExpr }}))
-			m.Rels = append(m.Rels, relInfo{{ i }})
+			m.AppendRelation(relInfo{{ i }})
 		{{ endfor }}
 		m.AddRelInited()
 	}
@@ -484,8 +746,8 @@ func (m *ModelInfo) modelCollapseFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m *{{ model.Name }}) Collapse() {
 		{{ for _, relInfo in model.RelInfos }}
-			if m.{{ relInfo.Field }} != nil && m.{{ relInfo.Field }}.IsSynced() {
-				m.{{ relInfo.Field }}.Collapse()
+			if m.{{ relInfo.FieldName }} != nil && m.{{ relInfo.FieldName }}.IsSynced() {
+				m.{{ relInfo.FieldName }}.Collapse()
 			}
 		{{ endfor }}
 	}
@@ -546,8 +808,27 @@ func (m *ModelInfo) newListFunc() string {
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
-		nborm.InitModel(l)
+		nborm.InitModel(l, nil, nil)
 		l.InitRel()
+		return l
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) newSubListFunc() string {
+	s, err := nbfmt.Fmt(`
+	func newSub{{ model.Name }}List(parent nborm.Model) *{{ model.Name }}List {
+		l := &{{ model.Name }}List {
+			{{ model.Name }}{},
+			make(map[string]int),
+			make([]*{{ model.Name }}, 0, 32),
+			0,
+		}
+		nborm.InitModel(l, parent, nil)
 		return l
 	}
 	`, map[string]interface{}{"model": m})
@@ -561,9 +842,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) NewModel() nborm.Model {
 		m := &{{ model.Name }}{}
-		m.SetParent(l.GetParent())
-		m.SetConList(l)
-		nborm.InitModel(m)
+		nborm.InitModel(m, nil, l)
 		m.InitRel()
 		l.List = append(l.List, m)
 		return m
@@ -659,10 +938,10 @@ func (m *ModelInfo) listCollapseFunc() string {
 			{{ if model.HasRel == true }}
 				{{ for _, relInfo in model.RelInfos }}
 					{{ if relInfo.IsList == true }}
-						l.List[idx].{{ relInfo.Field }}.checkDup()
-						l.List[idx].{{ relInfo.Field }}.List = append(l.List[idx].{{ relInfo.Field }}.List, l.List[l.Len()-1].{{ relInfo.Field }}.List...)
+						l.List[idx].{{ relInfo.FieldName }}.checkDup()
+						l.List[idx].{{ relInfo.FieldName }}.List = append(l.List[idx].{{ relInfo.FieldName }}.List, l.List[l.Len()-1].{{ relInfo.FieldName }}.List...)
 					{{ else }}
-						l.List[idx].{{ relInfo.Field }} = l.List[l.Len()-1].{{ relInfo.Field }}
+						l.List[idx].{{ relInfo.FieldName }} = l.List[l.Len()-1].{{ relInfo.FieldName }}
 					{{ endif }}
 				{{ endfor }}
 			{{ endif }}
@@ -1035,15 +1314,8 @@ func readConfig(filename string) config {
 
 func main() {
 	var command, configFile string
-	// tabs := make(arrayFlags, 0, 8)
 	flag.StringVar(&command, "command", "", "specific command")
 	flag.StringVar(&configFile, "config", "config", "specific config file")
-	// flag.StringVar(&host, "host", "localhost", "specific mysql host")
-	// flag.StringVar(&port, "port", "3306", "specific mysql port")
-	// flag.StringVar(&user, "user", "", "specific mysql user")
-	// flag.StringVar(&password, "password", "", "sepcific mysql password")
-	// flag.StringVar(&db, "db", "information_schema", "specific database")
-	// flag.Var(&tabs, "table", "specific tables")
 
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
@@ -1171,8 +1443,9 @@ func main() {
 							if strings.HasSuffix(ft.X.(*ast.Ident).String(), "List") {
 								isList = true
 							}
-							lastModel.RelInfos = append(lastModel.RelInfos, &RelInfo{Field: field.Names[0].Name, Type: ft.X.(*ast.Ident).String(), IsList: isList})
-							if err := parseRelation(field.Names[0].Name, field.Tag.Value); err != nil {
+							lastModel.RelInfos = append(lastModel.RelInfos, &RelInfo{FieldName: field.Names[0].Name, FieldType: ft.X.(*ast.Ident).String(), IsList: isList})
+							tagStr := regexp.MustCompile(`rel:"(.*?)"`).FindStringSubmatch(field.Tag.Value)[1]
+							if err := parseRelation(tagStr); err != nil {
 								panic(err)
 							}
 						}
@@ -1200,6 +1473,7 @@ func main() {
 		for _, m := range modelInfos {
 			m.proc()
 			nf.WriteString(m.newModelFunc())
+			nf.WriteString(m.newSubModelFunc())
 			nf.WriteString(m.initRelFunc())
 			nf.WriteString(m.dbFunc())
 			nf.WriteString(m.tabFunc())
@@ -1213,6 +1487,7 @@ func main() {
 			nf.WriteString(m.modelListType())
 			nf.WriteString(m.modelCollapseFunc())
 			nf.WriteString(m.newListFunc())
+			nf.WriteString(m.newSubListFunc())
 			nf.WriteString(m.listNewModelFunc())
 			nf.WriteString(m.listSetTotalFunc())
 			nf.WriteString(m.listGetTotalFunc())

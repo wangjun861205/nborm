@@ -52,36 +52,24 @@ const (
 	containSubOrder     modelStatus = 1 << 25
 )
 
-// Meta Model的元信息
-type Meta struct {
+type modelBaseInfo struct {
 	Model
 	parent  Model
 	status  modelStatus
-	wheres  exprList
 	alias   string
 	index   int
-	limit   [2]int
-	aggExps []*aggExp
-	havings exprList
-	updates exprList
-	distMap map[string]int
+	rels    RelationInfoList
 	conList ModelList
-	Rels    RelationInfoList
-	onCond  *Expr
 }
 
-func (m *Meta) setModel(model Model) {
-	m.Model = model
-}
-
-func (m *Meta) rawFullTabName() string {
+func (m *modelBaseInfo) rawFullTabName() string {
 	if m.DB() == "*" {
 		return fmt.Sprintf("`%s`", m.Tab())
 	}
 	return fmt.Sprintf("`%s`.`%s`", m.DB(), m.Tab())
 }
 
-func (m *Meta) fullTabName() string {
+func (m *modelBaseInfo) fullTabName() string {
 	if m.alias != "" {
 		return fmt.Sprintf("%s AS %s", m.rawFullTabName(), m.alias)
 	}
@@ -91,118 +79,70 @@ func (m *Meta) fullTabName() string {
 	return fmt.Sprintf("`%s`.`%s`", m.DB(), m.Tab())
 }
 
-func (m *Meta) getAlias() string {
+func (m *modelBaseInfo) getAlias() string {
 	return m.alias
 }
 
-func (m *Meta) setAlias() {
+func (m *modelBaseInfo) setAlias() {
 	m.alias = fmt.Sprintf("t%d", m.getIndex())
 }
 
-func (m *Meta) getWheres() exprList {
-	return m.wheres
-}
-
-func (m *Meta) getHavings() exprList {
-	return m.havings
-}
-
-// AndExprWhere 添加表达式where(and关系)
-func (m *Meta) AndExprWhere(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("AND %s", expr.exp)
-	m.wheres = append(m.wheres, expr)
-	m.addModelStatus(containWhere)
-	m.addModelStatus(forModelRef)
-	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
-		parent.addModelStatus(containSubWhere)
-	}
-	return m
-}
-
-// OrExprWhere 添加表达式where(or关系)
-func (m *Meta) OrExprWhere(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("OR %s", expr.exp)
-	m.wheres = append(m.wheres, expr)
-	m.addModelStatus(containWhere)
-	m.addModelStatus(forModelRef)
-	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
-		parent.addModelStatus(containSubWhere)
-	}
-	return m
-}
-
-// AndHaving 添加表达式having(and关系)
-func (m *Meta) AndHaving(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("AND %s", expr.exp)
-	m.havings = append(m.havings, expr)
-	m.addModelStatus(forModelHaving)
-	return m
-}
-
-// OrHaving 添加表达式having(or关系)
-func (m *Meta) OrHaving(expr *Expr, val ...interface{}) Model {
-	expr.exp = fmt.Sprintf("OR %s", expr.exp)
-	m.havings = append(m.havings, expr)
-	m.addModelStatus(forModelHaving)
-	return m
-}
-
-func (m *Meta) getModelStatus() modelStatus {
+func (m *modelBaseInfo) getModelStatus() modelStatus {
 	return m.status
 }
 
-func (m *Meta) addModelStatus(status modelStatus) {
+func (m *modelBaseInfo) addModelStatus(status modelStatus) {
 	m.status |= status
 }
 
-func (m *Meta) setModelStatus(status modelStatus) {
+func (m *modelBaseInfo) setModelStatus(status modelStatus) {
 	m.status = status
 }
 
-func (m *Meta) removeModelStatus(status modelStatus) {
+func (m *modelBaseInfo) removeModelStatus(status modelStatus) {
 	m.status &^= status
 }
 
-func (m *Meta) checkStatus(status modelStatus) bool {
+func (m *modelBaseInfo) checkStatus(status modelStatus) bool {
 	return m.status&status > 0
 }
 
 // SelectDistinct 设定去重标志位
-func (m *Meta) SelectDistinct() {
+func (m *modelBaseInfo) SelectDistinct() {
 	m.addModelStatus(distinct)
 }
 
 // IsSynced 检查是否为synced
-func (m *Meta) IsSynced() bool {
+func (m *modelBaseInfo) IsSynced() bool {
 	return m.status&synced == synced
 }
 
 // IsContainValue 是否包含Value(Scan或直接设置)
-func (m *Meta) IsContainValue() bool {
+func (m *modelBaseInfo) IsContainValue() bool {
 	return m.status&containValue == containValue
 }
 
 // IsRelInited 子关系是否已初始化
-func (m *Meta) IsRelInited() bool {
+func (m *modelBaseInfo) IsRelInited() bool {
 	return m.status&relInited == relInited
 }
 
 // AddRelInited 添加子关系初始化标志位
-func (m *Meta) AddRelInited() {
+func (m *modelBaseInfo) AddRelInited() {
 	m.addModelStatus(relInited)
 }
 
 // GetParent 获取当前Model的Father Model
-func (m *Meta) GetParent() Model {
+func (m *modelBaseInfo) getParent() Model {
 	return m.parent
 }
 
-// SetParent 设置当前Model的Father Model
-func (m *Meta) SetParent(parent Model) {
+// setParent 设置当前Model的Father Model
+func (m *modelBaseInfo) setParent(parent Model) {
 	m.parent = parent
 }
 
-func (m *Meta) getIndex() int {
+func (m *modelBaseInfo) getIndex() int {
 	if m.parent != nil {
 		return m.parent.getIndex()
 	}
@@ -210,116 +150,178 @@ func (m *Meta) getIndex() int {
 	return m.index
 }
 
-// SetLimit 设置Limit子句信息
-func (m *Meta) SetLimit(limit, offset int) {
-	m.limit = [2]int{limit, offset}
-}
-
-func (m *Meta) getLimit() (limit, offset int) {
-	return m.limit[0], m.limit[1]
-}
-
 // SetForJoin 设置Join查询标志位(所有Father Model的containSubJoin标志位均会被置为1)
-func (m *Meta) SetForJoin() {
-	m.GetParent().addModelStatus(containSubJoin)
+func (m *modelBaseInfo) SetForJoin() {
+	m.getParent().addModelStatus(containSubJoin)
 	m.addModelStatus(forJoin)
 }
 
 // SetForLeftJoin 左关联
-func (m *Meta) SetForLeftJoin() {
-	m.GetParent().addModelStatus(containSubLeftJoin)
+func (m *modelBaseInfo) SetForLeftJoin() {
+	m.getParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forLeftJoin)
 }
 
 // SetForRightJjoin 右关联
-func (m *Meta) SetForRightJoin() {
-	m.GetParent().addModelStatus(containSubLeftJoin)
+func (m *modelBaseInfo) SetForRightJoin() {
+	m.getParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forRightJoin)
 }
 
 // SelectAll 显式设置查询所有字段，拼合Select语句时，该Model的字段将以alias.*的方式出现
-func (m *Meta) SelectAll() {
+func (m *modelBaseInfo) SelectAll() {
 	m.addModelStatus(selectAll)
 }
 
+// SetConList 设置当前Model的Container List
+func (m *modelBaseInfo) setConList(l ModelList) {
+	m.conList = l
+}
+
+func (m *modelBaseInfo) getConList() ModelList {
+	return m.conList
+}
+
+// Relations 获取当前Model的子关系
+func (m *modelBaseInfo) relations() RelationInfoList {
+	return m.rels
+}
+
+func (m *modelBaseInfo) AppendRelation(rel *RelationInfo) {
+	m.rels = append(m.rels, rel)
+}
+
+type modelClause struct {
+	Model
+	wheres  exprList
+	havings exprList
+	updates exprList
+	aggExps []*aggExp
+	limit   [2]int
+}
+
+func (m *modelClause) getWheres() exprList {
+	return m.wheres
+}
+
+func (m *modelClause) getHavings() exprList {
+	return m.havings
+}
+
+// SetLimit 设置Limit子句信息
+func (m *modelClause) SetLimit(limit, offset int) {
+	m.limit = [2]int{limit, offset}
+}
+
+func (m *modelClause) getLimit() (limit, offset int) {
+	return m.limit[0], m.limit[1]
+}
+
+func (m *modelClause) getAggExps() []*aggExp {
+	return m.aggExps
+}
+
+func (m *modelClause) getUpdateList() exprList {
+	return m.updates
+}
+
+func (m *modelClause) appendWhere(exprs ...*Expr) {
+	m.wheres = append(m.wheres, exprs...)
+}
+
+// AndExprWhere 添加表达式where(and关系)
+func (m *modelClause) AndExprWhere(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("AND %s", expr.exp)
+	m.wheres = append(m.wheres, expr)
+	m.addModelStatus(containWhere)
+	m.addModelStatus(forModelRef)
+	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
+		parent.addModelStatus(containSubWhere)
+	}
+	return m
+}
+
+// OrExprWhere 添加表达式where(or关系)
+func (m *modelClause) OrExprWhere(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("OR %s", expr.exp)
+	m.wheres = append(m.wheres, expr)
+	m.addModelStatus(containWhere)
+	m.addModelStatus(forModelRef)
+	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
+		parent.addModelStatus(containSubWhere)
+	}
+	return m
+}
+
+// AndHaving 添加表达式having(and关系)
+func (m *modelClause) AndHaving(expr *Expr) Model {
+	expr.exp = fmt.Sprintf("AND %s", expr.exp)
+	m.havings = append(m.havings, expr)
+	m.addModelStatus(forModelHaving)
+	return m
+}
+
+// OrHaving 添加表达式having(or关系)
+func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
+	expr.exp = fmt.Sprintf("OR %s", expr.exp)
+	m.havings = append(m.havings, expr)
+	m.addModelStatus(forModelHaving)
+	return m
+}
+
 // StrAgg 添加字符串结果的汇总
-func (m *Meta) StrAgg(expr *Expr, name string) {
+func (m *modelClause) StrAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newStrAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // IntAgg 添加整数结果的汇总
-func (m *Meta) IntAgg(expr *Expr, name string) {
+func (m *modelClause) IntAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newIntAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DateAgg 添加日期结果的汇总
-func (m *Meta) DateAgg(expr *Expr, name string) {
+func (m *modelClause) DateAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDateAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DatetimeAgg 添加日期时间结果的汇总
-func (m *Meta) DatetimeAgg(expr *Expr, name string) {
+func (m *modelClause) DatetimeAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDatetimeAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DecAgg 添加浮点数结果的汇总
-func (m *Meta) DecAgg(expr *Expr, name string) {
+func (m *modelClause) DecAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	m.aggExps = append(m.aggExps, newDecAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
-func (m *Meta) getAggExps() []*aggExp {
-	return m.aggExps
-}
-
 // ExprUpdate 添加表达式更新
-func (m *Meta) ExprUpdate(expr *Expr) {
+func (m *modelClause) ExprUpdate(expr *Expr) {
 	m.updates = append(m.updates, expr)
 	m.addModelStatus(forUpdate)
-	for parent := m.GetParent(); parent != nil; parent = parent.GetParent() {
+	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubUpdate)
 	}
 }
 
-func (m *Meta) getUpdateList() exprList {
-	return m.updates
+// Meta Model的元信息
+type Meta struct {
+	modelBaseInfo
+	modelClause
 }
 
-// SetConList 设置当前Model的Container List
-func (m *Meta) SetConList(l ModelList) {
-	m.conList = l
-}
-
-func (m *Meta) getConList() ModelList {
-	return m.conList
-}
-
-func (m *Meta) appendWhere(exprs ...*Expr) {
-	m.wheres = append(m.wheres, exprs...)
-}
-
-// Relations 获取当前Model的子关系
-func (m *Meta) Relations() RelationInfoList {
-	return m.Rels
-}
-
-// SetOnCond 设置关联on条件
-func (m *Meta) SetOnCond(on *Expr) {
-	m.onCond = on
-}
-
-// GetOnCond 获取关联on条件
-func (m *Meta) getOnCond() *Expr {
-	return m.onCond
+func (m *Meta) setModel(model Model) {
+	m.modelBaseInfo.Model = model
+	m.modelClause.Model = model
 }
 
 type fieldStatus int
@@ -456,10 +458,9 @@ func (f *baseField) AscOrder() {
 	f.removeStatus(forDscOrder)
 	f.addStatus(forAscOrder)
 	f.addModelStatus(forModelOrder)
-	for parent := f.GetParent(); parent != nil; parent = parent.GetParent() {
+	for parent := f.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubOrder)
 	}
-	// f.addModelStatus(forModelRef)
 }
 
 // DscOrder 设置为倒序排序字段
@@ -467,10 +468,9 @@ func (f *baseField) DscOrder() {
 	f.removeStatus(forAscOrder)
 	f.addStatus(forDscOrder)
 	f.addModelStatus(forModelOrder)
-	for parent := f.GetParent(); parent != nil; parent = parent.GetParent() {
+	for parent := f.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubOrder)
 	}
-	// f.addModelStatus(forModelRef)
 }
 
 // Distinct 设置为去重字段
@@ -478,10 +478,6 @@ func (f *baseField) Distinct() {
 	f.Model.addModelStatus(distinct)
 	f.addStatus(forSelect)
 }
-
-// func (f *baseField) String() string {
-// 	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
-// }
 
 // GroupBy 分组
 func (f *baseField) GroupBy() {

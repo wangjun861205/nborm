@@ -77,12 +77,8 @@ type Model interface {
 	FieldInfos() FieldInfoList
 	AutoIncField() Field
 	PrimaryKey() FieldList
-	Relations() RelationInfoList
-	setRel(string, *Expr)
-	getRelCols() string
-	setRelCols(string)
-	getRelJoin() string
-	setRelJoin(string)
+	UniqueKeys() []FieldList
+	relations() RelationInfoList
 	getAlias() string
 	setAlias()
 	getModelStatus() modelStatus
@@ -94,11 +90,10 @@ type Model interface {
 	setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
-	GetParent() Model
-	SetParent(Model)
+	getParent() Model
+	setParent(Model)
 	getIndex() int
 	getWheres() exprList
-	getJoinWheres() exprList
 	getHavings() exprList
 	InitRel()
 	SetLimit(int, int)
@@ -106,16 +101,12 @@ type Model interface {
 	getAggExps() []*aggExp
 	ExprUpdate(*Expr)
 	getUpdateList() exprList
+	setConList(ModelList)
 	getConList() ModelList
 	Collapse()
-	setJoinClause(string)
-	getJoinClause() string
-	getRevJoinWheres() exprList
 	appendWhere(...*Expr)
-	appendJoinWhere(...*Expr)
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
-	getOnCond() *Expr
 	GetCache(string, time.Duration) bool
 	SetCache(string)
 }

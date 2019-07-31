@@ -80,8 +80,7 @@ func (e *Expr) toClause() (string, []interface{}) {
 			}
 		case '@':
 			if stat == normal {
-				builder.WriteString(e.values[fieldIndex].(Field).fullColName())
-				// values = append(values, expandArg(e.values[fieldIndex])...)
+				builder.WriteString(e.values[fieldIndex].(ValueField).fullColName())
 				fieldIndex++
 			} else {
 				builder.WriteRune(r)

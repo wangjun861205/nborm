@@ -9,7 +9,7 @@ func (r AggResult) ToList() []map[string]interface{} {
 	for _, rec := range r {
 		m := make(map[string]interface{})
 		for _, f := range rec {
-			m[f.fullColName()] = f.Value()
+			m[f.fullColName()] = f.value()
 		}
 		l = append(l, m)
 	}
@@ -22,7 +22,7 @@ func (r AggResult) ToSimpleList() []map[string]interface{} {
 	for _, rec := range r {
 		m := make(map[string]interface{})
 		for _, f := range rec {
-			m[f.colName()] = f.Value()
+			m[f.colName()] = f.value()
 		}
 		l = append(l, m)
 	}
@@ -36,30 +36,30 @@ type aggExp struct {
 
 func newStrAgg(expr *Expr, name string) *aggExp {
 	f := new(String)
-	f.col = name
+	f.Init(nil, name, "")
 	return &aggExp{expr, f}
 }
 
 func newIntAgg(expr *Expr, name string) *aggExp {
 	f := new(Int)
-	f.col = name
+	f.Init(nil, name, "")
 	return &aggExp{expr, f}
 }
 
 func newDateAgg(expr *Expr, name string) *aggExp {
 	f := new(Date)
-	f.col = name
+	f.Init(nil, name, "")
 	return &aggExp{expr, f}
 }
 
 func newDatetimeAgg(expr *Expr, name string) *aggExp {
 	f := new(Datetime)
-	f.col = name
+	f.Init(nil, name, "")
 	return &aggExp{expr, f}
 }
 
 func newDecAgg(expr *Expr, name string) *aggExp {
-	f := new(Datetime)
-	f.col = name
+	f := new(Decimal)
+	f.Init(nil, name, "")
 	return &aggExp{expr, f}
 }

@@ -24,9 +24,7 @@ type Executor interface {
 
 // BaseField 基础字段
 type BaseField interface {
-	setModel(Model)
-	dbName() string
-	tabName() string
+	Model
 	colName() string
 	setCol(string)
 	fieldName() string
@@ -42,30 +40,35 @@ type BaseField interface {
 	SetNull()
 	unsetNull()
 	mustValid()
-	rawFullTabName() string
-	fullTabName() string
 	rawFullColName() string
 	fullColName() string
 	ForSelect()
 	ForSum()
 	AscOrder()
 	DscOrder()
-	addModelStatus(modelStatus)
 	GroupBy()
+}
+
+type ClauseField interface {
+	AndW() ClauseField
+	AndWhere(string, interface{}) ClauseField
+	OrWhere(string, interface{}) ClauseField
+	U() ClauseField
+	Update(interface{}) ClauseField
+}
+
+// ValueField ValueField
+type ValueField interface {
+	BaseField
+	Scan(interface{}) error
+	value() interface{}
+	set(interface{}) ValueField
 }
 
 // Field Field
 type Field interface {
-	BaseField
-	Scan(interface{}) error
-	Value() interface{}
-	Set(interface{}) Field
-	AndW() Field
-	OrW() Field
-	AndWhere(string, interface{}) Field
-	OrWhere(string, interface{}) Field
-	U() Field
-	Update(interface{}) Field
+	ClauseField
+	ValueField
 	dup() Field
 }
 
@@ -86,7 +89,7 @@ type Model interface {
 	removeModelStatus(modelStatus)
 	checkStatus(modelStatus) bool
 	SelectDistinct()
-	setModel(Model)
+	// setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
 	getParent() Model

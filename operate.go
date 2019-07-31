@@ -37,7 +37,7 @@ func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 		if err != nil {
 			return false, err
 		}
-		model.AutoIncField().Set(int(lastInsertID))
+		model.AutoIncField().set(int(lastInsertID))
 	}
 	return
 }
@@ -59,7 +59,7 @@ func InsertOne(exe Executor, model Model) error {
 		if err != nil {
 			return err
 		}
-		model.AutoIncField().Set(int(lid))
+		model.AutoIncField().set(int(lid))
 	}
 	model.addModelStatus(synced)
 	return nil
@@ -67,8 +67,8 @@ func InsertOne(exe Executor, model Model) error {
 
 // Count 计数
 func Count(exe Executor, model Model) (int, error) {
-	whereClause, whereValues := genWhereClause(model)
-	tabRef := genTabRef(model)
+	whereClause, whereValues := genJoinWhereClause(model)
+	tabRef := genJoinTabRef(model)
 	countClause := genCountClause(model)
 	stmt := fmt.Sprintf("%s FROM %s %s", countClause, tabRef, whereClause)
 	if DEBUG {

@@ -300,7 +300,10 @@ type Meta struct {
 	modelClause
 }
 
-func (m *Meta) setModel(model Model) {
+func (m *Meta) Init(model, parent Model, conList ModelList) {
 	m.modelBaseInfo.Model = model
+	m.modelBaseInfo.parent = parent
+	m.modelBaseInfo.conList = conList
 	m.modelClause.Model = model
+	initModel(model)
 }

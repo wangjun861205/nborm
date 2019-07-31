@@ -13,21 +13,31 @@ func SetDebug(debug bool) {
 	DEBUG = debug
 }
 
-func InitModel(model, parent Model, conList ModelList) {
+// func InitModel(model, parent Model, conList ModelList) {
+// 	if !model.checkStatus(inited) {
+// 		model.setModel(model)
+// 		if conList != nil {
+// 			model.setParent(conList.getParent())
+// 		} else {
+// 			model.setParent(parent)
+// 		}
+// 		model.setConList(conList)
+// 		model.setAlias()
+// 		for _, fi := range model.FieldInfos() {
+// 			fi.Field.setModel(model)
+// 			fi.Field.setCol(fi.ColName)
+// 			fi.Field.setField(fi.FieldName)
+// 		}
+// 		model.addModelStatus(inited)
+// 	}
+// }
+
+func initModel(model Model) {
 	if !model.checkStatus(inited) {
-		model.setModel(model)
-		if conList != nil {
-			model.setParent(conList.getParent())
-		} else {
-			model.setParent(parent)
+		if model.getConList() != nil {
+			model.setParent(model.getConList().getParent())
 		}
-		model.setConList(conList)
 		model.setAlias()
-		for _, fi := range model.FieldInfos() {
-			fi.Field.setModel(model)
-			fi.Field.setCol(fi.ColName)
-			fi.Field.setField(fi.FieldName)
-		}
 		model.addModelStatus(inited)
 	}
 }
@@ -133,7 +143,7 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	field.mustValid()
 	*cl = append(*cl, field.colName())
 	*pl = append(*pl, "?")
-	*vl = append(*vl, field.Value())
+	*vl = append(*vl, field.value())
 }
 
 func getJoinModels(classModel Model, instanceModel Model, models *[]Model, fields *[]Field) {
@@ -282,7 +292,7 @@ func IsPrimaryKeyEqual(lm, rm Model) bool {
 	lpk := lm.PrimaryKey()
 	rpk := rm.PrimaryKey()
 	for i := 0; i < len(lpk); i++ {
-		if !lpk[i].IsValid() || !rpk[i].IsValid() || lpk[i].Value() != rpk[i].Value() {
+		if !lpk[i].IsValid() || !rpk[i].IsValid() || lpk[i].value() != rpk[i].value() {
 			return false
 		}
 	}
@@ -594,7 +604,7 @@ func getWheres(model Model, wheres *exprList) {
 		for _, relInfo := range model.getParent().relations() {
 			if relInfo.lastModel() == model {
 				for _, pk := range model.getParent().PrimaryKey() {
-					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.Value()))
+					*wheres = append(*wheres, NewExpr(" AND @ = ?", pk, pk.value()))
 				}
 			}
 		}
@@ -818,7 +828,7 @@ func genInsertClause(model Model) (string, []interface{}) {
 	ip := strings.TrimSuffix(strings.Repeat("?, ", len(validFields)), ", ")
 	for _, f := range validFields {
 		cl = append(cl, f.rawFullColName())
-		vl = append(vl, f.Value())
+		vl = append(vl, f.value())
 	}
 	return fmt.Sprintf("(%s) VALUES (%s)", strings.Join(cl, ", "), ip), vl
 }
@@ -1023,7 +1033,7 @@ func valToPlaceholder(val interface{}) string {
 func expandArg(val interface{}) (values []interface{}) {
 	switch v := val.(type) {
 	case Field:
-		values = append(values, v.Value())
+		values = append(values, v.value())
 	case string, []byte, int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
 		values = append(values, v)
 	case []string:
@@ -1076,7 +1086,7 @@ func expandArg(val interface{}) (values []interface{}) {
 		}
 	case []Field:
 		for _, ev := range v {
-			values = append(values, ev.Value())
+			values = append(values, ev.value())
 		}
 	default:
 		panic("unsupported value type to convert to placeholder")

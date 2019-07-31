@@ -505,7 +505,10 @@ func (m *ModelInfo) newModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func New{{ model.Name }}() *{{ model.Name }} {
 		m := &{{ model.Name }}{}
-		nborm.InitModel(m, nil, nil)
+		m.Init(m, nil, nil)
+		{{ for _, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		{{ endfor }}
 		m.InitRel()
 		return m
 	}
@@ -520,7 +523,10 @@ func (m *ModelInfo) newSubModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func newSub{{ model.Name }}(parent nborm.Model) *{{ model.Name }} {
 		m := &{{ model.Name }}{}
-		nborm.InitModel(m, parent, nil)
+		m.Init(m, parent, nil)
+		{{ for _, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		{{ endfor }}
 		return m
 	}
 	`, map[string]interface{}{"model": m})
@@ -653,71 +659,6 @@ func (m *ModelInfo) uniqueKeysFunc() string {
 	return s
 }
 
-// func (m *ModelInfo) relationsFunc() string {
-// 	s, err := nbfmt.Fmt(`
-// 	func (m *{{ model.Name }}) Relations() nborm.RelationInfoList {
-// 		{{ if model.HasRel == false }}
-// 			return nil
-// 		{{ else }}
-// 			if !m.IsRelInited() {
-// 				m.InitRel()
-// 			}
-// 			{{ if model.HasMidModels == true }}
-// 				{{ for i, mm in model.MidModels }}
-// 					mm{{ i }} := m.GetMidTabs()[{{ i }}].(*{{ mm.Name }})
-// 				{{ endfor }}
-// 			{{ endif }}
-// 			return nborm.RelationInfoList{
-// 				{{ for _, info in model.RelInfos }}
-// 					nborm.RelationInfo{
-// 						nborm.FieldList{
-// 							{{ for _, f in info.Fields }}
-// 								&{{ f }},
-// 							{{ endfor }}
-// 						},
-// 						m.{{ info.Field }},
-// 						"{{ info.Field }}",
-// 					},
-// 				{{ endfor }}
-// 			}
-// 		{{ endif }}
-// 	}
-// 	`, map[string]interface{}{"model": m})
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return s
-// }
-
-// func (m *ModelInfo) modelMarshalJSONFunc() string {
-// 	s, err := nbfmt.Fmt(`
-// 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
-// 		if m.IsSynced() || m.IsContainValue() {
-// 			return json.Marshal(struct{
-// 				{{ for _, f in model.FieldInfos }}
-// 					{{ f.Field }} interface{}
-// 				{{ endfor }}
-// 				{{ for _, r in model.RelInfos }}
-// 					{{ r.Field }} *{{ r.Type }}
-// 				{{ endfor }}
-// 			}{
-// 				{{ for _, f in model.FieldInfos }}
-// 					{{ f.Field }}: m.{{ f.Field }}.JSONValue(),
-// 				{{ endfor }}
-// 				{{ for _, r in model.RelInfos }}
-// 					{{ r.Field }}: m.{{ r.Field }},
-// 				{{ endfor }}
-// 			})
-// 		}
-// 		return []byte("null"), nil
-// 	}
-// 	`, map[string]interface{}{"model": m})
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return s
-// }
-
 func (m *ModelInfo) modelMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
@@ -730,17 +671,17 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 	return s
 }
 
-func (m *ModelInfo) modelUnmarshalJSONFunc() string {
-	s, err := nbfmt.Fmt(`
-	func (m *{{ model.Name }}) UnmarshalJSON(data []byte) error {
-		return nborm.UnmarshalModel(data, m)
-	}
-	`, map[string]interface{}{"model": m})
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
+// func (m *ModelInfo) modelUnmarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (m *{{ model.Name }}) UnmarshalJSON(data []byte) error {
+// 		return nborm.UnmarshalModel(data, m)
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
 
 func (m *ModelInfo) modelCollapseFunc() string {
 	s, err := nbfmt.Fmt(`
@@ -783,7 +724,7 @@ func (m *ModelInfo) listCheckDupFunc() string {
 		lastModel := l.List[l.Len()-1]
 		{{ for _, f in model.FieldInfos }}
 			if lastModel.{{ f.Field }}.IsValid() {
-				builder.WriteString(fmt.Sprintf("%v", lastModel.{{ f.Field }}.Value()))
+				builder.WriteString(fmt.Sprintf("%v", lastModel.{{ f.Field }}.AnyValue()))
 			}
 		{{ endfor }}
 		if idx, ok := l.dupMap[builder.String()]; ok {
@@ -808,7 +749,10 @@ func (m *ModelInfo) newListFunc() string {
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
-		nborm.InitModel(l, nil, nil)
+		l.Init(l, nil, nil)
+		{{ for _, field in model.FieldInfos }}
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}")
+		{{ endfor }}
 		l.InitRel()
 		return l
 	}
@@ -828,7 +772,10 @@ func (m *ModelInfo) newSubListFunc() string {
 			make([]*{{ model.Name }}, 0, 32),
 			0,
 		}
-		nborm.InitModel(l, parent, nil)
+		l.Init(l, parent, nil)
+		{{ for _, field in model.FieldInfos }}
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}")
+		{{ endfor }}
 		return l
 	}
 	`, map[string]interface{}{"model": m})
@@ -842,7 +789,10 @@ func (m *ModelInfo) listNewModelFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) NewModel() nborm.Model {
 		m := &{{ model.Name }}{}
-		nborm.InitModel(m, nil, l)
+		m.Init(m, nil, l)
+		{{ for _, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		{{ endfor }}
 		m.InitRel()
 		l.List = append(l.List, m)
 		return m
@@ -918,10 +868,32 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 	return s
 }
 
+// func (m *ModelInfo) listUnmarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
+// 		return nborm.UnmarshalModel(b, l)
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
-		return nborm.UnmarshalModel(b, l)
+		if string(b) == "[]" {
+			return nil
+		}
+		jl := struct {
+			List *[]*{{ model.Name }}
+			Total *int
+		} {
+			&l.List,
+			&l.Total,
+		}
+		return json.Unmarshal(b, &jl)
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1468,6 +1440,7 @@ func main() {
 			"strings"
 			"fmt"
 			"time"
+			"encoding/json"
 		)
 		`)
 		for _, m := range modelInfos {
@@ -1483,7 +1456,7 @@ func main() {
 			nf.WriteString(m.uniqueKeysFunc())
 			// nf.WriteString(m.relationsFunc())
 			nf.WriteString(m.modelMarshalJSONFunc())
-			nf.WriteString(m.modelUnmarshalJSONFunc())
+			// nf.WriteString(m.modelUnmarshalJSONFunc())
 			nf.WriteString(m.modelListType())
 			nf.WriteString(m.modelCollapseFunc())
 			nf.WriteString(m.newListFunc())

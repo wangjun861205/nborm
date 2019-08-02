@@ -226,8 +226,10 @@ func Delete(exe Executor, model Model) (sql.Result, error) {
 // Agg 汇总查询
 func Agg(exe Executor, model Model) (AggResult, error) {
 	selectClause, tempFields := genAggSelectClause(model)
-	tabRef := genTabRef(model)
-	whereClause, whereValues := genWhereClause(model)
+	// tabRef := genTabRef(model)
+	// whereClause, whereValues := genWhereClause(model)
+	tabRef := genJoinTabRef(model)
+	whereClause, whereValues := genJoinWhereClause(model)
 	groupByClause := genGroupByClause(model)
 	havingClause, havingValues := genHavingClause(model)
 	stmt := fmt.Sprintf("%s FROM %s %s %s %s", selectClause, tabRef, whereClause, groupByClause, havingClause)

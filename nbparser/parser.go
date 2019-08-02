@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"io"
 	"io/ioutil"
@@ -1395,6 +1396,12 @@ func main() {
 							if ft.X.(*ast.Ident).String() == "nborm" {
 								switch ft.Sel.Name {
 								case "Meta":
+									if field.Tag == nil {
+										field.Tag = &ast.BasicLit{}
+										field.Tag.Kind = token.STRING
+										field.Tag.Value = "`json:\"-\"`"
+										field.Tag.ValuePos = field.End() + 4
+									}
 									continue
 								default:
 									lastModel := modelInfos[len(modelInfos)-1]
@@ -1427,6 +1434,15 @@ func main() {
 					return true
 				}
 			})
+			os.Remove(path.Join(*dir, fmt.Sprintf("%s.go", f.Name.Name)))
+			modelFile, err := os.OpenFile(path.Join(*dir, fmt.Sprintf("%s.go", f.Name.Name)), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err != nil {
+				panic(err)
+			}
+			if err := printer.Fprint(modelFile, fs, f); err != nil {
+				panic(err)
+			}
+			modelFile.Close()
 		}
 		nf, err := os.OpenFile(path.Join(*dir, "methods.go"), os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {

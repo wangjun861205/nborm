@@ -663,7 +663,49 @@ func (m *ModelInfo) uniqueKeysFunc() string {
 func (m *ModelInfo) modelMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m {{ model.Name }}) MarshalJSON() ([]byte, error) {
-		return nborm.MarshalModel(&m), nil
+		if !m.IsSynced() {
+			return []byte("null"), nil
+		}
+		buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+		buffer.WriteString("{\n\"Aggs\": ")
+		metaB, err := json.MarshalIndent(m.Meta, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(metaB)
+		{{ for _, field in model.FieldInfos }}
+			if m.{{ field.Field }}.IsValid() {
+				buffer.WriteString(",\n\"{{ field.Field }}\": ")
+				{{ field.Field }}B, err := json.MarshalIndent(m.{{ field.Field }}, "", "\t")
+				if err != nil {
+					return nil, err
+				}
+				buffer.Write({{ field.Field }}B)
+			}
+		{{ endfor }}
+		{{ for _, relInfo in model.RelInfos }}
+			{{ if relInfo.IsList == true }}
+				if m.{{ relInfo.FieldName }}.Len() > 0 {
+					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
+					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
+					if err != nil {
+						return nil, err
+					}
+					buffer.Write({{ relInfo.FieldName }}B)
+				}
+			{{ else }}
+				if m.{{ relInfo.FieldName }}.IsSynced() {
+					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
+					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
+					if err != nil {
+						return nil, err
+					}
+					buffer.Write({{ relInfo.FieldName }}B)
+				}
+			{{ endif }}
+		{{ endfor }}
+		buffer.WriteString("\n}")
+		return buffer.Bytes(), nil
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -703,7 +745,7 @@ func (m *ModelInfo) modelCollapseFunc() string {
 func (m *ModelInfo) modelListType() string {
 	s, err := nbfmt.Fmt(`
 	type {{ model.Name }}List struct {
-		{{ model.Name }}
+		{{ model.Name }} `+"`json:\"-\"`"+`
 		dupMap map[string]int
 		List []*{{ model.Name }}
 		Total int
@@ -793,6 +835,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 		m.Init(m, nil, l)
 		{{ for _, field in model.FieldInfos }}
 			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+			l.{{ field.Field }}.CopyStatus(&m.{{ field.Field }})
 		{{ endfor }}
 		m.InitRel()
 		l.List = append(l.List, m)
@@ -860,7 +903,23 @@ func (m *ModelInfo) getInnerListFunc() string {
 func (m *ModelInfo) listMarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l {{ model.Name }}List) MarshalJSON() ([]byte, error) {
-		return nborm.MarshalModel(&l), nil
+		bs := make([]byte, 0, 1024)
+		bs = append(bs, []byte("{")...)
+		ListB, err := json.MarshalIndent(l.List, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		ListB = append([]byte("\"List\": "), ListB...)
+		bs = append(bs, ListB...)
+		bs = append(bs, []byte(", ")...)
+		TotalB, err := json.MarshalIndent(l.Total, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		TotalB = append([]byte("\"Total\": "), TotalB...)
+		bs = append(bs, TotalB...)
+		bs = append(bs, []byte("}")...)
+		return bs, nil
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1399,7 +1458,7 @@ func main() {
 									if field.Tag == nil {
 										field.Tag = &ast.BasicLit{}
 										field.Tag.Kind = token.STRING
-										field.Tag.Value = "`json:\"-\"`"
+										field.Tag.Value = "`json:\"Aggs\"`"
 										field.Tag.ValuePos = field.End() + 4
 									}
 									continue
@@ -1457,6 +1516,7 @@ func main() {
 			"fmt"
 			"time"
 			"encoding/json"
+			"bytes"
 		)
 		`)
 		for _, m := range modelInfos {

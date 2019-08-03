@@ -1,65 +1,76 @@
 package nborm
 
-// AggResult 统计函数结果container
-type AggResult []FieldList
+import (
+	"encoding/json"
+	"fmt"
+)
 
-// ToList 将统计结果转化为方便阅读和传递的格式
-func (r AggResult) ToList() []map[string]interface{} {
-	l := make([]map[string]interface{}, 0, 64)
-	for _, rec := range r {
-		m := make(map[string]interface{})
-		for _, f := range rec {
-			m[f.fullColName()] = f.value()
-		}
-		l = append(l, m)
-	}
-	return l
-}
-
-// ToSimpleList 与ToList类似,但map的key只用field的名称，不包含表的alias前缀，故无法保证无冲突，如果有相同的字段名，后者会覆盖前者的值
-func (r AggResult) ToSimpleList() []map[string]interface{} {
-	l := make([]map[string]interface{}, 0, 64)
-	for _, rec := range r {
-		m := make(map[string]interface{})
-		for _, f := range rec {
-			m[f.colName()] = f.value()
-		}
-		l = append(l, m)
-	}
-	return l
-}
-
-type aggExp struct {
+type agg struct {
 	expr  *Expr
 	field Field
 }
 
-func newStrAgg(expr *Expr, name string) *aggExp {
+func (a *agg) MarshalJSON() ([]byte, error) {
+	if !a.field.IsValid() || a.field.IsNull() {
+		return []byte("null"), nil
+	}
+	b, err := json.Marshal(a.field)
+	if err != nil {
+		return nil, err
+	}
+	return append([]byte(fmt.Sprintf("%s: ", a.field.colName())), b...), nil
+}
+
+func newStrAgg(expr *Expr, name string) *agg {
 	f := new(String)
 	f.Init(nil, name, "")
-	return &aggExp{expr, f}
+	return &agg{expr, f}
 }
 
-func newIntAgg(expr *Expr, name string) *aggExp {
+func newIntAgg(expr *Expr, name string) *agg {
 	f := new(Int)
 	f.Init(nil, name, "")
-	return &aggExp{expr, f}
+	return &agg{expr, f}
 }
 
-func newDateAgg(expr *Expr, name string) *aggExp {
+func newDateAgg(expr *Expr, name string) *agg {
 	f := new(Date)
 	f.Init(nil, name, "")
-	return &aggExp{expr, f}
+	return &agg{expr, f}
 }
 
-func newDatetimeAgg(expr *Expr, name string) *aggExp {
+func newDatetimeAgg(expr *Expr, name string) *agg {
 	f := new(Datetime)
 	f.Init(nil, name, "")
-	return &aggExp{expr, f}
+	return &agg{expr, f}
 }
 
-func newDecAgg(expr *Expr, name string) *aggExp {
+func newDecAgg(expr *Expr, name string) *agg {
 	f := new(Decimal)
 	f.Init(nil, name, "")
-	return &aggExp{expr, f}
+	return &agg{expr, f}
+}
+
+type aggList []*agg
+
+func (l aggList) copy() aggList {
+	nl := make(aggList, 0, 8)
+	for _, agg := range l {
+		switch agg.field.(type) {
+		case *String:
+			nl = append(nl, newStrAgg(agg.expr, agg.field.colName()))
+		case *Int:
+			nl = append(nl, newIntAgg(agg.expr, agg.field.colName()))
+		case *Date:
+			nl = append(nl, newDateAgg(agg.expr, agg.field.colName()))
+		case *Datetime:
+			nl = append(nl, newDatetimeAgg(agg.expr, agg.field.colName()))
+		case *Decimal:
+			nl = append(nl, newDecAgg(agg.expr, agg.field.colName()))
+		default:
+			panic(fmt.Errorf("unsupported field type (%T)", agg.field))
+		}
+
+	}
+	return nl
 }

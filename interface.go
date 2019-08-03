@@ -70,6 +70,7 @@ type Field interface {
 	ClauseField
 	ValueField
 	dup() Field
+	Init(Model, string, string)
 }
 
 // Model Model
@@ -89,7 +90,6 @@ type Model interface {
 	removeModelStatus(modelStatus)
 	checkStatus(modelStatus) bool
 	SelectDistinct()
-	// setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
 	getParent() Model
@@ -100,13 +100,14 @@ type Model interface {
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)
-	getAggExps() []*aggExp
+	getAggs() aggList
 	ExprUpdate(*Expr)
 	getUpdateList() exprList
 	setConList(ModelList)
 	getConList() ModelList
 	Collapse()
 	appendWhere(...*Expr)
+	// setAggs(aggList)
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
 	GetCache(string, time.Duration) bool

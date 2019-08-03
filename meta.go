@@ -1,6 +1,9 @@
 package nborm
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type modelStatus int
 
@@ -16,21 +19,22 @@ const (
 	forModelOrder       modelStatus = 1 << 8
 	forModelRef         modelStatus = 1 << 9
 	forJoin             modelStatus = 1 << 10
-	containValue        modelStatus = 1 << 11
-	selectAll           modelStatus = 1 << 12
-	forModelHaving      modelStatus = 1 << 13
-	forReverseQuery     modelStatus = 1 << 14
-	containSubJoin      modelStatus = 1 << 15
-	containSubWhere     modelStatus = 1 << 16
-	containJoinWhere    modelStatus = 1 << 17
-	containSubJoinWhere modelStatus = 1 << 18
-	containWhere        modelStatus = 1 << 19
-	containSubUpdate    modelStatus = 1 << 20
-	forLeftJoin         modelStatus = 1 << 21
-	forRightJoin        modelStatus = 1 << 22
+	forLeftJoin         modelStatus = 1 << 11
+	forRightJoin        modelStatus = 1 << 12
+	containValue        modelStatus = 1 << 13
+	selectAll           modelStatus = 1 << 14
+	forModelHaving      modelStatus = 1 << 15
+	forReverseQuery     modelStatus = 1 << 16
+	containSubJoin      modelStatus = 1 << 17
+	containSubWhere     modelStatus = 1 << 18
+	containJoinWhere    modelStatus = 1 << 19
+	containSubJoinWhere modelStatus = 1 << 20
+	containWhere        modelStatus = 1 << 21
+	containSubUpdate    modelStatus = 1 << 22
 	containSubLeftJoin  modelStatus = 1 << 23
 	containSubRightJoin modelStatus = 1 << 24
 	containSubOrder     modelStatus = 1 << 25
+	containSelect       modelStatus = 1 << 26
 )
 
 type modelBaseInfo struct {
@@ -172,12 +176,22 @@ func (m *modelBaseInfo) AppendRelation(rel *RelationInfo) {
 	m.rels = append(m.rels, rel)
 }
 
+func (m *modelBaseInfo) dup() modelBaseInfo {
+	d := *m
+	d.rels = nil
+	return d
+}
+
+// func (m *modelBaseInfo) CopyStatus(dst Model) {
+// 	dst.setModelStatus(m.status)
+// }
+
 type modelClause struct {
 	Model
 	wheres  exprList
 	havings exprList
 	updates exprList
-	aggExps []*aggExp
+	aggs    aggList
 	limit   [2]int
 }
 
@@ -198,8 +212,8 @@ func (m *modelClause) getLimit() (limit, offset int) {
 	return m.limit[0], m.limit[1]
 }
 
-func (m *modelClause) getAggExps() []*aggExp {
-	return m.aggExps
+func (m *modelClause) getAggs() aggList {
+	return m.aggs
 }
 
 func (m *modelClause) getUpdateList() exprList {
@@ -253,35 +267,35 @@ func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
 // StrAgg 添加字符串结果的汇总
 func (m *modelClause) StrAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggExps = append(m.aggExps, newStrAgg(expr, name))
+	m.aggs = append(m.aggs, newStrAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // IntAgg 添加整数结果的汇总
 func (m *modelClause) IntAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggExps = append(m.aggExps, newIntAgg(expr, name))
+	m.aggs = append(m.aggs, newIntAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DateAgg 添加日期结果的汇总
 func (m *modelClause) DateAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggExps = append(m.aggExps, newDateAgg(expr, name))
+	m.aggs = append(m.aggs, newDateAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DatetimeAgg 添加日期时间结果的汇总
 func (m *modelClause) DatetimeAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggExps = append(m.aggExps, newDatetimeAgg(expr, name))
+	m.aggs = append(m.aggs, newDatetimeAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
 // DecAgg 添加浮点数结果的汇总
 func (m *modelClause) DecAgg(expr *Expr, name string) {
 	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggExps = append(m.aggExps, newDecAgg(expr, name))
+	m.aggs = append(m.aggs, newDecAgg(expr, name))
 	m.addModelStatus(forModelAgg)
 }
 
@@ -292,6 +306,16 @@ func (m *modelClause) ExprUpdate(expr *Expr) {
 	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubUpdate)
 	}
+}
+
+// func (m *modelClause) setAggs(aggs aggList) {
+// 	m.aggs = aggs
+// }
+
+func (m *modelClause) dup() modelClause {
+	d := *m
+	d.aggs = m.aggs.copy()
+	return d
 }
 
 // Meta Model的元信息
@@ -306,4 +330,14 @@ func (m *Meta) Init(model, parent Model, conList ModelList) {
 	m.modelBaseInfo.conList = conList
 	m.modelClause.Model = model
 	initModel(model)
+}
+
+func (m Meta) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.modelClause.aggs)
+}
+
+func (m *Meta) Dup() Meta {
+	info := m.modelBaseInfo.dup()
+	clause := m.modelClause.dup()
+	return Meta{info, clause}
 }

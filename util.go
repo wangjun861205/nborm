@@ -1,7 +1,6 @@
 package nborm
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -12,25 +11,6 @@ var DEBUG = false
 func SetDebug(debug bool) {
 	DEBUG = debug
 }
-
-// func InitModel(model, parent Model, conList ModelList) {
-// 	if !model.checkStatus(inited) {
-// 		model.setModel(model)
-// 		if conList != nil {
-// 			model.setParent(conList.getParent())
-// 		} else {
-// 			model.setParent(parent)
-// 		}
-// 		model.setConList(conList)
-// 		model.setAlias()
-// 		for _, fi := range model.FieldInfos() {
-// 			fi.Field.setModel(model)
-// 			fi.Field.setCol(fi.ColName)
-// 			fi.Field.setField(fi.FieldName)
-// 		}
-// 		model.addModelStatus(inited)
-// 	}
-// }
 
 func initModel(model Model) {
 	if !model.checkStatus(inited) {
@@ -79,64 +59,101 @@ func getField(model Model, fieldName string) Field {
 	panic(fmt.Sprintf("field not exists(%s.%s.%s)", model.DB(), model.Tab(), fieldName))
 }
 
-func getFieldsForScan(model Model) ([]interface{}, []Model) {
-	addrs := make([]interface{}, 0, 32)
-	models := make([]Model, 0, 16)
-	selectFields := getSelectFields(model)
-	if l, ok := model.(ModelList); ok {
-		newModel := l.NewModel()
-		allFields := getAllFields(newModel)
-	OUTER:
-		for _, sf := range selectFields {
-			for _, af := range allFields {
-				if sf.colName() == af.colName() {
-					addrs = append(addrs, af)
-					continue OUTER
+// func getFieldsForScan(model Model) ([]interface{}, []Model) {
+// 	addrs := make([]interface{}, 0, 32)
+// 	models := make([]Model, 0, 16)
+// 	selectFields := getSelectFields(model)
+// 	if l, ok := model.(ModelList); ok {
+// 		newModel := l.NewModel()
+// 		allFields := getAllFields(newModel)
+// 	OUTER:
+// 		for _, sf := range selectFields {
+// 			for _, af := range allFields {
+// 				if sf.colName() == af.colName() {
+// 					addrs = append(addrs, af)
+// 					continue OUTER
+// 				}
+// 			}
+// 		}
+// 		models = append(models, newModel)
+// 	} else {
+// 		for _, f := range selectFields {
+// 			addrs = append(addrs, f)
+// 		}
+// 		models = append(models, model)
+// 	}
+// 	for i, relInfo := range model.relations() {
+// 		subModel := relInfo.lastModel()
+// 		if subModel.getModelStatus()&forJoin == forJoin {
+// 			selectFields := getSelectFields(subModel)
+// 			if _, ok := subModel.(ModelList); ok {
+// 				sl := models[0].relations()[i].lastModel().(ModelList)
+// 				newModel := sl.NewModel()
+// 				allFields := getAllFields(newModel)
+// 			SUB_OUTER:
+// 				for _, sf := range selectFields {
+// 					for _, af := range allFields {
+// 						if sf.colName() == af.colName() {
+// 							addrs = append(addrs, af)
+// 							continue SUB_OUTER
+// 						}
+// 					}
+// 				}
+// 				models = append(models, newModel)
+// 			} else {
+// 				newModel := models[0].relations()[i].lastModel()
+// 				allFields := getAllFields(newModel)
+// 			SUB_OUTER2:
+// 				for _, sf := range selectFields {
+// 					for _, af := range allFields {
+// 						if sf.colName() == af.colName() {
+// 							addrs = append(addrs, af)
+// 							continue SUB_OUTER2
+// 						}
+// 					}
+// 				}
+// 				models = append(models, newModel)
+// 			}
+// 		}
+// 	}
+// 	return addrs, models
+// }
+
+func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *[]interface{}) {
+	if classModel.checkStatus(containSelect) {
+		classAllFields := getAllFields(classModel)
+		instanceAllFields := getAllFields(instanceModel)
+		selectedFields := make([]interface{}, 0, len(instanceAllFields))
+		for i, f := range classAllFields {
+			if f.getStatus()&forSelect == forSelect {
+				selectedFields = append(selectedFields, instanceAllFields[i])
+			}
+		}
+		if len(selectedFields) == 0 {
+			for _, f := range instanceAllFields {
+				*fields = append(*fields, f)
+			}
+		} else {
+			for _, f := range selectedFields {
+				*fields = append(*fields, f)
+			}
+		}
+		aggs := instanceModel.getAggs()
+		for _, agg := range aggs {
+			*fields = append(*fields, agg)
+		}
+		*models = append(*models, instanceModel)
+		for i, rel := range classModel.relations() {
+			if rel.dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+				if subClassModel, ok := rel.dstModel.(ModelList); ok {
+					subInstanceModel := instanceModel.relations()[i].dstModel.(ModelList).NewModel()
+					getFieldsForScan(subClassModel, subInstanceModel, models, fields)
+				} else {
+					getFieldsForScan(rel.dstModel, rel.dstModel, models, fields)
 				}
 			}
 		}
-		models = append(models, newModel)
-	} else {
-		for _, f := range selectFields {
-			addrs = append(addrs, f)
-		}
-		models = append(models, model)
 	}
-	for i, relInfo := range model.relations() {
-		subModel := relInfo.lastModel()
-		if subModel.getModelStatus()&forJoin == forJoin {
-			selectFields := getSelectFields(subModel)
-			if _, ok := subModel.(ModelList); ok {
-				sl := models[0].relations()[i].lastModel().(ModelList)
-				newModel := sl.NewModel()
-				allFields := getAllFields(newModel)
-			SUB_OUTER:
-				for _, sf := range selectFields {
-					for _, af := range allFields {
-						if sf.colName() == af.colName() {
-							addrs = append(addrs, af)
-							continue SUB_OUTER
-						}
-					}
-				}
-				models = append(models, newModel)
-			} else {
-				newModel := models[0].relations()[i].lastModel()
-				allFields := getAllFields(newModel)
-			SUB_OUTER2:
-				for _, sf := range selectFields {
-					for _, af := range allFields {
-						if sf.colName() == af.colName() {
-							addrs = append(addrs, af)
-							continue SUB_OUTER2
-						}
-					}
-				}
-				models = append(models, newModel)
-			}
-		}
-	}
-	return addrs, models
 }
 
 func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
@@ -209,13 +226,14 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 	}
 	for rows.Next() {
 		models := make([]Model, 0, 8)
-		fields := make([]Field, 0, 64)
-		getJoinModels(model, nil, &models, &fields)
-		addrs := make([]interface{}, 0, len(fields))
-		for _, f := range fields {
-			addrs = append(addrs, f)
+		fields := make([]interface{}, 0, 64)
+		if l, ok := model.(ModelList); ok {
+			m := l.NewModel()
+			getFieldsForScan(l, m, &models, &fields)
+		} else {
+			getFieldsForScan(model, model, &models, &fields)
 		}
-		if err := rows.Scan(addrs...); err != nil {
+		if err := rows.Scan(fields...); err != nil {
 			return err
 		}
 		for _, m := range models {
@@ -255,7 +273,10 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		}
 		defer rows.Close()
 		for rows.Next() {
-			fields, models := getFieldsForScan(model)
+			models := make([]Model, 0, 4)
+			fields := make([]interface{}, 0, 32)
+			m := l.NewModel()
+			getFieldsForScan(l, m, &models, &fields)
 			if err := rows.Scan(fields...); err != nil {
 				return err
 			}
@@ -276,7 +297,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			l.addModelStatus(synced)
 		}
 	} else {
-		fields, models := getFieldsForScan(model)
+		models := make([]Model, 0, 4)
+		fields := make([]interface{}, 0, 32)
+		getFieldsForScan(model, model, &models, &fields)
 		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
 			return err
 		}
@@ -735,7 +758,7 @@ func genAggSelectClause(model Model) (string, FieldList) {
 			fieldList = append(fieldList, f.dup())
 		}
 		if parent.getModelStatus()&forModelAgg == forModelAgg {
-			for _, exp := range parent.getAggExps() {
+			for _, exp := range parent.getAggs() {
 				c, _ := exp.expr.toClause()
 				builder.WriteString(fmt.Sprintf("%s, ", c))
 				fieldList = append(fieldList, exp.field.dup())
@@ -753,7 +776,7 @@ func genAggSelectClause(model Model) (string, FieldList) {
 		fieldList = append(fieldList, f.dup())
 	}
 	if model.getModelStatus()&forModelAgg == forModelAgg {
-		for _, exp := range model.getAggExps() {
+		for _, exp := range model.getAggs() {
 			c, _ := exp.expr.toClause()
 			builder.WriteString(fmt.Sprintf("%s, ", c))
 			fieldList = append(fieldList, exp.field.dup())
@@ -766,7 +789,7 @@ func genAggSelectClause(model Model) (string, FieldList) {
 			fieldList = append(fieldList, f.dup())
 		}
 		if subModel.getModelStatus()&forModelAgg == forModelAgg {
-			for _, exp := range subModel.getAggExps() {
+			for _, exp := range subModel.getAggs() {
 				c, _ := exp.expr.toClause()
 				builder.WriteString(fmt.Sprintf("%s, ", c))
 				fieldList = append(fieldList, exp.field.dup())
@@ -900,51 +923,51 @@ func genCountClause(model Model) string {
 	return fmt.Sprintf("SELECT COUNT(DISTINCT CONCAT(%s))", strings.TrimSuffix(builder.String(), ", "))
 }
 
-func marshalModel(model Model, bs *[]byte) {
-	if l, ok := model.(ModelList); ok {
-		*bs = append(*bs, []byte(`{ "List": [`)...)
-		for _, m := range l.GetList() {
-			marshalModel(m, bs)
-			*bs = append(*bs, []byte(`, `)...)
-		}
-		*bs = bytes.TrimSuffix(*bs, []byte(", "))
-		*bs = append(*bs, []byte(fmt.Sprintf(`], "Total": %d }`, l.GetTotal()))...)
-	} else {
-		if model.checkStatus(synced | containValue) {
-			*bs = append(*bs, []byte(`{`)...)
-			for _, f := range getFields(model, valid) {
-				*bs = append(*bs, []byte(fmt.Sprintf(`"%s": `, f.fieldName()))...)
-				b, _ := json.Marshal(f)
-				*bs = append(*bs, b...)
-				*bs = append(*bs, []byte(`, `)...)
-			}
-			for _, relInfo := range model.relations() {
-				subModel := relInfo.lastModel()
-				if subModel.checkStatus(synced | containValue) {
-					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.name))...)
-					marshalModel(subModel, bs)
-				} else {
-					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.name))...)
-					if _, ok := subModel.(ModelList); ok {
-						*bs = append(*bs, []byte("[], ")...)
-					} else {
-						*bs = append(*bs, []byte("null, ")...)
-					}
-				}
-			}
-			*bs = bytes.TrimSuffix(*bs, []byte(", "))
-			*bs = append(*bs, []byte("}")...)
-		} else {
-			*bs = append(*bs, []byte("null, ")...)
-		}
-	}
-}
+// func marshalModel(model Model, bs *[]byte) {
+// 	if l, ok := model.(ModelList); ok {
+// 		*bs = append(*bs, []byte(`{ "List": [`)...)
+// 		for _, m := range l.GetList() {
+// 			marshalModel(m, bs)
+// 			*bs = append(*bs, []byte(`, `)...)
+// 		}
+// 		*bs = bytes.TrimSuffix(*bs, []byte(", "))
+// 		*bs = append(*bs, []byte(fmt.Sprintf(`], "Total": %d }`, l.GetTotal()))...)
+// 	} else {
+// 		if model.checkStatus(synced | containValue) {
+// 			*bs = append(*bs, []byte(`{`)...)
+// 			for _, f := range getFields(model, valid) {
+// 				*bs = append(*bs, []byte(fmt.Sprintf(`"%s": `, f.fieldName()))...)
+// 				b, _ := json.Marshal(f)
+// 				*bs = append(*bs, b...)
+// 				*bs = append(*bs, []byte(`, `)...)
+// 			}
+// 			for _, relInfo := range model.relations() {
+// 				subModel := relInfo.lastModel()
+// 				if subModel.checkStatus(synced | containValue) {
+// 					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.name))...)
+// 					marshalModel(subModel, bs)
+// 				} else {
+// 					*bs = append(*bs, []byte(fmt.Sprintf(`"%s":`, relInfo.name))...)
+// 					if _, ok := subModel.(ModelList); ok {
+// 						*bs = append(*bs, []byte("[], ")...)
+// 					} else {
+// 						*bs = append(*bs, []byte("null, ")...)
+// 					}
+// 				}
+// 			}
+// 			*bs = bytes.TrimSuffix(*bs, []byte(", "))
+// 			*bs = append(*bs, []byte("}")...)
+// 		} else {
+// 			*bs = append(*bs, []byte("null, ")...)
+// 		}
+// 	}
+// }
 
-func MarshalModel(model Model) []byte {
-	bs := make([]byte, 0, 1024)
-	marshalModel(model, &bs)
-	return bytes.TrimSuffix(bs, []byte(", "))
-}
+// func MarshalModel(model Model) []byte {
+// 	bs := make([]byte, 0, 1024)
+// 	marshalModel(model, &bs)
+// 	return bytes.TrimSuffix(bs, []byte(", "))
+// }
 
 func UnmarshalModel(bs []byte, model Model) error {
 	m := make(map[string]interface{})

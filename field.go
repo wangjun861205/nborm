@@ -32,8 +32,8 @@ const (
 	forSum      fieldStatus = 1 << 5
 	forAscOrder fieldStatus = 1 << 6
 	forDscOrder fieldStatus = 1 << 7
-	forAgg      fieldStatus = 1 << 8
-	forGroup    fieldStatus = 1 << 9
+	// forAgg      fieldStatus = 1 << 8
+	forGroup fieldStatus = 1 << 9
 )
 
 type baseField struct {
@@ -132,6 +132,7 @@ func (f *baseField) rawFullColName() string {
 // ForSelect 设置为选择字段
 func (f *baseField) ForSelect() {
 	f.addStatus(forSelect)
+	f.addModelStatus(containSelect)
 }
 
 // ForSum 设置为总和字段
@@ -170,6 +171,10 @@ func (f *baseField) Distinct() {
 // GroupBy 分组
 func (f *baseField) GroupBy() {
 	f.addStatus(forGroup | forSelect)
+}
+
+func (f *baseField) CopyStatus(dst Field) {
+	dst.setStatus(f.status)
 }
 
 type clauseField struct {
@@ -279,10 +284,7 @@ func (f *stringValueField) set(v interface{}) ValueField {
 }
 
 func (f stringValueField) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() {
-		return nil, fmt.Errorf("invalid field (%s)", f.rawFullColName())
-	}
-	if f.IsNull() {
+	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%q", f.val)), nil
@@ -389,10 +391,7 @@ func (f *intValueField) set(v interface{}) ValueField {
 }
 
 func (f intValueField) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() {
-		return nil, fmt.Errorf("invalid field (%s)", f.rawFullColName())
-	}
-	if f.IsNull() {
+	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%d", f.val)), nil
@@ -519,10 +518,7 @@ func (f *dateValueField) set(v interface{}) ValueField {
 }
 
 func (f dateValueField) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() {
-		return nil, fmt.Errorf("invalid field (%s)", f.rawFullColName())
-	}
-	if f.IsNull() {
+	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02"))), nil
@@ -649,10 +645,7 @@ func (f *datetimeValueField) set(v interface{}) ValueField {
 }
 
 func (f datetimeValueField) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() {
-		return nil, fmt.Errorf("invalid field (%s)", f.rawFullColName())
-	}
-	if f.IsNull() {
+	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))), nil
@@ -759,10 +752,7 @@ func (f *decimalValueField) set(v interface{}) ValueField {
 }
 
 func (f decimalValueField) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() {
-		return nil, fmt.Errorf("invalid field (%s)", f.rawFullColName())
-	}
-	if f.IsNull() {
+	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%d", f.val)), nil

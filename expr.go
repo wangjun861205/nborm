@@ -24,8 +24,9 @@ type exprType int
 
 const (
 	whereExpr exprType = iota
-	updateExpr
+	// updateExpr
 	havingExpr
+	assignExpr
 )
 
 // Expr 自定义sql表达式
@@ -80,15 +81,35 @@ func (e *Expr) toClause() (string, []interface{}) {
 			}
 		case '@':
 			if stat == normal {
-				builder.WriteString(e.values[fieldIndex].(ValueField).fullColName())
+				switch c := e.values[fieldIndex].(type) {
+				case clauser:
+					cs, cv := c.toClause()
+					builder.WriteString(cs)
+					values = append(values, cv...)
+				case refClauser:
+					cs := c.toRefClause()
+					builder.WriteString(cs)
+				default:
+					panic(fmt.Errorf("invalid argument type (%T)", c))
+				}
+				// builder.WriteString(e.values[fieldIndex].(ValueField).fullColName())
 				fieldIndex++
 			} else {
 				builder.WriteRune(r)
 			}
 		case '?':
 			if stat == normal {
-				builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
-				values = append(values, expandArg(e.values[fieldIndex])...)
+				switch c := e.values[fieldIndex].(type) {
+				case *Expr:
+					cs, vs := c.toClause()
+					builder.WriteString(cs)
+					values = append(values, vs...)
+				default:
+					builder.WriteString(valToPlaceholder(c))
+					values = append(values, expandArg(c)...)
+				}
+				// builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
+				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
 				builder.WriteRune(r)
@@ -144,7 +165,18 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 			}
 		case '@':
 			if stat == normal {
-				builder.WriteString(e.values[fieldIndex].(Field).rawFullColName())
+				switch c := e.values[fieldIndex].(type) {
+				case clauser:
+					cs, cv := c.toSimpleClause()
+					builder.WriteString(cs)
+					values = append(values, cv...)
+				case refClauser:
+					cs := c.toSimpleRefClause()
+					builder.WriteString(cs)
+				default:
+					panic(fmt.Errorf("invalid argument type (expr: %s, type: %T, values: %v)", e.exp, c, e.values))
+				}
+				// builder.WriteString(e.values[fieldIndex].(Field).rawFullColName())
 				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
@@ -152,8 +184,17 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 			}
 		case '?':
 			if stat == normal {
-				builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
-				values = append(values, expandArg(e.values[fieldIndex])...)
+				switch c := e.values[fieldIndex].(type) {
+				case *Expr:
+					cs, vs := c.toSimpleClause()
+					builder.WriteString(cs)
+					values = append(values, vs...)
+				default:
+					builder.WriteString(valToPlaceholder(c))
+					values = append(values, expandArg(c)...)
+				}
+				// builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
+				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
 				builder.WriteRune(r)
@@ -169,6 +210,11 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 		panic(fmt.Errorf("extra field for express (fields: %v)", e.values))
 	}
 	return builder.String(), values
+}
+
+func (e *Expr) toRefClause() string {
+	c, _ := e.toClause()
+	return c
 }
 
 // exprList 自定义sql表达式列表类型
@@ -188,9 +234,8 @@ func (l exprList) toClause(exprType exprType) (string, []interface{}) {
 	}
 	switch exprType {
 	case whereExpr:
-		// return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
 		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
-	case updateExpr:
+	case assignExpr:
 		return strings.Join(cl, ", "), vl
 	case havingExpr:
 		return fmt.Sprintf("HAVING %s", trimPreAndOr(strings.Join(cl, " "))), vl
@@ -213,9 +258,8 @@ func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
 	}
 	switch exprType {
 	case whereExpr:
-		// return fmt.Sprintf("WHERE %s", strings.TrimPrefix(strings.TrimPrefix(strings.Join(cl, " "), " "), "AND")), vl
 		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
-	case updateExpr:
+	case assignExpr:
 		return strings.Join(cl, ", "), vl
 	default:
 		panic(fmt.Errorf("unknown expr type(%d)", exprType))

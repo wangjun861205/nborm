@@ -12,6 +12,7 @@ type FieldInfo struct {
 	ColName   string
 	FieldName string
 	Field     Field
+	Index     int
 }
 
 // FieldInfoList FieldInfo的列表
@@ -40,13 +41,15 @@ type baseField struct {
 	Model
 	col    string
 	field  string
+	index  int
 	status fieldStatus
 }
 
-func (f *baseField) init(model Model, colName, fieldName string) {
+func (f *baseField) init(model Model, colName, fieldName string, index int) {
 	f.Model = model
 	f.col = colName
 	f.field = fieldName
+	f.index = index
 }
 
 func (f *baseField) colName() string {
@@ -129,10 +132,12 @@ func (f *baseField) rawFullColName() string {
 	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
-// ForSelect 设置为选择字段
 func (f *baseField) ForSelect() {
-	f.addStatus(forSelect)
-	f.addModelStatus(containSelect)
+	f.appendSelectedFieldIndexes(f.index)
+}
+
+func (f *baseField) getFieldIndex() int {
+	return f.index
 }
 
 // ForSum 设置为总和字段
@@ -144,22 +149,13 @@ func (f *baseField) ForSum() {
 
 // AscOrder 设置为正序排序字段
 func (f *baseField) AscOrder() {
-	f.removeStatus(forDscOrder)
-	f.addStatus(forAscOrder)
-	f.addModelStatus(forModelOrder)
-	for parent := f.getParent(); parent != nil; parent = parent.getParent() {
-		parent.addModelStatus(containSubOrder)
-	}
+	f.appendOrderBys(newOrderBy(f, asc))
+
 }
 
 // DscOrder 设置为倒序排序字段
-func (f *baseField) DscOrder() {
-	f.removeStatus(forAscOrder)
-	f.addStatus(forDscOrder)
-	f.addModelStatus(forModelOrder)
-	for parent := f.getParent(); parent != nil; parent = parent.getParent() {
-		parent.addModelStatus(containSubOrder)
-	}
+func (f *baseField) DescOrder() {
+	f.appendOrderBys(newOrderBy(f, desc))
 }
 
 // Distinct 设置为去重字段
@@ -168,13 +164,20 @@ func (f *baseField) Distinct() {
 	f.addStatus(forSelect)
 }
 
-// GroupBy 分组
-func (f *baseField) GroupBy() {
-	f.addStatus(forGroup | forSelect)
-}
-
 func (f *baseField) CopyStatus(dst Field) {
 	dst.setStatus(f.status)
+}
+
+func (f *baseField) toRefClause() string {
+	return f.fullColName()
+}
+
+func (f *baseField) toSimpleRefClause() string {
+	return f.rawFullColName()
+}
+
+func (f *baseField) GroupBy() {
+	f.appendGroupBys(f)
 }
 
 type clauseField struct {
@@ -222,13 +225,26 @@ func (f *clauseField) Update(value interface{}) ClauseField {
 	return f
 }
 
+func (f *clauseField) Set(value interface{}) ClauseField {
+	f.valueField().appendInserts(NewExpr("@ = ?", f, value))
+	return f
+}
+
+func (f *clauseField) toRefClause() string {
+	return f.valueField().fullColName()
+}
+
+func (f *clauseField) toSimpleRefClause() string {
+	return f.valueField().rawFullColName()
+}
+
 type stringValueField struct {
 	baseField
 	val string
 }
 
-func (f *stringValueField) init(model Model, colName, fieldName string) {
-	f.baseField.init(model, colName, fieldName)
+func (f *stringValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
 }
 
 // Scan 实现Scan接口
@@ -268,6 +284,7 @@ func (f *stringValueField) value() interface{} {
 
 // SetString 设置字符串值
 func (f *stringValueField) SetString(v string) *stringValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -275,13 +292,16 @@ func (f *stringValueField) SetString(v string) *stringValueField {
 	return f
 }
 
-func (f *stringValueField) set(v interface{}) ValueField {
-	f.setValid()
-	f.unsetNull()
-	f.addModelStatus(containValue)
-	f.val = v.(string)
-	return f
-}
+// func (f *stringValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(string); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
 
 func (f stringValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
@@ -313,11 +333,11 @@ type String struct {
 	stringValueField
 }
 
-func (f *String) Init(model Model, colName, fieldName string) {
+func (f *String) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.stringValueField
 	}
-	f.stringValueField.init(model, colName, fieldName)
+	f.stringValueField.init(model, colName, fieldName, index)
 }
 
 func (f *String) dup() Field {
@@ -332,8 +352,8 @@ type intValueField struct {
 	val int
 }
 
-func (f *intValueField) init(model Model, colName, fieldName string) {
-	f.baseField.init(model, colName, fieldName)
+func (f *intValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
 }
 
 func (f *intValueField) Scan(v interface{}) error {
@@ -375,6 +395,7 @@ func (f *intValueField) Value() (int, bool) {
 }
 
 func (f *intValueField) SetInt(v int) *intValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -382,13 +403,16 @@ func (f *intValueField) SetInt(v int) *intValueField {
 	return f
 }
 
-func (f *intValueField) set(v interface{}) ValueField {
-	f.setValid()
-	f.unsetNull()
-	f.addModelStatus(containValue)
-	f.val = v.(int)
-	return f
-}
+// func (f *intValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(int); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
 
 func (f intValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
@@ -423,11 +447,11 @@ type Int struct {
 	intValueField
 }
 
-func (f *Int) Init(model Model, colName, fieldName string) {
+func (f *Int) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.intValueField
 	}
-	f.intValueField.init(model, colName, fieldName)
+	f.intValueField.init(model, colName, fieldName, index)
 }
 
 func (f *Int) dup() Field {
@@ -442,8 +466,8 @@ type dateValueField struct {
 	val time.Time
 }
 
-func (f *dateValueField) init(model Model, colName, fieldName string) {
-	f.baseField.init(model, colName, fieldName)
+func (f *dateValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
 }
 
 func (f *dateValueField) Scan(v interface{}) error {
@@ -491,31 +515,24 @@ func (f *dateValueField) value() interface{} {
 }
 
 func (f *dateValueField) SetDate(v time.Time) *dateValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02")))
 	f.setValid()
 	f.unsetNull()
-	f.val = v
 	f.addModelStatus(containValue)
+	f.val = v
 	return f
 }
 
-func (f *dateValueField) set(v interface{}) ValueField {
-	switch val := v.(type) {
-	case string:
-		t, err := time.Parse("2006-01-02", val)
-		if err != nil {
-			panic(err)
-		}
-		f.val = t
-	case time.Time:
-		f.val = val
-	default:
-		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
-	}
-	f.setValid()
-	f.unsetNull()
-	f.addModelStatus(containValue)
-	return f
-}
+// func (f *dateValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(time.Time); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
 
 func (f dateValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
@@ -550,11 +567,11 @@ type Date struct {
 	dateValueField
 }
 
-func (f *Date) Init(model Model, colName, fieldName string) {
+func (f *Date) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.dateValueField
 	}
-	f.dateValueField.init(model, colName, fieldName)
+	f.dateValueField.init(model, colName, fieldName, index)
 }
 
 func (f *Date) dup() Field {
@@ -569,8 +586,8 @@ type datetimeValueField struct {
 	val time.Time
 }
 
-func (f *datetimeValueField) init(model Model, colName, fieldName string) {
-	f.baseField.init(model, colName, fieldName)
+func (f *datetimeValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
 }
 
 func (f *datetimeValueField) Scan(v interface{}) error {
@@ -618,31 +635,24 @@ func (f *datetimeValueField) value() interface{} {
 }
 
 func (f *datetimeValueField) SetDatetime(v time.Time) *datetimeValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02 15:04:05")))
 	f.setValid()
 	f.unsetNull()
-	f.val = v
 	f.addModelStatus(containValue)
+	f.val = v
 	return f
 }
 
-func (f *datetimeValueField) set(v interface{}) ValueField {
-	switch val := v.(type) {
-	case string:
-		t, err := time.Parse("2006-01-02 15:04:05", val)
-		if err != nil {
-			panic(err)
-		}
-		f.val = t
-	case time.Time:
-		f.val = val
-	default:
-		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
-	}
-	f.setValid()
-	f.unsetNull()
-	f.addModelStatus(containValue)
-	return f
-}
+// func (f *datetimeValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(time.Time); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
 
 func (f datetimeValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
@@ -678,11 +688,11 @@ type Datetime struct {
 	datetimeValueField
 }
 
-func (f *Datetime) Init(model Model, colName, fieldName string) {
+func (f *Datetime) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.datetimeValueField
 	}
-	f.datetimeValueField.init(model, colName, fieldName)
+	f.datetimeValueField.init(model, colName, fieldName, index)
 }
 
 func (f *Datetime) dup() Field {
@@ -697,8 +707,8 @@ type decimalValueField struct {
 	val float64
 }
 
-func (f *decimalValueField) init(model Model, colName, fieldName string) {
-	f.baseField.init(model, colName, fieldName)
+func (f *decimalValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
 }
 
 func (f *decimalValueField) Scan(v interface{}) error {
@@ -736,6 +746,7 @@ func (f *decimalValueField) value() interface{} {
 }
 
 func (f *decimalValueField) SetDecimal(v float64) *decimalValueField {
+	f.appendInserts(NewExpr("@ = ?", v))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -743,13 +754,16 @@ func (f *decimalValueField) SetDecimal(v float64) *decimalValueField {
 	return f
 }
 
-func (f *decimalValueField) set(v interface{}) ValueField {
-	f.setValid()
-	f.unsetNull()
-	f.val = v.(float64)
-	f.addModelStatus(containValue)
-	return f
-}
+// func (f *decimalValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(float64); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
 
 func (f decimalValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
@@ -784,11 +798,11 @@ type Decimal struct {
 	decimalValueField
 }
 
-func (f *Decimal) Init(model Model, colName, fieldName string) {
+func (f *Decimal) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.decimalValueField
 	}
-	f.decimalValueField.init(model, colName, fieldName)
+	f.decimalValueField.init(model, colName, fieldName, index)
 }
 
 func (f *Decimal) dup() Field {
@@ -848,6 +862,7 @@ func (f *timeValueField) value() interface{} {
 }
 
 func (f *timeValueField) SetTime(v time.Time) *timeValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("15:04:05")))
 	f.setValid()
 	f.unsetNull()
 	f.val = v
@@ -855,21 +870,13 @@ func (f *timeValueField) SetTime(v time.Time) *timeValueField {
 	return f
 }
 
-func (f *timeValueField) set(v interface{}) ValueField {
-	switch val := v.(type) {
-	case string:
-		t, err := time.Parse("15:04:05", val)
-		if err != nil {
-			panic(err)
-		}
-		f.val = t
-	case time.Time:
-		f.val = val
-	default:
-		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
-	}
-	f.setValid()
-	f.unsetNull()
-	f.addModelStatus(containValue)
-	return f
-}
+// func (f *timeValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(time.Time); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }

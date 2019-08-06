@@ -507,8 +507,8 @@ func (m *ModelInfo) newModelFunc() string {
 	func New{{ model.Name }}() *{{ model.Name }} {
 		m := &{{ model.Name }}{}
 		m.Init(m, nil, nil)
-		{{ for _, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		{{ for i, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
 		{{ endfor }}
 		m.InitRel()
 		return m
@@ -525,8 +525,8 @@ func (m *ModelInfo) newSubModelFunc() string {
 	func newSub{{ model.Name }}(parent nborm.Model) *{{ model.Name }} {
 		m := &{{ model.Name }}{}
 		m.Init(m, parent, nil)
-		{{ for _, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		{{ for i, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
 		{{ endfor }}
 		return m
 	}
@@ -593,8 +593,8 @@ func (m *ModelInfo) fieldInfosFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (m *{{ model.Name }}) FieldInfos() nborm.FieldInfoList {
 		return nborm.FieldInfoList {
-			{{ for _, field in model.FieldInfos }}
-				{"{{ field.Col }}", "{{ field.Field }}", &m.{{ field.Field }} },
+			{{ for i, field in model.FieldInfos }}
+				{"{{ field.Col }}", "{{ field.Field }}", &m.{{ field.Field }}, {{ i }} },
 			{{ endfor }}
 		}
 	}
@@ -793,8 +793,8 @@ func (m *ModelInfo) newListFunc() string {
 			0,
 		}
 		l.Init(l, nil, nil)
-		{{ for _, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}")
+		{{ for i, field in model.FieldInfos }}
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
 		{{ endfor }}
 		l.InitRel()
 		return l
@@ -816,8 +816,8 @@ func (m *ModelInfo) newSubListFunc() string {
 			0,
 		}
 		l.Init(l, parent, nil)
-		{{ for _, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}")
+		{{ for i, field in model.FieldInfos }}
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
 		{{ endfor }}
 		return l
 	}
@@ -833,8 +833,9 @@ func (m *ModelInfo) listNewModelFunc() string {
 	func (l *{{ model.Name }}List) NewModel() nborm.Model {
 		m := &{{ model.Name }}{}
 		m.Init(m, nil, l)
-		{{ for _, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}")
+		l.CopyAggs(m)
+		{{ for i, field in model.FieldInfos }}
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
 			l.{{ field.Field }}.CopyStatus(&m.{{ field.Field }})
 		{{ endfor }}
 		m.InitRel()

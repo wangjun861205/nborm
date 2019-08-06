@@ -8,21 +8,21 @@ import (
 type modelStatus int
 
 const (
-	none                modelStatus = 0
-	synced              modelStatus = 1
-	distinct            modelStatus = 1 << 1
-	forModelAgg         modelStatus = 1 << 2
-	inited              modelStatus = 1 << 4
-	relInited           modelStatus = 1 << 5
-	forBackQuery        modelStatus = 1 << 6
-	forUpdate           modelStatus = 1 << 7
-	forModelOrder       modelStatus = 1 << 8
-	forModelRef         modelStatus = 1 << 9
-	forJoin             modelStatus = 1 << 10
-	forLeftJoin         modelStatus = 1 << 11
-	forRightJoin        modelStatus = 1 << 12
-	containValue        modelStatus = 1 << 13
-	selectAll           modelStatus = 1 << 14
+	none          modelStatus = 0
+	synced        modelStatus = 1
+	distinct      modelStatus = 1 << 1
+	forModelAgg   modelStatus = 1 << 2
+	inited        modelStatus = 1 << 4
+	relInited     modelStatus = 1 << 5
+	forBackQuery  modelStatus = 1 << 6
+	forUpdate     modelStatus = 1 << 7
+	forModelOrder modelStatus = 1 << 8
+	forModelRef   modelStatus = 1 << 9
+	forJoin       modelStatus = 1 << 10
+	forLeftJoin   modelStatus = 1 << 11
+	forRightJoin  modelStatus = 1 << 12
+	containValue  modelStatus = 1 << 13
+	// selectAll           modelStatus = 1 << 14
 	forModelHaving      modelStatus = 1 << 15
 	forReverseQuery     modelStatus = 1 << 16
 	containSubJoin      modelStatus = 1 << 17
@@ -34,7 +34,7 @@ const (
 	containSubLeftJoin  modelStatus = 1 << 23
 	containSubRightJoin modelStatus = 1 << 24
 	containSubOrder     modelStatus = 1 << 25
-	containSelect       modelStatus = 1 << 26
+	// containSelect       modelStatus = 1 << 26
 )
 
 type modelBaseInfo struct {
@@ -68,8 +68,10 @@ func (m *modelBaseInfo) getAlias() string {
 	return m.alias
 }
 
-func (m *modelBaseInfo) setAlias() {
-	m.alias = fmt.Sprintf("t%d", m.getIndex())
+func (m *modelBaseInfo) genAlias() {
+	index := m.genIndex()
+	m.index = index
+	m.alias = fmt.Sprintf("t%d", index)
 }
 
 func (m *modelBaseInfo) getModelStatus() modelStatus {
@@ -127,9 +129,17 @@ func (m *modelBaseInfo) setParent(parent Model) {
 	m.parent = parent
 }
 
+func (m *modelBaseInfo) setIndex(index int) {
+	m.index = index
+}
+
 func (m *modelBaseInfo) getIndex() int {
+	return m.index
+}
+
+func (m *modelBaseInfo) genIndex() int {
 	if m.parent != nil {
-		return m.parent.getIndex()
+		return m.parent.genIndex()
 	}
 	m.index++
 	return m.index
@@ -151,11 +161,6 @@ func (m *modelBaseInfo) SetForLeftJoin() {
 func (m *modelBaseInfo) SetForRightJoin() {
 	m.getParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forRightJoin)
-}
-
-// SelectAll 显式设置查询所有字段，拼合Select语句时，该Model的字段将以alias.*的方式出现
-func (m *modelBaseInfo) SelectAll() {
-	m.addModelStatus(selectAll)
 }
 
 // SetConList 设置当前Model的Container List
@@ -182,17 +187,33 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 	return d
 }
 
-// func (m *modelBaseInfo) CopyStatus(dst Model) {
-// 	dst.setModelStatus(m.status)
-// }
-
 type modelClause struct {
 	Model
-	wheres  exprList
-	havings exprList
-	updates exprList
-	aggs    aggList
-	limit   [2]int
+	selectedFieldIndexes []int
+	inserts              exprList
+	wheres               exprList
+	updates              exprList
+	havings              exprList
+	orderBys             []refClauser
+	groupBys             []refClauser
+	aggs                 aggList
+	limit                [2]int
+}
+
+func (m *modelClause) getInserts() exprList {
+	return m.inserts
+}
+
+func (m *modelClause) appendInserts(value *Expr) {
+	m.inserts = append(m.inserts, value)
+}
+
+func (m *modelClause) getOrderBys() []refClauser {
+	return m.orderBys
+}
+
+func (m *modelClause) appendOrderBys(orderBy refClauser) {
+	m.orderBys = append(m.orderBys, orderBy)
 }
 
 func (m *modelClause) getWheres() exprList {
@@ -201,6 +222,10 @@ func (m *modelClause) getWheres() exprList {
 
 func (m *modelClause) getHavings() exprList {
 	return m.havings
+}
+
+func (m *modelClause) appendHavings(having *Expr) {
+	m.havings = append(m.havings, having)
 }
 
 // SetLimit 设置Limit子句信息
@@ -216,12 +241,29 @@ func (m *modelClause) getAggs() aggList {
 	return m.aggs
 }
 
-func (m *modelClause) getUpdateList() exprList {
+func (m *modelClause) getUpdates() exprList {
 	return m.updates
 }
 
 func (m *modelClause) appendWhere(exprs ...*Expr) {
 	m.wheres = append(m.wheres, exprs...)
+}
+
+func (m *modelClause) AscOrderBy(orderBy refClauser) {
+	m.appendOrderBys(newOrderBy(orderBy, asc))
+}
+
+func (m *modelClause) DescOrderBy(orderBy refClauser) {
+	m.appendOrderBys(newOrderBy(orderBy, desc))
+}
+
+func (m *modelClause) LookupAgg(name string) Field {
+	for _, agg := range m.aggs {
+		if agg.field.colName() == name {
+			return agg.field
+		}
+	}
+	return nil
 }
 
 // AndExprWhere 添加表达式where(and关系)
@@ -252,7 +294,7 @@ func (m *modelClause) OrExprWhere(expr *Expr) Model {
 func (m *modelClause) AndHaving(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("AND %s", expr.exp)
 	m.havings = append(m.havings, expr)
-	m.addModelStatus(forModelHaving)
+	// m.addModelStatus(forModelHaving)
 	return m
 }
 
@@ -260,43 +302,53 @@ func (m *modelClause) AndHaving(expr *Expr) Model {
 func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.havings = append(m.havings, expr)
-	m.addModelStatus(forModelHaving)
+	// m.addModelStatus(forModelHaving)
 	return m
 }
 
 // StrAgg 添加字符串结果的汇总
-func (m *modelClause) StrAgg(expr *Expr, name string) {
-	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggs = append(m.aggs, newStrAgg(expr, name))
+func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
+	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	agg := newStrAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
+	return agg
 }
 
 // IntAgg 添加整数结果的汇总
-func (m *modelClause) IntAgg(expr *Expr, name string) {
-	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggs = append(m.aggs, newIntAgg(expr, name))
+func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
+	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	agg := newIntAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
+	return agg
 }
 
 // DateAgg 添加日期结果的汇总
-func (m *modelClause) DateAgg(expr *Expr, name string) {
-	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggs = append(m.aggs, newDateAgg(expr, name))
+func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
+	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	agg := newDateAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
+	return agg
 }
 
 // DatetimeAgg 添加日期时间结果的汇总
-func (m *modelClause) DatetimeAgg(expr *Expr, name string) {
-	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggs = append(m.aggs, newDatetimeAgg(expr, name))
+func (m *modelClause) DatetimeAgg(expr *Expr, name string) *agg {
+	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	agg := newDatetimeAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
+	return agg
 }
 
 // DecAgg 添加浮点数结果的汇总
-func (m *modelClause) DecAgg(expr *Expr, name string) {
-	expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
-	m.aggs = append(m.aggs, newDecAgg(expr, name))
+func (m *modelClause) DecAgg(expr *Expr, name string) *agg {
+	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
+	agg := newDecAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
+	return agg
 }
 
 // ExprUpdate 添加表达式更新
@@ -308,14 +360,57 @@ func (m *modelClause) ExprUpdate(expr *Expr) {
 	}
 }
 
-// func (m *modelClause) setAggs(aggs aggList) {
-// 	m.aggs = aggs
-// }
+func (m *modelClause) getGroupBys() []refClauser {
+	return m.groupBys
+}
 
-func (m *modelClause) dup() modelClause {
-	d := *m
-	d.aggs = m.aggs.copy()
-	return d
+func (m *modelClause) appendGroupBys(groupBy refClauser) {
+	m.groupBys = append(m.groupBys, groupBy)
+}
+
+func (m *modelClause) GroupBy(groupBy refClauser) {
+	m.appendGroupBys(groupBy)
+}
+
+func (m *modelClause) setAggs(aggs aggList) {
+	m.aggs = aggs
+}
+
+func (m *modelClause) CopyAggs(dst Model) {
+	aggs := m.aggs.copy()
+	dst.setAggs(aggs)
+}
+
+func (m *modelClause) appendSelectedFieldIndexes(index int) {
+	m.selectedFieldIndexes = append(m.selectedFieldIndexes, index)
+}
+
+func (m *modelClause) getSelectedFieldIndexes() []int {
+	return m.selectedFieldIndexes
+}
+
+func (m *modelClause) SelectAll() {
+	for _, fieldInfos := range m.Model.FieldInfos() {
+		m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfos.Index)
+	}
+}
+
+func (m *modelClause) SelectFields(fields ...Field) {
+	for _, f := range fields {
+		m.selectedFieldIndexes = append(m.selectedFieldIndexes, f.getFieldIndex())
+	}
+}
+
+func (m *modelClause) SelectExcept(fields ...Field) {
+	var flag int
+	for _, f := range fields {
+		flag |= (1 << uint(f.getFieldIndex()))
+	}
+	for _, fieldInfo := range m.Model.FieldInfos() {
+		if (1<<uint(fieldInfo.Index))&flag == 0 {
+			m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfo.Index)
+		}
+	}
 }
 
 // Meta Model的元信息
@@ -324,6 +419,7 @@ type Meta struct {
 	modelClause
 }
 
+// Init 初始化Meta
 func (m *Meta) Init(model, parent Model, conList ModelList) {
 	m.modelBaseInfo.Model = model
 	m.modelBaseInfo.parent = parent
@@ -332,12 +428,7 @@ func (m *Meta) Init(model, parent Model, conList ModelList) {
 	initModel(model)
 }
 
+// MarshalJSON MarshalJSON
 func (m Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.modelClause.aggs)
-}
-
-func (m *Meta) Dup() Meta {
-	info := m.modelBaseInfo.dup()
-	clause := m.modelClause.dup()
-	return Meta{info, clause}
 }

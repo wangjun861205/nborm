@@ -44,9 +44,7 @@ type BaseField interface {
 	fullColName() string
 	ForSelect()
 	ForSum()
-	AscOrder()
-	DscOrder()
-	GroupBy()
+	getFieldIndex() int
 }
 
 type ClauseField interface {
@@ -55,6 +53,7 @@ type ClauseField interface {
 	OrWhere(string, interface{}) ClauseField
 	U() ClauseField
 	Update(interface{}) ClauseField
+	Set(interface{}) ClauseField
 }
 
 // ValueField ValueField
@@ -62,7 +61,6 @@ type ValueField interface {
 	BaseField
 	Scan(interface{}) error
 	value() interface{}
-	set(interface{}) ValueField
 }
 
 // Field Field
@@ -70,7 +68,8 @@ type Field interface {
 	ClauseField
 	ValueField
 	dup() Field
-	Init(Model, string, string)
+	Init(Model, string, string, int)
+	refClauser
 }
 
 // Model Model
@@ -83,7 +82,7 @@ type Model interface {
 	UniqueKeys() []FieldList
 	relations() RelationInfoList
 	getAlias() string
-	setAlias()
+	genAlias()
 	getModelStatus() modelStatus
 	addModelStatus(modelStatus)
 	setModelStatus(modelStatus)
@@ -95,23 +94,43 @@ type Model interface {
 	getParent() Model
 	setParent(Model)
 	getIndex() int
+	setIndex(int)
+	genIndex() int
 	getWheres() exprList
-	getHavings() exprList
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)
 	getAggs() aggList
 	ExprUpdate(*Expr)
-	getUpdateList() exprList
 	setConList(ModelList)
 	getConList() ModelList
 	Collapse()
 	appendWhere(...*Expr)
-	// setAggs(aggList)
+	setAggs(aggList)
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
 	GetCache(string, time.Duration) bool
 	SetCache(string)
+	getGroupBys() []refClauser
+	appendGroupBys(refClauser)
+	appendSelectedFieldIndexes(int)
+	getSelectedFieldIndexes() []int
+	getOrderBys() []refClauser
+	appendOrderBys(refClauser)
+	getHavings() exprList
+	getInserts() exprList
+	appendInserts(*Expr)
+	getUpdates() exprList
+}
+
+type refClauser interface {
+	toRefClause() string
+	toSimpleRefClause() string
+}
+
+type clauser interface {
+	toClause() (string, []interface{})
+	toSimpleClause() (string, []interface{})
 }
 
 // ModelList ModelList

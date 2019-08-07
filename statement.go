@@ -45,3 +45,12 @@ func genUpdateStmt(model Model) (string, []interface{}) {
 	whereClause, whereValues := genWhereClause(model)
 	return fmt.Sprintf(`UPDATE %s SET %s %s`, tabRefClause, updateClause, whereClause), append(updateValues, whereValues...)
 }
+
+func genDeleteStmt(model Model) (string, []interface{}) {
+	deleteClause := genDeleteClause(model)
+	tabRefClause := genTabRefClause(model)
+	whereClause, whereValues := genWhereClause(model)
+	orderByClause := genOrderByClause(model)
+	limitClause := genLimitClause(model)
+	return fmt.Sprintf(`%s FROM %s %s %s %s`, deleteClause, tabRefClause, whereClause, orderByClause, limitClause), whereValues
+}

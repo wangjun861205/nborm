@@ -8,33 +8,29 @@ import (
 type modelStatus int
 
 const (
-	none          modelStatus = 0
-	synced        modelStatus = 1
-	distinct      modelStatus = 1 << 1
-	forModelAgg   modelStatus = 1 << 2
-	inited        modelStatus = 1 << 4
-	relInited     modelStatus = 1 << 5
-	forBackQuery  modelStatus = 1 << 6
-	forUpdate     modelStatus = 1 << 7
-	forModelOrder modelStatus = 1 << 8
-	forModelRef   modelStatus = 1 << 9
-	forJoin       modelStatus = 1 << 10
-	forLeftJoin   modelStatus = 1 << 11
-	forRightJoin  modelStatus = 1 << 12
-	containValue  modelStatus = 1 << 13
-	// selectAll           modelStatus = 1 << 14
+	none                modelStatus = 0
+	synced              modelStatus = 1
+	distinct            modelStatus = 1 << 1
+	forModelAgg         modelStatus = 1 << 2
+	inited              modelStatus = 1 << 4
+	relInited           modelStatus = 1 << 5
+	forBackQuery        modelStatus = 1 << 6
+	forUpdate           modelStatus = 1 << 7
+	forModelOrder       modelStatus = 1 << 8
+	forModelRef         modelStatus = 1 << 9
+	forJoin             modelStatus = 1 << 10
+	forLeftJoin         modelStatus = 1 << 11
+	forRightJoin        modelStatus = 1 << 12
+	containValue        modelStatus = 1 << 13
 	forModelHaving      modelStatus = 1 << 15
 	forReverseQuery     modelStatus = 1 << 16
-	containSubJoin      modelStatus = 1 << 17
 	containSubWhere     modelStatus = 1 << 18
 	containJoinWhere    modelStatus = 1 << 19
 	containSubJoinWhere modelStatus = 1 << 20
 	containWhere        modelStatus = 1 << 21
 	containSubUpdate    modelStatus = 1 << 22
-	containSubLeftJoin  modelStatus = 1 << 23
-	containSubRightJoin modelStatus = 1 << 24
 	containSubOrder     modelStatus = 1 << 25
-	// containSelect       modelStatus = 1 << 26
+	forDelete           modelStatus = 1 << 26
 )
 
 type modelBaseInfo struct {
@@ -147,20 +143,22 @@ func (m *modelBaseInfo) genIndex() int {
 
 // SetForJoin 设置Join查询标志位(所有Father Model的containSubJoin标志位均会被置为1)
 func (m *modelBaseInfo) SetForJoin() {
-	m.getParent().addModelStatus(containSubJoin)
 	m.addModelStatus(forJoin)
 }
 
 // SetForLeftJoin 左关联
 func (m *modelBaseInfo) SetForLeftJoin() {
-	m.getParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forLeftJoin)
 }
 
 // SetForRightJjoin 右关联
 func (m *modelBaseInfo) SetForRightJoin() {
-	m.getParent().addModelStatus(containSubLeftJoin)
 	m.addModelStatus(forRightJoin)
+}
+
+// SetForDelete 设置为删除
+func (m *modelBaseInfo) SetForDelete() {
+	m.addModelStatus(forDelete)
 }
 
 // SetConList 设置当前Model的Container List

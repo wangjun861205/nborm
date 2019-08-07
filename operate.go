@@ -128,10 +128,11 @@ func Update(exe Executor, model Model) (sql.Result, error) {
 
 // Delete 删除
 func Delete(exe Executor, model Model) (sql.Result, error) {
-	whereClause, whereValues := genSimpleWhereClause(model)
-	stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
+	// whereClause, whereValues := genSimpleWhereClause(model)
+	// stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
+	stmt, values := genDeleteStmt(model)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, whereValues)))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
-	return exe.Exec(stmt, whereValues...)
+	return exe.Exec(stmt, values...)
 }

@@ -565,3 +565,21 @@ func expandArg(val interface{}) (values []interface{}) {
 	}
 	return
 }
+
+func getDeleteModels(model Model, models *[]string) {
+	if model.checkStatus(forDelete) {
+		*models = append(*models, model.getAlias())
+	}
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			getDeleteModels(dstModel, models)
+		}
+	}
+}
+
+func genDeleteClause(model Model) string {
+	deleteModels := make([]string, 0, 4)
+	getDeleteModels(model, &deleteModels)
+	return fmt.Sprintf("DELETE %s", strings.Join(deleteModels, ", "))
+}

@@ -8,29 +8,24 @@ import (
 type modelStatus int
 
 const (
-	none                modelStatus = 0
-	synced              modelStatus = 1
-	distinct            modelStatus = 1 << 1
-	forModelAgg         modelStatus = 1 << 2
-	inited              modelStatus = 1 << 4
-	relInited           modelStatus = 1 << 5
-	forBackQuery        modelStatus = 1 << 6
-	forUpdate           modelStatus = 1 << 7
-	forModelOrder       modelStatus = 1 << 8
-	forModelRef         modelStatus = 1 << 9
-	forJoin             modelStatus = 1 << 10
-	forLeftJoin         modelStatus = 1 << 11
-	forRightJoin        modelStatus = 1 << 12
-	containValue        modelStatus = 1 << 13
-	forModelHaving      modelStatus = 1 << 15
-	forReverseQuery     modelStatus = 1 << 16
-	containSubWhere     modelStatus = 1 << 18
-	containJoinWhere    modelStatus = 1 << 19
-	containSubJoinWhere modelStatus = 1 << 20
-	containWhere        modelStatus = 1 << 21
-	containSubUpdate    modelStatus = 1 << 22
-	containSubOrder     modelStatus = 1 << 25
-	forDelete           modelStatus = 1 << 26
+	none             modelStatus = 0
+	synced           modelStatus = 1
+	distinct         modelStatus = 1 << 1
+	forModelAgg      modelStatus = 1 << 2
+	inited           modelStatus = 1 << 4
+	relInited        modelStatus = 1 << 5
+	forBackQuery     modelStatus = 1 << 6
+	forUpdate        modelStatus = 1 << 7
+	forModelOrder    modelStatus = 1 << 8
+	forModelRef      modelStatus = 1 << 9
+	forJoin          modelStatus = 1 << 10
+	forLeftJoin      modelStatus = 1 << 11
+	forRightJoin     modelStatus = 1 << 12
+	containValue     modelStatus = 1 << 13
+	forModelHaving   modelStatus = 1 << 15
+	containSubUpdate modelStatus = 1 << 22
+	containSubOrder  modelStatus = 1 << 25
+	forDelete        modelStatus = 1 << 26
 )
 
 type modelBaseInfo struct {
@@ -218,6 +213,10 @@ func (m *modelClause) getWheres() exprList {
 	return m.wheres
 }
 
+func (m *modelClause) appendWheres(expr *Expr) {
+	m.wheres = append(m.wheres, expr)
+}
+
 func (m *modelClause) getHavings() exprList {
 	return m.havings
 }
@@ -268,11 +267,6 @@ func (m *modelClause) LookupAgg(name string) Field {
 func (m *modelClause) AndExprWhere(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("AND %s", expr.exp)
 	m.wheres = append(m.wheres, expr)
-	m.addModelStatus(containWhere)
-	m.addModelStatus(forModelRef)
-	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
-		parent.addModelStatus(containSubWhere)
-	}
 	return m
 }
 
@@ -280,11 +274,30 @@ func (m *modelClause) AndExprWhere(expr *Expr) Model {
 func (m *modelClause) OrExprWhere(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.wheres = append(m.wheres, expr)
-	m.addModelStatus(containWhere)
-	m.addModelStatus(forModelRef)
-	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
-		parent.addModelStatus(containSubWhere)
-	}
+	return m
+}
+
+// AndWhereGroup AndWhereGroup
+func (m *modelClause) AndWhereGroup(wheres ...*condition) Model {
+	m.appendWheres(conditionList(wheres).group(and).toExpr())
+	return m
+}
+
+// OrWhereGroup OrWhereGroup
+func (m *modelClause) OrWhereGroup(wheres ...*condition) Model {
+	m.appendWheres(conditionList(wheres).group(or).toExpr())
+	return m
+}
+
+// AndHavingGroup AndHavingGroup
+func (m *modelClause) AndHavingGroup(havings ...*condition) Model {
+	m.appendHavings(conditionList(havings).group(and).toExpr())
+	return m
+}
+
+// OrHavingGroup OrHavingGroup
+func (m *modelClause) OrHavingGroup(havings ...*condition) Model {
+	m.appendHavings(conditionList(havings).group(or).toExpr())
 	return m
 }
 
@@ -292,7 +305,6 @@ func (m *modelClause) OrExprWhere(expr *Expr) Model {
 func (m *modelClause) AndHaving(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("AND %s", expr.exp)
 	m.havings = append(m.havings, expr)
-	// m.addModelStatus(forModelHaving)
 	return m
 }
 
@@ -300,13 +312,11 @@ func (m *modelClause) AndHaving(expr *Expr) Model {
 func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.havings = append(m.havings, expr)
-	// m.addModelStatus(forModelHaving)
 	return m
 }
 
 // StrAgg 添加字符串结果的汇总
 func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
-	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	agg := newStrAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -315,7 +325,6 @@ func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
 
 // IntAgg 添加整数结果的汇总
 func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
-	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	agg := newIntAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -324,7 +333,6 @@ func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
 
 // DateAgg 添加日期结果的汇总
 func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
-	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	agg := newDateAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -333,7 +341,6 @@ func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
 
 // DatetimeAgg 添加日期时间结果的汇总
 func (m *modelClause) DatetimeAgg(expr *Expr, name string) *agg {
-	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	agg := newDatetimeAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -342,7 +349,6 @@ func (m *modelClause) DatetimeAgg(expr *Expr, name string) *agg {
 
 // DecAgg 添加浮点数结果的汇总
 func (m *modelClause) DecAgg(expr *Expr, name string) *agg {
-	// expr.exp = fmt.Sprintf("%s AS %s", expr.exp, name)
 	agg := newDecAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)

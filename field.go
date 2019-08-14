@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -219,6 +220,140 @@ func (f *clauseField) OrWhere(op string, value interface{}) ClauseField {
 	return f
 }
 
+func (f *clauseField) AndEq(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ = ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrEq(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ = ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndNeq(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ <> ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrNeq(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ <> ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLt(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ < ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLt(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ < ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLte(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ <= ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLte(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ <= ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndGt(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ > ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrGt(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ > ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndGte(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ >= ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrGte(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ >= ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndIsNull() *condition {
+	return newCondition(and, NewExpr("@ IS NULL", f))
+}
+
+func (f *clauseField) OrIsNull() *condition {
+	return newCondition(or, NewExpr("@ IS NULL", f))
+}
+
+func (f *clauseField) AndIsNotNull() *condition {
+	return newCondition(and, NewExpr("@ IS NOT NULL", f))
+}
+
+func (f *clauseField) OrIsNotNull() *condition {
+	return newCondition(or, NewExpr("@ IS NOT NULL", f))
+}
+
+func (f *clauseField) AndIn(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ IN ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrIn(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT IN ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLike(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLike(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndNotLike(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ NOT LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrNotLike(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndBetween(startValue, endValue interface{}) *condition {
+	return newCondition(and, NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) OrBetween(startValue, endValue interface{}) *condition {
+	return newCondition(or, NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) AndNotBetween(startValue, endValue interface{}) *condition {
+	return newCondition(and, NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) OrNotBetween(startValue, endValue interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) AndWhereGroup(funcs ...func(*clauseField) *condition) {
+	switch len(funcs) {
+	case 0:
+		return
+	case 1:
+		f.valueField().appendWheres(funcs[0](f).toExpr())
+	default:
+		l := make(conditionList, 0, len(funcs))
+		for _, fn := range funcs {
+			l = append(l, fn(f))
+		}
+		f.valueField().appendWheres(l.group(and).toExpr())
+	}
+}
+
+func (f *clauseField) OrWhereGroup(funcs ...func(*clauseField) *condition) {
+	switch len(funcs) {
+	case 0:
+		return
+	case 1:
+		f.valueField().appendWheres(funcs[0](f).toExpr())
+	default:
+		l := make(conditionList, 0, len(funcs))
+		for _, fn := range funcs {
+			l = append(l, fn(f))
+		}
+		f.valueField().appendWheres(l.group(or).toExpr())
+	}
+}
+
 func (f *clauseField) Update(value interface{}) ClauseField {
 	valueField := f.valueField()
 	valueField.ExprUpdate(NewExpr("@ = ?", valueField, value))
@@ -292,17 +427,6 @@ func (f *stringValueField) SetString(v string) *stringValueField {
 	return f
 }
 
-// func (f *stringValueField) Set(value interface{}) ValueField {
-// 	f.appendInserts(NewExpr("@ = ?", f, value))
-// 	if v, ok := value.(string); ok {
-// 		f.setValid()
-// 		f.unsetNull()
-// 		f.addModelStatus(containValue)
-// 		f.val = v
-// 	}
-// 	return f
-// }
-
 func (f stringValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
@@ -313,11 +437,9 @@ func (f stringValueField) MarshalJSON() ([]byte, error) {
 func (f *stringValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		// f.SetNull()
 		f.removeStatus(notNull)
 		return nil
 	}
-	// f.SetString(strings.Trim(string(b), "\""))
 	f.addStatus(notNull)
 	f.val = strings.Trim(string(b), "\"")
 	return nil
@@ -754,22 +876,11 @@ func (f *decimalValueField) SetDecimal(v float64) *decimalValueField {
 	return f
 }
 
-// func (f *decimalValueField) Set(value interface{}) ValueField {
-// 	f.appendInserts(NewExpr("@ = ?", f, value))
-// 	if v, ok := value.(float64); ok {
-// 		f.setValid()
-// 		f.unsetNull()
-// 		f.addModelStatus(containValue)
-// 		f.val = v
-// 	}
-// 	return f
-// }
-
 func (f decimalValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf("%d", f.val)), nil
+	return []byte(fmt.Sprintf("%f", f.val)), nil
 }
 
 func (f *decimalValueField) UnmarshalJSON(b []byte) error {
@@ -817,6 +928,10 @@ type timeValueField struct {
 	val time.Time
 }
 
+func (f *timeValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
 func (f *timeValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
@@ -853,6 +968,10 @@ func (f *timeValueField) Value() (time.Time, bool) {
 	return f.val, false
 }
 
+func (f *timeValueField) AnyValue() time.Time {
+	return f.val
+}
+
 func (f *timeValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
@@ -870,13 +989,110 @@ func (f *timeValueField) SetTime(v time.Time) *timeValueField {
 	return f
 }
 
-// func (f *timeValueField) Set(value interface{}) ValueField {
-// 	f.appendInserts(NewExpr("@ = ?", f, value))
-// 	if v, ok := value.(time.Time); ok {
-// 		f.setValid()
-// 		f.unsetNull()
-// 		f.addModelStatus(containValue)
-// 		f.val = v
-// 	}
-// 	return f
-// }
+func (f *timeValueField) MarshalJSON() ([]byte, error) {
+	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(f.val.Format("15:04:05")), nil
+}
+
+type Time struct {
+	clauseField
+	timeValueField
+}
+
+func (f *Time) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.timeValueField
+	}
+	f.timeValueField.init(model, colName, fieldName, index)
+}
+
+func (f *Time) dup() Field {
+	nf := *f
+	return &nf
+}
+
+type byteValueField struct {
+	baseField
+	val []byte
+}
+
+func (f *byteValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *byteValueField) Scan(v interface{}) error {
+	f.setValid()
+	if v == nil {
+		f.SetNull()
+		return nil
+	}
+	f.unsetNull()
+	switch val := v.(type) {
+	case []byte:
+		f.val = val
+	case string:
+		bs, err := hex.DecodeString(val)
+		if err != nil {
+			return err
+		}
+		f.val = bs
+	default:
+		return fmt.Errorf("invalid type for scan Decimal(%T)", v)
+	}
+	return nil
+}
+
+func (f *byteValueField) Value() ([]byte, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return nil, true
+	}
+	return f.val, false
+}
+
+func (f *byteValueField) value() interface{} {
+	f.mustValid()
+	if f.IsNull() {
+		return nil
+	}
+	return f.val
+}
+
+func (f *byteValueField) SetBytes(v []byte) *byteValueField {
+	f.appendInserts(NewExpr("@ = ?", v))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+func (f byteValueField) MarshalJSON() ([]byte, error) {
+	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%x", f.val)), nil
+}
+
+func (f *byteValueField) AnyValue() []byte {
+	return f.val
+}
+
+type Bytes struct {
+	clauseField
+	byteValueField
+}
+
+func (f *Bytes) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.byteValueField
+	}
+	f.byteValueField.init(model, colName, fieldName, index)
+}
+
+func (f *Bytes) dup() Field {
+	nf := *f
+	return &nf
+}

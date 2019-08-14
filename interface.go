@@ -96,6 +96,7 @@ type Model interface {
 	getIndex() int
 	setIndex(int)
 	genIndex() int
+	appendWheres(*Expr)
 	getWheres() exprList
 	InitRel()
 	SetLimit(int, int)
@@ -105,7 +106,6 @@ type Model interface {
 	setConList(ModelList)
 	getConList() ModelList
 	Collapse()
-	appendWhere(...*Expr)
 	setAggs(aggList)
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
@@ -117,6 +117,7 @@ type Model interface {
 	getSelectedFieldIndexes() []int
 	getOrderBys() []refClauser
 	appendOrderBys(refClauser)
+	appendHavings(*Expr)
 	getHavings() exprList
 	getInserts() exprList
 	appendInserts(*Expr)

@@ -294,32 +294,6 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func getUpdateTabRef(model Model, refs *[]string) {
-	*refs = append(*refs, model.fullTabName())
-	if model.checkStatus(forBackQuery) {
-		for _, relInfo := range model.getParent().relations() {
-			if relInfo.lastModel() == model {
-				*refs = append(*refs, relInfo.toRevClause(model.getParent(), join))
-			}
-		}
-	}
-	for _, relInfo := range model.relations() {
-		subModel := relInfo.lastModel()
-		if subModel.checkStatus(containWhere | containSubWhere | forUpdate | containSubUpdate) {
-			*refs = append(*refs, relInfo.toClause(join))
-			if subModel.checkStatus(containSubWhere) {
-				getTabRef(subModel, refs)
-			}
-		}
-	}
-}
-
-func genUpdateTabRef(model Model) string {
-	refs := make([]string, 0, 8)
-	getUpdateTabRef(model, &refs)
-	return strings.Join(refs, " ")
-}
-
 func getTabRef(model Model, refs *[]string) {
 	for _, relInfo := range model.relations() {
 		dstModel := relInfo.lastModel()
@@ -506,7 +480,9 @@ func expandArg(val interface{}) (values []interface{}) {
 	switch v := val.(type) {
 	case Field:
 		values = append(values, v.value())
-	case string, []byte, int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
+	case []byte:
+		values = append(values, fmt.Sprintf("X'%x'", v))
+	case string, int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
 		values = append(values, v)
 	case []string:
 		for _, ev := range v {

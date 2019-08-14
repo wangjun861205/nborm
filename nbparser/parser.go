@@ -1758,10 +1758,12 @@ var colToField = map[string]string{
 	"float":      "nborm.Decimal",
 	"date":       "nborm.Date",
 	"json":       "nborm.String",
-	"time":       "nborm.Datetime",
+	"time":       "nborm.Time",
 	"enum":       "nborm.String",
 	"tinytext":   "nborm.String",
 	"mediumtext": "nborm.String",
+	"binary":     "nborm.Bytes",
+	"varbinary":  "nborm.Bytes",
 }
 
 func procTables(tables []*Table) {

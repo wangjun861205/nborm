@@ -1,60 +1,100 @@
 package nborm
 
 import (
-	"fmt"
 	"strings"
 )
 
+type joinType string
+
+const (
+	join      joinType = "JOIN"
+	leftJoin  joinType = "LEFT JOIN"
+	rightJoin joinType = "RIGHT JOIN"
+)
+
 type RelationInfo struct {
-	Fields FieldList
-	Object interface{}
+	name     string
+	dstModel Model
+	on       *Expr
+	next     *RelationInfo
+	prev     *RelationInfo
 }
 
-type RelationInfoList []RelationInfo
-
-func (r RelationInfo) toJoinClause() string {
-	switch {
-	case len(r.Fields)%2 != 0:
-		panic(fmt.Errorf("invalid RelationInfo.Fields length(%d)", len(r.Fields)))
-	case len(r.Fields) == 2:
-		srcField := r.Fields[0]
-		dstField := r.Fields[1]
-		dstModel := dstField.(Model)
-		dstModel.setAlias("t1")
-		return fmt.Sprintf(`%s JOIN %s ON t0.%s = t1.%s`,
-			srcField.fullTabName(),
-			dstField.fullTabName(),
-			srcField.colName(),
-			dstField.colName())
-	default:
-		var builder strings.Builder
-		for i, field := range r.Fields {
-			switch {
-			case i == 0:
-				builder.WriteString(fmt.Sprintf("%s AS t%d ", field.rawFullTabName(), i))
-			case i%2 == 1:
-				field.(Model).setAlias(fmt.Sprintf("t%d", i/2+1))
-				builder.WriteString(fmt.Sprintf("JOIN %s AS t%d ON t%d.%s = t%d.%s ",
-					field.rawFullTabName(), i/2+1, i/2, r.Fields[i-1].colName(), i/2+1, field.colName()))
-				for _, wf := range getFields(field.(Model), forWhere) {
-					wl := wf.whereList()
-					builder.WriteString(wl.toOnClause())
-				}
-			}
-		}
-		return builder.String()
+func NewRelationInfo(name string, dst Model, on *Expr) *RelationInfo {
+	return &RelationInfo{
+		name,
+		dst,
+		on,
+		nil,
+		nil,
 	}
 }
 
-func (r RelationInfo) toAppendJoinClause() string {
-	if len(r.Fields)%2 != 0 {
-		panic(fmt.Errorf("invalid RelationInfo.Fields length(%d)", len(r.Fields)))
+func (r *RelationInfo) lastModel() Model {
+	last := r
+	for last.next != nil {
+		last = last.next
 	}
+	return last.dstModel
+}
+
+func (r *RelationInfo) Append(name string, dst Model, on *Expr) *RelationInfo {
+	nr := &RelationInfo{
+		name,
+		dst,
+		on,
+		nil,
+		r,
+	}
+	if r == nil {
+		return nr
+	}
+	last := r
+	for last.next != nil {
+		last = last.next
+	}
+	last.next = nr
+	nr.prev = last
+	return r
+}
+
+func (r *RelationInfo) toClause(joinType joinType) string {
 	var builder strings.Builder
-	for i, field := range r.Fields[1:] {
-		if i%2 == 0 {
-			builder.WriteString(fmt.Sprintf(" JOIN %s ON %s = %s ", field.fullTabName(), r.Fields[i].fullColName(), field.fullColName()))
-		}
+	for rel := r; rel != nil; rel = rel.next {
+		builder.WriteString(string(joinType))
+		builder.WriteString(" ")
+		builder.WriteString(rel.dstModel.fullTabName())
+		builder.WriteString(" ON ")
+		onClause, _ := rel.on.toClause()
+		builder.WriteString(onClause)
+		builder.WriteString(" ")
 	}
 	return builder.String()
 }
+
+func (r *RelationInfo) toRevClause(srcModel Model, joinType joinType) string {
+	last := r
+	for last.next != nil {
+		last = last.next
+	}
+	var builder strings.Builder
+	for last.prev != nil {
+		builder.WriteString(string(joinType))
+		builder.WriteString(" ")
+		builder.WriteString(last.prev.dstModel.fullTabName())
+		builder.WriteString(" ON ")
+		onClause, _ := last.on.toClause()
+		builder.WriteString(onClause)
+		builder.WriteString(" ")
+		last = last.prev
+	}
+	builder.WriteString(string(joinType))
+	builder.WriteString(" ")
+	builder.WriteString(srcModel.fullTabName())
+	builder.WriteString(" ON ")
+	onClause, _ := last.on.toClause()
+	builder.WriteString(onClause)
+	return builder.String()
+}
+
+type RelationInfoList []*RelationInfo

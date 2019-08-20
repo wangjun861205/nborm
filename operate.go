@@ -1,30 +1,52 @@
 package nborm
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/wangjun861205/nbcolor"
 )
 
-func InsertOne(exe Executor, model Model) error {
-	validFields := getFields(model, valid)
-	cl := make([]string, 0, len(validFields))
-	pl := make([]string, 0, len(validFields))
-	vl := make([]interface{}, 0, len(validFields))
-	for _, f := range validFields {
-		toInsert(f, &cl, &pl, &vl)
-	}
-	stmt := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, model.rawFullTabName(), strings.Join(cl, ", "), strings.Join(pl, ", "))
+// InsertOrUpdateOne 插入或更新
+func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
+	stmt, values := genInsertOrUpdateStmt(model)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(vl))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
-	res, err := exe.Exec(stmt, vl...)
+	res, err := exe.Exec(stmt, values...)
+	if err != nil {
+		return
+	}
+	affectedRows, err := res.RowsAffected()
+	if err != nil {
+		return
+	}
+	if affectedRows == 1 {
+		isInsert = true
+	}
+	if affectedRows == 1 || affectedRows == 2 {
+		lastInsertID, err := res.LastInsertId()
+		if err != nil {
+			return false, err
+		}
+		model.AutoIncField().Set(int(lastInsertID))
+	}
+	return
+}
+
+// InsertOne 插入
+func InsertOne(exe Executor, model Model) error {
+	stmt, values := genInsertStmt(model)
+	res, err := exe.Exec(stmt, values...)
 	if err != nil {
 		return err
+	}
+	if DEBUG {
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
 	if model.AutoIncField() != nil {
 		lid, err := res.LastInsertId()
@@ -33,98 +55,84 @@ func InsertOne(exe Executor, model Model) error {
 		}
 		model.AutoIncField().Set(int(lid))
 	}
+	model.addModelStatus(synced)
 	return nil
 }
 
-func Count(exe Executor, model Model) (int, error) {
-	fields := getFields(model, forWhere)
-	for _, rel := range model.Relations() {
-		if rel.Object.(Model).getModelStatus()&forModelWhere == forModelWhere {
-			for _, f := range getFields(rel.Object.(Model), forWhere) {
-				fields = append(fields, f)
+// Query 查询
+func Query(exe Executor, m Model) error {
+	stmt, values := genSelectStmt(m)
+	if DEBUG {
+		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+
+	}
+	return queryAndScan(exe, m, stmt, values...)
+}
+
+// CacheQuery 缓存查询
+func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
+	stmt, values := genSelectStmt(m)
+	if DEBUG {
+		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+	}
+	var builder strings.Builder
+	builder.WriteString(stmt)
+	for _, val := range values {
+		builder.WriteString(fmt.Sprintf("%v", val))
+	}
+	hashValue := fmt.Sprintf("%x", md5.Sum([]byte(stmt)))
+	if l, ok := m.(ModelList); ok {
+		if l.GetListCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
 			}
+			return nil
+		}
+	} else {
+		if m.GetCache(hashValue, timeout) {
+			if DEBUG {
+				log.Println(nbcolor.Yellow("using cache"))
+			}
+			return nil
 		}
 	}
-	whereList := make(whereList, 0, len(fields)*2)
-	for _, f := range fields {
-		whereList = append(whereList, f.whereList()...)
-	}
-	clause, values := whereList.toClause()
-	tabRef := getTabRef(model)
-	stmt := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tabRef, clause)
-	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(values))
-	}
-	var count int
-	if err := exe.QueryRow(stmt, values...).Scan(&count); err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
-func QueryOne(exe Executor, model Model) error {
-	selectFields := getFields(model, forSelect)
-	selectColumns := getSelectColumns(model)
-	whereClause, whereValues := getWhereList(model).toClause()
-	tabRef := getTabRef(model)
-	stmt := fmt.Sprintf("SELECT %s FROM %s %s", selectColumns, tabRef, whereClause)
-	if DEBUG {
-		log.Println(nbcolor.Green(stmt))
-		log.Println(nbcolor.Green(whereValues))
-	}
-	err := scanRow(exe.QueryRow(stmt, whereValues...), model, selectFields...)
-	if err != nil {
+	if err := queryAndScan(exe, m, stmt, values...); err != nil {
 		return err
+	}
+	if l, ok := m.(ModelList); ok {
+		l.SetListCache(hashValue)
+	} else {
+		m.SetCache(hashValue)
 	}
 	return nil
 }
 
-func Query(exe Executor, l ModelList, limit, offset int) error {
-	selectFields := getFields(l, forSelect)
-	selectColumns := getSelectColumns(l)
-	whereClause, whereValues := getWhereList(l).toClause()
-	tabRef := getTabRef(l)
-	orderClause := getOrderClause(l)
-	stmt := fmt.Sprintf("SELECT SQL_CALC_FOUND_ROWS %s FROM %s %s %s", selectColumns, tabRef, whereClause, orderClause)
-	if limit > 0 && offset >= 0 {
-		stmt = fmt.Sprintf("%s LIMIT %d, %d", stmt, offset, limit)
-	}
+// BackQuery 反向关联查询
+func BackQuery(exe Executor, model Model) error {
+	stmt, values := genBackQueryStmt(model)
 	if DEBUG {
-		log.Println(nbcolor.Green(stmt))
-		log.Println(nbcolor.Green(whereValues))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
-	rows, err := exe.Query(stmt, whereValues...)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		if err := scanRows(rows, l.NewModel(), selectFields...); err != nil {
-			return err
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	stmt = `SELECT FOUND_ROWS()`
-	var total int
-	if err := exe.QueryRow(stmt).Scan(&total); err != nil {
-		return err
-	}
-	l.SetTotal(total)
-	l.setModelStatus(synced)
-	return nil
+	return queryAndScan(exe, model, stmt, values...)
+
 }
 
+// Update 更新
 func Update(exe Executor, model Model) (sql.Result, error) {
-	updateClause, updateValues := genUpdateSetClause(model)
-	whereClause, whereValues := genWhereClause(model)
-	stmt := fmt.Sprintf(`UPDATE %s %s %s`, model.fullTabName(), updateClause, whereClause)
+	stmt, values := genUpdateStmt(model)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(stmt))
-		fmt.Println(nbcolor.Green(updateValues))
-		fmt.Println(nbcolor.Green(whereValues))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
-	return exe.Exec(stmt, append(updateValues, whereValues...)...)
+	return exe.Exec(stmt, values...)
+}
+
+// Delete 删除
+func Delete(exe Executor, model Model) (sql.Result, error) {
+	// whereClause, whereValues := genSimpleWhereClause(model)
+	// stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
+	stmt, values := genDeleteStmt(model)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+	}
+	return exe.Exec(stmt, values...)
 }

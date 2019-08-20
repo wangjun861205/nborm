@@ -1,25 +1,30 @@
 package nborm
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
+// RowScanner RowScanner
 type RowScanner interface {
 	ScanRow(*sql.Row) error
 }
 
+// RowsScanner RowsScanner
 type RowsScanner interface {
 	ScanRows(*sql.Rows) error
 }
 
+// Executor 可执行sql语句的对象
 type Executor interface {
 	Query(string, ...interface{}) (*sql.Rows, error)
 	QueryRow(string, ...interface{}) *sql.Row
 	Exec(string, ...interface{}) (sql.Result, error)
 }
 
+// BaseField 基础字段
 type BaseField interface {
-	setModel(Model)
-	dbName() string
-	tabName() string
+	Model
 	colName() string
 	setCol(string)
 	fieldName() string
@@ -34,76 +39,110 @@ type BaseField interface {
 	IsNull() bool
 	SetNull()
 	unsetNull()
-	isForWhere() bool
-	setForWhere()
-	unsetForWhere()
-	isForUpdate() bool
-	setForUpdate()
-	unsetForUpdate()
-	setPrimaryKey()
-	unsetPrimaryKey()
-	isPrimaryKey() bool
-	setAutoInc()
-	unsetAutoInc()
-	isAutoInc() bool
 	mustValid()
-	rawFullTabName() string
-	fullTabName() string
+	rawFullColName() string
 	fullColName() string
 	ForSelect()
 	ForSum()
-	AscOrder()
-	DscOrder()
-	String() string
+	getFieldIndex() int
 }
 
-type Field interface {
+type ClauseField interface {
+	AndW() ClauseField
+	AndWhere(string, interface{}) ClauseField
+	OrWhere(string, interface{}) ClauseField
+	U() ClauseField
+	Update(interface{}) ClauseField
+	Set(interface{}) ClauseField
+}
+
+// ValueField ValueField
+type ValueField interface {
 	BaseField
 	Scan(interface{}) error
-	Value() interface{}
-	Set(interface{})
-	AndW() Field
-	OrW() Field
-	AndWhere(string, interface{}) Field
-	OrWhere(string, interface{}) Field
-	SetU()
-	SetUpdate(interface{})
-	whereList() whereList
-	updateSet() *updateSet
-	genAndWhere(string, interface{}) *where
-	genOrWhere(string, interface{}) *where
-	Distinct()
+	value() interface{}
 }
 
+// Field Field
+type Field interface {
+	ClauseField
+	ValueField
+	dup() Field
+	Init(Model, string, string, int)
+	refClauser
+}
+
+// Model Model
 type Model interface {
 	DB() string
 	Tab() string
 	FieldInfos() FieldInfoList
 	AutoIncField() Field
 	PrimaryKey() FieldList
-	Relations() RelationInfoList
-	setRel(string, *where)
-	getRelCols() string
-	setRelCols(string)
-	getRelJoin() string
-	setRelJoin(string)
-	getRelWhere() *where
-	setRelWhere(*where)
+	UniqueKeys() []FieldList
+	relations() RelationInfoList
 	getAlias() string
-	setAlias(string)
+	genAlias()
 	getModelStatus() modelStatus
 	addModelStatus(modelStatus)
 	setModelStatus(modelStatus)
 	removeModelStatus(modelStatus)
+	checkStatus(modelStatus) bool
 	SelectDistinct()
-	setModel(Model)
 	rawFullTabName() string
 	fullTabName() string
+	getParent() Model
+	setParent(Model)
+	getIndex() int
+	setIndex(int)
+	genIndex() int
+	appendWheres(*Expr)
+	getWheres() exprList
+	InitRel()
+	SetLimit(int, int)
+	getLimit() (int, int)
+	getAggs() aggList
+	ExprUpdate(*Expr)
+	setConList(ModelList)
+	getConList() ModelList
+	Collapse()
+	setAggs(aggList)
+	AndExprWhere(*Expr) Model
+	OrExprWhere(*Expr) Model
+	GetCache(string, time.Duration) bool
+	SetCache(string)
+	getGroupBys() []refClauser
+	appendGroupBys(refClauser)
+	appendSelectedFieldIndexes(int)
+	getSelectedFieldIndexes() []int
+	getOrderBys() []refClauser
+	appendOrderBys(refClauser)
+	appendHavings(*Expr)
+	getHavings() exprList
+	getInserts() exprList
+	appendInserts(*Expr)
+	getUpdates() exprList
 }
 
+type refClauser interface {
+	toRefClause() string
+	toSimpleRefClause() string
+}
+
+type clauser interface {
+	toClause() (string, []interface{})
+	toSimpleClause() (string, []interface{})
+}
+
+// ModelList ModelList
 type ModelList interface {
 	Model
 	NewModel() Model
 	SetTotal(int)
+	GetTotal() int
 	Len() int
+	GetList() []Model
+	Slice(int, int)
+	GetListCache(string, time.Duration) bool
+	SetListCache(string)
 }

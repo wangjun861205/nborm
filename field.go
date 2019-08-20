@@ -1,129 +1,26 @@
 package nborm
 
 import (
-	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
+// FieldInfo Field的基本信息
 type FieldInfo struct {
 	ColName   string
 	FieldName string
 	Field     Field
+	Index     int
 }
 
+// FieldInfoList FieldInfo的列表
 type FieldInfoList []FieldInfo
 
+// FieldList Field的列表
 type FieldList []Field
-
-func (l FieldList) toWhereClause() (string, []interface{}) {
-	whereList := make(whereList, 0, len(l)*2)
-	for _, f := range l {
-		whereList = append(whereList, f.whereList()...)
-	}
-	return whereList.toClause()
-}
-
-type modelStatus int
-
-const (
-	none          modelStatus = 0
-	synced        modelStatus = 1
-	distinct      modelStatus = 1 << 1
-	forAgg        modelStatus = 1 << 2
-	forModelWhere modelStatus = 1 << 3
-)
-
-type Meta struct {
-	Model
-	status   modelStatus
-	alias    string
-	relJoin  string
-	relWhere *where
-	midTabs  []Model
-}
-
-func (m *Meta) GetMidTabs() []Model {
-	return m.midTabs
-}
-
-func (m *Meta) AppendMidTab(model Model) {
-	m.midTabs = append(m.midTabs, model)
-}
-
-func (m *Meta) setModel(model Model) {
-	m.Model = model
-}
-
-func (m *Meta) rawFullTabName() string {
-	if m.DB() == "*" {
-		return m.Tab()
-	}
-	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
-}
-
-func (m *Meta) fullTabName() string {
-	if m.alias != "" {
-		return fmt.Sprintf("%s AS %s", m.rawFullTabName(), m.alias)
-	}
-	if m.DB() == "*" {
-		return m.Tab()
-	}
-	return fmt.Sprintf("%s.%s", m.DB(), m.Tab())
-}
-
-func (m *Meta) setRel(relJoin string, where *where) {
-	m.relJoin, m.relWhere = relJoin, where
-}
-
-func (m *Meta) getAlias() string {
-	return m.alias
-}
-
-func (m *Meta) setAlias(alias string) {
-	m.alias = alias
-}
-
-func (m *Meta) getRelJoin() string {
-	return m.relJoin
-}
-
-func (m *Meta) setRelJoin(join string) {
-	m.relJoin = join
-}
-
-func (m *Meta) getRelWhere() *where {
-	return m.relWhere
-}
-
-func (m *Meta) setRelWhere(where *where) {
-	m.relWhere = where
-}
-
-func (m *Meta) getModelStatus() modelStatus {
-	return m.status
-}
-
-func (m *Meta) addModelStatus(status modelStatus) {
-	m.status |= status
-}
-
-func (m *Meta) setModelStatus(status modelStatus) {
-	m.status = status
-}
-
-func (m *Meta) removeModelStatus(status modelStatus) {
-	m.status &^= status
-}
-
-func (m *Meta) SelectDistinct() {
-	m.addModelStatus(distinct)
-}
-
-func (m *Meta) IsSynced() bool {
-	return m.status&synced == synced
-}
 
 type fieldStatus int
 
@@ -133,31 +30,27 @@ const (
 	notNull     fieldStatus = 1 << 1
 	primaryKey  fieldStatus = 1 << 2
 	autoInc     fieldStatus = 1 << 3
-	forWhere    fieldStatus = 1 << 4
-	forUpdate   fieldStatus = 1 << 5
-	forSelect   fieldStatus = 1 << 6
-	forSum      fieldStatus = 1 << 7
-	forAscOrder fieldStatus = 1 << 8
-	forDscOrder fieldStatus = 1 << 9
+	forSelect   fieldStatus = 1 << 4
+	forSum      fieldStatus = 1 << 5
+	forAscOrder fieldStatus = 1 << 6
+	forDscOrder fieldStatus = 1 << 7
+	// forAgg      fieldStatus = 1 << 8
+	forGroup fieldStatus = 1 << 9
 )
 
 type baseField struct {
 	Model
 	col    string
 	field  string
+	index  int
 	status fieldStatus
 }
 
-func (f *baseField) setModel(model Model) {
+func (f *baseField) init(model Model, colName, fieldName string, index int) {
 	f.Model = model
-}
-
-func (f *baseField) dbName() string {
-	return f.DB()
-}
-
-func (f *baseField) tabName() string {
-	return f.Tab()
+	f.col = colName
+	f.field = fieldName
+	f.index = index
 }
 
 func (f *baseField) colName() string {
@@ -192,6 +85,7 @@ func (f *baseField) removeStatus(status fieldStatus) {
 	f.status &^= status
 }
 
+// IsValid 是否有值
 func (f *baseField) IsValid() bool {
 	return f.status&valid == valid
 }
@@ -204,10 +98,12 @@ func (f *baseField) unsetValid() {
 	f.removeStatus(valid)
 }
 
+// IsNull 是否为空值
 func (f *baseField) IsNull() bool {
 	return !(f.status&notNull == notNull)
 }
 
+// SetNull 设置为空值
 func (f *baseField) SetNull() {
 	f.addStatus(valid)
 	f.removeStatus(notNull)
@@ -217,54 +113,6 @@ func (f *baseField) unsetNull() {
 	f.addStatus(notNull)
 }
 
-func (f *baseField) isForWhere() bool {
-	return f.status&forWhere == forWhere
-}
-
-func (f *baseField) setForWhere() {
-	f.addStatus(forWhere)
-}
-
-func (f *baseField) unsetForWhere() {
-	f.removeStatus(forWhere)
-}
-
-func (f *baseField) isForUpdate() bool {
-	return f.status&forUpdate == forUpdate
-}
-
-func (f *baseField) setForUpdate() {
-	f.addStatus(forUpdate)
-}
-
-func (f *baseField) unsetForUpdate() {
-	f.removeStatus(forUpdate)
-}
-
-func (f *baseField) setPrimaryKey() {
-	f.addStatus(primaryKey)
-}
-
-func (f *baseField) unsetPrimaryKey() {
-	f.removeStatus(primaryKey)
-}
-
-func (f *baseField) isPrimaryKey() bool {
-	return f.status&primaryKey == primaryKey
-}
-
-func (f *baseField) setAutoInc() {
-	f.addStatus(autoInc)
-}
-
-func (f *baseField) unsetAutoInc() {
-	f.removeStatus(autoInc)
-}
-
-func (f *baseField) isAutoInc() bool {
-	return f.status&autoInc == autoInc
-}
-
 func (f *baseField) mustValid() {
 	if !f.IsValid() {
 		panic(fmt.Sprintf("invalid field (%s.%s.%s(%s))", f.DB(), f.Tab(), f.col, f.field))
@@ -272,73 +120,270 @@ func (f *baseField) mustValid() {
 }
 
 func (f *baseField) fullColName() string {
-	if f.Model.getAlias() != "" {
-		return fmt.Sprintf("%s.%s", f.Model.getAlias(), f.col)
+	if f.Model == nil {
+		return f.col
 	}
-	return fmt.Sprintf("%s.%s", f.rawFullTabName(), f.col)
+	if f.Model.getAlias() != "" {
+		return fmt.Sprintf("%s.`%s`", f.Model.getAlias(), f.col)
+	}
+	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
+}
+
+func (f *baseField) rawFullColName() string {
+	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
 func (f *baseField) ForSelect() {
-	f.addStatus(forSelect)
+	f.appendSelectedFieldIndexes(f.index)
 }
 
+func (f *baseField) getFieldIndex() int {
+	return f.index
+}
+
+// ForSum 设置为总和字段
 func (f *baseField) ForSum() {
 	f.addStatus(forSelect)
 	f.addStatus(forSum)
-	f.addModelStatus(forAgg)
+	f.addModelStatus(forModelAgg)
 }
 
+// AscOrder 设置为正序排序字段
 func (f *baseField) AscOrder() {
-	f.removeStatus(forDscOrder)
-	f.addStatus(forAscOrder)
+	f.appendOrderBys(newOrderBy(f, asc))
+
 }
 
-func (f *baseField) DscOrder() {
-	f.removeStatus(forAscOrder)
-	f.addStatus(forDscOrder)
+// DscOrder 设置为倒序排序字段
+func (f *baseField) DescOrder() {
+	f.appendOrderBys(newOrderBy(f, desc))
 }
 
+// Distinct 设置为去重字段
 func (f *baseField) Distinct() {
 	f.Model.addModelStatus(distinct)
 	f.addStatus(forSelect)
 }
 
-func (f *baseField) String() string {
-	return fmt.Sprintf("%s.%s.%s", f.DB(), f.Tab(), f.col)
+func (f *baseField) CopyStatus(dst Field) {
+	dst.setStatus(f.status)
+}
+
+func (f *baseField) toRefClause() string {
+	return f.fullColName()
+}
+
+func (f *baseField) toSimpleRefClause() string {
+	return f.rawFullColName()
+}
+
+func (f *baseField) GroupBy() {
+	f.appendGroupBys(f)
 }
 
 type clauseField struct {
-	where  whereList
-	update *updateSet
+	valueField func() ValueField
 }
 
-func (f *clauseField) andWhere(field Field, op string, value interface{}) {
-	f.where = append(f.where, newWhere(and, field, op, value))
+// AndW 按自身值来生成And Where
+func (f *clauseField) AndW() ClauseField {
+	valueField := f.valueField()
+	valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return f
 }
 
-func (f *clauseField) orWhere(field Field, op string, value interface{}) {
-	f.where = append(f.where, newWhere(or, field, op, value))
+// OrW 按自身值来生成Or Where
+func (f *clauseField) OrW() ClauseField {
+	valueField := f.valueField()
+	valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return f
 }
 
-func (f *clauseField) setUpdate(field Field, value interface{}) {
-	f.update = newUpdateSet(field, value)
+// U 按自身值来生成更新表达式
+func (f *clauseField) U() ClauseField {
+	valueField := f.valueField()
+	valueField.ExprUpdate(NewExpr("@ = ?", valueField, valueField.value()))
+	return f
 }
 
-func (f *clauseField) whereList() whereList {
-	return f.where
+func (f *clauseField) AndWhere(op string, value interface{}) ClauseField {
+	checkOp(op)
+	valueField := f.valueField()
+	valueField.AndExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), valueField, value))
+	return f
 }
 
-func (f *clauseField) updateSet() *updateSet {
-	return f.update
+func (f *clauseField) OrWhere(op string, value interface{}) ClauseField {
+	checkOp(op)
+	valueField := f.valueField()
+	valueField.OrExprWhere(NewExpr(fmt.Sprintf("@ %s ?", op), valueField, value))
+	return f
 }
 
-type String struct {
+func (f *clauseField) AndEq(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ = ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrEq(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ = ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndNeq(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ <> ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrNeq(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ <> ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLt(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ < ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLt(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ < ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLte(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ <= ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLte(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ <= ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndGt(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ > ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrGt(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ > ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndGte(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ >= ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrGte(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ >= ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndIsNull() *condition {
+	return newCondition(and, NewExpr("@ IS NULL", f))
+}
+
+func (f *clauseField) OrIsNull() *condition {
+	return newCondition(or, NewExpr("@ IS NULL", f))
+}
+
+func (f *clauseField) AndIsNotNull() *condition {
+	return newCondition(and, NewExpr("@ IS NOT NULL", f))
+}
+
+func (f *clauseField) OrIsNotNull() *condition {
+	return newCondition(or, NewExpr("@ IS NOT NULL", f))
+}
+
+func (f *clauseField) AndIn(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ IN ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrIn(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT IN ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndLike(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrLike(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndNotLike(value interface{}) *condition {
+	return newCondition(and, NewExpr("@ NOT LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) OrNotLike(value interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT LIKE ?", f.valueField(), value))
+}
+
+func (f *clauseField) AndBetween(startValue, endValue interface{}) *condition {
+	return newCondition(and, NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) OrBetween(startValue, endValue interface{}) *condition {
+	return newCondition(or, NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) AndNotBetween(startValue, endValue interface{}) *condition {
+	return newCondition(and, NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) OrNotBetween(startValue, endValue interface{}) *condition {
+	return newCondition(or, NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+}
+
+func (f *clauseField) AndWhereGroup(funcs ...func(*clauseField) *condition) {
+	switch len(funcs) {
+	case 0:
+		return
+	case 1:
+		f.valueField().appendWheres(funcs[0](f).toExpr())
+	default:
+		l := make(conditionList, 0, len(funcs))
+		for _, fn := range funcs {
+			l = append(l, fn(f))
+		}
+		f.valueField().appendWheres(l.group(and).toExpr())
+	}
+}
+
+func (f *clauseField) OrWhereGroup(funcs ...func(*clauseField) *condition) {
+	switch len(funcs) {
+	case 0:
+		return
+	case 1:
+		f.valueField().appendWheres(funcs[0](f).toExpr())
+	default:
+		l := make(conditionList, 0, len(funcs))
+		for _, fn := range funcs {
+			l = append(l, fn(f))
+		}
+		f.valueField().appendWheres(l.group(or).toExpr())
+	}
+}
+
+func (f *clauseField) Update(value interface{}) ClauseField {
+	valueField := f.valueField()
+	valueField.ExprUpdate(NewExpr("@ = ?", valueField, value))
+	return f
+}
+
+func (f *clauseField) Set(value interface{}) ClauseField {
+	f.valueField().appendInserts(NewExpr("@ = ?", f, value))
+	return f
+}
+
+func (f *clauseField) toRefClause() string {
+	return f.valueField().fullColName()
+}
+
+func (f *clauseField) toSimpleRefClause() string {
+	return f.valueField().rawFullColName()
+}
+
+type stringValueField struct {
 	baseField
-	clauseField
-	value string
+	val string
 }
 
-func (f *String) Scan(v interface{}) error {
+func (f *stringValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+// Scan 实现Scan接口
+func (f *stringValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
 		f.SetNull()
@@ -347,121 +392,93 @@ func (f *String) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case string:
-		f.value = val
+		f.val = val
 	case []byte:
-		f.value = string(val)
+		f.val = string(val)
 	default:
 		return fmt.Errorf("invalid type for scan String(%T)", v)
 	}
 	return nil
 }
 
-func (f String) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() || f.IsNull() {
-		return json.Marshal(nil)
+func (f *stringValueField) Value() (string, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return "", true
 	}
-	return json.Marshal(f.value)
+	return f.val, false
 }
 
-func (f *String) UnmarshalJSON(b []byte) error {
-	f.addStatus(valid)
-	if string(b) == "null" {
-		f.SetNull()
-		f.value = ""
-		return nil
-	}
-	f.unsetNull()
-	return json.Unmarshal(b, &f.value)
-}
-
-func (f *String) Value() interface{} {
+func (f *stringValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
 		return nil
 	}
-	return f.value
+	return f.val
 }
 
-func (f *String) JSONValue() interface{} {
+// SetString 设置字符串值
+func (f *stringValueField) SetString(v string) *stringValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+func (f stringValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%q", f.val)), nil
+}
+
+func (f *stringValueField) UnmarshalJSON(b []byte) error {
+	f.addStatus(valid)
+	if string(b) == "null" {
+		f.removeStatus(notNull)
 		return nil
 	}
-	return f.value
+	f.addStatus(notNull)
+	f.val = strings.Trim(string(b), "\"")
+	return nil
 }
 
-func (f *String) SetString(v string) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v
+func (f *stringValueField) AnyValue() string {
+	return f.val
 }
 
-func (f *String) Set(v interface{}) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v.(string)
+// String 字符串Field
+type String struct {
+	clauseField
+	stringValueField
 }
 
-func (f *String) String() string {
-	return f.value
+func (f *String) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.stringValueField
+	}
+	f.stringValueField.init(model, colName, fieldName, index)
 }
 
-func (f *String) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *String) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *String) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *String) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *String) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
-}
-
-func (f *String) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
-}
-
-func (f *String) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *String) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
+func (f *String) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=============================================================================================================
 
-type Int struct {
+type intValueField struct {
 	baseField
-	clauseField
-	value int
+	val int
 }
 
-func (f *Int) Scan(v interface{}) error {
+func (f *intValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *intValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
 		f.SetNull()
@@ -470,125 +487,112 @@ func (f *Int) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case int64:
-		f.value = int(val)
+		f.val = int(val)
 	case []byte:
 		i, err := strconv.ParseInt(string(val), 10, 64)
 		if err != nil {
 			return err
 		}
-		f.value = int(i)
+		f.val = int(i)
 	default:
 		return fmt.Errorf("invalid type for scan Int(%T)", v)
 	}
 	return nil
 }
 
-func (f Int) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() || f.IsNull() {
-		return json.Marshal(nil)
-	}
-	return json.Marshal(f.value)
-}
-
-func (f *Int) UnmarshalJSON(b []byte) error {
-	f.addStatus(valid)
-	if string(b) == "null" {
-		f.SetNull()
-		f.value = 0
-		return nil
-	}
-	f.unsetNull()
-	return json.Unmarshal(b, &f.value)
-}
-
-func (f *Int) Value() interface{} {
+func (f *intValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
 		return nil
 	}
-	return f.value
+	return f.val
 }
 
-func (f *Int) JSONValue() interface{} {
+func (f *intValueField) Value() (int, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return 0, true
+	}
+	return f.val, false
+}
+
+func (f *intValueField) SetInt(v int) *intValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+// func (f *intValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(int); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
+
+func (f intValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%d", f.val)), nil
+}
+
+func (f intValueField) UnmarshalJSON(b []byte) error {
+	f.addStatus(valid)
+	if string(b) == "null" {
+		// f.SetNull()
+		f.removeStatus(notNull)
 		return nil
 	}
-	return f.value
+	v, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return err
+	}
+	// f.SetInt(int(v))
+	f.val = int(v)
+	f.addStatus(notNull)
+	return nil
 }
 
-func (f *Int) SetInt(v int) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v
+func (f *intValueField) AnyValue() int {
+	return f.val
 }
 
-func (f *Int) Set(v interface{}) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v.(int)
+type Int struct {
+	clauseField
+	intValueField
 }
 
-func (f *Int) Int() int {
-	return f.value
+func (f *Int) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.intValueField
+	}
+	f.intValueField.init(model, colName, fieldName, index)
 }
 
-func (f *Int) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Int) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Int) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Int) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Int) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
-}
-
-func (f *Int) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
-}
-
-func (f *Int) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Int) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
+func (f *Int) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=======================================================================================================
 
-type Date struct {
+type dateValueField struct {
 	baseField
-	clauseField
-	value time.Time
+	val time.Time
 }
 
-func (f *Date) Scan(v interface{}) error {
+func (f *dateValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *dateValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
 		f.SetNull()
@@ -601,144 +605,114 @@ func (f *Date) Scan(v interface{}) error {
 		if err != nil {
 			return err
 		}
-		f.value = t
+		f.val = t
 	case string:
 		t, err := time.Parse("2006-01-02", val)
 		if err != nil {
 			return err
 		}
-		f.value = t
+		f.val = t
 	case time.Time:
-		f.value = val
+		f.val = val
 	default:
 		return fmt.Errorf("invalid type for scan Date(%T)", v)
 	}
 	return nil
 }
 
-func (f *Date) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() || f.IsNull() {
-		return json.Marshal(nil)
+func (f *dateValueField) Value() (time.Time, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return time.Time{}, true
 	}
-	s := f.value.Format("2006-01-02")
-	return json.Marshal(s)
+	return f.val, false
 }
 
-func (f *Date) UnmarshalJSON(b []byte) error {
-	f.addStatus(valid)
-	if string(b) == "null" {
-		f.SetNull()
-		f.value = time.Time{}
-		return nil
-	}
-	f.unsetNull()
-	t, err := time.Parse("2006-01-02", string(b))
-	if err != nil {
-		return err
-	}
-	f.value = t
-	return nil
-}
-
-func (f *Date) Value() interface{} {
+func (f *dateValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
 		return nil
 	}
-	return f.value.Format("2006-01-02")
+	return f.val.Format("2006-01-02")
 }
 
-func (f *Date) JSONValue() interface{} {
+func (f *dateValueField) SetDate(v time.Time) *dateValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02")))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+// func (f *dateValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(time.Time); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
+
+func (f dateValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02"))), nil
+}
+
+func (f *dateValueField) UnmarshalJSON(b []byte) error {
+	f.addStatus(valid)
+	if string(b) == "null" {
+		// f.SetNull()
+		f.removeStatus(notNull)
 		return nil
 	}
-	return f.value.Format("2006-01-02")
-}
-
-func (f *Date) SetDate(v time.Time) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v
-}
-
-func (f *Date) Set(v interface{}) {
-	switch val := v.(type) {
-	case string:
-		t, err := time.Parse("2006-01-02", val)
-		if err != nil {
-			panic(err)
-		}
-		f.value = t
-	case time.Time:
-		f.value = val
-	default:
-		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
+	t, err := time.Parse("2006-01-02", strings.Trim(string(b), "\""))
+	if err != nil {
+		return err
 	}
-	f.setValid()
-	f.unsetNull()
+	// f.SetDate(t)
+	f.val = t
+	f.addStatus(notNull)
+	return nil
 }
 
-func (f *Date) Date() time.Time {
-	return f.value
+func (f *dateValueField) AnyValue() time.Time {
+	return f.val
 }
 
-func (f *Date) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+type Date struct {
+	clauseField
+	dateValueField
 }
 
-func (f *Date) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+func (f *Date) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.dateValueField
+	}
+	f.dateValueField.init(model, colName, fieldName, index)
 }
 
-func (f *Date) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Date) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Date) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
-}
-
-func (f *Date) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
-}
-
-func (f *Date) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Date) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
+func (f *Date) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=========================================================================================
 
-type Datetime struct {
+type datetimeValueField struct {
 	baseField
-	clauseField
-	value time.Time
+	val time.Time
 }
 
-func (f *Datetime) Scan(v interface{}) error {
+func (f *datetimeValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *datetimeValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
 		f.SetNull()
@@ -751,145 +725,115 @@ func (f *Datetime) Scan(v interface{}) error {
 		if err != nil {
 			return err
 		}
-		f.value = t
+		f.val = t
 	case string:
 		t, err := time.Parse("2006-01-02 15:04:05", val)
 		if err != nil {
 			return err
 		}
-		f.value = t
+		f.val = t
 	case time.Time:
-		f.value = val
+		f.val = val
 	default:
 		return fmt.Errorf("invalid type for scan Date(%T)", v)
 	}
 	return nil
 }
 
-func (f *Datetime) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() || f.IsNull() {
-		return json.Marshal(nil)
+func (f *datetimeValueField) Value() (time.Time, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return time.Time{}, true
 	}
-	s := f.value.Format("2006-01-02 15:04:05")
-	return json.Marshal(s)
+	return f.val, false
 }
 
-func (f *Datetime) UnmarshalJSON(b []byte) error {
-	f.addStatus(valid)
-	if string(b) == "null" {
-		f.SetNull()
-		f.value = time.Time{}
-		return nil
-	}
-	f.unsetNull()
-	t, err := time.Parse("2006-01-02 15:04:05", string(b))
-	if err != nil {
-		return err
-	}
-	f.value = t
-	return nil
-}
-
-func (f *Datetime) Value() interface{} {
+func (f *datetimeValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
 		return nil
 	}
-	return f.value.Format("2006-01-02 15:04:05")
+	return f.val.Format("2006-01-02 15:04:05")
 }
 
-func (f *Datetime) JSONValue() interface{} {
+func (f *datetimeValueField) SetDatetime(v time.Time) *datetimeValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02 15:04:05")))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+// func (f *datetimeValueField) Set(value interface{}) ValueField {
+// 	f.appendInserts(NewExpr("@ = ?", f, value))
+// 	if v, ok := value.(time.Time); ok {
+// 		f.setValid()
+// 		f.unsetNull()
+// 		f.addModelStatus(containValue)
+// 		f.val = v
+// 	}
+// 	return f
+// }
+
+func (f datetimeValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))), nil
+}
+
+func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
+	f.addStatus(valid)
+	if string(b) == "null" {
+		// f.SetNull()
+		f.removeStatus(notNull)
 		return nil
 	}
-	return f.value.Format("2006-01-02 15:04:05")
-}
-
-func (f *Datetime) SetDatetime(v time.Time) {
-	f.setValid()
-	f.unsetNull()
-	f.value = v
-}
-
-func (f *Datetime) Set(v interface{}) {
-	switch val := v.(type) {
-	case string:
-		t, err := time.Parse("2006-01-02", val)
-		if err != nil {
-			panic(err)
-		}
-		f.value = t
-	case time.Time:
-		f.value = val
-	default:
-		panic(fmt.Errorf("invalid value for Date.Set(): want string or time.Time got (%T)", v))
+	t, err := time.Parse("2006-01-02 15:04:05", strings.Trim(string(b), "\""))
+	if err != nil {
+		return err
 	}
-	f.setValid()
-	f.unsetNull()
+	// f.SetDatetime(t)
+	f.removeStatus(notNull)
+	f.val = t
+	return nil
+
 }
 
-func (f *Datetime) Datetime() time.Time {
-	return f.value
+func (f *datetimeValueField) AnyValue() time.Time {
+	return f.val
 }
 
-func (f *Datetime) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+type Datetime struct {
+	clauseField
+	datetimeValueField
 }
 
-func (f *Datetime) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+func (f *Datetime) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.datetimeValueField
+	}
+	f.datetimeValueField.init(model, colName, fieldName, index)
 }
 
-func (f *Datetime) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Datetime) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
-}
-
-func (f *Datetime) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
-}
-
-func (f *Datetime) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
-}
-
-func (f *Datetime) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Datetime) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
+func (f *Datetime) dup() Field {
+	nf := *f
+	return &nf
 }
 
 //=============================================================================================================
 
-type Decimal struct {
+type decimalValueField struct {
 	baseField
-	clauseField
-	value   float64
-	exprVal *Expr
+	val float64
 }
 
-func (f *Decimal) Scan(v interface{}) error {
+func (f *decimalValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *decimalValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
 		f.SetNull()
@@ -898,109 +842,257 @@ func (f *Decimal) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case float64:
-		f.value = val
+		f.val = val
 	case float32:
-		f.value = float64(val)
+		f.val = float64(val)
 	default:
 		return fmt.Errorf("invalid type for scan Decimal(%T)", v)
 	}
 	return nil
 }
 
-func (f *Decimal) MarshalJSON() ([]byte, error) {
-	if !f.IsValid() || f.IsNull() {
-		return json.Marshal(nil)
+func (f *decimalValueField) Value() (float64, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return 0, true
 	}
-	return json.Marshal(f.value)
+	return f.val, false
 }
 
-func (f *Decimal) UnmarshalJSON(b []byte) error {
-	f.addStatus(valid)
-	if string(b) == "null" {
-		f.SetNull()
-		f.value = 0.0
-		return nil
-	}
-	f.unsetNull()
-	return json.Unmarshal(b, &f.value)
-
-}
-
-func (f *Decimal) Value() interface{} {
+func (f *decimalValueField) value() interface{} {
 	f.mustValid()
 	if f.IsNull() {
 		return nil
 	}
-	return f.value
+	return f.val
 }
 
-func (f *Decimal) JSONValue() interface{} {
+func (f *decimalValueField) SetDecimal(v float64) *decimalValueField {
+	f.appendInserts(NewExpr("@ = ?", v))
+	f.setValid()
+	f.unsetNull()
+	f.addModelStatus(containValue)
+	f.val = v
+	return f
+}
+
+func (f decimalValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%f", f.val)), nil
+}
+
+func (f *decimalValueField) UnmarshalJSON(b []byte) error {
+	f.addStatus(valid)
+	if string(b) == "null" {
+		// f.SetNull()
+		f.removeStatus(notNull)
 		return nil
 	}
-	return f.value
+	d, err := strconv.ParseFloat(string(b), 64)
+	if err != nil {
+		return err
+	}
+	// f.SetDecimal(d)
+	f.addStatus(notNull)
+	f.val = d
+	return nil
 }
 
-func (f *Decimal) SetDecimal(v float64) {
+func (f *decimalValueField) AnyValue() float64 {
+	return f.val
+}
+
+type Decimal struct {
+	clauseField
+	decimalValueField
+}
+
+func (f *Decimal) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.decimalValueField
+	}
+	f.decimalValueField.init(model, colName, fieldName, index)
+}
+
+func (f *Decimal) dup() Field {
+	nf := *f
+	return &nf
+}
+
+// ===================================================================================================
+
+type timeValueField struct {
+	baseField
+	val time.Time
+}
+
+func (f *timeValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *timeValueField) Scan(v interface{}) error {
+	f.setValid()
+	if v == nil {
+		f.SetNull()
+		return nil
+	}
+	f.unsetNull()
+	switch val := v.(type) {
+	case []byte:
+		t, err := time.Parse("15:04:05", string(val))
+		if err != nil {
+			return err
+		}
+		f.val = t
+	case string:
+		t, err := time.Parse("15:04:05", val)
+		if err != nil {
+			return err
+		}
+		f.val = t
+	case time.Time:
+		f.val = val
+	default:
+		return fmt.Errorf("invalid type for scan timeValueField(%T)", v)
+	}
+	return nil
+}
+
+func (f *timeValueField) Value() (time.Time, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return time.Time{}, true
+	}
+	return f.val, false
+}
+
+func (f *timeValueField) AnyValue() time.Time {
+	return f.val
+}
+
+func (f *timeValueField) value() interface{} {
+	f.mustValid()
+	if f.IsNull() {
+		return nil
+	}
+	return f.val.Format("15:04:05")
+}
+
+func (f *timeValueField) SetTime(v time.Time) *timeValueField {
+	f.appendInserts(NewExpr("@ = ?", f, v.Format("15:04:05")))
 	f.setValid()
 	f.unsetNull()
-	f.value = v
+	f.val = v
+	f.addModelStatus(containValue)
+	return f
 }
 
-func (f *Decimal) Set(v interface{}) {
+func (f *timeValueField) MarshalJSON() ([]byte, error) {
+	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(f.val.Format("15:04:05")), nil
+}
+
+type Time struct {
+	clauseField
+	timeValueField
+}
+
+func (f *Time) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.timeValueField
+	}
+	f.timeValueField.init(model, colName, fieldName, index)
+}
+
+func (f *Time) dup() Field {
+	nf := *f
+	return &nf
+}
+
+type byteValueField struct {
+	baseField
+	val []byte
+}
+
+func (f *byteValueField) init(model Model, colName, fieldName string, index int) {
+	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *byteValueField) Scan(v interface{}) error {
+	f.setValid()
+	if v == nil {
+		f.SetNull()
+		return nil
+	}
+	f.unsetNull()
+	switch val := v.(type) {
+	case []byte:
+		f.val = val
+	case string:
+		bs, err := hex.DecodeString(val)
+		if err != nil {
+			return err
+		}
+		f.val = bs
+	default:
+		return fmt.Errorf("invalid type for scan Decimal(%T)", v)
+	}
+	return nil
+}
+
+func (f *byteValueField) Value() ([]byte, bool) {
+	f.mustValid()
+	if f.IsNull() {
+		return nil, true
+	}
+	return f.val, false
+}
+
+func (f *byteValueField) value() interface{} {
+	f.mustValid()
+	if f.IsNull() {
+		return nil
+	}
+	return f.val
+}
+
+func (f *byteValueField) SetBytes(v []byte) *byteValueField {
+	f.appendInserts(NewExpr("@ = ?", v))
 	f.setValid()
 	f.unsetNull()
-	f.value = v.(float64)
-}
-
-func (f *Decimal) Decimal() float64 {
-	return f.value
-}
-
-func (f *Decimal) AndW() Field {
-	f.mustValid()
-	f.andWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
+	f.addModelStatus(containValue)
+	f.val = v
 	return f
 }
 
-func (f *Decimal) OrW() Field {
-	f.mustValid()
-	f.orWhere(f, "=", f.Value())
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+func (f byteValueField) MarshalJSON() ([]byte, error) {
+	if !f.IsValid() || f.IsNull() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("%x", f.val)), nil
 }
 
-func (f *Decimal) AndWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+func (f *byteValueField) AnyValue() []byte {
+	return f.val
 }
 
-func (f *Decimal) OrWhere(op string, value interface{}) Field {
-	f.andWhere(f, op, value)
-	f.addStatus(forWhere)
-	f.addModelStatus(forModelWhere)
-	return f
+type Bytes struct {
+	clauseField
+	byteValueField
 }
 
-func (f *Decimal) SetU() {
-	f.setUpdate(f, f.Value())
-	f.addStatus(forUpdate)
+func (f *Bytes) Init(model Model, colName, fieldName string, index int) {
+	f.clauseField.valueField = func() ValueField {
+		return &f.byteValueField
+	}
+	f.byteValueField.init(model, colName, fieldName, index)
 }
 
-func (f *Decimal) SetUpdate(value interface{}) {
-	f.setUpdate(f, value)
-	f.addStatus(forUpdate)
-}
-
-func (f *Decimal) genAndWhere(op string, value interface{}) *where {
-	return newWhere(and, f, op, value)
-}
-
-func (f *Decimal) genOrWhere(op string, value interface{}) *where {
-	return newWhere(or, f, op, value)
+func (f *Bytes) dup() Field {
+	nf := *f
+	return &nf
 }

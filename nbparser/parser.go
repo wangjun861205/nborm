@@ -1328,6 +1328,19 @@ type config struct {
 	MatchAllDB   bool
 }
 
+const configTemplete = `
+{
+	"User": "",
+	"Password": "",
+	"Host": "",
+	"Port": "",
+	"Database": "",
+	"Tables": [],
+	"AppendTables": [],
+	"MatchAllDB": true
+}
+`
+
 func readConfig(filename string) config {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -1352,6 +1365,17 @@ func main() {
 
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
+	if command == "init" {
+		configFile, err := os.OpenFile("config", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer configFile.Close()
+		if _, err := configFile.WriteString(configTemplete); err != nil {
+			panic(err)
+		}
+		return
+	}
 	if command == "model" {
 		conf := readConfig(configFile)
 		conn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", conf.User, conf.Password, conf.Host, conf.Port, conf.Database))

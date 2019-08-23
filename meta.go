@@ -137,18 +137,21 @@ func (m *modelBaseInfo) genIndex() int {
 }
 
 // SetForJoin 设置Join查询标志位(所有Father Model的containSubJoin标志位均会被置为1)
-func (m *modelBaseInfo) SetForJoin() {
+func (m *modelBaseInfo) SetForJoin() Model {
 	m.addModelStatus(forJoin)
+	return m
 }
 
 // SetForLeftJoin 左关联
-func (m *modelBaseInfo) SetForLeftJoin() {
+func (m *modelBaseInfo) SetForLeftJoin() Model {
 	m.addModelStatus(forLeftJoin)
+	return m
 }
 
 // SetForRightJjoin 右关联
-func (m *modelBaseInfo) SetForRightJoin() {
+func (m *modelBaseInfo) SetForRightJoin() Model {
 	m.addModelStatus(forRightJoin)
+	return m
 }
 
 // SetForDelete 设置为删除

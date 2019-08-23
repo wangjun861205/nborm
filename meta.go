@@ -404,10 +404,11 @@ func (m *modelClause) getSelectedFieldIndexes() []int {
 	return m.selectedFieldIndexes
 }
 
-func (m *modelClause) SelectAll() {
+func (m *modelClause) SelectAll() Model {
 	for _, fieldInfos := range m.Model.FieldInfos() {
 		m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfos.Index)
 	}
+	return m
 }
 
 func (m *modelClause) SelectFields(fields ...Field) {

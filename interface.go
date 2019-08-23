@@ -122,6 +122,7 @@ type Model interface {
 	getInserts() exprList
 	appendInserts(*Expr)
 	getUpdates() exprList
+	SelectAll() Model
 }
 
 type refClauser interface {

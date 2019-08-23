@@ -845,6 +845,12 @@ func (f *decimalValueField) Scan(v interface{}) error {
 		f.val = val
 	case float32:
 		f.val = float64(val)
+	case []byte:
+		fv, err := strconv.ParseFloat(string(val), 64)
+		if err != nil {
+			return err
+		}
+		f.val = fv
 	default:
 		return fmt.Errorf("invalid type for scan Decimal(%T)", v)
 	}

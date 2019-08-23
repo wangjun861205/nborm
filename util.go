@@ -69,7 +69,7 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *
 	}
 	aggs := instanceModel.getAggs()
 	for _, agg := range aggs {
-		*fields = append(*fields, agg.field)
+		*fields = append(*fields, agg.getField())
 	}
 	*models = append(*models, instanceModel)
 	for i, rel := range classModel.relations() {
@@ -231,11 +231,11 @@ func genSelectedClause(model Model) string {
 		case Field:
 			builder.WriteString(f.fullColName())
 			builder.WriteString(", ")
-		case *agg:
-			clause, _ := f.expr.toClause()
+		case aggregator:
+			clause, _ := f.getExpr().toClause()
 			builder.WriteString(clause)
 			builder.WriteString(" AS ")
-			builder.WriteString(f.name)
+			builder.WriteString(f.getName())
 			builder.WriteString(", ")
 		default:
 			panic(fmt.Errorf("invalid field type (%T)", field))

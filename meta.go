@@ -256,8 +256,8 @@ func (m *modelClause) DescOrderBy(orderBy refClauser) {
 
 func (m *modelClause) LookupAgg(name string) Field {
 	for _, agg := range m.aggs {
-		if agg.field.colName() == name {
-			return agg.field
+		if agg.getField().colName() == name {
+			return agg.getField()
 		}
 	}
 	return nil
@@ -316,7 +316,7 @@ func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
 }
 
 // StrAgg 添加字符串结果的汇总
-func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
+func (m *modelClause) StrAgg(expr *Expr, name string) *StrAgg {
 	agg := newStrAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -324,7 +324,7 @@ func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
 }
 
 // IntAgg 添加整数结果的汇总
-func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
+func (m *modelClause) IntAgg(expr *Expr, name string) *IntAgg {
 	agg := newIntAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -332,7 +332,7 @@ func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
 }
 
 // DateAgg 添加日期结果的汇总
-func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DateAgg(expr *Expr, name string) *DateAgg {
 	agg := newDateAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -340,15 +340,23 @@ func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
 }
 
 // DatetimeAgg 添加日期时间结果的汇总
-func (m *modelClause) DatetimeAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	agg := newDatetimeAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
 
+// TimeAgg 添加时间结果的汇总
+func (m *modelClause) TimeAgg(expr *Expr, name string) *TimeAgg {
+	agg := newTimeAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
+	m.addModelStatus(forModelAgg)
+	return agg
+}
+
 // DecAgg 添加浮点数结果的汇总
-func (m *modelClause) DecAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DecAgg(expr *Expr, name string) *DecimalAgg {
 	agg := newDecAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)

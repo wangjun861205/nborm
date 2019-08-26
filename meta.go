@@ -86,8 +86,9 @@ func (m *modelBaseInfo) checkStatus(status modelStatus) bool {
 }
 
 // SelectDistinct 设定去重标志位
-func (m *modelBaseInfo) SelectDistinct() {
+func (m *modelBaseInfo) SelectDistinct() Model {
 	m.addModelStatus(distinct)
+	return m
 }
 
 // IsSynced 检查是否为synced
@@ -249,12 +250,14 @@ func (m *modelClause) appendWhere(exprs ...*Expr) {
 	m.wheres = append(m.wheres, exprs...)
 }
 
-func (m *modelClause) AscOrderBy(orderBy refClauser) {
+func (m *modelClause) AscOrderBy(orderBy refClauser) Model {
 	m.appendOrderBys(newOrderBy(orderBy, asc))
+	return m
 }
 
-func (m *modelClause) DescOrderBy(orderBy refClauser) {
+func (m *modelClause) DescOrderBy(orderBy refClauser) Model {
 	m.appendOrderBys(newOrderBy(orderBy, desc))
+	return m
 }
 
 func (m *modelClause) LookupAgg(name string) Field {
@@ -281,13 +284,13 @@ func (m *modelClause) OrExprWhere(expr *Expr) Model {
 }
 
 // AndWhereGroup AndWhereGroup
-func (m *modelClause) AndWhereGroup(wheres ...*condition) Model {
+func (m *modelClause) AndModelWhereGroup(wheres ...*condition) Model {
 	m.appendWheres(conditionList(wheres).group(and).toExpr())
 	return m
 }
 
 // OrWhereGroup OrWhereGroup
-func (m *modelClause) OrWhereGroup(wheres ...*condition) Model {
+func (m *modelClause) OrModelWhereGroup(wheres ...*condition) Model {
 	m.appendWheres(conditionList(wheres).group(or).toExpr())
 	return m
 }
@@ -312,7 +315,7 @@ func (m *modelClause) AndHaving(expr *Expr) Model {
 }
 
 // OrHaving 添加表达式having(or关系)
-func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
+func (m *modelClause) OrHaving(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.havings = append(m.havings, expr)
 	return m
@@ -367,12 +370,13 @@ func (m *modelClause) DecAgg(expr *Expr, name string) *DecimalAgg {
 }
 
 // ExprUpdate 添加表达式更新
-func (m *modelClause) ExprUpdate(expr *Expr) {
+func (m *modelClause) ExprUpdate(expr *Expr) Model {
 	m.updates = append(m.updates, expr)
 	m.addModelStatus(forUpdate)
 	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubUpdate)
 	}
+	return m
 }
 
 func (m *modelClause) getGroupBys() []refClauser {
@@ -383,8 +387,9 @@ func (m *modelClause) appendGroupBys(groupBy refClauser) {
 	m.groupBys = append(m.groupBys, groupBy)
 }
 
-func (m *modelClause) GroupBy(groupBy refClauser) {
+func (m *modelClause) ModelGroupBy(groupBy refClauser) Model {
 	m.appendGroupBys(groupBy)
+	return m
 }
 
 func (m *modelClause) setAggs(aggs aggList) {
@@ -411,13 +416,14 @@ func (m *modelClause) SelectAll() Model {
 	return m
 }
 
-func (m *modelClause) SelectFields(fields ...Field) {
+func (m *modelClause) SelectFields(fields ...Field) Model {
 	for _, f := range fields {
 		m.selectedFieldIndexes = append(m.selectedFieldIndexes, f.getFieldIndex())
 	}
+	return m
 }
 
-func (m *modelClause) SelectExcept(fields ...Field) {
+func (m *modelClause) SelectExcept(fields ...Field) Model {
 	var flag int
 	for _, f := range fields {
 		flag |= (1 << uint(f.getFieldIndex()))
@@ -427,6 +433,7 @@ func (m *modelClause) SelectExcept(fields ...Field) {
 			m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfo.Index)
 		}
 	}
+	return m
 }
 
 // Meta Model的元信息

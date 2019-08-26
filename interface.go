@@ -72,8 +72,32 @@ type Field interface {
 	refClauser
 }
 
+type baseModel interface {
+	SelectDistinct() Model
+	SetForJoin() Model
+	SetForLeftJoin() Model
+	SetForRightJoin() Model
+}
+
+type clauseModel interface {
+	AscOrderBy(refClauser) Model
+	DescOrderBy(refClauser) Model
+	AndExprWhere(*Expr) Model
+	OrExprWhere(*Expr) Model
+	AndModelWhereGroup(...*condition) Model
+	OrModelWhereGroup(...*condition) Model
+	AndHaving(*Expr) Model
+	OrHaving(*Expr) Model
+	AndHavingGroup(...*condition) Model
+	OrHavingGroup(...*condition) Model
+	ExprUpdate(*Expr) Model
+	ExprGroupBy(refClauser) Model
+}
+
 // Model Model
 type Model interface {
+	baseModel
+	clauseModel
 	DB() string
 	Tab() string
 	FieldInfos() FieldInfoList
@@ -88,7 +112,6 @@ type Model interface {
 	setModelStatus(modelStatus)
 	removeModelStatus(modelStatus)
 	checkStatus(modelStatus) bool
-	SelectDistinct()
 	rawFullTabName() string
 	fullTabName() string
 	getParent() Model
@@ -102,13 +125,10 @@ type Model interface {
 	SetLimit(int, int)
 	getLimit() (int, int)
 	getAggs() aggList
-	ExprUpdate(*Expr)
 	setConList(ModelList)
 	getConList() ModelList
 	Collapse()
 	setAggs(aggList)
-	AndExprWhere(*Expr) Model
-	OrExprWhere(*Expr) Model
 	GetCache(string, time.Duration) bool
 	SetCache(string)
 	getGroupBys() []refClauser
@@ -123,6 +143,8 @@ type Model interface {
 	appendInserts(*Expr)
 	getUpdates() exprList
 	SelectAll() Model
+	SelectFields(...Field) Model
+	SelectExcept(...Field) Model
 }
 
 type refClauser interface {

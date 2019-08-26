@@ -73,12 +73,12 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *
 	}
 	*models = append(*models, instanceModel)
 	for i, rel := range classModel.relations() {
-		if rel.dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			if subClassModel, ok := rel.dstModel.(ModelList); ok {
-				subInstanceModel := instanceModel.relations()[i].dstModel.(ModelList).NewModel()
+		if rel.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			if subClassModel, ok := rel.lastModel().(ModelList); ok {
+				subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
 				getFieldsForScan(subClassModel, subInstanceModel, models, fields)
 			} else {
-				getFieldsForScan(rel.dstModel, rel.dstModel, models, fields)
+				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)
 			}
 		}
 	}

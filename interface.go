@@ -91,7 +91,7 @@ type clauseModel interface {
 	AndHavingGroup(...*condition) Model
 	OrHavingGroup(...*condition) Model
 	ExprUpdate(*Expr) Model
-	ExprGroupBy(refClauser) Model
+	ModelGroupBy(refClauser) Model
 	SelectAll() Model
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model

@@ -92,6 +92,9 @@ type clauseModel interface {
 	OrHavingGroup(...*condition) Model
 	ExprUpdate(*Expr) Model
 	ExprGroupBy(refClauser) Model
+	SelectAll() Model
+	SelectFields(...Field) Model
+	SelectExcept(...Field) Model
 }
 
 // Model Model
@@ -142,9 +145,6 @@ type Model interface {
 	getInserts() exprList
 	appendInserts(*Expr)
 	getUpdates() exprList
-	SelectAll() Model
-	SelectFields(...Field) Model
-	SelectExcept(...Field) Model
 }
 
 type refClauser interface {

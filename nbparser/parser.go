@@ -685,7 +685,7 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 		{{ endfor }}
 		{{ for _, relInfo in model.RelInfos }}
 			{{ if relInfo.IsList == true }}
-				if m.{{ relInfo.FieldName }}.Len() > 0 {
+				if m.{{ relInfo.FieldName}} != nil && m.{{ relInfo.FieldName }}.Len() > 0 {
 					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
 					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
 					if err != nil {
@@ -694,7 +694,7 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 					buffer.Write({{ relInfo.FieldName }}B)
 				}
 			{{ else }}
-				if m.{{ relInfo.FieldName }}.IsSynced() {
+				if m.{{ relInfo.FieldName }} != nil && m.{{ relInfo.FieldName }}.IsSynced() {
 					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
 					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
 					if err != nil {

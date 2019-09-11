@@ -258,7 +258,7 @@ func (a *DecimalAgg) AnyValue() float64 {
 
 func marshalAgg(agg aggregator) ([]byte, error) {
 	if !agg.getField().IsValid() || agg.getField().IsNull() {
-		return []byte("null"), nil
+		return []byte(fmt.Sprintf("{\"%s\": null}", agg.getField().colName())), nil
 	}
 	buffer := bytes.NewBuffer(make([]byte, 0, 64))
 	fmt.Fprintf(buffer, "{ \"%s\": ", agg.getField().colName())

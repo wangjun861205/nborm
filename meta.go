@@ -26,6 +26,7 @@ const (
 	containSubUpdate modelStatus = 1 << 22
 	containSubOrder  modelStatus = 1 << 25
 	forDelete        modelStatus = 1 << 26
+	selectForUpdate  modelStatus = 1 << 27
 )
 
 type modelBaseInfo struct {
@@ -433,6 +434,11 @@ func (m *modelClause) SelectExcept(fields ...Field) Model {
 			m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfo.Index)
 		}
 	}
+	return m
+}
+
+func (m *modelClause) SelectForUpdate() Model {
+	m.addModelStatus(selectForUpdate)
 	return m
 }
 

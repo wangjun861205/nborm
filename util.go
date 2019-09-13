@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 )
@@ -133,6 +134,14 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 
 func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
 	if l, ok := model.(ModelList); ok {
+		var needCommit bool
+		if ex, ok := exe.(*sql.DB); ok {
+			var err error
+			if exe, err = ex.Begin(); err != nil {
+				return err
+			}
+			needCommit = true
+		}
 		rows, err := exe.Query(stmt, whereValues...)
 		if err != nil {
 			return err
@@ -161,6 +170,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		l.SetTotal(rowCount)
 		if l.Len() > 0 {
 			l.addModelStatus(synced)
+		}
+		if needCommit {
+			return exe.(*sql.Tx).Commit()
 		}
 	} else {
 		// models := make([]Model, 0, 4)

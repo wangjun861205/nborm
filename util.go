@@ -149,6 +149,7 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			for _, m := range models {
 				m.addModelStatus(synced)
 			}
+			l.Collapse()
 		}
 		if err := rows.Err(); err != nil {
 			return err
@@ -162,15 +163,35 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			l.addModelStatus(synced)
 		}
 	} else {
-		models := make([]Model, 0, 4)
-		fields := make([]interface{}, 0, 32)
-		getFieldsForScan(model, model, &models, &fields)
-		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
+		// models := make([]Model, 0, 4)
+		// fields := make([]interface{}, 0, 32)
+		// getFieldsForScan(model, model, &models, &fields)
+		// if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
+		// 	return err
+		// }
+		// for _, m := range models {
+		// 	m.addModelStatus(synced)
+		// }
+		rows, err := exe.Query(stmt, whereValues...)
+		if err != nil {
 			return err
 		}
-		for _, m := range models {
-			m.addModelStatus(synced)
+		defer rows.Close()
+		for rows.Next() {
+			models := make([]Model, 0, 4)
+			fields := make([]interface{}, 0, 32)
+			getFieldsForScan(model, model, &models, &fields)
+			if err := rows.Scan(fields...); err != nil {
+				return err
+			}
+			for _, m := range models {
+				m.addModelStatus(synced)
+			}
 		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		model.Collapse()
 	}
 	return nil
 }
@@ -325,11 +346,15 @@ func genBackTabRefClause(model Model) string {
 	}
 	refs := make([]string, 0, 4)
 	refs = append(refs, parent.fullTabName())
+	var got bool
 	for _, relInfo := range parent.relations() {
 		if relInfo.lastModel() == model {
 			refs = append(refs, relInfo.toClause(join))
+			got = true
 			break
 		}
+	}
+	if !got {
 		panic("cannot find relation")
 	}
 	getTabRef(model, &refs)

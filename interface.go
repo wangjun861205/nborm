@@ -95,6 +95,7 @@ type clauseModel interface {
 	SelectAll() Model
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model
+	GroupBySelectedFields() Model
 }
 
 // Model Model

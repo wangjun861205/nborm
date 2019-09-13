@@ -417,6 +417,14 @@ func (m *modelClause) SelectAll() Model {
 	return m
 }
 
+func (m *modelClause) GroupBySelectedFields() Model {
+	selectedFields := getSelectFields(m)
+	for _, field := range selectedFields {
+		m.appendGroupBys(field)
+	}
+	return m
+}
+
 func (m *modelClause) SelectFields(fields ...Field) Model {
 	for _, f := range fields {
 		m.selectedFieldIndexes = append(m.selectedFieldIndexes, f.getFieldIndex())

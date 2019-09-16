@@ -22,7 +22,11 @@ func genSelectStmt(model Model) (string, []interface{}) {
 	havingClause, havingValues := genHavingClause(model)
 	orderByClause := genOrderByClause(model)
 	limitClause := genLimitClause(model)
-	return fmt.Sprintf("%s FROM %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause),
+	var forUpdate string
+	if model.checkStatus(selectForUpdate) {
+		forUpdate = "FOR UPDATE"
+	}
+	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
 		append(whereValues, havingValues...)
 
 }
@@ -35,7 +39,11 @@ func genBackQueryStmt(model Model) (string, []interface{}) {
 	havingClause, havingValues := genHavingClause(model)
 	orderByClause := genOrderByClause(model)
 	limitClause := genLimitClause(model)
-	return fmt.Sprintf("%s FROM %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause),
+	var forUpdate string
+	if model.checkStatus(selectForUpdate) {
+		forUpdate = "FOR UPDATE"
+	}
+	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
 		append(whereValues, havingValues...)
 }
 

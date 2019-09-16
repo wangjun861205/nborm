@@ -26,6 +26,7 @@ const (
 	containSubUpdate modelStatus = 1 << 22
 	containSubOrder  modelStatus = 1 << 25
 	forDelete        modelStatus = 1 << 26
+	selectForUpdate  modelStatus = 1 << 27
 )
 
 type modelBaseInfo struct {
@@ -86,8 +87,9 @@ func (m *modelBaseInfo) checkStatus(status modelStatus) bool {
 }
 
 // SelectDistinct 设定去重标志位
-func (m *modelBaseInfo) SelectDistinct() {
+func (m *modelBaseInfo) SelectDistinct() Model {
 	m.addModelStatus(distinct)
+	return m
 }
 
 // IsSynced 检查是否为synced
@@ -137,18 +139,21 @@ func (m *modelBaseInfo) genIndex() int {
 }
 
 // SetForJoin 设置Join查询标志位(所有Father Model的containSubJoin标志位均会被置为1)
-func (m *modelBaseInfo) SetForJoin() {
+func (m *modelBaseInfo) SetForJoin() Model {
 	m.addModelStatus(forJoin)
+	return m
 }
 
 // SetForLeftJoin 左关联
-func (m *modelBaseInfo) SetForLeftJoin() {
+func (m *modelBaseInfo) SetForLeftJoin() Model {
 	m.addModelStatus(forLeftJoin)
+	return m
 }
 
 // SetForRightJjoin 右关联
-func (m *modelBaseInfo) SetForRightJoin() {
+func (m *modelBaseInfo) SetForRightJoin() Model {
 	m.addModelStatus(forRightJoin)
+	return m
 }
 
 // SetForDelete 设置为删除
@@ -246,18 +251,20 @@ func (m *modelClause) appendWhere(exprs ...*Expr) {
 	m.wheres = append(m.wheres, exprs...)
 }
 
-func (m *modelClause) AscOrderBy(orderBy refClauser) {
+func (m *modelClause) AscOrderBy(orderBy refClauser) Model {
 	m.appendOrderBys(newOrderBy(orderBy, asc))
+	return m
 }
 
-func (m *modelClause) DescOrderBy(orderBy refClauser) {
+func (m *modelClause) DescOrderBy(orderBy refClauser) Model {
 	m.appendOrderBys(newOrderBy(orderBy, desc))
+	return m
 }
 
 func (m *modelClause) LookupAgg(name string) Field {
 	for _, agg := range m.aggs {
-		if agg.field.colName() == name {
-			return agg.field
+		if agg.getField().colName() == name {
+			return agg.getField()
 		}
 	}
 	return nil
@@ -278,13 +285,13 @@ func (m *modelClause) OrExprWhere(expr *Expr) Model {
 }
 
 // AndWhereGroup AndWhereGroup
-func (m *modelClause) AndWhereGroup(wheres ...*condition) Model {
+func (m *modelClause) AndModelWhereGroup(wheres ...*condition) Model {
 	m.appendWheres(conditionList(wheres).group(and).toExpr())
 	return m
 }
 
 // OrWhereGroup OrWhereGroup
-func (m *modelClause) OrWhereGroup(wheres ...*condition) Model {
+func (m *modelClause) OrModelWhereGroup(wheres ...*condition) Model {
 	m.appendWheres(conditionList(wheres).group(or).toExpr())
 	return m
 }
@@ -309,14 +316,14 @@ func (m *modelClause) AndHaving(expr *Expr) Model {
 }
 
 // OrHaving 添加表达式having(or关系)
-func (m *modelClause) OrHaving(expr *Expr, val ...interface{}) Model {
+func (m *modelClause) OrHaving(expr *Expr) Model {
 	expr.exp = fmt.Sprintf("OR %s", expr.exp)
 	m.havings = append(m.havings, expr)
 	return m
 }
 
 // StrAgg 添加字符串结果的汇总
-func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
+func (m *modelClause) StrAgg(expr *Expr, name string) *StrAgg {
 	agg := newStrAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -324,7 +331,7 @@ func (m *modelClause) StrAgg(expr *Expr, name string) *agg {
 }
 
 // IntAgg 添加整数结果的汇总
-func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
+func (m *modelClause) IntAgg(expr *Expr, name string) *IntAgg {
 	agg := newIntAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -332,7 +339,7 @@ func (m *modelClause) IntAgg(expr *Expr, name string) *agg {
 }
 
 // DateAgg 添加日期结果的汇总
-func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DateAgg(expr *Expr, name string) *DateAgg {
 	agg := newDateAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -340,15 +347,23 @@ func (m *modelClause) DateAgg(expr *Expr, name string) *agg {
 }
 
 // DatetimeAgg 添加日期时间结果的汇总
-func (m *modelClause) DatetimeAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	agg := newDatetimeAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
 
+// TimeAgg 添加时间结果的汇总
+func (m *modelClause) TimeAgg(expr *Expr, name string) *TimeAgg {
+	agg := newTimeAgg(expr, name)
+	m.aggs = append(m.aggs, agg)
+	m.addModelStatus(forModelAgg)
+	return agg
+}
+
 // DecAgg 添加浮点数结果的汇总
-func (m *modelClause) DecAgg(expr *Expr, name string) *agg {
+func (m *modelClause) DecAgg(expr *Expr, name string) *DecimalAgg {
 	agg := newDecAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
 	m.addModelStatus(forModelAgg)
@@ -356,12 +371,13 @@ func (m *modelClause) DecAgg(expr *Expr, name string) *agg {
 }
 
 // ExprUpdate 添加表达式更新
-func (m *modelClause) ExprUpdate(expr *Expr) {
+func (m *modelClause) ExprUpdate(expr *Expr) Model {
 	m.updates = append(m.updates, expr)
 	m.addModelStatus(forUpdate)
 	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubUpdate)
 	}
+	return m
 }
 
 func (m *modelClause) getGroupBys() []refClauser {
@@ -372,8 +388,9 @@ func (m *modelClause) appendGroupBys(groupBy refClauser) {
 	m.groupBys = append(m.groupBys, groupBy)
 }
 
-func (m *modelClause) GroupBy(groupBy refClauser) {
+func (m *modelClause) ModelGroupBy(groupBy refClauser) Model {
 	m.appendGroupBys(groupBy)
+	return m
 }
 
 func (m *modelClause) setAggs(aggs aggList) {
@@ -393,19 +410,29 @@ func (m *modelClause) getSelectedFieldIndexes() []int {
 	return m.selectedFieldIndexes
 }
 
-func (m *modelClause) SelectAll() {
+func (m *modelClause) SelectAll() Model {
 	for _, fieldInfos := range m.Model.FieldInfos() {
 		m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfos.Index)
 	}
+	return m
 }
 
-func (m *modelClause) SelectFields(fields ...Field) {
+func (m *modelClause) GroupBySelectedFields() Model {
+	selectedFields := getSelectFields(m)
+	for _, field := range selectedFields {
+		m.appendGroupBys(field)
+	}
+	return m
+}
+
+func (m *modelClause) SelectFields(fields ...Field) Model {
 	for _, f := range fields {
 		m.selectedFieldIndexes = append(m.selectedFieldIndexes, f.getFieldIndex())
 	}
+	return m
 }
 
-func (m *modelClause) SelectExcept(fields ...Field) {
+func (m *modelClause) SelectExcept(fields ...Field) Model {
 	var flag int
 	for _, f := range fields {
 		flag |= (1 << uint(f.getFieldIndex()))
@@ -415,6 +442,12 @@ func (m *modelClause) SelectExcept(fields ...Field) {
 			m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfo.Index)
 		}
 	}
+	return m
+}
+
+func (m *modelClause) SelectForUpdate() Model {
+	m.addModelStatus(selectForUpdate)
+	return m
 }
 
 // Meta Model的元信息

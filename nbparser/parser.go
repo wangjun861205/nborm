@@ -33,11 +33,6 @@ var pkRe = regexp.MustCompile(`(?m)pk:([0-9a-zA-Z,]+)$`)
 var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
-<<<<<<< HEAD
-var relRe = regexp.MustCompile(`rel:"(.*?)"`)
-var masterRelFieldRe = regexp.MustCompile(`(\w+)(\(.+\))?\.(\w+)`)
-var midWhereRe = regexp.MustCompile(`(\w+)\s?(=|<>|<|>|<=|>=|LIKE|IS|IS NOT|IN)\s?('.*?'|\d+|\d+\.\d+)(?:,|$)`)
-=======
 
 var relWholeRe = regexp.MustCompile(`rel:"(.*?)"`)
 var relModelRe = regexp.MustCompile(`@([\w@\$]+)\[(.+?)\](?:->|$)`)
@@ -390,7 +385,6 @@ func parseRelation(tag string) error {
 		}
 	}
 }
->>>>>>> dev5
 
 type FieldInfo struct {
 	Type  string
@@ -691,7 +685,7 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 		{{ endfor }}
 		{{ for _, relInfo in model.RelInfos }}
 			{{ if relInfo.IsList == true }}
-				if m.{{ relInfo.FieldName }}.Len() > 0 {
+				if m.{{ relInfo.FieldName}} != nil && m.{{ relInfo.FieldName }}.Len() > 0 {
 					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
 					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
 					if err != nil {
@@ -700,7 +694,7 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 					buffer.Write({{ relInfo.FieldName }}B)
 				}
 			{{ else }}
-				if m.{{ relInfo.FieldName }}.IsSynced() {
+				if m.{{ relInfo.FieldName }} != nil && m.{{ relInfo.FieldName }}.IsSynced() {
 					buffer.WriteString(",\n\"{{ relInfo.FieldName }}\": ")
 					{{ relInfo.FieldName }}B, err := json.MarshalIndent(m.{{ relInfo.FieldName }}, "", "\t")
 					if err != nil {
@@ -1010,42 +1004,6 @@ func (m *ModelInfo) listFilterFunc() string {
 	if err != nil {
 		panic(err)
 	}
-<<<<<<< HEAD
-	lastModel := modelInfos[len(modelInfos)-1]
-	lastRel := lastModel.RelInfos[len(lastModel.RelInfos)-1]
-	for i, field := range fields {
-		switch {
-		case i == 0:
-			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s", field))
-		case i == len(fields)-1:
-			lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("m.%s.%s", dstModel, field))
-		default:
-			if i%2 == 1 {
-				fieldGroup := masterRelFieldRe.FindStringSubmatch(field)
-				modelName, midWhereStr, fieldName := fieldGroup[1], fieldGroup[2], fieldGroup[3]
-				midWhereGroup := midWhereRe.FindAllStringSubmatch(strings.Trim(midWhereStr, "()"), -1)
-				var midModel MidModel
-				if len(midWhereGroup) == 0 {
-					midModel = MidModel{
-						Name: modelName,
-					}
-				} else {
-					midModel = MidModel{
-						Name:        modelName,
-						MidWheres:   make([]MidWhere, 0, len(midWhereGroup)),
-						HasMidWhere: true,
-					}
-					for _, w := range midWhereGroup {
-						midModel.MidWheres = append(midModel.MidWheres, MidWhere{w[1], fmt.Sprintf(`"%s"`, w[2]), strings.Replace(w[3], "'", "\"", -1)})
-					}
-				}
-				// lastModel.MidModels = append(lastModel.MidModels, strings.Split(field, ".")[0])
-				// lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
-				lastModel.MidModels = append(lastModel.MidModels, midModel)
-				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, fieldName))
-			} else {
-				lastRel.Fields = append(lastRel.Fields, fmt.Sprintf("mm%d.%s", len(lastModel.MidModels)-1, strings.Split(field, ".")[1]))
-=======
 	return s
 }
 
@@ -1137,7 +1095,6 @@ func (m *ModelInfo) modelCacheManagerRunMethod() string {
 					mgr.out <- mgr.container[h]
 				case elem := <-mgr.in:
 					mgr.container[elem.hashValue] = elem
->>>>>>> dev5
 			}
 		}
 	}

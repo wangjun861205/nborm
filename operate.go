@@ -33,7 +33,9 @@ func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 		if err != nil {
 			return false, err
 		}
-		model.AutoIncField().Set(int(lastInsertID))
+		if model.AutoIncField() != nil {
+			model.AutoIncField().Set(int(lastInsertID))
+		}
 	}
 	return
 }

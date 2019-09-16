@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 )
@@ -69,16 +70,16 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *
 	}
 	aggs := instanceModel.getAggs()
 	for _, agg := range aggs {
-		*fields = append(*fields, agg.field)
+		*fields = append(*fields, agg.getField())
 	}
 	*models = append(*models, instanceModel)
 	for i, rel := range classModel.relations() {
-		if rel.dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			if subClassModel, ok := rel.dstModel.(ModelList); ok {
-				subInstanceModel := instanceModel.relations()[i].dstModel.(ModelList).NewModel()
+		if rel.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			if subClassModel, ok := rel.lastModel().(ModelList); ok {
+				subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
 				getFieldsForScan(subClassModel, subInstanceModel, models, fields)
 			} else {
-				getFieldsForScan(rel.dstModel, rel.dstModel, models, fields)
+				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)
 			}
 		}
 	}
@@ -133,6 +134,14 @@ func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...int
 
 func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
 	if l, ok := model.(ModelList); ok {
+		var needCommit bool
+		if ex, ok := exe.(*sql.DB); ok {
+			var err error
+			if exe, err = ex.Begin(); err != nil {
+				return err
+			}
+			needCommit = true
+		}
 		rows, err := exe.Query(stmt, whereValues...)
 		if err != nil {
 			return err
@@ -149,6 +158,7 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			for _, m := range models {
 				m.addModelStatus(synced)
 			}
+			l.Collapse()
 		}
 		if err := rows.Err(); err != nil {
 			return err
@@ -161,16 +171,39 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		if l.Len() > 0 {
 			l.addModelStatus(synced)
 		}
+		if needCommit {
+			return exe.(*sql.Tx).Commit()
+		}
 	} else {
-		models := make([]Model, 0, 4)
-		fields := make([]interface{}, 0, 32)
-		getFieldsForScan(model, model, &models, &fields)
-		if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
+		// models := make([]Model, 0, 4)
+		// fields := make([]interface{}, 0, 32)
+		// getFieldsForScan(model, model, &models, &fields)
+		// if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
+		// 	return err
+		// }
+		// for _, m := range models {
+		// 	m.addModelStatus(synced)
+		// }
+		rows, err := exe.Query(stmt, whereValues...)
+		if err != nil {
 			return err
 		}
-		for _, m := range models {
-			m.addModelStatus(synced)
+		defer rows.Close()
+		for rows.Next() {
+			models := make([]Model, 0, 4)
+			fields := make([]interface{}, 0, 32)
+			getFieldsForScan(model, model, &models, &fields)
+			if err := rows.Scan(fields...); err != nil {
+				return err
+			}
+			for _, m := range models {
+				m.addModelStatus(synced)
+			}
 		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		model.Collapse()
 	}
 	return nil
 }
@@ -231,11 +264,11 @@ func genSelectedClause(model Model) string {
 		case Field:
 			builder.WriteString(f.fullColName())
 			builder.WriteString(", ")
-		case *agg:
-			clause, _ := f.expr.toClause()
+		case aggregator:
+			clause, _ := f.getExpr().toClause()
 			builder.WriteString(clause)
 			builder.WriteString(" AS ")
-			builder.WriteString(f.name)
+			builder.WriteString(f.getName())
 			builder.WriteString(", ")
 		default:
 			panic(fmt.Errorf("invalid field type (%T)", field))
@@ -325,11 +358,15 @@ func genBackTabRefClause(model Model) string {
 	}
 	refs := make([]string, 0, 4)
 	refs = append(refs, parent.fullTabName())
+	var got bool
 	for _, relInfo := range parent.relations() {
 		if relInfo.lastModel() == model {
 			refs = append(refs, relInfo.toClause(join))
+			got = true
 			break
 		}
+	}
+	if !got {
 		panic("cannot find relation")
 	}
 	getTabRef(model, &refs)

@@ -16,6 +16,7 @@ type aggregator interface {
 	MarshalJSON() ([]byte, error)
 }
 
+// IntAgg 整数汇总
 type IntAgg struct {
 	expr  *Expr
 	name  string
@@ -48,14 +49,17 @@ func (a *IntAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *IntAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *IntAgg) AnyValue() int {
 	return a.field.AnyValue()
 }
 
+// StrAgg 字符串汇总
 type StrAgg struct {
 	expr  *Expr
 	name  string
@@ -88,14 +92,17 @@ func (a *StrAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *StrAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *StrAgg) AnyValue() string {
 	return a.field.AnyValue()
 }
 
+// DateAgg 日期汇总
 type DateAgg struct {
 	expr  *Expr
 	name  string
@@ -128,14 +135,17 @@ func (a *DateAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *DateAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *DateAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+// DatetimeAgg 日期时间汇总
 type DatetimeAgg struct {
 	expr  *Expr
 	name  string
@@ -168,14 +178,17 @@ func (a *DatetimeAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *DatetimeAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *DatetimeAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+// TimeAgg 时间汇总
 type TimeAgg struct {
 	expr  *Expr
 	name  string
@@ -208,14 +221,17 @@ func (a *TimeAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *TimeAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *TimeAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+// DecimalAgg 浮点数汇总
 type DecimalAgg struct {
 	expr  *Expr
 	name  string
@@ -248,10 +264,12 @@ func (a *DecimalAgg) getName() string {
 	return a.name
 }
 
+// MarshalJSON 实现JSON接口
 func (a *DecimalAgg) MarshalJSON() ([]byte, error) {
 	return marshalAgg(a)
 }
 
+// AnyValue 直接返回数据
 func (a *DecimalAgg) AnyValue() float64 {
 	return a.field.AnyValue()
 }

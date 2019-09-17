@@ -47,6 +47,7 @@ type BaseField interface {
 	getFieldIndex() int
 }
 
+// ClauseField ClauseField
 type ClauseField interface {
 	AndW() ClauseField
 	AndWhere(string, interface{}) ClauseField

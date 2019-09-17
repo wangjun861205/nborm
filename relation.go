@@ -12,6 +12,7 @@ const (
 	rightJoin joinType = "RIGHT JOIN"
 )
 
+// RelationInfo 关系信息
 type RelationInfo struct {
 	name     string
 	dstModel Model
@@ -20,6 +21,7 @@ type RelationInfo struct {
 	prev     *RelationInfo
 }
 
+// NewRelationInfo 新建关系
 func NewRelationInfo(name string, dst Model, on *Expr) *RelationInfo {
 	return &RelationInfo{
 		name,
@@ -38,6 +40,7 @@ func (r *RelationInfo) lastModel() Model {
 	return last.dstModel
 }
 
+// Append Append
 func (r *RelationInfo) Append(name string, dst Model, on *Expr) *RelationInfo {
 	nr := &RelationInfo{
 		name,
@@ -97,4 +100,5 @@ func (r *RelationInfo) toRevClause(srcModel Model, joinType joinType) string {
 	return builder.String()
 }
 
+// RelationInfoList 关系列表
 type RelationInfoList []*RelationInfo

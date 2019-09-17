@@ -157,8 +157,9 @@ func (m *modelBaseInfo) SetForRightJoin() Model {
 }
 
 // SetForDelete 设置为删除
-func (m *modelBaseInfo) SetForDelete() {
+func (m *modelBaseInfo) SetForDelete() Model {
 	m.addModelStatus(forDelete)
+	return m
 }
 
 // SetConList 设置当前Model的Container List

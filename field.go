@@ -165,6 +165,7 @@ func (f *baseField) Distinct() {
 	f.addStatus(forSelect)
 }
 
+// CopyStatus CopyStatus
 func (f *baseField) CopyStatus(dst Field) {
 	dst.setStatus(f.status)
 }
@@ -177,6 +178,7 @@ func (f *baseField) toSimpleRefClause() string {
 	return f.rawFullColName()
 }
 
+// GroupBy 设置为GroupBy字段
 func (f *baseField) GroupBy() {
 	f.appendGroupBys(f)
 }
@@ -455,6 +457,7 @@ type String struct {
 	stringValueField
 }
 
+// Init 初始化方法
 func (f *String) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.stringValueField
@@ -564,11 +567,13 @@ func (f *intValueField) AnyValue() int {
 	return f.val
 }
 
+// Int 整数型字段
 type Int struct {
 	clauseField
 	intValueField
 }
 
+// Init 初始化方法
 func (f *Int) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.intValueField
@@ -684,11 +689,13 @@ func (f *dateValueField) AnyValue() time.Time {
 	return f.val
 }
 
+// Date 日期型字段
 type Date struct {
 	clauseField
 	dateValueField
 }
 
+// Init 初始化方法
 func (f *Date) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.dateValueField
@@ -805,11 +812,13 @@ func (f *datetimeValueField) AnyValue() time.Time {
 	return f.val
 }
 
+// Datetime 日期时间型字段
 type Datetime struct {
 	clauseField
 	datetimeValueField
 }
 
+// Init 初始化方法
 func (f *Datetime) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.datetimeValueField
@@ -910,11 +919,13 @@ func (f *decimalValueField) AnyValue() float64 {
 	return f.val
 }
 
+// Decimal 浮点数字段
 type Decimal struct {
 	clauseField
 	decimalValueField
 }
 
+// Init 初始化方法
 func (f *Decimal) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.decimalValueField
@@ -1002,11 +1013,13 @@ func (f *timeValueField) MarshalJSON() ([]byte, error) {
 	return []byte(f.val.Format("15:04:05")), nil
 }
 
+// Time 日期型字段
 type Time struct {
 	clauseField
 	timeValueField
 }
 
+// Init 初始化方法
 func (f *Time) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.timeValueField
@@ -1086,11 +1099,13 @@ func (f *byteValueField) AnyValue() []byte {
 	return f.val
 }
 
+// Bytes 二进制字段
 type Bytes struct {
 	clauseField
 	byteValueField
 }
 
+// Init 初始化方法
 func (f *Bytes) Init(model Model, colName, fieldName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.byteValueField

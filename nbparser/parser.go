@@ -1361,12 +1361,12 @@ func readConfig(filename string) config {
 func main() {
 	var command, configFile string
 	flag.StringVar(&command, "command", "", "specific command")
-	flag.StringVar(&configFile, "config", "config", "specific config file")
+	flag.StringVar(&configFile, "config", "config.json", "specific config file")
 
 	dir := flag.String("p", "./", "specific parse path")
 	flag.Parse()
 	if command == "init" {
-		configFile, err := os.OpenFile("config", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		configFile, err := os.OpenFile("config.json", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}

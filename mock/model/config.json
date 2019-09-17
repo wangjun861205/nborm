@@ -1,0 +1,11 @@
+
+{
+	"User": "root",
+	"Password": "Ydkj@0517",
+	"Host": "192.168.175.2",
+	"Port": "3306",
+	"Database": "employment",
+	"Tables": ["employ_account", "employ_enterprise"],
+	"AppendTables": [],
+	"MatchAllDB": true
+}

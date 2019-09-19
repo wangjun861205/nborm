@@ -138,3 +138,17 @@ func Delete(exe Executor, model Model) (sql.Result, error) {
 	}
 	return exe.Exec(stmt, values...)
 }
+
+// Exists 查询是否存在
+func Exists(exe Executor, model Model) (bool, error) {
+	stmt, values := genSelectStmt(model)
+	stmt = fmt.Sprintf("SELECT EXISTS(%s)", stmt)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+	}
+	var exists int
+	if err := exe.QueryRow(stmt, values...).Scan(&exists); err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}

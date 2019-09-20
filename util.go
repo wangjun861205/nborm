@@ -156,6 +156,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 				return err
 			}
 			for _, m := range models {
+				if l := m.getConList(); l != nil {
+					l.addModelStatus(synced)
+				}
 				m.addModelStatus(synced)
 			}
 			l.Collapse()
@@ -188,6 +191,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 				return err
 			}
 			for _, m := range models {
+				if l := m.getConList(); l != nil {
+					l.addModelStatus(synced)
+				}
 				m.addModelStatus(synced)
 			}
 			model.Collapse()

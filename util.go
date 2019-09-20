@@ -175,15 +175,6 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			return exe.(*sql.Tx).Commit()
 		}
 	} else {
-		// models := make([]Model, 0, 4)
-		// fields := make([]interface{}, 0, 32)
-		// getFieldsForScan(model, model, &models, &fields)
-		// if err := exe.QueryRow(stmt, whereValues...).Scan(fields...); err != nil {
-		// 	return err
-		// }
-		// for _, m := range models {
-		// 	m.addModelStatus(synced)
-		// }
 		rows, err := exe.Query(stmt, whereValues...)
 		if err != nil {
 			return err
@@ -199,11 +190,11 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 			for _, m := range models {
 				m.addModelStatus(synced)
 			}
+			model.Collapse()
 		}
 		if err := rows.Err(); err != nil {
 			return err
 		}
-		model.Collapse()
 	}
 	return nil
 }

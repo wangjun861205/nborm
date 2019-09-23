@@ -217,6 +217,11 @@ func (e *Expr) toRefClause() string {
 	return c
 }
 
+func (e *Expr) toSimpleRefClause() string {
+	c, _ := e.toSimpleClause()
+	return c
+}
+
 // exprList 自定义sql表达式列表类型
 type exprList []*Expr
 

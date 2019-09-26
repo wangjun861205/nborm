@@ -190,11 +190,11 @@ type modelClause struct {
 	Model
 	selectedFieldIndexes []int
 	inserts              exprList
-	wheres               exprList
+	wheres               wherer
 	updates              exprList
 	havings              exprList
-	orderBys             []refClauser
-	groupBys             []refClauser
+	orderBys             []referencer
+	groupBys             []referencer
 	aggs                 aggList
 	limit                [2]int
 }
@@ -207,20 +207,25 @@ func (m *modelClause) appendInserts(value *Expr) {
 	m.inserts = append(m.inserts, value)
 }
 
-func (m *modelClause) getOrderBys() []refClauser {
+func (m *modelClause) getOrderBys() []referencer {
 	return m.orderBys
 }
 
-func (m *modelClause) appendOrderBys(orderBy refClauser) {
+func (m *modelClause) appendOrderBys(orderBy referencer) {
 	m.orderBys = append(m.orderBys, orderBy)
 }
 
-func (m *modelClause) getWheres() exprList {
+func (m *modelClause) getWheres() wherer {
 	return m.wheres
 }
 
-func (m *modelClause) appendWheres(expr *Expr) {
-	m.wheres = append(m.wheres, expr)
+func (m *modelClause) appendWheres(w wherer) {
+	lastWhere := m.wheres.lastNode()
+	if lastWhere == nil {
+		m.wheres = w
+	} else {
+		lastWhere.append(w)
+	}
 }
 
 func (m *modelClause) getHavings() exprList {
@@ -248,16 +253,12 @@ func (m *modelClause) getUpdates() exprList {
 	return m.updates
 }
 
-func (m *modelClause) appendWhere(exprs ...*Expr) {
-	m.wheres = append(m.wheres, exprs...)
-}
-
-func (m *modelClause) AscOrderBy(orderBy refClauser) Model {
+func (m *modelClause) AscOrderBy(orderBy referencer) Model {
 	m.appendOrderBys(newOrderBy(orderBy, asc))
 	return m
 }
 
-func (m *modelClause) DescOrderBy(orderBy refClauser) Model {
+func (m *modelClause) DescOrderBy(orderBy referencer) Model {
 	m.appendOrderBys(newOrderBy(orderBy, desc))
 	return m
 }
@@ -273,27 +274,45 @@ func (m *modelClause) LookupAgg(name string) Field {
 
 // AndExprWhere 添加表达式where(and关系)
 func (m *modelClause) AndExprWhere(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("AND %s", expr.exp)
-	m.wheres = append(m.wheres, expr)
+	w := newWhere(expr, whereAnd)
+	if m.wheres == nil {
+		m.wheres = w
+	} else {
+		m.wheres.lastNode().append(w)
+	}
 	return m
 }
 
 // OrExprWhere 添加表达式where(or关系)
 func (m *modelClause) OrExprWhere(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("OR %s", expr.exp)
-	m.wheres = append(m.wheres, expr)
+	w := newWhere(expr, whereOr)
+	if m.wheres == nil {
+		m.wheres = w
+	} else {
+		m.wheres.lastNode().append(w)
+	}
 	return m
 }
 
 // AndWhereGroup AndWhereGroup
-func (m *modelClause) AndModelWhereGroup(wheres ...*condition) Model {
-	m.appendWheres(conditionList(wheres).group(and).toExpr())
+func (m *modelClause) AndModelWhereGroup(wheres ...wherer) Model {
+	group := groupWherers(whereAnd, wheres...)
+	if m.wheres == nil {
+		m.wheres = group
+	} else {
+		m.wheres.lastNode().append(group)
+	}
 	return m
 }
 
 // OrWhereGroup OrWhereGroup
-func (m *modelClause) OrModelWhereGroup(wheres ...*condition) Model {
-	m.appendWheres(conditionList(wheres).group(or).toExpr())
+func (m *modelClause) OrModelWhereGroup(wheres ...wherer) Model {
+	group := groupWherers(whereOr, wheres...)
+	if m.wheres == nil {
+		m.wheres = group
+	} else {
+		m.wheres.lastNode().append(group)
+	}
 	return m
 }
 
@@ -381,15 +400,15 @@ func (m *modelClause) ExprUpdate(expr *Expr) Model {
 	return m
 }
 
-func (m *modelClause) getGroupBys() []refClauser {
+func (m *modelClause) getGroupBys() []referencer {
 	return m.groupBys
 }
 
-func (m *modelClause) appendGroupBys(groupBy refClauser) {
+func (m *modelClause) appendGroupBys(groupBy referencer) {
 	m.groupBys = append(m.groupBys, groupBy)
 }
 
-func (m *modelClause) ModelGroupBy(groupBy refClauser) Model {
+func (m *modelClause) ModelGroupBy(groupBy referencer) Model {
 	m.appendGroupBys(groupBy)
 	return m
 }

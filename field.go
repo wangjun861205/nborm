@@ -3,6 +3,7 @@ package nborm
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -170,12 +171,24 @@ func (f *baseField) CopyStatus(dst Field) {
 	dst.setStatus(f.status)
 }
 
-func (f *baseField) toRefClause() string {
-	return f.fullColName()
+func (f *baseField) toClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.fullColName()))
+	w.Write([]byte(" "))
 }
 
-func (f *baseField) toSimpleRefClause() string {
-	return f.rawFullColName()
+func (f *baseField) toSimpleClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.rawFullColName()))
+	w.Write([]byte(" "))
+}
+
+func (f *baseField) toRefClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.fullColName()))
+	w.Write([]byte(" "))
+}
+
+func (f *baseField) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.rawFullColName()))
+	w.Write([]byte(" "))
 }
 
 // GroupBy 设置为GroupBy字段
@@ -326,35 +339,35 @@ func (f *clauseField) OrNotBetween(startValue, endValue interface{}) *condition 
 	return newCondition(or, NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 }
 
-func (f *clauseField) AndWhereGroup(funcs ...func(*clauseField) *condition) {
-	switch len(funcs) {
-	case 0:
-		return
-	case 1:
-		f.valueField().appendWheres(funcs[0](f).toExpr())
-	default:
-		l := make(conditionList, 0, len(funcs))
-		for _, fn := range funcs {
-			l = append(l, fn(f))
-		}
-		f.valueField().appendWheres(l.group(and).toExpr())
-	}
-}
+// func (f *clauseField) AndWhereGroup(funcs ...func(*clauseField) *condition) {
+// 	switch len(funcs) {
+// 	case 0:
+// 		return
+// 	case 1:
+// 		f.valueField().appendWheres(funcs[0](f).toExpr())
+// 	default:
+// 		l := make(conditionList, 0, len(funcs))
+// 		for _, fn := range funcs {
+// 			l = append(l, fn(f))
+// 		}
+// 		f.valueField().appendWheres(l.group(and).toExpr())
+// 	}
+// }
 
-func (f *clauseField) OrWhereGroup(funcs ...func(*clauseField) *condition) {
-	switch len(funcs) {
-	case 0:
-		return
-	case 1:
-		f.valueField().appendWheres(funcs[0](f).toExpr())
-	default:
-		l := make(conditionList, 0, len(funcs))
-		for _, fn := range funcs {
-			l = append(l, fn(f))
-		}
-		f.valueField().appendWheres(l.group(or).toExpr())
-	}
-}
+// func (f *clauseField) OrWhereGroup(funcs ...func(*clauseField) *condition) {
+// 	switch len(funcs) {
+// 	case 0:
+// 		return
+// 	case 1:
+// 		f.valueField().appendWheres(funcs[0](f).toExpr())
+// 	default:
+// 		l := make(conditionList, 0, len(funcs))
+// 		for _, fn := range funcs {
+// 			l = append(l, fn(f))
+// 		}
+// 		f.valueField().appendWheres(l.group(or).toExpr())
+// 	}
+// }
 
 func (f *clauseField) Update(value interface{}) ClauseField {
 	valueField := f.valueField()
@@ -367,12 +380,14 @@ func (f *clauseField) Set(value interface{}) ClauseField {
 	return f
 }
 
-func (f *clauseField) toRefClause() string {
-	return f.valueField().fullColName()
+func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.valueField().fullColName()))
+	w.Write([]byte(" "))
 }
 
-func (f *clauseField) toSimpleRefClause() string {
-	return f.valueField().rawFullColName()
+func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+	w.Write([]byte(f.valueField().rawFullColName()))
+	w.Write([]byte(" "))
 }
 
 type stringValueField struct {

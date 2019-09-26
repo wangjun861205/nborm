@@ -1,64 +1,144 @@
 package nborm
 
-import "fmt"
+import (
+	"io"
+)
 
-func genInsertStmt(model Model) (string, []interface{}) {
+func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
+	w.Write([]byte("INSERT INTO "))
+	w.Write([]byte(model.rawFullTabName()))
+	w.Write([]byte(" SET "))
 	inserts := model.getInserts()
-	insertClause, insertValues := inserts.toSimpleClause(assignExpr)
-	return fmt.Sprintf("INSERT INTO %s SET %s", model.rawFullTabName(), insertClause), insertValues
+	inserts.toSimpleClause(assignExpr, w, vals)
 }
 
-func genInsertOrUpdateStmt(model Model) (string, []interface{}) {
-	insertClause, insertValues := model.getInserts().toSimpleClause(assignExpr)
-	updateClause, updateValues := model.getUpdates().toSimpleClause(assignExpr)
-	return fmt.Sprintf("INSERT INTO %s SET %s ON DUPLICATE KEY UPDATE %s", model.rawFullTabName(), insertClause, updateClause), append(insertValues, updateValues...)
+func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
+	w.Write([]byte("INSERT INTO "))
+	w.Write([]byte(model.rawFullTabName()))
+	w.Write([]byte(" SET "))
+	model.getInserts().toSimpleClause(assignExpr, w, vals)
+	w.Write([]byte(" ON DUPLICATE KEY UPDATE "))
+	model.getUpdates().toSimpleClause(assignExpr, w, vals)
 }
 
-func genSelectStmt(model Model) (string, []interface{}) {
-	selectedClause := genSelectedClause(model)
-	tabRefClause := genTabRefClause(model)
-	whereClause, whereValues := genWhereClause(model)
-	groupByClause := genGroupByClause(model)
-	havingClause, havingValues := genHavingClause(model)
-	orderByClause := genOrderByClause(model)
-	limitClause := genLimitClause(model)
-	var forUpdate string
+func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
+	genSelectedClause(model, w, vals, true)
+	genTabRefClause(model, w, vals, true)
+	genWhereClause(model, w, vals, true, true)
+	genGroupByClause(model, w, vals, true)
+	genHavingClause(model, w, vals, true)
+	genOrderByClause(model, w, vals, true)
+	genLimitClause(model, w, vals)
 	if model.checkStatus(selectForUpdate) {
-		forUpdate = "FOR UPDATE"
+		w.Write([]byte("FOR UPDATE "))
 	}
-	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
-		append(whereValues, havingValues...)
-
 }
 
-func genBackQueryStmt(model Model) (string, []interface{}) {
-	selectedClause := genSelectedClause(model)
-	tabRefClause := genBackTabRefClause(model)
-	whereClause, whereValues := genBackWhereClause(model)
-	groupByClause := genGroupByClause(model)
-	havingClause, havingValues := genHavingClause(model)
-	orderByClause := genOrderByClause(model)
-	limitClause := genLimitClause(model)
-	var forUpdate string
+func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
+	genSelectedClause(model, w, vals, true)
+	genBackTabRefClause(model, w, vals)
+	genBackWhereClause(model, w, vals)
+	genGroupByClause(model, w, vals, true)
+	genHavingClause(model, w, vals, true)
+	genOrderByClause(model, w, vals, true)
+	genLimitClause(model, w, vals)
 	if model.checkStatus(selectForUpdate) {
-		forUpdate = "FOR UPDATE"
+		w.Write([]byte("FOR UPDATE "))
 	}
-	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
-		append(whereValues, havingValues...)
 }
 
-func genUpdateStmt(model Model) (string, []interface{}) {
-	tabRefClause := genTabRefClause(model)
-	updateClause, updateValues := genUpdateClause(model)
-	whereClause, whereValues := genWhereClause(model)
-	return fmt.Sprintf(`UPDATE %s SET %s %s`, tabRefClause, updateClause, whereClause), append(updateValues, whereValues...)
+func genUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
+	genTabRefClause(model, w, vals, true)
+	genUpdateClause(model, w, vals, true)
+	genWhereClause(model, w, vals, true, true)
 }
 
-func genDeleteStmt(model Model) (string, []interface{}) {
-	deleteClause := genDeleteClause(model)
-	tabRefClause := genTabRefClause(model)
-	whereClause, whereValues := genWhereClause(model)
-	orderByClause := genOrderByClause(model)
-	limitClause := genLimitClause(model)
-	return fmt.Sprintf(`%s FROM %s %s %s %s`, deleteClause, tabRefClause, whereClause, orderByClause, limitClause), whereValues
+func genDeleteStmt(model Model, w io.Writer, vals *[]interface{}) {
+	genDeleteClause(model, w, vals, true)
+	genTabRefClause(model, w, vals, true)
+	genWhereClause(model, w, vals, true, true)
+	genOrderByClause(model, w, vals, true)
+	genLimitClause(model, w, vals)
+}
+
+func genSelectedClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	fieldInfos := model.FieldInfos()
+	fieldLength := len(model.getSelectedFieldIndexes())
+	for i, idx := range model.getSelectedFieldIndexes() {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("SELECT "))
+			if _, ok := model.(ModelList); ok {
+				w.Write([]byte("SQL_CALC_FOUND_ROWS "))
+			}
+			if model.checkStatus(distinct) {
+				w.Write([]byte("DISTINCT "))
+			}
+		} else if i == 0 {
+			w.Write([]byte(", "))
+		}
+		fieldInfos[idx].Field.toRefClause(w, vals)
+		if i != (fieldLength - 1) {
+			w.Write([]byte(", "))
+		}
+	}
+	aggs := model.getAggs()
+	aggLength := len(aggs)
+	for i, agg := range model.getAggs() {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("SELECT "))
+			if _, ok := model.(ModelList); ok {
+				w.Write([]byte("SQL_CALC_FOUND_ROWS "))
+			}
+			if model.checkStatus(distinct) {
+				w.Write([]byte("DISTINCT "))
+			}
+		} else if i == 0 {
+			w.Write([]byte(", "))
+		}
+		agg.toClause(w, vals)
+		if i != (aggLength - 1) {
+			w.Write([]byte(", "))
+		}
+	}
+	for _, relInfo := range model.relations() {
+		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genSelectedClause(relInfo.lastModel(), w, vals, isFirst)
+		}
+	}
+}
+
+func genWhereClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+	model.getWheres().toClause(w, vals, isFirstGroup, isFirstNode)
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genWhereClause(dstModel, w, vals, isFirstGroup, isFirstNode)
+		}
+	}
+}
+
+// func genSimpleWhereClause(model Model, w io.Writer, vals *[]interface{}) {
+// 	wheres := model.getWheres()
+// 	if len(wheres) == 0 {
+// 		return
+// 	}
+// 	for _, where := range model.getWheres() {
+// 		w.Write([]byte("WHERE "))
+// 		where.toClause(w, vals)
+// 	}
+// }
+
+func genBackWhereClause(model Model, w io.Writer, vals *[]interface{}) {
+	parent := model.getParent()
+	if parent == nil {
+		panic("no parent model for back query")
+	}
+	for _, k := range parent.PrimaryKey() {
+		w.Write([]byte("WHERE "))
+		NewExpr("@ = ?", k, k.value()).toClause(w, vals)
+
+	}
+	genWhereClause(model, w, vals, false, false)
 }

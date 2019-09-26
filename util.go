@@ -3,6 +3,7 @@ package nborm
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -205,73 +206,56 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 	return nil
 }
 
-func getUpdates(model Model, updates *exprList) {
+func genUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
 	if model.checkStatus(forUpdate) {
-		*updates = append(*updates, model.getUpdates()...)
+		updates := model.getUpdates()
+		length := len(updates)
+		for i, update := range updates {
+			if isFirst {
+				isFirst = false
+				w.Write([]byte("SET "))
+				update.toClause(w, vals)
+			} else if i == 0 {
+				w.Write([]byte(", "))
+				update.toClause(w, vals)
+			}
+			if i != (length - 1) {
+				w.Write([]byte(", "))
+			}
+		}
 	}
 	for _, relInfo := range model.relations() {
 		subModel := relInfo.lastModel()
 		if subModel.checkStatus(forUpdate | containSubUpdate) {
-			getUpdates(subModel, updates)
+			genUpdateClause(subModel, w, vals, isFirst)
 		}
 	}
 }
 
-func genUpdateClause(model Model) (string, []interface{}) {
-	updates := make(exprList, 0, 16)
-	getUpdates(model, &updates)
-	return updates.toClause(assignExpr)
-}
-
-func genSimpleUpdateClause(model Model) (string, []interface{}) {
-	updates := make(exprList, 0, 16)
-	getUpdates(model, &updates)
-	return updates.toSimpleClause(assignExpr)
-}
-
-func getSelectedColumns(model Model, fields *[]interface{}) {
-	allFields := getAllFields(model)
-	for _, index := range model.getSelectedFieldIndexes() {
-		*fields = append(*fields, allFields[index])
-	}
-	aggs := model.getAggs()
-	for _, agg := range aggs {
-		*fields = append(*fields, agg)
+func genSimpleUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	if model.checkStatus(forUpdate) {
+		updates := model.getUpdates()
+		length := len(updates)
+		for i, update := range updates {
+			if isFirst {
+				isFirst = false
+				w.Write([]byte("SET "))
+				update.toSimpleClause(w, vals)
+			} else if i == 0 {
+				w.Write([]byte(", "))
+				update.toSimpleClause(w, vals)
+			}
+			if i != (length - 1) {
+				w.Write([]byte(", "))
+			}
+		}
 	}
 	for _, relInfo := range model.relations() {
-		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getSelectedColumns(relInfo.lastModel(), fields)
+		subModel := relInfo.lastModel()
+		if subModel.checkStatus(forUpdate | containSubUpdate) {
+			genUpdateClause(subModel, w, vals, isFirst)
 		}
 	}
-}
-
-func genSelectedClause(model Model) string {
-	var builder strings.Builder
-	builder.WriteString("SELECT ")
-	if _, ok := model.(ModelList); ok {
-		builder.WriteString("SQL_CALC_FOUND_ROWS ")
-	}
-	if model.checkStatus(distinct) {
-		builder.WriteString("DISTINCT ")
-	}
-	fields := make([]interface{}, 0, 64)
-	getSelectedColumns(model, &fields)
-	for _, field := range fields {
-		switch f := field.(type) {
-		case Field:
-			builder.WriteString(f.fullColName())
-			builder.WriteString(", ")
-		case aggregator:
-			clause, _ := f.getExpr().toClause()
-			builder.WriteString(clause)
-			builder.WriteString(" AS ")
-			builder.WriteString(f.getName())
-			builder.WriteString(", ")
-		default:
-			panic(fmt.Errorf("invalid field type (%T)", field))
-		}
-	}
-	return strings.TrimSuffix(builder.String(), ", ")
 }
 
 func getSelectFields(model Model) FieldList {
@@ -282,28 +266,20 @@ func getSelectFields(model Model) FieldList {
 	return selectFields
 }
 
-func getOrderBys(model Model, orderBys *[]refClauser) {
-	*orderBys = append(*orderBys, model.getOrderBys()...)
+func genOrderByClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	orderBys := model.getOrderBys()
+	for _, orderBy := range orderBys {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("ORDER BY "))
+		}
+		orderBy.toRefClause(w, vals)
+	}
 	for _, relInfo := range model.relations() {
 		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getOrderBys(relInfo.lastModel(), orderBys)
+			genOrderByClause(relInfo.lastModel(), w, vals, isFirst)
 		}
 	}
-}
-
-func genOrderByClause(model Model) string {
-	orderBys := make([]refClauser, 0, 8)
-	getOrderBys(model, &orderBys)
-	if len(orderBys) == 0 {
-		return ""
-	}
-	var builder strings.Builder
-	builder.WriteString("ORDER BY ")
-	for _, orderBy := range orderBys {
-		builder.WriteString(orderBy.toRefClause())
-		builder.WriteString(", ")
-	}
-	return strings.TrimSuffix(builder.String(), ", ")
 }
 
 func genPlaceHolder(val []interface{}) string {
@@ -324,41 +300,39 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func getTabRef(model Model, refs *[]string) {
+func genTabRefClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	if isFirst {
+		isFirst = false
+		w.Write([]byte("FROM "))
+	}
+	w.Write([]byte(model.fullTabName()))
+	w.Write([]byte(" "))
 	for _, relInfo := range model.relations() {
 		dstModel := relInfo.lastModel()
 		switch {
 		case dstModel.checkStatus(forJoin):
-			*refs = append(*refs, relInfo.toClause(join))
-			getTabRef(dstModel, refs)
+			relInfo.toClause(join, w, vals)
+			genTabRefClause(dstModel, w, vals, isFirst)
 		case dstModel.checkStatus(forLeftJoin):
-			*refs = append(*refs, relInfo.toClause(leftJoin))
-			getTabRef(dstModel, refs)
+			relInfo.toClause(leftJoin, w, vals)
+			genTabRefClause(dstModel, w, vals, isFirst)
 		case dstModel.checkStatus(forRightJoin):
-			*refs = append(*refs, relInfo.toClause(rightJoin))
-			getTabRef(dstModel, refs)
+			relInfo.toClause(rightJoin, w, vals)
+			genTabRefClause(dstModel, w, vals, isFirst)
 		}
 	}
 }
 
-func genTabRefClause(model Model) string {
-	refs := make([]string, 0, 4)
-	refs = append(refs, model.fullTabName())
-	getTabRef(model, &refs)
-	return strings.Join(refs, " ")
-}
-
-func genBackTabRefClause(model Model) string {
+func genBackTabRefClause(model Model, w io.Writer, vals *[]interface{}) {
+	w.Write([]byte("FROM "))
 	parent := model.getParent()
 	if parent == nil {
 		panic("no parent model for back query")
 	}
-	refs := make([]string, 0, 4)
-	refs = append(refs, parent.fullTabName())
 	var got bool
 	for _, relInfo := range parent.relations() {
 		if relInfo.lastModel() == model {
-			refs = append(refs, relInfo.toClause(join))
+			relInfo.toClause(join, w, vals)
 			got = true
 			break
 		}
@@ -366,101 +340,46 @@ func genBackTabRefClause(model Model) string {
 	if !got {
 		panic("cannot find relation")
 	}
-	getTabRef(model, &refs)
-	return strings.Join(refs, " ")
+	genTabRefClause(model, w, vals, false)
 }
 
-func getWheres(model Model, wheres *exprList) {
-	*wheres = append(*wheres, model.getWheres()...)
-	for _, relInfo := range model.relations() {
-		dstModel := relInfo.lastModel()
-		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getWheres(dstModel, wheres)
-		}
-	}
-}
-
-func genWhereClause(model Model) (string, []interface{}) {
-	wheres := make(exprList, 0, 8)
-	getWheres(model, &wheres)
-	if len(wheres) == 0 {
-		return "", nil
-	}
-	return wheres.toClause(whereExpr)
-}
-
-func genBackWhereClause(model Model) (string, []interface{}) {
-	parent := model.getParent()
-	if parent == nil {
-		panic("no parent model for back query")
-	}
-	wheres := make(exprList, 0, 8)
-	for _, k := range parent.PrimaryKey() {
-		wheres = append(wheres, NewExpr("@ = ?", k, k.value()))
-	}
-	getWheres(model, &wheres)
-	return wheres.toClause(whereExpr)
-}
-
-func genSimpleWhereClause(model Model) (string, []interface{}) {
-	wheres := model.getWheres()
-	if len(wheres) == 0 {
-		return "", nil
-	}
-	return wheres.toSimpleClause(whereExpr)
-}
-
-func genLimitClause(model Model) string {
+func genLimitClause(model Model, w io.Writer, vals *[]interface{}) {
 	limit, offset := model.getLimit()
 	if limit == 0 {
-		return ""
+		return
 	}
-	return fmt.Sprintf("LIMIT %d, %d", offset, limit)
+	w.Write([]byte(fmt.Sprintf("LIMIT %d, %d ", offset, limit)))
 }
 
-func getGroupByFields(model Model, groupBys *[]refClauser) {
-	for _, g := range model.getGroupBys() {
-		*groupBys = append(*groupBys, g)
+func genGroupByClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	for _, groupBy := range model.getGroupBys() {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("GROUP BY "))
+		}
+		groupBy.toRefClause(w, vals)
 	}
 	for _, relInfo := range model.relations() {
 		if model.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getGroupByFields(relInfo.lastModel(), groupBys)
+			genGroupByClause(relInfo.lastModel(), w, vals, isFirst)
 		}
 	}
 }
 
-func genGroupByClause(model Model) string {
-	groupBys := make([]refClauser, 0, 8)
-	getGroupByFields(model, &groupBys)
-	if len(groupBys) == 0 {
-		return ""
+func genHavingClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	for _, having := range model.getHavings() {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("HAVING "))
+		}
+		having.toClause(w, vals)
 	}
-	var builder strings.Builder
-	builder.WriteString("GROUP BY ")
-	for _, g := range groupBys {
-		builder.WriteString(g.toRefClause())
-		builder.WriteString(", ")
-	}
-	return strings.TrimSuffix(builder.String(), ", ")
-}
-
-func getHavings(model Model, havings *exprList) {
-	*havings = append(*havings, model.getHavings()...)
 	for _, relInfo := range model.relations() {
 		dstModel := relInfo.lastModel()
 		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getHavings(dstModel, havings)
+			genHavingClause(dstModel, w, vals, isFirst)
 		}
 	}
-}
-
-func genHavingClause(model Model) (string, []interface{}) {
-	havings := make(exprList, 0, 8)
-	getHavings(model, &havings)
-	if len(havings) == 0 {
-		return "", nil
-	}
-	return havings.toClause(havingExpr)
 }
 
 func genInsertClause(model Model) (string, []interface{}) {
@@ -588,8 +507,20 @@ func getDeleteModels(model Model, models *[]string) {
 	}
 }
 
-func genDeleteClause(model Model) string {
-	deleteModels := make([]string, 0, 4)
-	getDeleteModels(model, &deleteModels)
-	return fmt.Sprintf("DELETE %s", strings.Join(deleteModels, ", "))
+func genDeleteClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+	if model.checkStatus(forDelete) {
+		if isFirst {
+			isFirst = false
+			w.Write([]byte("DELETE "))
+		} else {
+			w.Write([]byte(", "))
+		}
+		w.Write([]byte(model.getAlias()))
+	}
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genDeleteClause(dstModel, w, vals, isFirst)
+		}
+	}
 }

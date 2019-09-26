@@ -1,6 +1,8 @@
 package nborm
 
-import "fmt"
+import (
+	"io"
+)
 
 type orderType string
 
@@ -10,18 +12,22 @@ const (
 )
 
 type orderBy struct {
-	refClauser refClauser
+	referencer referencer
 	order      orderType
 }
 
-func newOrderBy(refClauser refClauser, order orderType) *orderBy {
-	return &orderBy{refClauser, order}
+func newOrderBy(referencer referencer, order orderType) *orderBy {
+	return &orderBy{referencer, order}
 }
 
-func (o *orderBy) toRefClause() string {
-	return fmt.Sprintf("%s %s", o.refClauser.toRefClause(), o.order)
+func (o *orderBy) toRefClause(w io.Writer, vals *[]interface{}) {
+	o.referencer.toRefClause(w, vals)
+	w.Write([]byte(string(o.order)))
+	w.Write([]byte(" "))
 }
 
-func (o *orderBy) toSimpleRefClause() string {
-	return fmt.Sprintf("%s %s", o.refClauser.toSimpleRefClause(), o.order)
+func (o *orderBy) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+	o.referencer.toSimpleRefClause(w, vals)
+	w.Write([]byte(string(o.order)))
+	w.Write([]byte(" "))
 }

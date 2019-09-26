@@ -13,11 +13,13 @@ import (
 
 // InsertOrUpdateOne 插入或更新
 func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
-	stmt, values := genInsertOrUpdateStmt(model)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genInsertOrUpdateStmt(model, &builder, &values)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
 	}
-	res, err := exe.Exec(stmt, values...)
+	res, err := exe.Exec(builder.String(), values...)
 	if err != nil {
 		return
 	}
@@ -42,13 +44,15 @@ func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 
 // InsertOne 插入
 func InsertOne(exe Executor, model Model) error {
-	stmt, values := genInsertStmt(model)
-	res, err := exe.Exec(stmt, values...)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genInsertStmt(model, &builder, &values)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
+	}
+	res, err := exe.Exec(builder.String(), values...)
 	if err != nil {
 		return err
-	}
-	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
 	}
 	if model.AutoIncField() != nil {
 		lid, err := res.LastInsertId()
@@ -63,22 +67,25 @@ func InsertOne(exe Executor, model Model) error {
 
 // Query 查询
 func Query(exe Executor, m Model) error {
-	stmt, values := genSelectStmt(m)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genSelectStmt(m, &builder, &values)
 	if DEBUG {
-		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
 
 	}
-	return queryAndScan(exe, m, stmt, values...)
+	return queryAndScan(exe, m, builder.String(), values...)
 }
 
 // CacheQuery 缓存查询
 func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
-	stmt, values := genSelectStmt(m)
-	if DEBUG {
-		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
-	}
 	var builder strings.Builder
-	builder.WriteString(stmt)
+	values := make([]interface{}, 0, 16)
+	genSelectStmt(m, &builder, &values)
+	if DEBUG {
+		log.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
+	}
+	stmt := builder.String()
 	for _, val := range values {
 		builder.WriteString(fmt.Sprintf("%v", val))
 	}
@@ -111,30 +118,34 @@ func CacheQuery(exe Executor, m Model, timeout time.Duration) error {
 
 // BackQuery 反向关联查询
 func BackQuery(exe Executor, model Model) error {
-	stmt, values := genBackQueryStmt(model)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genBackQueryStmt(model, &builder, &values)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
 	}
-	return queryAndScan(exe, model, stmt, values...)
+	return queryAndScan(exe, model, builder.String(), values...)
 
 }
 
 // Update 更新
 func Update(exe Executor, model Model) (sql.Result, error) {
-	stmt, values := genUpdateStmt(model)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genUpdateStmt(model, &builder, &values)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
 	}
-	return exe.Exec(stmt, values...)
+	return exe.Exec(builder.String(), values...)
 }
 
 // Delete 删除
 func Delete(exe Executor, model Model) (sql.Result, error) {
-	// whereClause, whereValues := genSimpleWhereClause(model)
-	// stmt := fmt.Sprintf("DELETE FROM %s %s", model.rawFullTabName(), whereClause)
-	stmt, values := genDeleteStmt(model)
+	var builder strings.Builder
+	values := make([]interface{}, 0, 16)
+	genDeleteStmt(model, &builder, &values)
 	if DEBUG {
-		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", stmt, values)))
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s %v", builder.String(), values)))
 	}
-	return exe.Exec(stmt, values...)
+	return exe.Exec(builder.String(), values...)
 }

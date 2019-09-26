@@ -44,16 +44,15 @@ func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 }
 
 // toClause 自定义表达式转化为sql的子句
-func (e *Expr) toClause() (string, []interface{}) {
+func (e *Expr) toClause(w io.Writer, vals *[]interface{}) {
 	if len(e.values) == 0 {
-		return e.exp, nil
+		w.Write([]byte(e.exp))
+		return
 	}
 	reader := strings.NewReader(e.exp)
 	stat := normal
 	quoteStack := make([]rune, 0, 8)
-	values := make([]interface{}, 0, len(e.values))
 	var fieldIndex int
-	var builder strings.Builder
 	for r, _, err := reader.ReadRune(); ; r, _, err = reader.ReadRune() {
 		if err != nil {
 			if err == io.EOF {
@@ -66,56 +65,46 @@ func (e *Expr) toClause() (string, []interface{}) {
 			if stat == normal {
 				stat = inQuote
 				quoteStack = append(quoteStack, r)
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			} else {
 				if quoteStack[len(quoteStack)-1] == r {
 					quoteStack = quoteStack[:len(quoteStack)-1]
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
-					builder.WriteRune(r)
+
 				} else {
 					quoteStack = append(quoteStack, r)
-					builder.WriteRune(r)
+					w.Write([]byte(string(r)))
 				}
 			}
 		case '@':
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case clauser:
-					cs, cv := c.toClause()
-					builder.WriteString(cs)
-					values = append(values, cv...)
-				case refClauser:
-					cs := c.toRefClause()
-					builder.WriteString(cs)
+					c.toClause(w, vals)
 				default:
 					panic(fmt.Errorf("invalid argument type (%T)", c))
 				}
-				// builder.WriteString(e.values[fieldIndex].(ValueField).fullColName())
 				fieldIndex++
 			} else {
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			}
 		case '?':
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					cs, vs := c.toClause()
-					builder.WriteString(cs)
-					values = append(values, vs...)
+					c.toClause(w, vals)
 				default:
-					builder.WriteString(valToPlaceholder(c))
-					values = append(values, expandArg(c)...)
+					w.Write([]byte(valToPlaceholder(c)))
+					*vals = append(*vals, expandArg(c)...)
 				}
-				// builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
-				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			}
 		default:
-			builder.WriteRune(r)
+			w.Write([]byte(string(r)))
 		}
 	}
 	if stat != normal {
@@ -124,20 +113,19 @@ func (e *Expr) toClause() (string, []interface{}) {
 	if len(e.values) != fieldIndex {
 		panic(fmt.Errorf("extra field for express (fields: %v)", e.values))
 	}
-	return builder.String(), values
+	w.Write([]byte(" "))
 }
 
 // toSimpleClause 自定义表达式转化为sql子句，其中涉及到表名的全部用表的原名而不是用别名
-func (e *Expr) toSimpleClause() (string, []interface{}) {
+func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}) {
 	if len(e.values) == 0 {
-		return e.exp, nil
+		w.Write([]byte(e.exp))
+		return
 	}
 	reader := strings.NewReader(e.exp)
 	stat := normal
 	quoteStack := make([]rune, 0, 8)
-	values := make([]interface{}, 0, len(e.values))
 	var fieldIndex int
-	var builder strings.Builder
 	for r, _, err := reader.ReadRune(); ; r, _, err = reader.ReadRune() {
 		if err != nil {
 			if err == io.EOF {
@@ -150,57 +138,46 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 			if stat == normal {
 				stat = inQuote
 				quoteStack = append(quoteStack, r)
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			} else {
 				if quoteStack[len(quoteStack)-1] == r {
 					quoteStack = quoteStack[:len(quoteStack)-1]
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
-					builder.WriteRune(r)
+					w.Write([]byte(string(r)))
 				} else {
 					quoteStack = append(quoteStack, r)
-					builder.WriteRune(r)
+					w.Write([]byte(string(r)))
 				}
 			}
 		case '@':
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case clauser:
-					cs, cv := c.toSimpleClause()
-					builder.WriteString(cs)
-					values = append(values, cv...)
-				case refClauser:
-					cs := c.toSimpleRefClause()
-					builder.WriteString(cs)
+					c.toSimpleClause(w, vals)
 				default:
 					panic(fmt.Errorf("invalid argument type (expr: %s, type: %T, values: %v)", e.exp, c, e.values))
 				}
-				// builder.WriteString(e.values[fieldIndex].(Field).rawFullColName())
-				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			}
 		case '?':
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					cs, vs := c.toSimpleClause()
-					builder.WriteString(cs)
-					values = append(values, vs...)
+					c.toSimpleClause(w, vals)
 				default:
-					builder.WriteString(valToPlaceholder(c))
-					values = append(values, expandArg(c)...)
+					w.Write([]byte(valToPlaceholder(c)))
+					*vals = append(*vals, expandArg(c)...)
 				}
-				// builder.WriteString(valToPlaceholder(e.values[fieldIndex]))
-				// values = append(values, expandArg(e.values[fieldIndex])...)
 				fieldIndex++
 			} else {
-				builder.WriteRune(r)
+				w.Write([]byte(string(r)))
 			}
 		default:
-			builder.WriteRune(r)
+			w.Write([]byte(string(r)))
 		}
 	}
 	if stat != normal {
@@ -209,63 +186,223 @@ func (e *Expr) toSimpleClause() (string, []interface{}) {
 	if len(e.values) != fieldIndex {
 		panic(fmt.Errorf("extra field for express (fields: %v)", e.values))
 	}
-	return builder.String(), values
+	w.Write([]byte(" "))
 }
 
-func (e *Expr) toRefClause() string {
-	c, _ := e.toClause()
-	return c
+func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}) {
+	if len(e.values) == 0 {
+		w.Write([]byte(e.exp))
+		return
+	}
+	reader := strings.NewReader(e.exp)
+	stat := normal
+	quoteStack := make([]rune, 0, 8)
+	var fieldIndex int
+	for r, _, err := reader.ReadRune(); ; r, _, err = reader.ReadRune() {
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+		switch r {
+		case '"', '`', '\'':
+			if stat == normal {
+				stat = inQuote
+				quoteStack = append(quoteStack, r)
+				w.Write([]byte(string(r)))
+			} else {
+				if quoteStack[len(quoteStack)-1] == r {
+					quoteStack = quoteStack[:len(quoteStack)-1]
+					if len(quoteStack) == 0 {
+						stat = normal
+					}
+
+				} else {
+					quoteStack = append(quoteStack, r)
+					w.Write([]byte(string(r)))
+				}
+			}
+		case '@':
+			if stat == normal {
+				switch c := e.values[fieldIndex].(type) {
+				case referencer:
+					c.toRefClause(w, vals)
+				default:
+					panic(fmt.Errorf("invalid argument type (%T)", c))
+				}
+				fieldIndex++
+			} else {
+				w.Write([]byte(string(r)))
+			}
+		case '?':
+			if stat == normal {
+				switch c := e.values[fieldIndex].(type) {
+				case *Expr:
+					c.toClause(w, vals)
+				default:
+					w.Write([]byte(valToPlaceholder(c)))
+					*vals = append(*vals, expandArg(c)...)
+				}
+				fieldIndex++
+			} else {
+				w.Write([]byte(string(r)))
+			}
+		default:
+			w.Write([]byte(string(r)))
+		}
+	}
+	if stat != normal {
+		panic(fmt.Errorf("no closed expression (exp: %s)", e.exp))
+	}
+	if len(e.values) != fieldIndex {
+		panic(fmt.Errorf("extra field for express (fields: %v)", e.values))
+	}
+	w.Write([]byte(" "))
 }
 
-func (e *Expr) toSimpleRefClause() string {
-	c, _ := e.toSimpleClause()
-	return c
+func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+	if len(e.values) == 0 {
+		w.Write([]byte(e.exp))
+		return
+	}
+	reader := strings.NewReader(e.exp)
+	stat := normal
+	quoteStack := make([]rune, 0, 8)
+	var fieldIndex int
+	for r, _, err := reader.ReadRune(); ; r, _, err = reader.ReadRune() {
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+		switch r {
+		case '"', '`', '\'':
+			if stat == normal {
+				stat = inQuote
+				quoteStack = append(quoteStack, r)
+				w.Write([]byte(string(r)))
+			} else {
+				if quoteStack[len(quoteStack)-1] == r {
+					quoteStack = quoteStack[:len(quoteStack)-1]
+					if len(quoteStack) == 0 {
+						stat = normal
+					}
+					w.Write([]byte(string(r)))
+				} else {
+					quoteStack = append(quoteStack, r)
+					w.Write([]byte(string(r)))
+				}
+			}
+		case '@':
+			if stat == normal {
+				switch c := e.values[fieldIndex].(type) {
+				case referencer:
+					c.toSimpleRefClause(w, vals)
+				default:
+					panic(fmt.Errorf("invalid argument type (expr: %s, type: %T, values: %v)", e.exp, c, e.values))
+				}
+				fieldIndex++
+			} else {
+				w.Write([]byte(string(r)))
+			}
+		case '?':
+			if stat == normal {
+				switch c := e.values[fieldIndex].(type) {
+				case *Expr:
+					c.toSimpleClause(w, vals)
+				default:
+					w.Write([]byte(valToPlaceholder(c)))
+					*vals = append(*vals, expandArg(c)...)
+				}
+				fieldIndex++
+			} else {
+				w.Write([]byte(string(r)))
+			}
+		default:
+			w.Write([]byte(string(r)))
+		}
+	}
+	if stat != normal {
+		panic(fmt.Errorf("no closed expression (exp: %s)", e.exp))
+	}
+	if len(e.values) != fieldIndex {
+		panic(fmt.Errorf("extra field for express (fields: %v)", e.values))
+	}
+	w.Write([]byte(" "))
 }
 
 // exprList 自定义sql表达式列表类型
 type exprList []*Expr
 
 // toClause 将sql自定义表达式列表转化为sql子句
-func (l exprList) toClause(exprType exprType) (string, []interface{}) {
+func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}) {
 	if len(l) == 0 {
-		return "", nil
+		return
 	}
-	cl := make([]string, 0, len(l))
-	vl := make([]interface{}, 0, len(l)*2)
+	var clauseBuilder strings.Builder
 	for _, exp := range l {
-		c, vs := exp.toClause()
-		cl = append(cl, c)
-		vl = append(vl, vs...)
+		exp.toClause(&clauseBuilder, vals)
 	}
 	switch exprType {
 	case whereExpr:
-		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
+		w.Write([]byte("WHERE "))
+		var builder strings.Builder
+		for _, exp := range l {
+			exp.toClause(&builder, vals)
+		}
+		w.Write([]byte(trimPreAndOr(builder.String())))
+		w.Write([]byte(" "))
 	case assignExpr:
-		return strings.Join(cl, ", "), vl
+		for _, exp := range l {
+			exp.toClause(w, vals)
+			w.Write([]byte(", "))
+		}
 	case havingExpr:
-		return fmt.Sprintf("HAVING %s", trimPreAndOr(strings.Join(cl, " "))), vl
+		w.Write([]byte("HAVING "))
+		var builder strings.Builder
+		for _, exp := range l {
+			exp.toClause(&builder, vals)
+		}
+		w.Write([]byte(trimPreAndOr(builder.String())))
+		w.Write([]byte(" "))
 	default:
 		panic(fmt.Errorf("unknown expr type(%d)", exprType))
 	}
 }
 
 // toSimpleClause 将sql自定义表达式转化为sql子句, 其中表名全部用原表名而不是别名
-func (l exprList) toSimpleClause(exprType exprType) (string, []interface{}) {
+func (l exprList) toSimpleClause(exprType exprType, w io.Writer, vals *[]interface{}) {
 	if len(l) == 0 {
-		return "", nil
+		return
 	}
-	cl := make([]string, 0, len(l))
-	vl := make([]interface{}, 0, len(l)*2)
+	var clauseBuilder strings.Builder
 	for _, exp := range l {
-		c, vs := exp.toSimpleClause()
-		cl = append(cl, c)
-		vl = append(vl, vs...)
+		exp.toClause(&clauseBuilder, vals)
 	}
 	switch exprType {
 	case whereExpr:
-		return fmt.Sprintf("WHERE %s", trimPreAndOr(strings.Join(cl, " "))), vl
+		w.Write([]byte("WHERE "))
+		var builder strings.Builder
+		for _, exp := range l {
+			exp.toSimpleClause(&builder, vals)
+		}
+		w.Write([]byte(trimPreAndOr(builder.String())))
+		w.Write([]byte(" "))
 	case assignExpr:
-		return strings.Join(cl, ", "), vl
+		for _, exp := range l {
+			exp.toSimpleClause(w, vals)
+			w.Write([]byte(", "))
+		}
+	case havingExpr:
+		w.Write([]byte("HAVING "))
+		var builder strings.Builder
+		for _, exp := range l {
+			exp.toSimpleClause(&builder, vals)
+		}
+		w.Write([]byte(trimPreAndOr(builder.String())))
+		w.Write([]byte(" "))
 	default:
 		panic(fmt.Errorf("unknown expr type(%d)", exprType))
 	}

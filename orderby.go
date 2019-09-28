@@ -20,14 +20,14 @@ func newOrderBy(referencer referencer, order orderType) *orderBy {
 	return &orderBy{referencer, order}
 }
 
-func (o *orderBy) toRefClause(w io.Writer, vals *[]interface{}) {
-	o.referencer.toRefClause(w, vals)
+func (o *orderBy) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+	o.referencer.toRefClause(w, vals, isFirstGroup, isFirstNode)
 	w.Write([]byte(string(o.order)))
 	w.Write([]byte(" "))
 }
 
-func (o *orderBy) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
-	o.referencer.toSimpleRefClause(w, vals)
+func (o *orderBy) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+	o.referencer.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
 	w.Write([]byte(string(o.order)))
 	w.Write([]byte(" "))
 }

@@ -44,7 +44,7 @@ func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 }
 
 // toClause 自定义表达式转化为sql的子句
-func (e *Expr) toClause(w io.Writer, vals *[]interface{}) {
+func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -82,7 +82,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case clauser:
-					c.toClause(w, vals)
+					c.toClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					panic(fmt.Errorf("invalid argument type (%T)", c))
 				}
@@ -94,7 +94,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					c.toClause(w, vals)
+					c.toClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					w.Write([]byte(valToPlaceholder(c)))
 					*vals = append(*vals, expandArg(c)...)
@@ -117,7 +117,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}) {
 }
 
 // toSimpleClause 自定义表达式转化为sql子句，其中涉及到表名的全部用表的原名而不是用别名
-func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}) {
+func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -155,7 +155,7 @@ func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case clauser:
-					c.toSimpleClause(w, vals)
+					c.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					panic(fmt.Errorf("invalid argument type (expr: %s, type: %T, values: %v)", e.exp, c, e.values))
 				}
@@ -167,7 +167,7 @@ func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					c.toSimpleClause(w, vals)
+					c.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					w.Write([]byte(valToPlaceholder(c)))
 					*vals = append(*vals, expandArg(c)...)
@@ -189,7 +189,7 @@ func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}) {
 	w.Write([]byte(" "))
 }
 
-func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}) {
+func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -227,7 +227,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case referencer:
-					c.toRefClause(w, vals)
+					c.toRefClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					panic(fmt.Errorf("invalid argument type (%T)", c))
 				}
@@ -239,7 +239,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					c.toClause(w, vals)
+					c.toClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					w.Write([]byte(valToPlaceholder(c)))
 					*vals = append(*vals, expandArg(c)...)
@@ -261,7 +261,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}) {
 	w.Write([]byte(" "))
 }
 
-func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -299,7 +299,7 @@ func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case referencer:
-					c.toSimpleRefClause(w, vals)
+					c.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					panic(fmt.Errorf("invalid argument type (expr: %s, type: %T, values: %v)", e.exp, c, e.values))
 				}
@@ -311,7 +311,7 @@ func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
 			if stat == normal {
 				switch c := e.values[fieldIndex].(type) {
 				case *Expr:
-					c.toSimpleClause(w, vals)
+					c.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 				default:
 					w.Write([]byte(valToPlaceholder(c)))
 					*vals = append(*vals, expandArg(c)...)
@@ -337,33 +337,33 @@ func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
 type exprList []*Expr
 
 // toClause 将sql自定义表达式列表转化为sql子句
-func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}) {
+func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(l) == 0 {
 		return
 	}
 	var clauseBuilder strings.Builder
 	for _, exp := range l {
-		exp.toClause(&clauseBuilder, vals)
+		exp.toClause(&clauseBuilder, vals, isFirstGroup, isFirstNode)
 	}
 	switch exprType {
 	case whereExpr:
 		w.Write([]byte("WHERE "))
 		var builder strings.Builder
 		for _, exp := range l {
-			exp.toClause(&builder, vals)
+			exp.toClause(&builder, vals, isFirstGroup, isFirstNode)
 		}
 		w.Write([]byte(trimPreAndOr(builder.String())))
 		w.Write([]byte(" "))
 	case assignExpr:
 		for _, exp := range l {
-			exp.toClause(w, vals)
+			exp.toClause(w, vals, isFirstGroup, isFirstNode)
 			w.Write([]byte(", "))
 		}
 	case havingExpr:
 		w.Write([]byte("HAVING "))
 		var builder strings.Builder
 		for _, exp := range l {
-			exp.toClause(&builder, vals)
+			exp.toClause(&builder, vals, isFirstGroup, isFirstNode)
 		}
 		w.Write([]byte(trimPreAndOr(builder.String())))
 		w.Write([]byte(" "))
@@ -373,33 +373,33 @@ func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}) 
 }
 
 // toSimpleClause 将sql自定义表达式转化为sql子句, 其中表名全部用原表名而不是别名
-func (l exprList) toSimpleClause(exprType exprType, w io.Writer, vals *[]interface{}) {
+func (l exprList) toSimpleClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	if len(l) == 0 {
 		return
 	}
 	var clauseBuilder strings.Builder
 	for _, exp := range l {
-		exp.toClause(&clauseBuilder, vals)
+		exp.toClause(&clauseBuilder, vals, isFirstGroup, isFirstNode)
 	}
 	switch exprType {
 	case whereExpr:
 		w.Write([]byte("WHERE "))
 		var builder strings.Builder
 		for _, exp := range l {
-			exp.toSimpleClause(&builder, vals)
+			exp.toSimpleClause(&builder, vals, isFirstGroup, isFirstNode)
 		}
 		w.Write([]byte(trimPreAndOr(builder.String())))
 		w.Write([]byte(" "))
 	case assignExpr:
 		for _, exp := range l {
-			exp.toSimpleClause(w, vals)
+			exp.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 			w.Write([]byte(", "))
 		}
 	case havingExpr:
 		w.Write([]byte("HAVING "))
 		var builder strings.Builder
 		for _, exp := range l {
-			exp.toSimpleClause(&builder, vals)
+			exp.toSimpleClause(&builder, vals, isFirstGroup, isFirstNode)
 		}
 		w.Write([]byte(trimPreAndOr(builder.String())))
 		w.Write([]byte(" "))

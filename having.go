@@ -2,90 +2,64 @@ package nborm
 
 import "io"
 
-type whereRelation string
-
-const (
-	whereAnd whereRelation = "AND"
-	whereOr  whereRelation = "OR"
-)
-
-type wherer interface {
+type havinger interface {
 	toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
 	toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
 	toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
 	toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	nextNode() wherer
-	lastNode() wherer
-	append(w wherer)
+	nextNode() havinger
+	lastNode() havinger
+	append(w havinger)
 }
 
-type where struct {
+type having struct {
 	expr *Expr
 	rel  whereRelation
-	next wherer
+	next havinger
 }
 
-func (w *where) toClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
-	if w == nil {
+func (h *having) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+	if h == nil {
 		return
 	}
 	if isFirstGroup {
 		isFirstGroup = false
-		wr.Write([]byte("WHERE "))
+		w.Write([]byte("HAVING "))
 	}
 	if isFirstNode {
 		isFirstNode = false
 	} else {
-		wr.Write([]byte(string(w.rel)))
-		wr.Write([]byte(" "))
+		w.Write([]byte(string(h.rel)))
+		w.Write([]byte(" "))
 	}
-	w.expr.toClause(wr, vals, false, false)
-	if w.next != nil {
-		w.next.toClause(wr, vals, isFirstGroup, isFirstNode)
+	h.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	if h.next != nil {
+		h.next.toClause(w, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) toSimpleClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
-	if w == nil {
+func (h *having) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+	if h == nil {
 		return
 	}
 	if isFirstGroup {
 		isFirstGroup = false
-		wr.Write([]byte("WHERE "))
+		w.Write([]byte("HAVING "))
 	}
 	if isFirstNode {
 		isFirstNode = false
 	} else {
-		wr.Write([]byte(string(w.rel)))
-		wr.Write([]byte(" "))
+		w.Write([]byte(string(h.rel)))
+		w.Write([]byte(" "))
 	}
-	w.expr.toSimpleClause(wr, vals, false, false)
-	if w.next != nil {
-		w.next.toSimpleClause(wr, vals, isFirstGroup, isFirstNode)
-	}
-}
-
-func (w *where) toRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
-	if w == nil {
-		return
-	}
-	if isFirstGroup {
-		isFirstGroup = false
-	}
-	if isFirstNode {
-		isFirstNode = false
-	} else {
-		wr.Write([]byte(string(w.rel)))
-		wr.Write([]byte(" "))
-	}
-	w.expr.toRefClause(wr, vals, false, false)
-	if w.next != nil {
-		w.next.toRefClause(wr, vals, isFirstGroup, isFirstNode)
+	h.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	if h.next != nil {
+		h.next.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) toSimpleRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
-	if w == nil {
+func (h *having) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+	if h == nil {
 		return
 	}
 	if isFirstGroup {
@@ -94,54 +68,73 @@ func (w *where) toSimpleRefClause(wr io.Writer, vals *[]interface{}, isFirstGrou
 	if isFirstNode {
 		isFirstNode = false
 	} else {
-		wr.Write([]byte(string(w.rel)))
-		wr.Write([]byte(" "))
+		w.Write([]byte(string(h.rel)))
+		w.Write([]byte(" "))
 	}
-	w.expr.toSimpleRefClause(wr, vals, false, false)
-	if w.next != nil {
-		w.next.toSimpleRefClause(wr, vals, isFirstGroup, isFirstNode)
+	h.expr.toRefClause(w, vals, isFirstGroup, isFirstNode)
+	if h.next != nil {
+		h.next.toRefClause(w, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) nextNode() wherer {
-	return w.next
+func (h *having) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+	if h == nil {
+		return
+	}
+	if isFirstGroup {
+		isFirstGroup = false
+	}
+	if isFirstNode {
+		isFirstNode = false
+	} else {
+		w.Write([]byte(string(h.rel)))
+		w.Write([]byte(" "))
+	}
+	h.expr.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
+	if h.next != nil {
+		h.next.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
+	}
 }
 
-func (w *where) lastNode() wherer {
-	if w == nil {
+func (h *having) nextNode() havinger {
+	return h.next
+}
+
+func (h *having) lastNode() havinger {
+	if h == nil {
 		return nil
 	}
-	var last wherer = w
+	var last havinger = h
 	for last.nextNode() != nil {
 		last = last.nextNode()
 	}
 	return last
 }
 
-func (w *where) append(wherer wherer) {
-	w.next = wherer
+func (h *having) append(havinger havinger) {
+	h.next = havinger
 }
 
-func newWhere(expr *Expr, rel whereRelation) *where {
-	return &where{
+func newHaving(expr *Expr, rel whereRelation) *having {
+	return &having{
 		expr: expr,
 		rel:  rel,
 	}
 }
 
-type whereGroup struct {
-	first wherer
+type havingGroup struct {
+	first havinger
 	rel   whereRelation
-	next  wherer
+	next  havinger
 }
 
-func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
 	if g == nil {
 		return
 	}
 	if isFirstGroup {
 		isFirstGroup = false
-		w.Write([]byte("WHERE ("))
+		w.Write([]byte("HAVING ("))
 	}
 	if isFirstNode {
 		isFirstNode = false
@@ -156,13 +149,13 @@ func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup boo
 	}
 }
 
-func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
 	if g == nil {
 		return
 	}
 	if isFirstGroup {
 		isFirstGroup = false
-		w.Write([]byte("WHERE ("))
+		w.Write([]byte("HAVING ("))
 	}
 	if isFirstNode {
 		isFirstNode = false
@@ -177,7 +170,7 @@ func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGro
 	}
 }
 
-func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
 	if g == nil {
 		return
 	}
@@ -198,7 +191,7 @@ func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup 
 	}
 }
 
-func (g *whereGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
 	if g == nil {
 		return
 	}
@@ -219,32 +212,32 @@ func (g *whereGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirst
 	}
 }
 
-func (g *whereGroup) nextNode() wherer {
+func (g *havingGroup) nextNode() havinger {
 	return g.next
 }
 
-func (g *whereGroup) lastNode() wherer {
+func (g *havingGroup) lastNode() havinger {
 	if g == nil {
 		return nil
 	}
-	var last wherer = g
+	var last havinger = g
 	for last.nextNode() != nil {
 		last = last.nextNode()
 	}
 	return last
 }
 
-func (g *whereGroup) append(w wherer) {
+func (g *havingGroup) append(w havinger) {
 	g.next = w
 }
 
-func groupWherers(groupRel whereRelation, wherers ...wherer) *whereGroup {
-	if len(wherers) == 0 {
+func groupHavings(groupRel whereRelation, havingers ...havinger) *havingGroup {
+	if len(havingers) == 0 {
 		return nil
 	}
-	g := new(whereGroup)
-	g.first = wherers[0]
-	for _, w := range wherers[1:] {
+	g := new(havingGroup)
+	g.first = havingers[0]
+	for _, w := range havingers[1:] {
 		g.first.lastNode().append(w)
 	}
 	g.rel = groupRel

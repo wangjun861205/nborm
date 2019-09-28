@@ -67,7 +67,7 @@ func (r *RelationInfo) toClause(joinType joinType, w io.Writer, vals *[]interfac
 		w.Write([]byte(" "))
 		w.Write([]byte(rel.dstModel.fullTabName()))
 		w.Write([]byte(" ON "))
-		rel.on.toClause(w, vals)
+		rel.on.toClause(w, vals, false, false)
 	}
 }
 
@@ -81,14 +81,14 @@ func (r *RelationInfo) toRevClause(srcModel Model, joinType joinType, w io.Write
 		w.Write([]byte(" "))
 		w.Write([]byte(last.prev.dstModel.fullTabName()))
 		w.Write([]byte(" ON "))
-		last.on.toClause(w, vals)
+		last.on.toClause(w, vals, false, false)
 		last = last.prev
 	}
 	w.Write([]byte(string(joinType)))
 	w.Write([]byte(" "))
 	w.Write([]byte(srcModel.fullTabName()))
 	w.Write([]byte(" ON "))
-	last.on.toClause(w, vals)
+	last.on.toClause(w, vals, false, false)
 }
 
 // RelationInfoList 关系列表

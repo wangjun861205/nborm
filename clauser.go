@@ -5,11 +5,11 @@ import (
 )
 
 type clauser interface {
-	toClause(w io.Writer, vals *[]interface{})
-	toSimpleClause(w io.Writer, vals *[]interface{})
+	toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool)
+	toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool)
 }
 
 type referencer interface {
-	toRefClause(w io.Writer, vals *[]interface{})
-	toSimpleRefClause(w io.Writer, vals *[]interface{})
+	toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool)
+	toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool)
 }

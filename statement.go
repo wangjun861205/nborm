@@ -9,16 +9,16 @@ func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte(model.rawFullTabName()))
 	w.Write([]byte(" SET "))
 	inserts := model.getInserts()
-	inserts.toSimpleClause(assignExpr, w, vals)
+	inserts.toSimpleClause(assignExpr, w, vals, true, true)
 }
 
 func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("INSERT INTO "))
 	w.Write([]byte(model.rawFullTabName()))
 	w.Write([]byte(" SET "))
-	model.getInserts().toSimpleClause(assignExpr, w, vals)
+	model.getInserts().toSimpleClause(assignExpr, w, vals, true, true)
 	w.Write([]byte(" ON DUPLICATE KEY UPDATE "))
-	model.getUpdates().toSimpleClause(assignExpr, w, vals)
+	model.getUpdates().toSimpleClause(assignExpr, w, vals, true, true)
 }
 
 func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
@@ -77,7 +77,7 @@ func genSelectedClause(model Model, w io.Writer, vals *[]interface{}, isFirst bo
 		} else if i == 0 {
 			w.Write([]byte(", "))
 		}
-		fieldInfos[idx].Field.toRefClause(w, vals)
+		fieldInfos[idx].Field.toRefClause(w, vals, false, false)
 		if i != (fieldLength - 1) {
 			w.Write([]byte(", "))
 		}
@@ -97,7 +97,7 @@ func genSelectedClause(model Model, w io.Writer, vals *[]interface{}, isFirst bo
 		} else if i == 0 {
 			w.Write([]byte(", "))
 		}
-		agg.toClause(w, vals)
+		agg.toClause(w, vals, false, false)
 		if i != (aggLength - 1) {
 			w.Write([]byte(", "))
 		}
@@ -137,7 +137,7 @@ func genBackWhereClause(model Model, w io.Writer, vals *[]interface{}) {
 	}
 	for _, k := range parent.PrimaryKey() {
 		w.Write([]byte("WHERE "))
-		NewExpr("@ = ?", k, k.value()).toClause(w, vals)
+		NewExpr("@ = ?", k, k.value()).toClause(w, vals, false, false)
 
 	}
 	genWhereClause(model, w, vals, false, false)

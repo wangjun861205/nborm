@@ -214,10 +214,10 @@ func genUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool
 			if isFirst {
 				isFirst = false
 				w.Write([]byte("SET "))
-				update.toClause(w, vals)
+				update.toClause(w, vals, false, false)
 			} else if i == 0 {
 				w.Write([]byte(", "))
-				update.toClause(w, vals)
+				update.toClause(w, vals, false, false)
 			}
 			if i != (length - 1) {
 				w.Write([]byte(", "))
@@ -240,10 +240,10 @@ func genSimpleUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirs
 			if isFirst {
 				isFirst = false
 				w.Write([]byte("SET "))
-				update.toSimpleClause(w, vals)
+				update.toSimpleClause(w, vals, false, false)
 			} else if i == 0 {
 				w.Write([]byte(", "))
-				update.toSimpleClause(w, vals)
+				update.toSimpleClause(w, vals, false, false)
 			}
 			if i != (length - 1) {
 				w.Write([]byte(", "))
@@ -273,7 +273,7 @@ func genOrderByClause(model Model, w io.Writer, vals *[]interface{}, isFirst boo
 			isFirst = false
 			w.Write([]byte("ORDER BY "))
 		}
-		orderBy.toRefClause(w, vals)
+		orderBy.toRefClause(w, vals, false, false)
 	}
 	for _, relInfo := range model.relations() {
 		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
@@ -357,7 +357,7 @@ func genGroupByClause(model Model, w io.Writer, vals *[]interface{}, isFirst boo
 			isFirst = false
 			w.Write([]byte("GROUP BY "))
 		}
-		groupBy.toRefClause(w, vals)
+		groupBy.toRefClause(w, vals, false, false)
 	}
 	for _, relInfo := range model.relations() {
 		if model.checkStatus(forJoin | forLeftJoin | forRightJoin) {
@@ -372,7 +372,7 @@ func genHavingClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool
 			isFirst = false
 			w.Write([]byte("HAVING "))
 		}
-		having.toClause(w, vals)
+		having.toClause(w, vals, false, false)
 	}
 	for _, relInfo := range model.relations() {
 		dstModel := relInfo.lastModel()

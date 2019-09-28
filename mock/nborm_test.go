@@ -25,6 +25,7 @@ func TestNBorm(t *testing.T) {
 	ents := model.NewEmployEnterpriseList()
 	ents.ID.ForSelect()
 	ents.EmployFromThis.AndWhere(">", 10)
+	ents.AccountID.AndWhere("=", "hello")
 	if err := nborm.Query(db, ents); err != nil {
 		t.Fatal(err)
 	}

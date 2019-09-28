@@ -171,22 +171,22 @@ func (f *baseField) CopyStatus(dst Field) {
 	dst.setStatus(f.status)
 }
 
-func (f *baseField) toClause(w io.Writer, vals *[]interface{}) {
+func (f *baseField) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toSimpleClause(w io.Writer, vals *[]interface{}) {
+func (f *baseField) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.rawFullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toRefClause(w io.Writer, vals *[]interface{}) {
+func (f *baseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+func (f *baseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.rawFullColName()))
 	w.Write([]byte(" "))
 }
@@ -380,12 +380,12 @@ func (f *clauseField) Set(value interface{}) ClauseField {
 	return f
 }
 
-func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}) {
+func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.valueField().fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}) {
+func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	w.Write([]byte(f.valueField().rawFullColName()))
 	w.Write([]byte(" "))
 }

@@ -25,6 +25,7 @@ type Executor interface {
 // BaseField 基础字段
 type BaseField interface {
 	Model
+	id() string
 	colName() string
 	setCol(string)
 	fieldName() string
@@ -45,6 +46,8 @@ type BaseField interface {
 	ForSelect()
 	ForSum()
 	getFieldIndex() int
+	clauser
+	referencer
 }
 
 // ClauseField ClauseField
@@ -62,6 +65,7 @@ type ValueField interface {
 	BaseField
 	Scan(interface{}) error
 	value() interface{}
+	findOrCopy(m Model)
 }
 
 // Field Field
@@ -70,7 +74,6 @@ type Field interface {
 	ValueField
 	dup() Field
 	Init(Model, string, string, int)
-	referencer
 }
 
 type baseModel interface {
@@ -97,6 +100,7 @@ type clauseModel interface {
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model
 	GroupBySelectedFields() Model
+	appendSelector(s selector)
 }
 
 // Model Model

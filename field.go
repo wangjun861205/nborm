@@ -142,6 +142,10 @@ func (f *baseField) getFieldIndex() int {
 	return f.index
 }
 
+func (f *baseField) id() string {
+	return f.fieldName()
+}
+
 // ForSum 设置为总和字段
 func (f *baseField) ForSum() {
 	f.addStatus(forSelect)
@@ -399,6 +403,17 @@ func (f *stringValueField) init(model Model, colName, fieldName string, index in
 	f.baseField.init(model, colName, fieldName, index)
 }
 
+func (f *stringValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
+}
+
 // Scan 实现Scan接口
 func (f *stringValueField) Scan(v interface{}) error {
 	f.setValid()
@@ -494,6 +509,17 @@ type intValueField struct {
 
 func (f *intValueField) init(model Model, colName, fieldName string, index int) {
 	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *intValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
 }
 
 func (f *intValueField) Scan(v interface{}) error {
@@ -610,6 +636,17 @@ type dateValueField struct {
 
 func (f *dateValueField) init(model Model, colName, fieldName string, index int) {
 	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *dateValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
 }
 
 func (f *dateValueField) Scan(v interface{}) error {
@@ -732,6 +769,17 @@ type datetimeValueField struct {
 
 func (f *datetimeValueField) init(model Model, colName, fieldName string, index int) {
 	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *datetimeValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
 }
 
 func (f *datetimeValueField) Scan(v interface{}) error {
@@ -857,6 +905,17 @@ func (f *decimalValueField) init(model Model, colName, fieldName string, index i
 	f.baseField.init(model, colName, fieldName, index)
 }
 
+func (f *decimalValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
+}
+
 func (f *decimalValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
@@ -964,6 +1023,17 @@ func (f *timeValueField) init(model Model, colName, fieldName string, index int)
 	f.baseField.init(model, colName, fieldName, index)
 }
 
+func (f *timeValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
+}
+
 func (f *timeValueField) Scan(v interface{}) error {
 	f.setValid()
 	if v == nil {
@@ -1054,6 +1124,17 @@ type byteValueField struct {
 
 func (f *byteValueField) init(model Model, colName, fieldName string, index int) {
 	f.baseField.init(model, colName, fieldName, index)
+}
+
+func (f *byteValueField) findOrCopy(m Model) {
+	fieldInfos := m.FieldInfos()
+	for _, info := range fieldInfos {
+		if info.Field.fieldName() == f.fieldName() {
+			m.appendSelector(info.Field)
+			break
+		}
+	}
+	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
 }
 
 func (f *byteValueField) Scan(v interface{}) error {

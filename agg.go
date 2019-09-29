@@ -30,6 +30,16 @@ func newIntAgg(expr *Expr, name string) *IntAgg {
 	return &IntAgg{expr, name, f}
 }
 
+func (a *IntAgg) findOrCopy(m Model) {
+	na := newIntAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *IntAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
 func (a *IntAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
 }
@@ -81,6 +91,16 @@ func newStrAgg(expr *Expr, name string) *StrAgg {
 	f := new(String)
 	f.Init(nil, name, "", -1)
 	return &StrAgg{expr, name, f}
+}
+
+func (a *StrAgg) findOrCopy(m Model) {
+	na := newStrAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *StrAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
 }
 
 func (a *StrAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
@@ -136,6 +156,16 @@ func newDateAgg(expr *Expr, name string) *DateAgg {
 	return &DateAgg{expr, name, f}
 }
 
+func (a *DateAgg) findOrCopy(m Model) {
+	na := newDateAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *DateAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
 func (a *DateAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
 }
@@ -187,6 +217,16 @@ func newDatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	f := new(Datetime)
 	f.Init(nil, name, "", -1)
 	return &DatetimeAgg{expr, name, f}
+}
+
+func (a *DatetimeAgg) findOrCopy(m Model) {
+	na := newDatetimeAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *DatetimeAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
 }
 
 func (a *DatetimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
@@ -242,6 +282,16 @@ func newTimeAgg(expr *Expr, name string) *TimeAgg {
 	return &TimeAgg{expr, name, f}
 }
 
+func (a *TimeAgg) findOrCopy(m Model) {
+	na := newTimeAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *TimeAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
 func (a *TimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
 }
@@ -293,6 +343,16 @@ func newDecAgg(expr *Expr, name string) *DecimalAgg {
 	f := new(Decimal)
 	f.Init(nil, name, "", -1)
 	return &DecimalAgg{expr, name, f}
+}
+
+func (a *DecimalAgg) findOrCopy(m Model) {
+	na := newDecAgg(a.expr, a.name)
+	m.appendSelector(na)
+}
+
+// Scan 实现Scanner接口
+func (a *DecimalAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
 }
 
 func (a *DecimalAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {

@@ -188,15 +188,15 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 
 type modelClause struct {
 	Model
-	selectedFieldIndexes []int
-	inserts              exprList
-	wheres               wherer
-	updates              exprList
-	havings              exprList
-	orderBys             []referencer
-	groupBys             []referencer
-	aggs                 aggList
-	limit                [2]int
+	selectors []selector
+	inserts   exprList
+	wheres    wherer
+	updates   exprList
+	havings   exprList
+	orderBys  []referencer
+	groupBys  []referencer
+	aggs      aggList
+	limit     [2]int
 }
 
 func (m *modelClause) getInserts() exprList {
@@ -239,6 +239,10 @@ func (m *modelClause) appendHavings(having *Expr) {
 // SetLimit 设置Limit子句信息
 func (m *modelClause) SetLimit(limit, offset int) {
 	m.limit = [2]int{limit, offset}
+}
+
+func (m *modelClause) appendSelector(s selector) {
+	m.selectors = append(m.selectors, s)
 }
 
 func (m *modelClause) getLimit() (limit, offset int) {
@@ -422,17 +426,18 @@ func (m *modelClause) CopyAggs(dst Model) {
 	dst.setAggs(aggs)
 }
 
-func (m *modelClause) appendSelectedFieldIndexes(index int) {
-	m.selectedFieldIndexes = append(m.selectedFieldIndexes, index)
-}
+// func (m *modelClause) appendSelectedFieldIndexes(index int) {
+// 	m.selectedFieldIndexes = append(m.selectedFieldIndexes, index)
+// }
 
-func (m *modelClause) getSelectedFieldIndexes() []int {
-	return m.selectedFieldIndexes
-}
+// func (m *modelClause) getSelectedFieldIndexes() []int {
+// 	return m.selectedFieldIndexes
+// }
 
+// SelectAll 选择所有字段
 func (m *modelClause) SelectAll() Model {
-	for _, fieldInfos := range m.Model.FieldInfos() {
-		m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfos.Index)
+	for _, info := range m.Model.FieldInfos() {
+		m.appendSelector(info.Field)
 	}
 	return m
 }
@@ -445,9 +450,10 @@ func (m *modelClause) GroupBySelectedFields() Model {
 	return m
 }
 
+// SelectFields 选择某些字段
 func (m *modelClause) SelectFields(fields ...Field) Model {
 	for _, f := range fields {
-		m.selectedFieldIndexes = append(m.selectedFieldIndexes, f.getFieldIndex())
+		m.appendSelector(f)
 	}
 	return m
 }
@@ -459,7 +465,7 @@ func (m *modelClause) SelectExcept(fields ...Field) Model {
 	}
 	for _, fieldInfo := range m.Model.FieldInfos() {
 		if (1<<uint(fieldInfo.Index))&flag == 0 {
-			m.selectedFieldIndexes = append(m.selectedFieldIndexes, fieldInfo.Index)
+			m.appendSelector(fieldInfo.Field)
 		}
 	}
 	return m

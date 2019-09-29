@@ -10,10 +10,8 @@ const (
 )
 
 type wherer interface {
-	toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
+	clauser
+	referencer
 	nextNode() wherer
 	lastNode() wherer
 	append(w wherer)
@@ -25,79 +23,79 @@ type where struct {
 	next wherer
 }
 
-func (w *where) toClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (w *where) toClause(wr io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if w == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		wr.Write([]byte("WHERE "))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		wr.Write([]byte(string(w.rel)))
 		wr.Write([]byte(" "))
 	}
-	w.expr.toClause(wr, vals, false, false)
+	w.expr.toClause(wr, vals, nil, nil)
 	if w.next != nil {
 		w.next.toClause(wr, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) toSimpleClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (w *where) toSimpleClause(wr io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if w == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		wr.Write([]byte("WHERE "))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		wr.Write([]byte(string(w.rel)))
 		wr.Write([]byte(" "))
 	}
-	w.expr.toSimpleClause(wr, vals, false, false)
+	w.expr.toSimpleClause(wr, vals, nil, nil)
 	if w.next != nil {
 		w.next.toSimpleClause(wr, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) toRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (w *where) toRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if w == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		wr.Write([]byte(string(w.rel)))
 		wr.Write([]byte(" "))
 	}
-	w.expr.toRefClause(wr, vals, false, false)
+	w.expr.toRefClause(wr, vals, nil, nil)
 	if w.next != nil {
 		w.next.toRefClause(wr, vals, isFirstGroup, isFirstNode)
 	}
 }
 
-func (w *where) toSimpleRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (w *where) toSimpleRefClause(wr io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if w == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		wr.Write([]byte(string(w.rel)))
 		wr.Write([]byte(" "))
 	}
-	w.expr.toSimpleRefClause(wr, vals, false, false)
+	w.expr.toSimpleRefClause(wr, vals, nil, nil)
 	if w.next != nil {
 		w.next.toSimpleRefClause(wr, vals, isFirstGroup, isFirstNode)
 	}
@@ -135,16 +133,16 @@ type whereGroup struct {
 	next  wherer
 }
 
-func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("WHERE ("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -156,16 +154,16 @@ func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup boo
 	}
 }
 
-func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("WHERE ("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -177,16 +175,16 @@ func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGro
 	}
 }
 
-func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -198,16 +196,16 @@ func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup 
 	}
 }
 
-func (g *whereGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *whereGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))

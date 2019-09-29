@@ -65,7 +65,7 @@ type ValueField interface {
 	BaseField
 	Scan(interface{}) error
 	value() interface{}
-	findOrCopy(m Model)
+	toScan(m Model, selectors *[]interface{})
 }
 
 // Field Field
@@ -77,13 +77,13 @@ type Field interface {
 }
 
 type baseModel interface {
-	SelectDistinct() Model
 	SetForJoin() Model
 	SetForLeftJoin() Model
 	SetForRightJoin() Model
 }
 
 type clauseModel interface {
+	SelectDistinct() Model
 	AscOrderBy(referencer) Model
 	DescOrderBy(referencer) Model
 	AndExprWhere(*Expr) Model
@@ -92,15 +92,17 @@ type clauseModel interface {
 	OrModelWhereGroup(wheres ...wherer) Model
 	AndHaving(*Expr) Model
 	OrHaving(*Expr) Model
-	AndHavingGroup(...*condition) Model
-	OrHavingGroup(...*condition) Model
-	ExprUpdate(*Expr) Model
+	AndHavingGroup(...havinger) Model
+	OrHavingGroup(...havinger) Model
+	ExprUpdate(referencer, *Expr) Model
 	ModelGroupBy(referencer) Model
 	SelectAll() Model
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model
 	GroupBySelectedFields() Model
 	appendSelector(s selector)
+	getSelectors() *selectorList
+	appendAgg(agg aggregator)
 }
 
 // Model Model
@@ -139,17 +141,15 @@ type Model interface {
 	setAggs(aggList)
 	GetCache(string, time.Duration) bool
 	SetCache(string)
-	getGroupBys() []referencer
+	getGroupBys() groupByList
 	appendGroupBys(referencer)
-	appendSelectedFieldIndexes(int)
-	getSelectedFieldIndexes() []int
-	getOrderBys() []referencer
-	appendOrderBys(referencer)
-	appendHavings(*Expr)
-	getHavings() exprList
+	getOrderBys() orderByList
+	appendOrderBys(*orderBy)
+	appendHavings(havinger)
+	getHavings() havinger
 	getInserts() exprList
 	appendInserts(*Expr)
-	getUpdates() exprList
+	getUpdates() updateList
 }
 
 // ModelList ModelList

@@ -10,7 +10,6 @@ type modelStatus int
 const (
 	none             modelStatus = 0
 	synced           modelStatus = 1
-	distinct         modelStatus = 1 << 1
 	forModelAgg      modelStatus = 1 << 2
 	inited           modelStatus = 1 << 4
 	relInited        modelStatus = 1 << 5
@@ -87,10 +86,10 @@ func (m *modelBaseInfo) checkStatus(status modelStatus) bool {
 }
 
 // SelectDistinct 设定去重标志位
-func (m *modelBaseInfo) SelectDistinct() Model {
-	m.addModelStatus(distinct)
-	return m
-}
+// func (m *modelBaseInfo) SelectDistinct() Model {
+// 	m.addModelStatus(distinct)
+// 	return m
+// }
 
 // IsSynced 检查是否为synced
 func (m *modelBaseInfo) IsSynced() bool {
@@ -188,15 +187,20 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 
 type modelClause struct {
 	Model
-	selectors []selector
+	selectors selectorList
 	inserts   exprList
 	wheres    wherer
-	updates   exprList
-	havings   exprList
-	orderBys  []referencer
-	groupBys  []referencer
+	updates   updateList
+	havings   havinger
+	orderBys  orderByList
+	groupBys  groupByList
 	aggs      aggList
 	limit     [2]int
+}
+
+func (m *modelClause) SelectDistinct() Model {
+	m.selectors.addStatus(selectorStatusDistinct)
+	return m
 }
 
 func (m *modelClause) getInserts() exprList {
@@ -207,11 +211,11 @@ func (m *modelClause) appendInserts(value *Expr) {
 	m.inserts = append(m.inserts, value)
 }
 
-func (m *modelClause) getOrderBys() []referencer {
+func (m *modelClause) getOrderBys() orderByList {
 	return m.orderBys
 }
 
-func (m *modelClause) appendOrderBys(orderBy referencer) {
+func (m *modelClause) appendOrderBys(orderBy *orderBy) {
 	m.orderBys = append(m.orderBys, orderBy)
 }
 
@@ -228,12 +232,17 @@ func (m *modelClause) appendWheres(w wherer) {
 	}
 }
 
-func (m *modelClause) getHavings() exprList {
+func (m *modelClause) getHavings() havinger {
 	return m.havings
 }
 
-func (m *modelClause) appendHavings(having *Expr) {
-	m.havings = append(m.havings, having)
+func (m *modelClause) appendHavings(h havinger) {
+	lastHaving := m.havings.lastNode()
+	if lastHaving == nil {
+		m.havings = h
+	} else {
+		lastHaving.append(h)
+	}
 }
 
 // SetLimit 设置Limit子句信息
@@ -242,7 +251,7 @@ func (m *modelClause) SetLimit(limit, offset int) {
 }
 
 func (m *modelClause) appendSelector(s selector) {
-	m.selectors = append(m.selectors, s)
+	m.selectors.list = append(m.selectors.list, s)
 }
 
 func (m *modelClause) getLimit() (limit, offset int) {
@@ -253,7 +262,7 @@ func (m *modelClause) getAggs() aggList {
 	return m.aggs
 }
 
-func (m *modelClause) getUpdates() exprList {
+func (m *modelClause) getUpdates() updateList {
 	return m.updates
 }
 
@@ -321,29 +330,51 @@ func (m *modelClause) OrModelWhereGroup(wheres ...wherer) Model {
 }
 
 // AndHavingGroup AndHavingGroup
-func (m *modelClause) AndHavingGroup(havings ...*condition) Model {
-	m.appendHavings(conditionList(havings).group(and).toExpr())
+func (m *modelClause) AndHavingGroup(havings ...havinger) Model {
+	group := groupHavings(whereAnd, havings...)
+	if m.havings == nil {
+		m.havings = group
+	} else {
+		m.havings.lastNode().append(group)
+	}
 	return m
 }
 
 // OrHavingGroup OrHavingGroup
-func (m *modelClause) OrHavingGroup(havings ...*condition) Model {
-	m.appendHavings(conditionList(havings).group(or).toExpr())
+func (m *modelClause) OrHavingGroup(havings ...havinger) Model {
+	group := groupHavings(whereOr, havings...)
+	if m.havings == nil {
+		m.havings = group
+	} else {
+		m.havings.lastNode().append(group)
+	}
 	return m
 }
 
 // AndHaving 添加表达式having(and关系)
 func (m *modelClause) AndHaving(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("AND %s", expr.exp)
-	m.havings = append(m.havings, expr)
+	h := newHaving(expr, whereAnd)
+	if m.havings == nil {
+		m.havings = h
+	} else {
+		m.havings.lastNode().append(h)
+	}
 	return m
 }
 
 // OrHaving 添加表达式having(or关系)
 func (m *modelClause) OrHaving(expr *Expr) Model {
-	expr.exp = fmt.Sprintf("OR %s", expr.exp)
-	m.havings = append(m.havings, expr)
+	h := newHaving(expr, whereOr)
+	if m.havings == nil {
+		m.havings = h
+	} else {
+		m.havings.lastNode().append(h)
+	}
 	return m
+}
+
+func (m *modelClause) appendAgg(agg aggregator) {
+	m.aggs = append(m.aggs, agg)
 }
 
 // StrAgg 添加字符串结果的汇总
@@ -358,6 +389,7 @@ func (m *modelClause) StrAgg(expr *Expr, name string) *StrAgg {
 func (m *modelClause) IntAgg(expr *Expr, name string) *IntAgg {
 	agg := newIntAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
@@ -366,6 +398,7 @@ func (m *modelClause) IntAgg(expr *Expr, name string) *IntAgg {
 func (m *modelClause) DateAgg(expr *Expr, name string) *DateAgg {
 	agg := newDateAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
@@ -374,6 +407,7 @@ func (m *modelClause) DateAgg(expr *Expr, name string) *DateAgg {
 func (m *modelClause) DatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	agg := newDatetimeAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
@@ -382,6 +416,7 @@ func (m *modelClause) DatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 func (m *modelClause) TimeAgg(expr *Expr, name string) *TimeAgg {
 	agg := newTimeAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
@@ -390,13 +425,14 @@ func (m *modelClause) TimeAgg(expr *Expr, name string) *TimeAgg {
 func (m *modelClause) DecAgg(expr *Expr, name string) *DecimalAgg {
 	agg := newDecAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
 
 // ExprUpdate 添加表达式更新
-func (m *modelClause) ExprUpdate(expr *Expr) Model {
-	m.updates = append(m.updates, expr)
+func (m *modelClause) ExprUpdate(field referencer, expr *Expr) Model {
+	m.updates = append(m.updates, newUpdate(field, expr))
 	m.addModelStatus(forUpdate)
 	for parent := m.getParent(); parent != nil; parent = parent.getParent() {
 		parent.addModelStatus(containSubUpdate)
@@ -404,12 +440,12 @@ func (m *modelClause) ExprUpdate(expr *Expr) Model {
 	return m
 }
 
-func (m *modelClause) getGroupBys() []referencer {
+func (m *modelClause) getGroupBys() groupByList {
 	return m.groupBys
 }
 
-func (m *modelClause) appendGroupBys(groupBy referencer) {
-	m.groupBys = append(m.groupBys, groupBy)
+func (m *modelClause) appendGroupBys(ref referencer) {
+	m.groupBys = append(m.groupBys, &groupBy{ref})
 }
 
 func (m *modelClause) ModelGroupBy(groupBy referencer) Model {
@@ -426,13 +462,9 @@ func (m *modelClause) CopyAggs(dst Model) {
 	dst.setAggs(aggs)
 }
 
-// func (m *modelClause) appendSelectedFieldIndexes(index int) {
-// 	m.selectedFieldIndexes = append(m.selectedFieldIndexes, index)
-// }
-
-// func (m *modelClause) getSelectedFieldIndexes() []int {
-// 	return m.selectedFieldIndexes
-// }
+func (m *modelClause) getSelectors() *selectorList {
+	return &m.selectors
+}
 
 // SelectAll 选择所有字段
 func (m *modelClause) SelectAll() Model {
@@ -480,6 +512,10 @@ func (m *modelClause) SelectForUpdate() Model {
 type Meta struct {
 	modelBaseInfo
 	modelClause
+}
+
+func (m Meta) String() string {
+	return fmt.Sprintf("Aggs: %v", m.aggs)
 }
 
 // Init 初始化Meta

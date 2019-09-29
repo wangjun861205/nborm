@@ -3,10 +3,8 @@ package nborm
 import "io"
 
 type havinger interface {
-	toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
-	toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool)
+	clauser
+	referencer
 	nextNode() havinger
 	lastNode() havinger
 	append(w havinger)
@@ -18,16 +16,16 @@ type having struct {
 	next havinger
 }
 
-func (h *having) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (h *having) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if h == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("HAVING "))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(h.rel)))
 		w.Write([]byte(" "))
@@ -38,16 +36,16 @@ func (h *having) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, i
 	}
 }
 
-func (h *having) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (h *having) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if h == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("HAVING "))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(h.rel)))
 		w.Write([]byte(" "))
@@ -58,15 +56,15 @@ func (h *having) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup b
 	}
 }
 
-func (h *having) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (h *having) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if h == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(h.rel)))
 		w.Write([]byte(" "))
@@ -77,15 +75,15 @@ func (h *having) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool
 	}
 }
 
-func (h *having) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (h *having) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if h == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(h.rel)))
 		w.Write([]byte(" "))
@@ -128,16 +126,16 @@ type havingGroup struct {
 	next  havinger
 }
 
-func (g *havingGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("HAVING ("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -149,16 +147,16 @@ func (g *havingGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup bo
 	}
 }
 
-func (g *havingGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("HAVING ("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -170,16 +168,16 @@ func (g *havingGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGr
 	}
 }
 
-func (g *havingGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))
@@ -191,16 +189,16 @@ func (g *havingGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup
 	}
 }
 
-func (g *havingGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup bool, isFirstNode bool) {
+func (g *havingGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if g == nil {
 		return
 	}
-	if isFirstGroup {
-		isFirstGroup = false
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("("))
 	}
-	if isFirstNode {
-		isFirstNode = false
+	if *isFirstNode {
+		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
 		w.Write([]byte(" "))

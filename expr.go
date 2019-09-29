@@ -44,7 +44,7 @@ func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 }
 
 // toClause 自定义表达式转化为sql的子句
-func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -117,7 +117,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstN
 }
 
 // toSimpleClause 自定义表达式转化为sql子句，其中涉及到表名的全部用表的原名而不是用别名
-func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -189,7 +189,7 @@ func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, is
 	w.Write([]byte(" "))
 }
 
-func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -261,7 +261,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFir
 	w.Write([]byte(" "))
 }
 
-func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
 		return
@@ -337,7 +337,7 @@ func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup,
 type exprList []*Expr
 
 // toClause 将sql自定义表达式列表转化为sql子句
-func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(l) == 0 {
 		return
 	}
@@ -373,7 +373,7 @@ func (l exprList) toClause(exprType exprType, w io.Writer, vals *[]interface{}, 
 }
 
 // toSimpleClause 将sql自定义表达式转化为sql子句, 其中表名全部用原表名而不是别名
-func (l exprList) toSimpleClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (l exprList) toSimpleClause(exprType exprType, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(l) == 0 {
 		return
 	}

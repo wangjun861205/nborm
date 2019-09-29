@@ -58,4 +58,5 @@ type EmployEnterprise struct {
 	LicenseImageID nborm.String   `col:"LicenseImageID"`
 	CreateTime     nborm.Datetime `col:"CreateTime"`
 	UpdateTime     nborm.Datetime `col:"UpdateTime"`
+	Account        *EmployAccount `rel:"[@@.AccountID=@$.ID]"`
 }

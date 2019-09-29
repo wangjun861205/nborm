@@ -23,11 +23,13 @@ func init() {
 
 func TestNBorm(t *testing.T) {
 	ents := model.NewEmployEnterpriseList()
-	ents.ID.ForSelect()
-	ents.EmployFromThis.AndWhere(">", 10)
-	ents.AccountID.AndWhere("=", "hello")
+	ents.Account.SetForJoin().SelectAll()
+	ents.Name.ForSelect()
+	ents.EmployFromThis.AndWhere(">", 1)
 	if err := nborm.Query(db, ents); err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(ents)
+	for _, ent := range ents.List {
+		fmt.Println(ent)
+	}
 }

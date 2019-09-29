@@ -392,6 +392,16 @@ func (l *EmployAccountList) Slice(low, high int) {
 	}
 }
 
+func (m *EmployAccount) String() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func (l *EmployAccountList) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
+}
+
 type EmployAccountCacheElem struct {
 	hashValue  string
 	model      *EmployAccount
@@ -560,6 +570,10 @@ func newSubEmployEnterprise(parent nborm.Model) *EmployEnterprise {
 }
 
 func (m *EmployEnterprise) InitRel() {
+	m.Account = newSubEmployAccount(m)
+	var relInfo0 *nborm.RelationInfo
+	relInfo0 = relInfo0.Append("Account", m.Account, nborm.NewExpr("@=@", &m.AccountID, &m.Account.ID))
+	m.AppendRelation(relInfo0)
 	m.AddRelInited()
 }
 
@@ -829,6 +843,14 @@ func (m EmployEnterprise) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(UpdateTimeB)
 	}
+	if m.Account != nil && m.Account.IsSynced() {
+		buffer.WriteString(",\n\"Account\": ")
+		AccountB, err := json.MarshalIndent(m.Account, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AccountB)
+	}
 	buffer.WriteString("\n}")
 	return buffer.Bytes(), nil
 }
@@ -841,6 +863,9 @@ type EmployEnterpriseList struct {
 }
 
 func (m *EmployEnterprise) Collapse() {
+	if m.Account != nil && m.Account.IsSynced() {
+		m.Account.Collapse()
+	}
 }
 
 func NewEmployEnterpriseList() *EmployEnterpriseList {
@@ -1028,6 +1053,7 @@ func (l *EmployEnterpriseList) UnmarshalJSON(b []byte) error {
 func (l *EmployEnterpriseList) Collapse() {
 	idx := l.checkDup()
 	if idx >= 0 {
+		l.List[idx].Account = l.List[l.Len()-1].Account
 		l.List = l.List[:len(l.List)-1]
 		l.List[idx].Collapse()
 	}
@@ -1137,6 +1163,16 @@ func (l *EmployEnterpriseList) Slice(low, high int) {
 	default:
 		l.List = l.List[:0]
 	}
+}
+
+func (m *EmployEnterprise) String() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func (l *EmployEnterpriseList) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 type EmployEnterpriseCacheElem struct {

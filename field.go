@@ -54,6 +54,13 @@ func (f *baseField) init(model Model, colName, fieldName string, index int) {
 	f.index = index
 }
 
+// func (f *baseField) String() string {
+// 	if !f.IsValid() || f.IsNull() {
+// 		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+// 	}
+// 	return fmt.Sprintf("%s: %v", f.fieldName(), f.Model.FieldInfos()[f.index].Field.value())
+// }
+
 func (f *baseField) colName() string {
 	return f.col
 }
@@ -135,7 +142,7 @@ func (f *baseField) rawFullColName() string {
 }
 
 func (f *baseField) ForSelect() {
-	f.appendSelectedFieldIndexes(f.index)
+	f.appendSelector(f.Model.FieldInfos()[f.index].Field)
 }
 
 func (f *baseField) getFieldIndex() int {
@@ -165,32 +172,32 @@ func (f *baseField) DescOrder() {
 }
 
 // Distinct 设置为去重字段
-func (f *baseField) Distinct() {
-	f.Model.addModelStatus(distinct)
-	f.addStatus(forSelect)
-}
+// func (f *baseField) Distinct() {
+// 	f.Model.addModelStatus(distinct)
+// 	f.addStatus(forSelect)
+// }
 
 // CopyStatus CopyStatus
 func (f *baseField) CopyStatus(dst Field) {
 	dst.setStatus(f.status)
 }
 
-func (f *baseField) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *baseField) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *baseField) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.rawFullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *baseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *baseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *baseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.rawFullColName()))
 	w.Write([]byte(" "))
 }
@@ -221,7 +228,7 @@ func (f *clauseField) OrW() ClauseField {
 // U 按自身值来生成更新表达式
 func (f *clauseField) U() ClauseField {
 	valueField := f.valueField()
-	valueField.ExprUpdate(NewExpr("@ = ?", valueField, valueField.value()))
+	valueField.ExprUpdate(valueField, NewExpr("?", valueField, valueField.value()))
 	return f
 }
 
@@ -375,7 +382,7 @@ func (f *clauseField) OrNotBetween(startValue, endValue interface{}) *condition 
 
 func (f *clauseField) Update(value interface{}) ClauseField {
 	valueField := f.valueField()
-	valueField.ExprUpdate(NewExpr("@ = ?", valueField, value))
+	valueField.ExprUpdate(f, NewExpr("?", valueField, value))
 	return f
 }
 
@@ -384,12 +391,12 @@ func (f *clauseField) Set(value interface{}) ClauseField {
 	return f
 }
 
-func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.valueField().fullColName()))
 	w.Write([]byte(" "))
 }
 
-func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode bool) {
+func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.valueField().rawFullColName()))
 	w.Write([]byte(" "))
 }
@@ -403,12 +410,19 @@ func (f *stringValueField) init(model Model, colName, fieldName string, index in
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *stringValueField) findOrCopy(m Model) {
+func (f *stringValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue())
+}
+
+func (f *stringValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -495,6 +509,11 @@ func (f *String) Init(model Model, colName, fieldName string, index int) {
 	f.stringValueField.init(model, colName, fieldName, index)
 }
 
+// String 实现Stringer接口
+func (f String) String() string {
+	return f.stringValueField.String()
+}
+
 func (f *String) dup() Field {
 	nf := *f
 	return &nf
@@ -511,12 +530,19 @@ func (f *intValueField) init(model Model, colName, fieldName string, index int) 
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *intValueField) findOrCopy(m Model) {
+func (f *intValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %d", f.fieldName(), f.AnyValue())
+}
+
+func (f *intValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -622,6 +648,10 @@ func (f *Int) Init(model Model, colName, fieldName string, index int) {
 	f.intValueField.init(model, colName, fieldName, index)
 }
 
+func (f Int) String() string {
+	return f.intValueField.String()
+}
+
 func (f *Int) dup() Field {
 	nf := *f
 	return &nf
@@ -638,12 +668,19 @@ func (f *dateValueField) init(model Model, colName, fieldName string, index int)
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *dateValueField) findOrCopy(m Model) {
+func (f *dateValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("2006-01-02"))
+}
+
+func (f *dateValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -755,6 +792,10 @@ func (f *Date) Init(model Model, colName, fieldName string, index int) {
 	f.dateValueField.init(model, colName, fieldName, index)
 }
 
+func (f Date) String() string {
+	return f.dateValueField.String()
+}
+
 func (f *Date) dup() Field {
 	nf := *f
 	return &nf
@@ -771,12 +812,19 @@ func (f *datetimeValueField) init(model Model, colName, fieldName string, index 
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *datetimeValueField) findOrCopy(m Model) {
+func (f *datetimeValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("2006-01-02 15:04:05"))
+}
+
+func (f *datetimeValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -889,6 +937,10 @@ func (f *Datetime) Init(model Model, colName, fieldName string, index int) {
 	f.datetimeValueField.init(model, colName, fieldName, index)
 }
 
+func (f Datetime) String() string {
+	return f.datetimeValueField.String()
+}
+
 func (f *Datetime) dup() Field {
 	nf := *f
 	return &nf
@@ -905,12 +957,19 @@ func (f *decimalValueField) init(model Model, colName, fieldName string, index i
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *decimalValueField) findOrCopy(m Model) {
+func (f *decimalValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %d", f.fieldName(), f.AnyValue())
+}
+
+func (f *decimalValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -1007,6 +1066,10 @@ func (f *Decimal) Init(model Model, colName, fieldName string, index int) {
 	f.decimalValueField.init(model, colName, fieldName, index)
 }
 
+func (f Decimal) String() string {
+	return f.decimalValueField.String()
+}
+
 func (f *Decimal) dup() Field {
 	nf := *f
 	return &nf
@@ -1023,12 +1086,19 @@ func (f *timeValueField) init(model Model, colName, fieldName string, index int)
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *timeValueField) findOrCopy(m Model) {
+func (f *timeValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("15:04:05"))
+}
+
+func (f *timeValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -1112,6 +1182,10 @@ func (f *Time) Init(model Model, colName, fieldName string, index int) {
 	f.timeValueField.init(model, colName, fieldName, index)
 }
 
+func (f Time) String() string {
+	return f.timeValueField.String()
+}
+
 func (f *Time) dup() Field {
 	nf := *f
 	return &nf
@@ -1126,12 +1200,19 @@ func (f *byteValueField) init(model Model, colName, fieldName string, index int)
 	f.baseField.init(model, colName, fieldName, index)
 }
 
-func (f *byteValueField) findOrCopy(m Model) {
+func (f *byteValueField) String() string {
+	if !f.IsValid() || f.IsNull() {
+		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
+	}
+	return fmt.Sprintf("%s: %x", f.fieldName(), f.AnyValue())
+}
+
+func (f *byteValueField) toScan(m Model, selectors *[]interface{}) {
 	fieldInfos := m.FieldInfos()
 	for _, info := range fieldInfos {
 		if info.Field.fieldName() == f.fieldName() {
-			m.appendSelector(info.Field)
-			break
+			*selectors = append(*selectors, info.Field)
+			return
 		}
 	}
 	panic(fmt.Sprintf("cannot find field(%s) in %T", f.fieldName(), m))
@@ -1207,6 +1288,10 @@ func (f *Bytes) Init(model Model, colName, fieldName string, index int) {
 		return &f.byteValueField
 	}
 	f.byteValueField.init(model, colName, fieldName, index)
+}
+
+func (f Bytes) String() string {
+	return f.byteValueField.String()
 }
 
 func (f *Bytes) dup() Field {

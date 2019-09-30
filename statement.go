@@ -10,7 +10,7 @@ func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte(" SET "))
 	inserts := model.getInserts()
 	isFirstGroup, isFirstNode := true, true
-	inserts.toSimpleClause(assignExpr, w, vals, &isFirstGroup, &isFirstNode)
+	inserts.toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
 }
 
 func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
@@ -18,7 +18,7 @@ func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte(model.rawFullTabName()))
 	w.Write([]byte(" SET "))
 	isFirstGroup, isFirstNode := true, true
-	model.getInserts().toSimpleClause(assignExpr, w, vals, &isFirstGroup, &isFirstNode)
+	model.getInserts().toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
 	w.Write([]byte(" ON DUPLICATE KEY UPDATE "))
 	isFirstGroup, isFirstNode = true, true
 	model.getUpdates().toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)

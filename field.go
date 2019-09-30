@@ -387,7 +387,7 @@ func (f *clauseField) Update(value interface{}) ClauseField {
 }
 
 func (f *clauseField) Set(value interface{}) ClauseField {
-	f.valueField().appendInserts(NewExpr("@ = ?", f, value))
+	f.valueField().appendInserts(newInsert(f, NewExpr("?", value)))
 	return f
 }
 
@@ -465,7 +465,7 @@ func (f *stringValueField) value() interface{} {
 
 // SetString 设置字符串值
 func (f *stringValueField) SetString(v string) *stringValueField {
-	f.appendInserts(NewExpr("@ = ?", f, v))
+	f.appendInserts(newInsert(f, NewExpr("?", v)))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -587,7 +587,7 @@ func (f *intValueField) Value() (int, bool) {
 }
 
 func (f *intValueField) SetInt(v int) *intValueField {
-	f.appendInserts(NewExpr("@ = ?", f, v))
+	f.appendInserts(newInsert(f, NewExpr("?", v)))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -731,7 +731,7 @@ func (f *dateValueField) value() interface{} {
 }
 
 func (f *dateValueField) SetDate(v time.Time) *dateValueField {
-	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02")))
+	f.appendInserts(newInsert(f, NewExpr("?", v.Format("2006-01-02"))))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -875,7 +875,7 @@ func (f *datetimeValueField) value() interface{} {
 }
 
 func (f *datetimeValueField) SetDatetime(v time.Time) *datetimeValueField {
-	f.appendInserts(NewExpr("@ = ?", f, v.Format("2006-01-02 15:04:05")))
+	f.appendInserts(newInsert(f, NewExpr("?", f, v.Format("2006-01-02 15:04:05"))))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -1016,7 +1016,7 @@ func (f *decimalValueField) value() interface{} {
 }
 
 func (f *decimalValueField) SetDecimal(v float64) *decimalValueField {
-	f.appendInserts(NewExpr("@ = ?", v))
+	f.appendInserts(newInsert(f, NewExpr("?", v)))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -1153,7 +1153,7 @@ func (f *timeValueField) value() interface{} {
 }
 
 func (f *timeValueField) SetTime(v time.Time) *timeValueField {
-	f.appendInserts(NewExpr("@ = ?", f, v.Format("15:04:05")))
+	f.appendInserts(newInsert(f, NewExpr("?", f, v.Format("15:04:05"))))
 	f.setValid()
 	f.unsetNull()
 	f.val = v
@@ -1257,7 +1257,7 @@ func (f *byteValueField) value() interface{} {
 }
 
 func (f *byteValueField) SetBytes(v []byte) *byteValueField {
-	f.appendInserts(NewExpr("@ = ?", v))
+	f.appendInserts(newInsert(f, NewExpr("?", v)))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)

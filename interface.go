@@ -148,8 +148,8 @@ type Model interface {
 	appendOrderBys(*orderBy)
 	appendHavings(havinger)
 	getHavings() havinger
-	getInserts() exprList
-	appendInserts(*Expr)
+	getInserts() insertList
+	appendInserts(*insert)
 	getUpdates() updateList
 }
 

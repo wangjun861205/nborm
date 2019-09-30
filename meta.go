@@ -199,7 +199,7 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 type modelClause struct {
 	Model
 	selectors selectorList
-	inserts   exprList
+	inserts   insertList
 	wheres    wherer
 	updates   updateList
 	havings   havinger
@@ -214,12 +214,12 @@ func (m *modelClause) SelectDistinct() Model {
 	return m
 }
 
-func (m *modelClause) getInserts() exprList {
+func (m *modelClause) getInserts() insertList {
 	return m.inserts
 }
 
-func (m *modelClause) appendInserts(value *Expr) {
-	m.inserts = append(m.inserts, value)
+func (m *modelClause) appendInserts(insert *insert) {
+	m.inserts = append(m.inserts, insert)
 }
 
 func (m *modelClause) getOrderBys() orderByList {

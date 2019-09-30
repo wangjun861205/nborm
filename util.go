@@ -423,7 +423,7 @@ func getGroupByFields(model Model, groupBys *[]refClauser) {
 		*groupBys = append(*groupBys, g)
 	}
 	for _, relInfo := range model.relations() {
-		if model.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			getGroupByFields(relInfo.lastModel(), groupBys)
 		}
 	}

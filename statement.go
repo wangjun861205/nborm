@@ -28,7 +28,7 @@ func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
 	genSelectedClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, w, vals, &isFirstNode)
+	genTabRefClause(model, nil, noJoin, w, vals)
 	isFirstGroup, isFirstNode = true, true
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
@@ -46,7 +46,7 @@ func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
 func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
 	genSelectedClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	genBackTabRefClause(model, w, vals)
+	genBackTabRefClause(model, nil, noJoin, w, vals)
 	genBackWhereClause(model, w, vals)
 	isFirstGroup, isFirstNode = true, true
 	genGroupByClause(model, w, vals, &isFirstGroup, &isFirstNode)
@@ -62,7 +62,7 @@ func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
 
 func genUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
-	genTabRefClause(model, w, vals, &isFirstNode)
+	genTabRefClause(model, nil, noJoin, w, vals)
 	isFirstGroup, isFirstNode = true, true
 	genUpdateClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
@@ -72,7 +72,7 @@ func genDeleteStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
 	genDeleteClause(model, w, vals, true)
 	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, w, vals, &isFirstNode)
+	genTabRefClause(model, nil, noJoin, w, vals)
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
 	genOrderByClause(model, w, vals, &isFirstGroup, &isFirstNode)
@@ -159,6 +159,67 @@ func genHavingClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup
 		dstModel := relInfo.lastModel()
 		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			genHavingClause(dstModel, w, vals, isFirstGroup, isFirstNode)
+		}
+	}
+}
+
+func genTabRefClause(model Model, relInfo *RelationInfo, joinType joinType, w io.Writer, vals *[]interface{}) {
+	if relInfo == nil {
+		w.Write([]byte("FROM "))
+		w.Write([]byte(model.fullTabName()))
+		w.Write([]byte(" "))
+	} else {
+		relInfo.toClause(joinType, w, vals)
+	}
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			switch {
+			case dstModel.checkStatus(forJoin):
+				genTabRefClause(dstModel, relInfo, join, w, vals)
+			case dstModel.checkStatus(forLeftJoin):
+				genTabRefClause(dstModel, relInfo, leftJoin, w, vals)
+			case dstModel.checkStatus(forRightJoin):
+				genTabRefClause(dstModel, relInfo, rightJoin, w, vals)
+			}
+		}
+	}
+}
+
+func genBackTabRefClause(model Model, relInfo *RelationInfo, joinType joinType, w io.Writer, vals *[]interface{}) {
+	if relInfo == nil {
+		w.Write([]byte("FROM "))
+		parent := model.getParent()
+		if parent == nil {
+			panic("no parent model for back query")
+		}
+		isFirstGroup, isFirstNode := true, true
+		parent.toRefClause(w, vals, &isFirstGroup, &isFirstNode)
+		var got bool
+		for _, relInfo := range parent.relations() {
+			if relInfo.lastModel() == model {
+				relInfo.toClause(join, w, vals)
+				got = true
+				break
+			}
+		}
+		if !got {
+			panic("cannot find relation")
+		}
+	} else {
+		relInfo.toClause(joinType, w, vals)
+	}
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			switch {
+			case dstModel.checkStatus(forJoin):
+				genBackTabRefClause(dstModel, relInfo, join, w, vals)
+			case dstModel.checkStatus(forLeftJoin):
+				genBackTabRefClause(dstModel, relInfo, leftJoin, w, vals)
+			case dstModel.checkStatus(forRightJoin):
+				genBackTabRefClause(dstModel, relInfo, rightJoin, w, vals)
+			}
 		}
 	}
 }

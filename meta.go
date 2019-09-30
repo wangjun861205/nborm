@@ -3,6 +3,7 @@ package nborm
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 type modelStatus int
@@ -36,6 +37,16 @@ type modelBaseInfo struct {
 	index   int
 	rels    RelationInfoList
 	conList ModelList
+}
+
+func (m *modelBaseInfo) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(m.fullTabName()))
+	w.Write([]byte(" "))
+}
+
+func (m *modelBaseInfo) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(m.rawFullTabName()))
+	w.Write([]byte(" "))
 }
 
 func (m *modelBaseInfo) rawFullTabName() string {

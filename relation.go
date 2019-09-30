@@ -7,6 +7,7 @@ import (
 type joinType string
 
 const (
+	noJoin    joinType = ""
 	join      joinType = "JOIN"
 	leftJoin  joinType = "LEFT JOIN"
 	rightJoin joinType = "RIGHT JOIN"

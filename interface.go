@@ -47,7 +47,7 @@ type BaseField interface {
 	ForSum()
 	getFieldIndex() int
 	clauser
-	referencer
+	// referencer
 }
 
 // ClauseField ClauseField
@@ -80,6 +80,7 @@ type baseModel interface {
 	SetForJoin() Model
 	SetForLeftJoin() Model
 	SetForRightJoin() Model
+	referencer
 }
 
 type clauseModel interface {

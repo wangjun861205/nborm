@@ -20,6 +20,7 @@ func initModel(model Model) {
 		if model.getConList() != nil {
 			model.setParent(model.getConList().getParent())
 			model.setIndex(model.getConList().getIndex())
+			model.genAlias()
 		} else {
 			model.genAlias()
 		}
@@ -205,54 +206,6 @@ func genPlaceHolder(val []interface{}) string {
 	default:
 		return "?"
 	}
-}
-
-func genTabRefClause(model Model, w io.Writer, vals *[]interface{}, isFirst *bool) {
-	if *isFirst {
-		*isFirst = false
-		w.Write([]byte("FROM "))
-		w.Write([]byte(model.fullTabName()))
-		w.Write([]byte(" "))
-	} else {
-		w.Write([]byte("JOIN "))
-		w.Write([]byte(model.fullTabName()))
-		w.Write([]byte(" "))
-	}
-	for _, relInfo := range model.relations() {
-		dstModel := relInfo.lastModel()
-		switch {
-		case dstModel.checkStatus(forJoin):
-			relInfo.toClause(join, w, vals)
-			genTabRefClause(dstModel, w, vals, isFirst)
-		case dstModel.checkStatus(forLeftJoin):
-			relInfo.toClause(leftJoin, w, vals)
-			genTabRefClause(dstModel, w, vals, isFirst)
-		case dstModel.checkStatus(forRightJoin):
-			relInfo.toClause(rightJoin, w, vals)
-			genTabRefClause(dstModel, w, vals, isFirst)
-		}
-	}
-}
-
-func genBackTabRefClause(model Model, w io.Writer, vals *[]interface{}) {
-	w.Write([]byte("FROM "))
-	parent := model.getParent()
-	if parent == nil {
-		panic("no parent model for back query")
-	}
-	var got bool
-	for _, relInfo := range parent.relations() {
-		if relInfo.lastModel() == model {
-			relInfo.toClause(join, w, vals)
-			got = true
-			break
-		}
-	}
-	if !got {
-		panic("cannot find relation")
-	}
-	isFirst := true
-	genTabRefClause(model, w, vals, &isFirst)
 }
 
 func genLimitClause(model Model, w io.Writer, vals *[]interface{}) {

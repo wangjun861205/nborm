@@ -672,7 +672,7 @@ func (f *dateValueField) String() string {
 	if !f.IsValid() || f.IsNull() {
 		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
 	}
-	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("2006-01-02"))
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().In(time.Local).Format("2006-01-02"))
 }
 
 func (f *dateValueField) toScan(m Model, selectors *[]interface{}) {
@@ -695,13 +695,13 @@ func (f *dateValueField) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case []byte:
-		t, err := time.Parse("2006-01-02", string(val))
+		t, err := time.ParseInLocation("2006-01-02", string(val), time.Local)
 		if err != nil {
 			return err
 		}
 		f.val = t
 	case string:
-		t, err := time.Parse("2006-01-02", val)
+		t, err := time.ParseInLocation("2006-01-02", val, time.Local)
 		if err != nil {
 			return err
 		}
@@ -727,11 +727,11 @@ func (f *dateValueField) value() interface{} {
 	if f.IsNull() {
 		return nil
 	}
-	return f.val.Format("2006-01-02")
+	return f.val.In(time.Local).Format("2006-01-02")
 }
 
 func (f *dateValueField) SetDate(v time.Time) *dateValueField {
-	f.appendInserts(newInsert(f, NewExpr("?", v.Format("2006-01-02"))))
+	f.appendInserts(newInsert(f, NewExpr("?", v.In(time.Local).Format("2006-01-02"))))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -754,17 +754,16 @@ func (f dateValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02"))), nil
+	return []byte(fmt.Sprintf("%q", f.val.In(time.Local).Format("2006-01-02"))), nil
 }
 
 func (f *dateValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		// f.SetNull()
 		f.removeStatus(notNull)
 		return nil
 	}
-	t, err := time.Parse("2006-01-02", strings.Trim(string(b), "\""))
+	t, err := time.ParseInLocation("2006-01-02", strings.Trim(string(b), "\""), time.Local)
 	if err != nil {
 		return err
 	}
@@ -816,7 +815,7 @@ func (f *datetimeValueField) String() string {
 	if !f.IsValid() || f.IsNull() {
 		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
 	}
-	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("2006-01-02 15:04:05"))
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().In(time.Local).Format("2006-01-02 15:04:05"))
 }
 
 func (f *datetimeValueField) toScan(m Model, selectors *[]interface{}) {
@@ -839,13 +838,13 @@ func (f *datetimeValueField) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case []byte:
-		t, err := time.Parse("2006-01-02 15:04:05", string(val))
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", string(val), time.Local)
 		if err != nil {
 			return err
 		}
 		f.val = t
 	case string:
-		t, err := time.Parse("2006-01-02 15:04:05", val)
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", val, time.Local)
 		if err != nil {
 			return err
 		}
@@ -871,11 +870,11 @@ func (f *datetimeValueField) value() interface{} {
 	if f.IsNull() {
 		return nil
 	}
-	return f.val.Format("2006-01-02 15:04:05")
+	return f.val.In(time.Local).Format("2006-01-02 15:04:05")
 }
 
 func (f *datetimeValueField) SetDatetime(v time.Time) *datetimeValueField {
-	f.appendInserts(newInsert(f, NewExpr("?", f, v.Format("2006-01-02 15:04:05"))))
+	f.appendInserts(newInsert(f, NewExpr("?", f, v.In(time.Local).Format("2006-01-02 15:04:05"))))
 	f.setValid()
 	f.unsetNull()
 	f.addModelStatus(containValue)
@@ -898,7 +897,7 @@ func (f datetimeValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf("%q", f.val.Format("2006-01-02 15:04:05"))), nil
+	return []byte(fmt.Sprintf("%q", f.val.In(time.Local).Format("2006-01-02 15:04:05"))), nil
 }
 
 func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
@@ -908,7 +907,7 @@ func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
 		f.removeStatus(notNull)
 		return nil
 	}
-	t, err := time.Parse("2006-01-02 15:04:05", strings.Trim(string(b), "\""))
+	t, err := time.ParseInLocation("2006-01-02 15:04:05", strings.Trim(string(b), "\""), time.Local)
 	if err != nil {
 		return err
 	}
@@ -1090,7 +1089,7 @@ func (f *timeValueField) String() string {
 	if !f.IsValid() || f.IsNull() {
 		return fmt.Sprintf("%s: %v", f.fieldName(), nil)
 	}
-	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().Format("15:04:05"))
+	return fmt.Sprintf("%s: %s", f.fieldName(), f.AnyValue().In(time.Local).Format("15:04:05"))
 }
 
 func (f *timeValueField) toScan(m Model, selectors *[]interface{}) {
@@ -1113,13 +1112,13 @@ func (f *timeValueField) Scan(v interface{}) error {
 	f.unsetNull()
 	switch val := v.(type) {
 	case []byte:
-		t, err := time.Parse("15:04:05", string(val))
+		t, err := time.ParseInLocation("15:04:05", string(val), time.Local)
 		if err != nil {
 			return err
 		}
 		f.val = t
 	case string:
-		t, err := time.Parse("15:04:05", val)
+		t, err := time.ParseInLocation("15:04:05", val, time.Local)
 		if err != nil {
 			return err
 		}
@@ -1149,11 +1148,11 @@ func (f *timeValueField) value() interface{} {
 	if f.IsNull() {
 		return nil
 	}
-	return f.val.Format("15:04:05")
+	return f.val.In(time.Local).Format("15:04:05")
 }
 
 func (f *timeValueField) SetTime(v time.Time) *timeValueField {
-	f.appendInserts(newInsert(f, NewExpr("?", f, v.Format("15:04:05"))))
+	f.appendInserts(newInsert(f, NewExpr("?", f, v.In(time.Local).Format("15:04:05"))))
 	f.setValid()
 	f.unsetNull()
 	f.val = v
@@ -1165,7 +1164,7 @@ func (f *timeValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
-	return []byte(f.val.Format("15:04:05")), nil
+	return []byte(f.val.In(time.Local).Format("15:04:05")), nil
 }
 
 // Time 日期型字段

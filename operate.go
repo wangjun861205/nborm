@@ -36,7 +36,7 @@ func InsertOrUpdateOne(exe Executor, model Model) (isInsert bool, err error) {
 			return false, err
 		}
 		if model.AutoIncField() != nil {
-			model.AutoIncField().Set(int(lastInsertID))
+			model.AutoIncField().set(int(lastInsertID))
 		}
 	}
 	return
@@ -59,7 +59,7 @@ func InsertOne(exe Executor, model Model) error {
 		if err != nil {
 			return err
 		}
-		model.AutoIncField().Set(int(lid))
+		model.AutoIncField().set(int(lid))
 	}
 	model.addModelStatus(synced)
 	return nil

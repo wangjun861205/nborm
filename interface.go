@@ -34,6 +34,7 @@ type BaseField interface {
 	setStatus(fieldStatus)
 	addStatus(fieldStatus)
 	removeStatus(fieldStatus)
+	checkFieldStatus(status fieldStatus) bool
 	IsValid() bool
 	setValid()
 	unsetValid()
@@ -48,24 +49,6 @@ type BaseField interface {
 	getFieldIndex() int
 	clauser
 	// referencer
-}
-
-// ClauseField ClauseField
-type ClauseField interface {
-	AndW() ClauseField
-	AndWhere(string, interface{}) ClauseField
-	OrWhere(string, interface{}) ClauseField
-	U() ClauseField
-	Update(interface{}) ClauseField
-	Set(interface{}) ClauseField
-}
-
-// ValueField ValueField
-type ValueField interface {
-	BaseField
-	Scan(interface{}) error
-	value() interface{}
-	toScan(m Model, selectors *[]interface{})
 }
 
 // Field Field
@@ -104,6 +87,7 @@ type clauseModel interface {
 	appendSelector(s selector)
 	getSelectors() *selectorList
 	appendAgg(agg aggregator)
+	appendUpdate(update *update) Model
 }
 
 // Model Model
@@ -149,7 +133,6 @@ type Model interface {
 	appendHavings(havinger)
 	getHavings() havinger
 	getInserts() insertList
-	appendInserts(*insert)
 	getUpdates() updateList
 }
 

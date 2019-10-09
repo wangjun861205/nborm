@@ -15,6 +15,8 @@ func (u *update) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirs
 	if *isFirstNode {
 		*isFirstNode = false
 		w.Write([]byte("SET "))
+	} else {
+		w.Write([]byte(", "))
 	}
 	u.field.toRefClause(w, vals, nil, nil)
 	w.Write([]byte("= "))

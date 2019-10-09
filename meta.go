@@ -199,7 +199,6 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 type modelClause struct {
 	Model
 	selectors selectorList
-	inserts   insertList
 	wheres    wherer
 	updates   updateList
 	havings   havinger
@@ -215,11 +214,11 @@ func (m *modelClause) SelectDistinct() Model {
 }
 
 func (m *modelClause) getInserts() insertList {
-	return m.inserts
-}
-
-func (m *modelClause) appendInserts(insert *insert) {
-	m.inserts = append(m.inserts, insert)
+	l := make(insertList, 0, 8)
+	for _, info := range m.FieldInfos() {
+		info.Field.toInsert(&l)
+	}
+	return l
 }
 
 func (m *modelClause) getOrderBys() orderByList {
@@ -275,6 +274,11 @@ func (m *modelClause) getAggs() aggList {
 
 func (m *modelClause) getUpdates() updateList {
 	return m.updates
+}
+
+func (m *modelClause) appendUpdate(update *update) Model {
+	m.updates = append(m.updates, update)
+	return m
 }
 
 func (m *modelClause) AscOrderBy(orderBy referencer) Model {

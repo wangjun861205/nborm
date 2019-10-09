@@ -2,8 +2,8 @@ package mock_nborm
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/wangjun861205/nborm"
@@ -21,23 +21,45 @@ func init() {
 	db = d
 }
 
+type test struct {
+	name string
+	f    func(t *testing.T)
+}
+
+var tests = []test{
+	// {
+	// 	name: "insert",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.ID.SetExpr(nborm.NewExpr("UUID()"))
+	// 		acct.Phone.SetString("13793148691")
+	// 		acct.Password.SetExpr(nborm.NewExpr("MD5(?)", "123456"))
+	// 		if err := nborm.InsertOne(db, acct); err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 	},
+	// },
+	{
+		name: "update",
+		f: func(t *testing.T) {
+			acct := model.NewEmployAccount()
+			acct.Phone.AndWhere("=", "13793148690")
+			acct.Password.Update(nborm.NewExpr("MD5(?)", "123456"))
+			acct.CreateTime.Update(time.Now())
+			if _, err := nborm.Update(db, acct); err != nil {
+				t.Error(err)
+				return
+			}
+		},
+	},
+}
+
 func TestNBorm(t *testing.T) {
-	ents := model.NewEmployEnterpriseList()
-	// ents.Account.SetForJoin().SelectAll()
-	ents.Name.ForSelect()
-	ents.SID.ForSelect()
-	ents.EmployFromThis.AndWhere(">", 1)
-	if err := nborm.Query(db, ents); err != nil {
-		t.Fatal(err)
-	}
-	for _, ent := range ents.List {
-		// fmt.Println(ent)
-		ent.Account.SelectAll()
-		if err := nborm.BackQuery(db, ent.Account); err != nil {
-			t.Fatal(err)
+	for _, tt := range tests {
+		if ok := t.Run(tt.name, tt.f); ok {
+			t.Logf("%s test success", tt.name)
+		} else {
+			t.Logf("%s test field", tt.name)
 		}
-	}
-	for _, ent := range ents.List {
-		fmt.Println(ent.Account)
 	}
 }

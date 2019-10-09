@@ -7,7 +7,6 @@ import (
 func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("INSERT INTO "))
 	w.Write([]byte(model.rawFullTabName()))
-	w.Write([]byte(" SET "))
 	inserts := model.getInserts()
 	isFirstGroup, isFirstNode := true, true
 	inserts.toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
@@ -28,7 +27,7 @@ func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
 	genSelectedClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, nil, noJoin, w, vals)
+	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
@@ -61,10 +60,12 @@ func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
 }
 
 func genUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
-	isFirstGroup, isFirstNode := true, true
-	genTabRefClause(model, nil, noJoin, w, vals)
+	w.Write([]byte("UPDATE "))
+	isFirstGroup, isFirstNode := true, false
+	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
 	genUpdateClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode = true, true
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
 }
 
@@ -72,7 +73,7 @@ func genDeleteStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode := true, true
 	genDeleteClause(model, w, vals, true)
 	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, nil, noJoin, w, vals)
+	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
 	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
 	isFirstGroup, isFirstNode = true, true
 	genOrderByClause(model, w, vals, &isFirstGroup, &isFirstNode)
@@ -163,9 +164,13 @@ func genHavingClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup
 	}
 }
 
-func genTabRefClause(model Model, relInfo *RelationInfo, joinType joinType, w io.Writer, vals *[]interface{}) {
-	if relInfo == nil {
+func genTabRefClause(model Model, relInfo *RelationInfo, joinType joinType, w io.Writer, vals *[]interface{}, isFirstNode *bool) {
+	if *isFirstNode {
+		*isFirstNode = false
 		w.Write([]byte("FROM "))
+	}
+	if relInfo == nil {
+		// w.Write([]byte("FROM "))
 		w.Write([]byte(model.fullTabName()))
 		w.Write([]byte(" "))
 	} else {
@@ -176,11 +181,11 @@ func genTabRefClause(model Model, relInfo *RelationInfo, joinType joinType, w io
 		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			switch {
 			case dstModel.checkStatus(forJoin):
-				genTabRefClause(dstModel, relInfo, join, w, vals)
+				genTabRefClause(dstModel, relInfo, join, w, vals, isFirstNode)
 			case dstModel.checkStatus(forLeftJoin):
-				genTabRefClause(dstModel, relInfo, leftJoin, w, vals)
+				genTabRefClause(dstModel, relInfo, leftJoin, w, vals, isFirstNode)
 			case dstModel.checkStatus(forRightJoin):
-				genTabRefClause(dstModel, relInfo, rightJoin, w, vals)
+				genTabRefClause(dstModel, relInfo, rightJoin, w, vals, isFirstNode)
 			}
 		}
 	}

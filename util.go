@@ -341,20 +341,21 @@ func getDeleteModels(model Model, models *[]string) {
 	}
 }
 
-func genDeleteClause(model Model, w io.Writer, vals *[]interface{}, isFirst bool) {
+func genDeleteClause(model Model, w io.Writer, vals *[]interface{}, isFirstNode *bool) {
 	if model.checkStatus(forDelete) {
-		if isFirst {
-			isFirst = false
+		if *isFirstNode {
+			*isFirstNode = false
 			w.Write([]byte("DELETE "))
 		} else {
 			w.Write([]byte(", "))
 		}
 		w.Write([]byte(model.getAlias()))
+		w.Write([]byte(" "))
 	}
 	for _, relInfo := range model.relations() {
 		dstModel := relInfo.lastModel()
 		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			genDeleteClause(dstModel, w, vals, isFirst)
+			genDeleteClause(dstModel, w, vals, isFirstNode)
 		}
 	}
 }

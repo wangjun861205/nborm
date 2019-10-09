@@ -4,38 +4,46 @@ import (
 	"io"
 )
 
+func genFlags() (*bool, *bool, func()) {
+	isFirstGroup, isFirstNode := true, true
+	return &isFirstGroup, &isFirstNode, func() {
+		isFirstGroup, isFirstNode = true, true
+	}
+}
+
 func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("INSERT INTO "))
 	w.Write([]byte(model.rawFullTabName()))
 	inserts := model.getInserts()
-	isFirstGroup, isFirstNode := true, true
-	inserts.toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode, _ := genFlags()
+	inserts.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 }
 
 func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("INSERT INTO "))
 	w.Write([]byte(model.rawFullTabName()))
-	w.Write([]byte(" SET "))
-	isFirstGroup, isFirstNode := true, true
-	model.getInserts().toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
+	w.Write([]byte(" "))
+	isFirstGroup, isFirstNode, reset := genFlags()
+	model.getInserts().toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	w.Write([]byte(" ON DUPLICATE KEY UPDATE "))
-	isFirstGroup, isFirstNode = true, true
-	model.getUpdates().toSimpleClause(w, vals, &isFirstGroup, &isFirstNode)
+	reset()
+	*isFirstGroup = false
+	model.getUpdates().toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 }
 
 func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
-	isFirstGroup, isFirstNode := true, true
-	genSelectedClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genGroupByClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genHavingClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genOrderByClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode, reset := genFlags()
+	genSelectedClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genTabRefClause(model, nil, noJoin, w, vals, isFirstNode)
+	reset()
+	genWhereClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genGroupByClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genHavingClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genOrderByClause(model, w, vals, isFirstGroup, isFirstNode)
 	genLimitClause(model, w, vals)
 	if model.checkStatus(selectForUpdate) {
 		w.Write([]byte("FOR UPDATE "))
@@ -43,16 +51,16 @@ func genSelectStmt(model Model, w io.Writer, vals *[]interface{}) {
 }
 
 func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
-	isFirstGroup, isFirstNode := true, true
-	genSelectedClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode, reset := genFlags()
+	genSelectedClause(model, w, vals, isFirstGroup, isFirstNode)
 	genBackTabRefClause(model, nil, noJoin, w, vals)
 	genBackWhereClause(model, w, vals)
-	isFirstGroup, isFirstNode = true, true
-	genGroupByClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genHavingClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genOrderByClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	reset()
+	genGroupByClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genHavingClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genOrderByClause(model, w, vals, isFirstGroup, isFirstNode)
 	genLimitClause(model, w, vals)
 	if model.checkStatus(selectForUpdate) {
 		w.Write([]byte("FOR UPDATE "))
@@ -61,22 +69,24 @@ func genBackQueryStmt(model Model, w io.Writer, vals *[]interface{}) {
 
 func genUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("UPDATE "))
-	isFirstGroup, isFirstNode := true, false
-	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genUpdateClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode, reset := genFlags()
+	*isFirstNode = false
+	genTabRefClause(model, nil, noJoin, w, vals, isFirstNode)
+	reset()
+	genUpdateClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genWhereClause(model, w, vals, isFirstGroup, isFirstNode)
 }
 
 func genDeleteStmt(model Model, w io.Writer, vals *[]interface{}) {
-	isFirstGroup, isFirstNode := true, true
-	genDeleteClause(model, w, vals, true)
-	isFirstGroup, isFirstNode = true, true
-	genTabRefClause(model, nil, noJoin, w, vals, &isFirstNode)
-	genWhereClause(model, w, vals, &isFirstGroup, &isFirstNode)
-	isFirstGroup, isFirstNode = true, true
-	genOrderByClause(model, w, vals, &isFirstGroup, &isFirstNode)
+	isFirstGroup, isFirstNode, reset := genFlags()
+	genDeleteClause(model, w, vals, isFirstNode)
+	reset()
+	genTabRefClause(model, nil, noJoin, w, vals, isFirstNode)
+	reset()
+	genWhereClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genOrderByClause(model, w, vals, isFirstGroup, isFirstNode)
 	genLimitClause(model, w, vals)
 }
 

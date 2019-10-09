@@ -43,6 +43,10 @@ func newSubEmployAccount(parent nborm.Model) *EmployAccount {
 }
 
 func (m *EmployAccount) InitRel() {
+	m.Enterprise = newSubEmployEnterprise(m)
+	var relInfo0 *nborm.RelationInfo
+	relInfo0 = relInfo0.Append("Enterprise", m.Enterprise, nborm.NewExpr("@=@", &m.ID, &m.Enterprise.AccountID))
+	m.AppendRelation(relInfo0)
 	m.AddRelInited()
 }
 
@@ -180,6 +184,14 @@ func (m EmployAccount) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(UpdateTimeB)
 	}
+	if m.Enterprise != nil && m.Enterprise.IsSynced() {
+		buffer.WriteString(",\n\"Enterprise\": ")
+		EnterpriseB, err := json.MarshalIndent(m.Enterprise, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(EnterpriseB)
+	}
 	buffer.WriteString("\n}")
 	return buffer.Bytes(), nil
 }
@@ -192,6 +204,9 @@ type EmployAccountList struct {
 }
 
 func (m *EmployAccount) Collapse() {
+	if m.Enterprise != nil && m.Enterprise.IsSynced() {
+		m.Enterprise.Collapse()
+	}
 }
 
 func NewEmployAccountList() *EmployAccountList {
@@ -323,6 +338,7 @@ func (l *EmployAccountList) UnmarshalJSON(b []byte) error {
 func (l *EmployAccountList) Collapse() {
 	idx := l.checkDup()
 	if idx >= 0 {
+		l.List[idx].Enterprise = l.List[l.Len()-1].Enterprise
 		l.List = l.List[:len(l.List)-1]
 		l.List[idx].Collapse()
 	}
@@ -518,23 +534,22 @@ func NewEmployEnterprise() *EmployEnterprise {
 	m.UniformCode.Init(m, "UniformCode", "UniformCode", 4)
 	m.Name.Init(m, "Name", "Name", 5)
 	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
-	m.SectorID.Init(m, "SectorID", "SectorID", 7)
-	m.NatureID.Init(m, "NatureID", "NatureID", 8)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 9)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 10)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 11)
-	m.Website.Init(m, "Website", "Website", 12)
-	m.Contact.Init(m, "Contact", "Contact", 13)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 14)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 15)
-	m.Introduction.Init(m, "Introduction", "Introduction", 16)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 17)
-	m.Status.Init(m, "Status", "Status", 18)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 19)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 20)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 21)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 22)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 23)
+	m.NatureID.Init(m, "NatureID", "NatureID", 7)
+	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
+	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
+	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
+	m.Website.Init(m, "Website", "Website", 11)
+	m.Contact.Init(m, "Contact", "Contact", 12)
+	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
+	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
+	m.Introduction.Init(m, "Introduction", "Introduction", 15)
+	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
+	m.Status.Init(m, "Status", "Status", 17)
+	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
+	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
+	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
+	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
+	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
 	m.InitRel()
 	return m
 }
@@ -549,23 +564,22 @@ func newSubEmployEnterprise(parent nborm.Model) *EmployEnterprise {
 	m.UniformCode.Init(m, "UniformCode", "UniformCode", 4)
 	m.Name.Init(m, "Name", "Name", 5)
 	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
-	m.SectorID.Init(m, "SectorID", "SectorID", 7)
-	m.NatureID.Init(m, "NatureID", "NatureID", 8)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 9)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 10)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 11)
-	m.Website.Init(m, "Website", "Website", 12)
-	m.Contact.Init(m, "Contact", "Contact", 13)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 14)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 15)
-	m.Introduction.Init(m, "Introduction", "Introduction", 16)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 17)
-	m.Status.Init(m, "Status", "Status", 18)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 19)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 20)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 21)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 22)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 23)
+	m.NatureID.Init(m, "NatureID", "NatureID", 7)
+	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
+	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
+	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
+	m.Website.Init(m, "Website", "Website", 11)
+	m.Contact.Init(m, "Contact", "Contact", 12)
+	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
+	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
+	m.Introduction.Init(m, "Introduction", "Introduction", 15)
+	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
+	m.Status.Init(m, "Status", "Status", 17)
+	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
+	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
+	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
+	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
+	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
 	return m
 }
 
@@ -594,23 +608,22 @@ func (m *EmployEnterprise) FieldInfos() nborm.FieldInfoList {
 		{"UniformCode", "UniformCode", &m.UniformCode, 4},
 		{"Name", "Name", &m.Name, 5},
 		{"RegisterCityID", "RegisterCityID", &m.RegisterCityID, 6},
-		{"SectorID", "SectorID", &m.SectorID, 7},
-		{"NatureID", "NatureID", &m.NatureID, 8},
-		{"ScopeID", "ScopeID", &m.ScopeID, 9},
-		{"OfficeCityID", "OfficeCityID", &m.OfficeCityID, 10},
-		{"OfficeAddress", "OfficeAddress", &m.OfficeAddress, 11},
-		{"Website", "Website", &m.Website, 12},
-		{"Contact", "Contact", &m.Contact, 13},
-		{"ContactPhone", "ContactPhone", &m.ContactPhone, 14},
-		{"EmployFromThis", "EmployFromThis", &m.EmployFromThis, 15},
-		{"Introduction", "Introduction", &m.Introduction, 16},
-		{"Zipcode", "Zipcode", &m.Zipcode, 17},
-		{"Status", "Status", &m.Status, 18},
-		{"UpdateHash", "UpdateHash", &m.UpdateHash, 19},
-		{"RejectReason", "RejectReason", &m.RejectReason, 20},
-		{"LicenseImageID", "LicenseImageID", &m.LicenseImageID, 21},
-		{"CreateTime", "CreateTime", &m.CreateTime, 22},
-		{"UpdateTime", "UpdateTime", &m.UpdateTime, 23},
+		{"NatureID", "NatureID", &m.NatureID, 7},
+		{"ScopeID", "ScopeID", &m.ScopeID, 8},
+		{"OfficeCityID", "OfficeCityID", &m.OfficeCityID, 9},
+		{"OfficeAddress", "OfficeAddress", &m.OfficeAddress, 10},
+		{"Website", "Website", &m.Website, 11},
+		{"Contact", "Contact", &m.Contact, 12},
+		{"ContactPhone", "ContactPhone", &m.ContactPhone, 13},
+		{"EmployFromThis", "EmployFromThis", &m.EmployFromThis, 14},
+		{"Introduction", "Introduction", &m.Introduction, 15},
+		{"Zipcode", "Zipcode", &m.Zipcode, 16},
+		{"Status", "Status", &m.Status, 17},
+		{"UpdateHash", "UpdateHash", &m.UpdateHash, 18},
+		{"RejectReason", "RejectReason", &m.RejectReason, 19},
+		{"LicenseImageID", "LicenseImageID", &m.LicenseImageID, 20},
+		{"CreateTime", "CreateTime", &m.CreateTime, 21},
+		{"UpdateTime", "UpdateTime", &m.UpdateTime, 22},
 	}
 }
 
@@ -706,14 +719,6 @@ func (m EmployEnterprise) MarshalJSON() ([]byte, error) {
 			return nil, err
 		}
 		buffer.Write(RegisterCityIDB)
-	}
-	if m.SectorID.IsValid() {
-		buffer.WriteString(",\n\"SectorID\": ")
-		SectorIDB, err := json.MarshalIndent(m.SectorID, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(SectorIDB)
 	}
 	if m.NatureID.IsValid() {
 		buffer.WriteString(",\n\"NatureID\": ")
@@ -883,23 +888,22 @@ func NewEmployEnterpriseList() *EmployEnterpriseList {
 	l.UniformCode.Init(l, "UniformCode", "UniformCode", 4)
 	l.Name.Init(l, "Name", "Name", 5)
 	l.RegisterCityID.Init(l, "RegisterCityID", "RegisterCityID", 6)
-	l.SectorID.Init(l, "SectorID", "SectorID", 7)
-	l.NatureID.Init(l, "NatureID", "NatureID", 8)
-	l.ScopeID.Init(l, "ScopeID", "ScopeID", 9)
-	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 10)
-	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 11)
-	l.Website.Init(l, "Website", "Website", 12)
-	l.Contact.Init(l, "Contact", "Contact", 13)
-	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 14)
-	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 15)
-	l.Introduction.Init(l, "Introduction", "Introduction", 16)
-	l.Zipcode.Init(l, "Zipcode", "Zipcode", 17)
-	l.Status.Init(l, "Status", "Status", 18)
-	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 19)
-	l.RejectReason.Init(l, "RejectReason", "RejectReason", 20)
-	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 21)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 22)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 23)
+	l.NatureID.Init(l, "NatureID", "NatureID", 7)
+	l.ScopeID.Init(l, "ScopeID", "ScopeID", 8)
+	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 9)
+	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 10)
+	l.Website.Init(l, "Website", "Website", 11)
+	l.Contact.Init(l, "Contact", "Contact", 12)
+	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 13)
+	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 14)
+	l.Introduction.Init(l, "Introduction", "Introduction", 15)
+	l.Zipcode.Init(l, "Zipcode", "Zipcode", 16)
+	l.Status.Init(l, "Status", "Status", 17)
+	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 18)
+	l.RejectReason.Init(l, "RejectReason", "RejectReason", 19)
+	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 20)
+	l.CreateTime.Init(l, "CreateTime", "CreateTime", 21)
+	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 22)
 	l.InitRel()
 	return l
 }
@@ -919,23 +923,22 @@ func newSubEmployEnterpriseList(parent nborm.Model) *EmployEnterpriseList {
 	l.UniformCode.Init(l, "UniformCode", "UniformCode", 4)
 	l.Name.Init(l, "Name", "Name", 5)
 	l.RegisterCityID.Init(l, "RegisterCityID", "RegisterCityID", 6)
-	l.SectorID.Init(l, "SectorID", "SectorID", 7)
-	l.NatureID.Init(l, "NatureID", "NatureID", 8)
-	l.ScopeID.Init(l, "ScopeID", "ScopeID", 9)
-	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 10)
-	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 11)
-	l.Website.Init(l, "Website", "Website", 12)
-	l.Contact.Init(l, "Contact", "Contact", 13)
-	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 14)
-	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 15)
-	l.Introduction.Init(l, "Introduction", "Introduction", 16)
-	l.Zipcode.Init(l, "Zipcode", "Zipcode", 17)
-	l.Status.Init(l, "Status", "Status", 18)
-	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 19)
-	l.RejectReason.Init(l, "RejectReason", "RejectReason", 20)
-	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 21)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 22)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 23)
+	l.NatureID.Init(l, "NatureID", "NatureID", 7)
+	l.ScopeID.Init(l, "ScopeID", "ScopeID", 8)
+	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 9)
+	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 10)
+	l.Website.Init(l, "Website", "Website", 11)
+	l.Contact.Init(l, "Contact", "Contact", 12)
+	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 13)
+	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 14)
+	l.Introduction.Init(l, "Introduction", "Introduction", 15)
+	l.Zipcode.Init(l, "Zipcode", "Zipcode", 16)
+	l.Status.Init(l, "Status", "Status", 17)
+	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 18)
+	l.RejectReason.Init(l, "RejectReason", "RejectReason", 19)
+	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 20)
+	l.CreateTime.Init(l, "CreateTime", "CreateTime", 21)
+	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 22)
 	return l
 }
 
@@ -957,39 +960,37 @@ func (l *EmployEnterpriseList) NewModel() nborm.Model {
 	l.Name.CopyStatus(&m.Name)
 	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
 	l.RegisterCityID.CopyStatus(&m.RegisterCityID)
-	m.SectorID.Init(m, "SectorID", "SectorID", 7)
-	l.SectorID.CopyStatus(&m.SectorID)
-	m.NatureID.Init(m, "NatureID", "NatureID", 8)
+	m.NatureID.Init(m, "NatureID", "NatureID", 7)
 	l.NatureID.CopyStatus(&m.NatureID)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 9)
+	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
 	l.ScopeID.CopyStatus(&m.ScopeID)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 10)
+	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
 	l.OfficeCityID.CopyStatus(&m.OfficeCityID)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 11)
+	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
 	l.OfficeAddress.CopyStatus(&m.OfficeAddress)
-	m.Website.Init(m, "Website", "Website", 12)
+	m.Website.Init(m, "Website", "Website", 11)
 	l.Website.CopyStatus(&m.Website)
-	m.Contact.Init(m, "Contact", "Contact", 13)
+	m.Contact.Init(m, "Contact", "Contact", 12)
 	l.Contact.CopyStatus(&m.Contact)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 14)
+	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
 	l.ContactPhone.CopyStatus(&m.ContactPhone)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 15)
+	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
 	l.EmployFromThis.CopyStatus(&m.EmployFromThis)
-	m.Introduction.Init(m, "Introduction", "Introduction", 16)
+	m.Introduction.Init(m, "Introduction", "Introduction", 15)
 	l.Introduction.CopyStatus(&m.Introduction)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 17)
+	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
 	l.Zipcode.CopyStatus(&m.Zipcode)
-	m.Status.Init(m, "Status", "Status", 18)
+	m.Status.Init(m, "Status", "Status", 17)
 	l.Status.CopyStatus(&m.Status)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 19)
+	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
 	l.UpdateHash.CopyStatus(&m.UpdateHash)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 20)
+	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
 	l.RejectReason.CopyStatus(&m.RejectReason)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 21)
+	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
 	l.LicenseImageID.CopyStatus(&m.LicenseImageID)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 22)
+	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
 	l.CreateTime.CopyStatus(&m.CreateTime)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 23)
+	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
 	l.UpdateTime.CopyStatus(&m.UpdateTime)
 	m.InitRel()
 	l.List = append(l.List, m)
@@ -1095,9 +1096,6 @@ func (l *EmployEnterpriseList) checkDup() int {
 	}
 	if lastModel.RegisterCityID.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.RegisterCityID.AnyValue()))
-	}
-	if lastModel.SectorID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.SectorID.AnyValue()))
 	}
 	if lastModel.NatureID.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.NatureID.AnyValue()))

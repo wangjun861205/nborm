@@ -12,16 +12,17 @@ import (
 type EmployAccount struct {
 	nborm.Meta `json:"Aggs"`
 
-	SID           nborm.Int      `col:"SID" auto_increment:"true"`
-	ID            nborm.String   `col:"ID"`
-	Phone         nborm.String   `col:"Phone"`
-	Password      nborm.String   `col:"Password"`
-	Status        nborm.Int      `col:"Status"`
-	ErrorCount    nborm.Int      `col:"ErrorCount"`
-	LastErrorTime nborm.Datetime `col:"LastErrorTime"`
-	LastLogin     nborm.Datetime `col:"LastLogin"`
-	CreateTime    nborm.Datetime `col:"CreateTime"`
-	UpdateTime    nborm.Datetime `col:"UpdateTime"`
+	SID           nborm.Int         `col:"SID" auto_increment:"true"`
+	ID            nborm.String      `col:"ID"`
+	Phone         nborm.String      `col:"Phone"`
+	Password      nborm.String      `col:"Password"`
+	Status        nborm.Int         `col:"Status"`
+	ErrorCount    nborm.Int         `col:"ErrorCount"`
+	LastErrorTime nborm.Datetime    `col:"LastErrorTime"`
+	LastLogin     nborm.Datetime    `col:"LastLogin"`
+	CreateTime    nborm.Datetime    `col:"CreateTime"`
+	UpdateTime    nborm.Datetime    `col:"UpdateTime"`
+	Enterprise    *EmployEnterprise `rel:"[@@.ID=@$.AccountID]"`
 }
 
 //db:*
@@ -41,7 +42,6 @@ type EmployEnterprise struct {
 	UniformCode    nborm.String   `col:"UniformCode"`
 	Name           nborm.String   `col:"Name"`
 	RegisterCityID nborm.String   `col:"RegisterCityID"`
-	SectorID       nborm.String   `col:"SectorID"`
 	NatureID       nborm.String   `col:"NatureID"`
 	ScopeID        nborm.String   `col:"ScopeID"`
 	OfficeCityID   nborm.String   `col:"OfficeCityID"`

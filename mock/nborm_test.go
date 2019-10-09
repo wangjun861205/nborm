@@ -39,6 +39,22 @@ var tests = []test{
 	// 		}
 	// 	},
 	// },
+	// {
+	// 	name: "insert or update",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.ID.SetExpr(nborm.NewExpr("UUID()"))
+	// 		acct.Phone.SetString("13793148692")
+	// 		acct.Phone.Update("13793148693")
+	// 		acct.CreateTime.Update(time.Now())
+	// 		acct.Password.SetExpr(nborm.NewExpr("MD5(?)", "123456"))
+	// 		if isInsert, err := nborm.InsertOrUpdateOne(db, acct); err != nil {
+	// 			t.Error(err)
+	// 		} else {
+	// 			fmt.Println(isInsert)
+	// 		}
+	// 	},
+	// },
 	{
 		name: "update",
 		f: func(t *testing.T) {
@@ -52,14 +68,52 @@ var tests = []test{
 			}
 		},
 	},
+	// {
+	// 	name: "query",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.Phone.AndWhere("=", "15665793333")
+	// 		acct.SelectAll()
+	// 		if err := nborm.Query(db, acct); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		fmt.Println(acct)
+	// 	},
+	// },
+	// {
+	// 	name: "join query",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.SelectAll()
+	// 		acct.Phone.AndWhere("=", "13793148690")
+	// 		acct.Enterprise.SetForLeftJoin()
+	// 		acct.Enterprise.SelectAll()
+	// 		if err := nborm.Query(db, acct); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		fmt.Println(acct)
+	// 	},
+	// },
+	// {
+	// 	name: "delete",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.Phone.AndWhere("=", "13793148691")
+	// 		acct.SetForDelete()
+	// 		acct.Enterprise.SetForJoin()
+	// 		acct.Enterprise.SetForDelete()
+	// 		if _, err := nborm.Delete(db, acct); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 	},
+	// },
 }
 
 func TestNBorm(t *testing.T) {
 	for _, tt := range tests {
-		if ok := t.Run(tt.name, tt.f); ok {
-			t.Logf("%s test success", tt.name)
-		} else {
-			t.Logf("%s test field", tt.name)
-		}
+		t.Run(tt.name, tt.f)
 	}
 }

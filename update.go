@@ -14,7 +14,7 @@ func newUpdate(field referencer, value clauser) *update {
 func (u *update) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if *isFirstNode {
 		*isFirstNode = false
-		w.Write([]byte("SET "))
+		// w.Write([]byte("SET "))
 	} else {
 		w.Write([]byte(", "))
 	}
@@ -26,7 +26,9 @@ func (u *update) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirs
 func (u *update) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if *isFirstNode {
 		*isFirstNode = false
-		w.Write([]byte("SET "))
+		// w.Write([]byte("SET "))
+	} else {
+		w.Write([]byte(", "))
 	}
 	u.field.toSimpleRefClause(w, vals, nil, nil)
 	w.Write([]byte("= "))
@@ -39,6 +41,10 @@ func (l updateList) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isF
 	if len(l) == 0 {
 		return
 	}
+	if *isFirstGroup {
+		*isFirstGroup = false
+		w.Write([]byte("SET "))
+	}
 	l[0].toClause(w, vals, isFirstGroup, isFirstNode)
 	l = l[1:]
 	l.toClause(w, vals, isFirstGroup, isFirstNode)
@@ -48,7 +54,11 @@ func (l updateList) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGrou
 	if len(l) == 0 {
 		return
 	}
+	if *isFirstGroup {
+		*isFirstGroup = false
+		w.Write([]byte("SET "))
+	}
 	l[0].toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	l = l[1:]
-	l.toClause(w, vals, isFirstGroup, isFirstNode)
+	l.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 }

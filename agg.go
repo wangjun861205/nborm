@@ -35,9 +35,13 @@ func (a *IntAgg) String() string {
 }
 
 func (a *IntAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newIntAgg(a.expr, a.name)
-	m.appendSelector(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("IntAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口
@@ -103,9 +107,13 @@ func (a *StrAgg) String() string {
 }
 
 func (a *StrAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newStrAgg(a.expr, a.name)
-	m.appendAgg(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("StrAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口
@@ -171,9 +179,13 @@ func (a *DateAgg) String() string {
 }
 
 func (a *DateAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newDateAgg(a.expr, a.name)
-	m.appendAgg(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DateAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口
@@ -239,9 +251,13 @@ func (a *DatetimeAgg) String() string {
 }
 
 func (a *DatetimeAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newDatetimeAgg(a.expr, a.name)
-	m.appendAgg(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DateTimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口
@@ -307,9 +323,13 @@ func (a *TimeAgg) String() string {
 }
 
 func (a *TimeAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newTimeAgg(a.expr, a.name)
-	m.appendAgg(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("TimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口
@@ -375,9 +395,13 @@ func (a *DecimalAgg) String() string {
 }
 
 func (a *DecimalAgg) toScan(m Model, selectors *[]interface{}) {
-	na := newDecAgg(a.expr, a.name)
-	m.appendAgg(na)
-	*selectors = append(*selectors, na)
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DecimalAgg.toScan() error: cannot find agg(name: %s)", a.name))
 }
 
 // Scan 实现Scanner接口

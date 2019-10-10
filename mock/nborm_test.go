@@ -2,8 +2,8 @@ package mock_nborm
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/wangjun861205/nborm"
@@ -55,19 +55,19 @@ var tests = []test{
 	// 		}
 	// 	},
 	// },
-	{
-		name: "update",
-		f: func(t *testing.T) {
-			acct := model.NewEmployAccount()
-			acct.Phone.AndWhere("=", "13793148690")
-			acct.Password.Update(nborm.NewExpr("MD5(?)", "123456"))
-			acct.CreateTime.Update(time.Now())
-			if _, err := nborm.Update(db, acct); err != nil {
-				t.Error(err)
-				return
-			}
-		},
-	},
+	// {
+	// 	name: "update",
+	// 	f: func(t *testing.T) {
+	// 		acct := model.NewEmployAccount()
+	// 		acct.Phone.AndWhere("=", "13793148690")
+	// 		acct.Password.Update(nborm.NewExpr("MD5(?)", "123456"))
+	// 		acct.CreateTime.Update(time.Now())
+	// 		if _, err := nborm.Update(db, acct); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 	},
+	// },
 	// {
 	// 	name: "query",
 	// 	f: func(t *testing.T) {
@@ -110,6 +110,18 @@ var tests = []test{
 	// 		}
 	// 	},
 	// },
+	{
+		name: "aggregate",
+		f: func(t *testing.T) {
+			ent := model.NewEmployEnterpriseList()
+			ent.IntAgg(nborm.NewExpr("SUM(IF(@=1 OR @=2, 1, 0))", &ent.Status, &ent.Status), "count")
+			if err := nborm.Query(db, ent); err != nil {
+				t.Error(err)
+				return
+			}
+			fmt.Println(ent)
+		},
+	},
 }
 
 func TestNBorm(t *testing.T) {

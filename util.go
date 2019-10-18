@@ -80,6 +80,9 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *
 				subInstanceModel.InitRel()
 				getFieldsForScan(subClassModel, subInstanceModel, models, fields)
 			} else {
+				if !instanceModel.checkStatus(relInited) {
+					instanceModel.InitRel()
+				}
 				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)
 			}
 		}

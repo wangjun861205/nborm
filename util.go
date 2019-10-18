@@ -77,6 +77,7 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *
 		if rel.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			if subClassModel, ok := rel.lastModel().(ModelList); ok {
 				subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
+				subInstanceModel.InitRel()
 				getFieldsForScan(subClassModel, subInstanceModel, models, fields)
 			} else {
 				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)

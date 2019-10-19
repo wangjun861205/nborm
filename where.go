@@ -140,15 +140,13 @@ func (g *whereGroup) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, is
 	if *isFirstGroup {
 		*isFirstGroup = false
 		w.Write([]byte("WHERE ("))
-	}
-	if *isFirstNode {
-		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
-		w.Write([]byte(" "))
+		w.Write([]byte(" ("))
 	}
 	g.first.toClause(w, vals, isFirstGroup, isFirstNode)
-	w.Write([]byte(")"))
+	w.Write([]byte(") "))
+	*isFirstNode = true
 	if g.next != nil {
 		g.next.toClause(w, vals, isFirstGroup, isFirstNode)
 	}
@@ -161,15 +159,13 @@ func (g *whereGroup) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGro
 	if *isFirstGroup {
 		*isFirstGroup = false
 		w.Write([]byte("WHERE ("))
-	}
-	if *isFirstNode {
-		*isFirstNode = false
 	} else {
 		w.Write([]byte(string(g.rel)))
-		w.Write([]byte(" "))
+		w.Write([]byte(" ("))
 	}
 	g.first.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
-	w.Write([]byte(")"))
+	w.Write([]byte(") "))
+	*isFirstNode = true
 	if g.next != nil {
 		g.next.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	}
@@ -181,16 +177,14 @@ func (g *whereGroup) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup,
 	}
 	if *isFirstGroup {
 		*isFirstGroup = false
-		w.Write([]byte("("))
-	}
-	if *isFirstNode {
-		*isFirstNode = false
+		w.Write([]byte("WHERE ("))
 	} else {
 		w.Write([]byte(string(g.rel)))
-		w.Write([]byte(" "))
+		w.Write([]byte(" ("))
 	}
 	g.first.toRefClause(w, vals, isFirstGroup, isFirstNode)
-	w.Write([]byte(")"))
+	w.Write([]byte(") "))
+	*isFirstNode = true
 	if g.next != nil {
 		g.next.toRefClause(w, vals, isFirstGroup, isFirstNode)
 	}
@@ -202,16 +196,14 @@ func (g *whereGroup) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirst
 	}
 	if *isFirstGroup {
 		*isFirstGroup = false
-		w.Write([]byte("("))
-	}
-	if *isFirstNode {
-		*isFirstNode = false
+		w.Write([]byte("WHERE ("))
 	} else {
 		w.Write([]byte(string(g.rel)))
-		w.Write([]byte(" "))
+		w.Write([]byte(" ("))
 	}
 	g.first.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
-	w.Write([]byte(")"))
+	w.Write([]byte(") "))
+	*isFirstNode = true
 	if g.next != nil {
 		g.next.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
 	}

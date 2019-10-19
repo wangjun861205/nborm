@@ -9,91 +9,146 @@ import (
 	"time"
 )
 
-func NewEmployAccount() *EmployAccount {
-	m := &EmployAccount{}
+func NewUser() *User {
+	m := &User{}
 	m.Init(m, nil, nil)
-	m.SID.Init(m, "SID", "SID", 0)
-	m.ID.Init(m, "ID", "ID", 1)
-	m.Phone.Init(m, "Phone", "Phone", 2)
-	m.Password.Init(m, "Password", "Password", 3)
-	m.Status.Init(m, "Status", "Status", 4)
-	m.ErrorCount.Init(m, "ErrorCount", "ErrorCount", 5)
-	m.LastErrorTime.Init(m, "LastErrorTime", "LastErrorTime", 6)
-	m.LastLogin.Init(m, "LastLogin", "LastLogin", 7)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 8)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 9)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 1)
+	m.UserCode.Init(m, "UserCode", "UserCode", 2)
+	m.Name.Init(m, "Name", "Name", 3)
+	m.Sex.Init(m, "Sex", "Sex", 4)
+	m.IdentityType.Init(m, "IdentityType", "IdentityType", 5)
+	m.IdentityNum.Init(m, "IdentityNum", "IdentityNum", 6)
+	m.ExpirationDate.Init(m, "ExpirationDate", "ExpirationDate", 7)
+	m.UniversityCode.Init(m, "UniversityCode", "UniversityCode", 8)
+	m.UserType.Init(m, "UserType", "UserType", 9)
+	m.EnrollmentStatus.Init(m, "EnrollmentStatus", "EnrollmentStatus", 10)
+	m.Type.Init(m, "Type", "Type", 11)
+	m.Password.Init(m, "Password", "Password", 12)
+	m.Phone.Init(m, "Phone", "Phone", 13)
+	m.Email.Init(m, "Email", "Email", 14)
+	m.PictureURL.Init(m, "PictureURL", "PictureURL", 15)
+	m.Question.Init(m, "Question", "Question", 16)
+	m.Answer.Init(m, "Answer", "Answer", 17)
+	m.AvailableLogin.Init(m, "AvailableLogin", "AvailableLogin", 18)
+	m.Operator.Init(m, "Operator", "Operator", 19)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 20)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 21)
+	m.Status.Init(m, "Status", "Status", 22)
+	m.Remark1.Init(m, "Remark1", "Remark1", 23)
+	m.Remark2.Init(m, "Remark2", "Remark2", 24)
+	m.Remark3.Init(m, "Remark3", "Remark3", 25)
+	m.Remark4.Init(m, "Remark4", "Remark4", 26)
+	m.Nonego.Init(m, "Nonego", "Nonego", 27)
 	m.InitRel()
 	return m
 }
 
-func newSubEmployAccount(parent nborm.Model) *EmployAccount {
-	m := &EmployAccount{}
+func newSubUser(parent nborm.Model) *User {
+	m := &User{}
 	m.Init(m, parent, nil)
-	m.SID.Init(m, "SID", "SID", 0)
-	m.ID.Init(m, "ID", "ID", 1)
-	m.Phone.Init(m, "Phone", "Phone", 2)
-	m.Password.Init(m, "Password", "Password", 3)
-	m.Status.Init(m, "Status", "Status", 4)
-	m.ErrorCount.Init(m, "ErrorCount", "ErrorCount", 5)
-	m.LastErrorTime.Init(m, "LastErrorTime", "LastErrorTime", 6)
-	m.LastLogin.Init(m, "LastLogin", "LastLogin", 7)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 8)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 9)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 1)
+	m.UserCode.Init(m, "UserCode", "UserCode", 2)
+	m.Name.Init(m, "Name", "Name", 3)
+	m.Sex.Init(m, "Sex", "Sex", 4)
+	m.IdentityType.Init(m, "IdentityType", "IdentityType", 5)
+	m.IdentityNum.Init(m, "IdentityNum", "IdentityNum", 6)
+	m.ExpirationDate.Init(m, "ExpirationDate", "ExpirationDate", 7)
+	m.UniversityCode.Init(m, "UniversityCode", "UniversityCode", 8)
+	m.UserType.Init(m, "UserType", "UserType", 9)
+	m.EnrollmentStatus.Init(m, "EnrollmentStatus", "EnrollmentStatus", 10)
+	m.Type.Init(m, "Type", "Type", 11)
+	m.Password.Init(m, "Password", "Password", 12)
+	m.Phone.Init(m, "Phone", "Phone", 13)
+	m.Email.Init(m, "Email", "Email", 14)
+	m.PictureURL.Init(m, "PictureURL", "PictureURL", 15)
+	m.Question.Init(m, "Question", "Question", 16)
+	m.Answer.Init(m, "Answer", "Answer", 17)
+	m.AvailableLogin.Init(m, "AvailableLogin", "AvailableLogin", 18)
+	m.Operator.Init(m, "Operator", "Operator", 19)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 20)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 21)
+	m.Status.Init(m, "Status", "Status", 22)
+	m.Remark1.Init(m, "Remark1", "Remark1", 23)
+	m.Remark2.Init(m, "Remark2", "Remark2", 24)
+	m.Remark3.Init(m, "Remark3", "Remark3", 25)
+	m.Remark4.Init(m, "Remark4", "Remark4", 26)
+	m.Nonego.Init(m, "Nonego", "Nonego", 27)
 	return m
 }
 
-func (m *EmployAccount) InitRel() {
-	m.Enterprise = newSubEmployEnterprise(m)
+func (m *User) InitRel() {
+	m.BasicInfo = newSubStudentbasicinfo(m)
 	var relInfo0 *nborm.RelationInfo
-	relInfo0 = relInfo0.Append("Enterprise", m.Enterprise, nborm.NewExpr("@=@", &m.ID, &m.Enterprise.AccountID))
+	relInfo0 = relInfo0.Append("BasicInfo", m.BasicInfo, nborm.NewExpr("@=@", &m.IntelUserCode, &m.BasicInfo.IntelUserCode))
 	m.AppendRelation(relInfo0)
 	m.AddRelInited()
 }
 
-func (m *EmployAccount) DB() string {
+func (m *User) DB() string {
 	return "*"
 }
 
-func (m *EmployAccount) Tab() string {
-	return "employ_account"
+func (m *User) Tab() string {
+	return "user"
 }
 
-func (m *EmployAccount) FieldInfos() nborm.FieldInfoList {
+func (m *User) FieldInfos() nborm.FieldInfoList {
 	return nborm.FieldInfoList{
-		{"SID", "SID", &m.SID, 0},
-		{"ID", "ID", &m.ID, 1},
-		{"Phone", "Phone", &m.Phone, 2},
-		{"Password", "Password", &m.Password, 3},
-		{"Status", "Status", &m.Status, 4},
-		{"ErrorCount", "ErrorCount", &m.ErrorCount, 5},
-		{"LastErrorTime", "LastErrorTime", &m.LastErrorTime, 6},
-		{"LastLogin", "LastLogin", &m.LastLogin, 7},
-		{"CreateTime", "CreateTime", &m.CreateTime, 8},
-		{"UpdateTime", "UpdateTime", &m.UpdateTime, 9},
+		{"Id", "Id", &m.Id, 0},
+		{"IntelUserCode", "IntelUserCode", &m.IntelUserCode, 1},
+		{"UserCode", "UserCode", &m.UserCode, 2},
+		{"Name", "Name", &m.Name, 3},
+		{"Sex", "Sex", &m.Sex, 4},
+		{"IdentityType", "IdentityType", &m.IdentityType, 5},
+		{"IdentityNum", "IdentityNum", &m.IdentityNum, 6},
+		{"ExpirationDate", "ExpirationDate", &m.ExpirationDate, 7},
+		{"UniversityCode", "UniversityCode", &m.UniversityCode, 8},
+		{"UserType", "UserType", &m.UserType, 9},
+		{"EnrollmentStatus", "EnrollmentStatus", &m.EnrollmentStatus, 10},
+		{"Type", "Type", &m.Type, 11},
+		{"Password", "Password", &m.Password, 12},
+		{"Phone", "Phone", &m.Phone, 13},
+		{"Email", "Email", &m.Email, 14},
+		{"PictureURL", "PictureURL", &m.PictureURL, 15},
+		{"Question", "Question", &m.Question, 16},
+		{"Answer", "Answer", &m.Answer, 17},
+		{"AvailableLogin", "AvailableLogin", &m.AvailableLogin, 18},
+		{"Operator", "Operator", &m.Operator, 19},
+		{"InsertDatetime", "InsertDatetime", &m.InsertDatetime, 20},
+		{"UpdateDatetime", "UpdateDatetime", &m.UpdateDatetime, 21},
+		{"Status", "Status", &m.Status, 22},
+		{"Remark1", "Remark1", &m.Remark1, 23},
+		{"Remark2", "Remark2", &m.Remark2, 24},
+		{"Remark3", "Remark3", &m.Remark3, 25},
+		{"Remark4", "Remark4", &m.Remark4, 26},
+		{"Nonego", "Nonego", &m.Nonego, 27},
 	}
 }
 
-func (m *EmployAccount) AutoIncField() nborm.Field {
-	return &m.SID
+func (m *User) AutoIncField() nborm.Field {
+	return &m.Id
 }
 
-func (m *EmployAccount) PrimaryKey() nborm.FieldList {
+func (m *User) PrimaryKey() nborm.FieldList {
 	return nborm.FieldList{
-		&m.SID,
+		&m.Id,
 	}
 }
 
-func (m *EmployAccount) UniqueKeys() []nborm.FieldList {
+func (m *User) UniqueKeys() []nborm.FieldList {
 	return []nborm.FieldList{
 		{
-			&m.Phone,
+			&m.IntelUserCode,
 		},
 		{
-			&m.ID,
+			&m.IntelUserCode,
+			&m.Status,
 		},
 	}
 }
-func (m EmployAccount) MarshalJSON() ([]byte, error) {
+func (m User) MarshalJSON() ([]byte, error) {
 	if !m.IsSynced() {
 		return []byte("null"), nil
 	}
@@ -104,605 +159,29 @@ func (m EmployAccount) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	buffer.Write(metaB)
-	if m.SID.IsValid() {
-		buffer.WriteString(",\n\"SID\": ")
-		SIDB, err := json.MarshalIndent(m.SID, "", "\t")
+	if m.Id.IsValid() {
+		buffer.WriteString(",\n\"Id\": ")
+		IdB, err := json.MarshalIndent(m.Id, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(SIDB)
+		buffer.Write(IdB)
 	}
-	if m.ID.IsValid() {
-		buffer.WriteString(",\n\"ID\": ")
-		IDB, err := json.MarshalIndent(m.ID, "", "\t")
+	if m.IntelUserCode.IsValid() {
+		buffer.WriteString(",\n\"IntelUserCode\": ")
+		IntelUserCodeB, err := json.MarshalIndent(m.IntelUserCode, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(IDB)
+		buffer.Write(IntelUserCodeB)
 	}
-	if m.Phone.IsValid() {
-		buffer.WriteString(",\n\"Phone\": ")
-		PhoneB, err := json.MarshalIndent(m.Phone, "", "\t")
+	if m.UserCode.IsValid() {
+		buffer.WriteString(",\n\"UserCode\": ")
+		UserCodeB, err := json.MarshalIndent(m.UserCode, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(PhoneB)
-	}
-	if m.Password.IsValid() {
-		buffer.WriteString(",\n\"Password\": ")
-		PasswordB, err := json.MarshalIndent(m.Password, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(PasswordB)
-	}
-	if m.Status.IsValid() {
-		buffer.WriteString(",\n\"Status\": ")
-		StatusB, err := json.MarshalIndent(m.Status, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(StatusB)
-	}
-	if m.ErrorCount.IsValid() {
-		buffer.WriteString(",\n\"ErrorCount\": ")
-		ErrorCountB, err := json.MarshalIndent(m.ErrorCount, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(ErrorCountB)
-	}
-	if m.LastErrorTime.IsValid() {
-		buffer.WriteString(",\n\"LastErrorTime\": ")
-		LastErrorTimeB, err := json.MarshalIndent(m.LastErrorTime, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(LastErrorTimeB)
-	}
-	if m.LastLogin.IsValid() {
-		buffer.WriteString(",\n\"LastLogin\": ")
-		LastLoginB, err := json.MarshalIndent(m.LastLogin, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(LastLoginB)
-	}
-	if m.CreateTime.IsValid() {
-		buffer.WriteString(",\n\"CreateTime\": ")
-		CreateTimeB, err := json.MarshalIndent(m.CreateTime, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(CreateTimeB)
-	}
-	if m.UpdateTime.IsValid() {
-		buffer.WriteString(",\n\"UpdateTime\": ")
-		UpdateTimeB, err := json.MarshalIndent(m.UpdateTime, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(UpdateTimeB)
-	}
-	if m.Enterprise != nil && m.Enterprise.IsSynced() {
-		buffer.WriteString(",\n\"Enterprise\": ")
-		EnterpriseB, err := json.MarshalIndent(m.Enterprise, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(EnterpriseB)
-	}
-	buffer.WriteString("\n}")
-	return buffer.Bytes(), nil
-}
-
-type EmployAccountList struct {
-	EmployAccount `json:"-"`
-	dupMap        map[string]int
-	List          []*EmployAccount
-	Total         int
-}
-
-func (m *EmployAccount) Collapse() {
-	if m.Enterprise != nil && m.Enterprise.IsSynced() {
-		m.Enterprise.Collapse()
-	}
-}
-
-func NewEmployAccountList() *EmployAccountList {
-	l := &EmployAccountList{
-		EmployAccount{},
-		make(map[string]int),
-		make([]*EmployAccount, 0, 32),
-		0,
-	}
-	l.Init(l, nil, nil)
-	l.SID.Init(l, "SID", "SID", 0)
-	l.ID.Init(l, "ID", "ID", 1)
-	l.Phone.Init(l, "Phone", "Phone", 2)
-	l.Password.Init(l, "Password", "Password", 3)
-	l.Status.Init(l, "Status", "Status", 4)
-	l.ErrorCount.Init(l, "ErrorCount", "ErrorCount", 5)
-	l.LastErrorTime.Init(l, "LastErrorTime", "LastErrorTime", 6)
-	l.LastLogin.Init(l, "LastLogin", "LastLogin", 7)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 8)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 9)
-	l.InitRel()
-	return l
-}
-
-func newSubEmployAccountList(parent nborm.Model) *EmployAccountList {
-	l := &EmployAccountList{
-		EmployAccount{},
-		make(map[string]int),
-		make([]*EmployAccount, 0, 32),
-		0,
-	}
-	l.Init(l, parent, nil)
-	l.SID.Init(l, "SID", "SID", 0)
-	l.ID.Init(l, "ID", "ID", 1)
-	l.Phone.Init(l, "Phone", "Phone", 2)
-	l.Password.Init(l, "Password", "Password", 3)
-	l.Status.Init(l, "Status", "Status", 4)
-	l.ErrorCount.Init(l, "ErrorCount", "ErrorCount", 5)
-	l.LastErrorTime.Init(l, "LastErrorTime", "LastErrorTime", 6)
-	l.LastLogin.Init(l, "LastLogin", "LastLogin", 7)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 8)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 9)
-	return l
-}
-
-func (l *EmployAccountList) NewModel() nborm.Model {
-	m := &EmployAccount{}
-	m.Init(m, nil, l)
-	l.CopyAggs(m)
-	m.SID.Init(m, "SID", "SID", 0)
-	l.SID.CopyStatus(&m.SID)
-	m.ID.Init(m, "ID", "ID", 1)
-	l.ID.CopyStatus(&m.ID)
-	m.Phone.Init(m, "Phone", "Phone", 2)
-	l.Phone.CopyStatus(&m.Phone)
-	m.Password.Init(m, "Password", "Password", 3)
-	l.Password.CopyStatus(&m.Password)
-	m.Status.Init(m, "Status", "Status", 4)
-	l.Status.CopyStatus(&m.Status)
-	m.ErrorCount.Init(m, "ErrorCount", "ErrorCount", 5)
-	l.ErrorCount.CopyStatus(&m.ErrorCount)
-	m.LastErrorTime.Init(m, "LastErrorTime", "LastErrorTime", 6)
-	l.LastErrorTime.CopyStatus(&m.LastErrorTime)
-	m.LastLogin.Init(m, "LastLogin", "LastLogin", 7)
-	l.LastLogin.CopyStatus(&m.LastLogin)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 8)
-	l.CreateTime.CopyStatus(&m.CreateTime)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 9)
-	l.UpdateTime.CopyStatus(&m.UpdateTime)
-	m.InitRel()
-	l.List = append(l.List, m)
-	return m
-}
-
-func (l *EmployAccountList) SetTotal(total int) {
-	l.Total = total
-}
-
-func (l *EmployAccountList) GetTotal() int {
-	return l.Total
-}
-
-func (l *EmployAccountList) Len() int {
-	return len(l.List)
-}
-
-func (l *EmployAccountList) GetList() []nborm.Model {
-	modelList := make([]nborm.Model, 0, l.Len())
-	for _, m := range l.List {
-		modelList = append(modelList, m)
-	}
-	return modelList
-}
-
-func (l EmployAccountList) MarshalJSON() ([]byte, error) {
-	bs := make([]byte, 0, 1024)
-	bs = append(bs, []byte("{")...)
-	ListB, err := json.MarshalIndent(l.List, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-	ListB = append([]byte("\"List\": "), ListB...)
-	bs = append(bs, ListB...)
-	bs = append(bs, []byte(", ")...)
-	TotalB, err := json.MarshalIndent(l.Total, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-	TotalB = append([]byte("\"Total\": "), TotalB...)
-	bs = append(bs, TotalB...)
-	bs = append(bs, []byte("}")...)
-	return bs, nil
-}
-
-func (l *EmployAccountList) UnmarshalJSON(b []byte) error {
-	if string(b) == "[]" {
-		return nil
-	}
-	jl := struct {
-		List  *[]*EmployAccount
-		Total *int
-	}{
-		&l.List,
-		&l.Total,
-	}
-	return json.Unmarshal(b, &jl)
-}
-
-func (l *EmployAccountList) Collapse() {
-	idx := l.checkDup()
-	if idx >= 0 {
-		l.List[idx].Enterprise = l.List[l.Len()-1].Enterprise
-		l.List = l.List[:len(l.List)-1]
-		l.List[idx].Collapse()
-	}
-}
-
-func (l *EmployAccountList) Filter(f func(m *EmployAccount) bool) []*EmployAccount {
-	ll := make([]*EmployAccount, 0, l.Len())
-	for _, m := range l.List {
-		if f(m) {
-			ll = append(ll, m)
-		}
-	}
-	return ll
-}
-
-func (l *EmployAccountList) checkDup() int {
-	if l.Len() < 1 {
-		return -1
-	}
-	var builder strings.Builder
-	lastModel := l.List[l.Len()-1]
-	if lastModel.SID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.SID.AnyValue()))
-	}
-	if lastModel.ID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.AnyValue()))
-	}
-	if lastModel.Phone.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Phone.AnyValue()))
-	}
-	if lastModel.Password.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Password.AnyValue()))
-	}
-	if lastModel.Status.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.AnyValue()))
-	}
-	if lastModel.ErrorCount.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.ErrorCount.AnyValue()))
-	}
-	if lastModel.LastErrorTime.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.LastErrorTime.AnyValue()))
-	}
-	if lastModel.LastLogin.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.LastLogin.AnyValue()))
-	}
-	if lastModel.CreateTime.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.AnyValue()))
-	}
-	if lastModel.UpdateTime.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.AnyValue()))
-	}
-	if idx, ok := l.dupMap[builder.String()]; ok {
-		return idx
-	}
-	l.dupMap[builder.String()] = l.Len() - 1
-	return -1
-}
-
-func (l *EmployAccountList) Slice(low, high int) {
-	switch {
-	case high <= l.Len():
-		l.List = l.List[low:high]
-	case low <= l.Len() && high > l.Len():
-		l.List = l.List[low:]
-	default:
-		l.List = l.List[:0]
-	}
-}
-
-func (m *EmployAccount) String() string {
-	b, _ := json.Marshal(m)
-	return string(b)
-}
-
-func (l *EmployAccountList) String() string {
-	b, _ := json.Marshal(l)
-	return string(b)
-}
-
-type EmployAccountCacheElem struct {
-	hashValue  string
-	model      *EmployAccount
-	modifyTime time.Time
-}
-
-type EmployAccountListCacheElem struct {
-	hashValue  string
-	list       *EmployAccountList
-	modifyTime time.Time
-}
-
-type EmployAccountCacheManager struct {
-	container map[string]*EmployAccountCacheElem
-	query     chan string
-	in        chan *EmployAccountCacheElem
-	out       chan *EmployAccountCacheElem
-}
-
-type EmployAccountListCacheManager struct {
-	container map[string]*EmployAccountListCacheElem
-	query     chan string
-	in        chan *EmployAccountListCacheElem
-	out       chan *EmployAccountListCacheElem
-}
-
-func newEmployAccountCacheManager() *EmployAccountCacheManager {
-	return &EmployAccountCacheManager{
-		make(map[string]*EmployAccountCacheElem),
-		make(chan string),
-		make(chan *EmployAccountCacheElem),
-		make(chan *EmployAccountCacheElem),
-	}
-}
-
-func newEmployAccountListCacheManager() *EmployAccountListCacheManager {
-	return &EmployAccountListCacheManager{
-		make(map[string]*EmployAccountListCacheElem),
-		make(chan string),
-		make(chan *EmployAccountListCacheElem),
-		make(chan *EmployAccountListCacheElem),
-	}
-}
-
-func (mgr *EmployAccountCacheManager) run() {
-	for {
-		select {
-		case h := <-mgr.query:
-			mgr.out <- mgr.container[h]
-		case elem := <-mgr.in:
-			mgr.container[elem.hashValue] = elem
-		}
-	}
-}
-
-func (mgr *EmployAccountListCacheManager) run() {
-	for {
-		select {
-		case h := <-mgr.query:
-			mgr.out <- mgr.container[h]
-		case elem := <-mgr.in:
-			mgr.container[elem.hashValue] = elem
-		}
-	}
-}
-
-var EmployAccountCache = newEmployAccountCacheManager()
-
-var EmployAccountListCache = newEmployAccountListCacheManager()
-
-func (m *EmployAccount) GetCache(hashVal string, timeout time.Duration) bool {
-	EmployAccountCache.query <- hashVal
-	elem := <-EmployAccountCache.out
-	if elem == nil || time.Since(elem.modifyTime) > timeout {
-		return false
-	}
-	*m = *elem.model
-	return true
-}
-
-func (m *EmployAccount) SetCache(hashValue string) {
-	EmployAccountCache.in <- &EmployAccountCacheElem{
-		hashValue,
-		m,
-		time.Now(),
-	}
-}
-
-func (l *EmployAccountList) GetListCache(hashValue string, timeout time.Duration) bool {
-	EmployAccountListCache.query <- hashValue
-	elem := <-EmployAccountListCache.out
-	if elem == nil || time.Since(elem.modifyTime) > timeout {
-		return false
-	}
-	*l = *elem.list
-	return true
-}
-
-func (l *EmployAccountList) SetListCache(hashValue string) {
-	EmployAccountListCache.in <- &EmployAccountListCacheElem{
-		hashValue,
-		l,
-		time.Now(),
-	}
-}
-
-func NewEmployEnterprise() *EmployEnterprise {
-	m := &EmployEnterprise{}
-	m.Init(m, nil, nil)
-	m.SID.Init(m, "SID", "SID", 0)
-	m.ID.Init(m, "ID", "ID", 1)
-	m.AccountID.Init(m, "AccountID", "AccountID", 2)
-	m.Email.Init(m, "Email", "Email", 3)
-	m.UniformCode.Init(m, "UniformCode", "UniformCode", 4)
-	m.Name.Init(m, "Name", "Name", 5)
-	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
-	m.NatureID.Init(m, "NatureID", "NatureID", 7)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
-	m.Website.Init(m, "Website", "Website", 11)
-	m.Contact.Init(m, "Contact", "Contact", 12)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
-	m.Introduction.Init(m, "Introduction", "Introduction", 15)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
-	m.Status.Init(m, "Status", "Status", 17)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
-	m.InitRel()
-	return m
-}
-
-func newSubEmployEnterprise(parent nborm.Model) *EmployEnterprise {
-	m := &EmployEnterprise{}
-	m.Init(m, parent, nil)
-	m.SID.Init(m, "SID", "SID", 0)
-	m.ID.Init(m, "ID", "ID", 1)
-	m.AccountID.Init(m, "AccountID", "AccountID", 2)
-	m.Email.Init(m, "Email", "Email", 3)
-	m.UniformCode.Init(m, "UniformCode", "UniformCode", 4)
-	m.Name.Init(m, "Name", "Name", 5)
-	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
-	m.NatureID.Init(m, "NatureID", "NatureID", 7)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
-	m.Website.Init(m, "Website", "Website", 11)
-	m.Contact.Init(m, "Contact", "Contact", 12)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
-	m.Introduction.Init(m, "Introduction", "Introduction", 15)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
-	m.Status.Init(m, "Status", "Status", 17)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
-	return m
-}
-
-func (m *EmployEnterprise) InitRel() {
-	m.Account = newSubEmployAccount(m)
-	var relInfo0 *nborm.RelationInfo
-	relInfo0 = relInfo0.Append("Account", m.Account, nborm.NewExpr("@=@", &m.AccountID, &m.Account.ID))
-	m.AppendRelation(relInfo0)
-	m.AddRelInited()
-}
-
-func (m *EmployEnterprise) DB() string {
-	return "*"
-}
-
-func (m *EmployEnterprise) Tab() string {
-	return "employ_enterprise"
-}
-
-func (m *EmployEnterprise) FieldInfos() nborm.FieldInfoList {
-	return nborm.FieldInfoList{
-		{"SID", "SID", &m.SID, 0},
-		{"ID", "ID", &m.ID, 1},
-		{"AccountID", "AccountID", &m.AccountID, 2},
-		{"Email", "Email", &m.Email, 3},
-		{"UniformCode", "UniformCode", &m.UniformCode, 4},
-		{"Name", "Name", &m.Name, 5},
-		{"RegisterCityID", "RegisterCityID", &m.RegisterCityID, 6},
-		{"NatureID", "NatureID", &m.NatureID, 7},
-		{"ScopeID", "ScopeID", &m.ScopeID, 8},
-		{"OfficeCityID", "OfficeCityID", &m.OfficeCityID, 9},
-		{"OfficeAddress", "OfficeAddress", &m.OfficeAddress, 10},
-		{"Website", "Website", &m.Website, 11},
-		{"Contact", "Contact", &m.Contact, 12},
-		{"ContactPhone", "ContactPhone", &m.ContactPhone, 13},
-		{"EmployFromThis", "EmployFromThis", &m.EmployFromThis, 14},
-		{"Introduction", "Introduction", &m.Introduction, 15},
-		{"Zipcode", "Zipcode", &m.Zipcode, 16},
-		{"Status", "Status", &m.Status, 17},
-		{"UpdateHash", "UpdateHash", &m.UpdateHash, 18},
-		{"RejectReason", "RejectReason", &m.RejectReason, 19},
-		{"LicenseImageID", "LicenseImageID", &m.LicenseImageID, 20},
-		{"CreateTime", "CreateTime", &m.CreateTime, 21},
-		{"UpdateTime", "UpdateTime", &m.UpdateTime, 22},
-	}
-}
-
-func (m *EmployEnterprise) AutoIncField() nborm.Field {
-	return &m.SID
-}
-
-func (m *EmployEnterprise) PrimaryKey() nborm.FieldList {
-	return nborm.FieldList{
-		&m.SID,
-	}
-}
-
-func (m *EmployEnterprise) UniqueKeys() []nborm.FieldList {
-	return []nborm.FieldList{
-		{
-			&m.AccountID,
-		},
-		{
-			&m.Email,
-		},
-		{
-			&m.UniformCode,
-		},
-		{
-			&m.ID,
-		},
-	}
-}
-func (m EmployEnterprise) MarshalJSON() ([]byte, error) {
-	if !m.IsSynced() {
-		return []byte("null"), nil
-	}
-	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
-	buffer.WriteString("{\n\"Aggs\": ")
-	metaB, err := json.MarshalIndent(m.Meta, "", "\t")
-	if err != nil {
-		return nil, err
-	}
-	buffer.Write(metaB)
-	if m.SID.IsValid() {
-		buffer.WriteString(",\n\"SID\": ")
-		SIDB, err := json.MarshalIndent(m.SID, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(SIDB)
-	}
-	if m.ID.IsValid() {
-		buffer.WriteString(",\n\"ID\": ")
-		IDB, err := json.MarshalIndent(m.ID, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(IDB)
-	}
-	if m.AccountID.IsValid() {
-		buffer.WriteString(",\n\"AccountID\": ")
-		AccountIDB, err := json.MarshalIndent(m.AccountID, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(AccountIDB)
-	}
-	if m.Email.IsValid() {
-		buffer.WriteString(",\n\"Email\": ")
-		EmailB, err := json.MarshalIndent(m.Email, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(EmailB)
-	}
-	if m.UniformCode.IsValid() {
-		buffer.WriteString(",\n\"UniformCode\": ")
-		UniformCodeB, err := json.MarshalIndent(m.UniformCode, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		buffer.Write(UniformCodeB)
+		buffer.Write(UserCodeB)
 	}
 	if m.Name.IsValid() {
 		buffer.WriteString(",\n\"Name\": ")
@@ -712,93 +191,149 @@ func (m EmployEnterprise) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(NameB)
 	}
-	if m.RegisterCityID.IsValid() {
-		buffer.WriteString(",\n\"RegisterCityID\": ")
-		RegisterCityIDB, err := json.MarshalIndent(m.RegisterCityID, "", "\t")
+	if m.Sex.IsValid() {
+		buffer.WriteString(",\n\"Sex\": ")
+		SexB, err := json.MarshalIndent(m.Sex, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(RegisterCityIDB)
+		buffer.Write(SexB)
 	}
-	if m.NatureID.IsValid() {
-		buffer.WriteString(",\n\"NatureID\": ")
-		NatureIDB, err := json.MarshalIndent(m.NatureID, "", "\t")
+	if m.IdentityType.IsValid() {
+		buffer.WriteString(",\n\"IdentityType\": ")
+		IdentityTypeB, err := json.MarshalIndent(m.IdentityType, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(NatureIDB)
+		buffer.Write(IdentityTypeB)
 	}
-	if m.ScopeID.IsValid() {
-		buffer.WriteString(",\n\"ScopeID\": ")
-		ScopeIDB, err := json.MarshalIndent(m.ScopeID, "", "\t")
+	if m.IdentityNum.IsValid() {
+		buffer.WriteString(",\n\"IdentityNum\": ")
+		IdentityNumB, err := json.MarshalIndent(m.IdentityNum, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(ScopeIDB)
+		buffer.Write(IdentityNumB)
 	}
-	if m.OfficeCityID.IsValid() {
-		buffer.WriteString(",\n\"OfficeCityID\": ")
-		OfficeCityIDB, err := json.MarshalIndent(m.OfficeCityID, "", "\t")
+	if m.ExpirationDate.IsValid() {
+		buffer.WriteString(",\n\"ExpirationDate\": ")
+		ExpirationDateB, err := json.MarshalIndent(m.ExpirationDate, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(OfficeCityIDB)
+		buffer.Write(ExpirationDateB)
 	}
-	if m.OfficeAddress.IsValid() {
-		buffer.WriteString(",\n\"OfficeAddress\": ")
-		OfficeAddressB, err := json.MarshalIndent(m.OfficeAddress, "", "\t")
+	if m.UniversityCode.IsValid() {
+		buffer.WriteString(",\n\"UniversityCode\": ")
+		UniversityCodeB, err := json.MarshalIndent(m.UniversityCode, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(OfficeAddressB)
+		buffer.Write(UniversityCodeB)
 	}
-	if m.Website.IsValid() {
-		buffer.WriteString(",\n\"Website\": ")
-		WebsiteB, err := json.MarshalIndent(m.Website, "", "\t")
+	if m.UserType.IsValid() {
+		buffer.WriteString(",\n\"UserType\": ")
+		UserTypeB, err := json.MarshalIndent(m.UserType, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(WebsiteB)
+		buffer.Write(UserTypeB)
 	}
-	if m.Contact.IsValid() {
-		buffer.WriteString(",\n\"Contact\": ")
-		ContactB, err := json.MarshalIndent(m.Contact, "", "\t")
+	if m.EnrollmentStatus.IsValid() {
+		buffer.WriteString(",\n\"EnrollmentStatus\": ")
+		EnrollmentStatusB, err := json.MarshalIndent(m.EnrollmentStatus, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(ContactB)
+		buffer.Write(EnrollmentStatusB)
 	}
-	if m.ContactPhone.IsValid() {
-		buffer.WriteString(",\n\"ContactPhone\": ")
-		ContactPhoneB, err := json.MarshalIndent(m.ContactPhone, "", "\t")
+	if m.Type.IsValid() {
+		buffer.WriteString(",\n\"Type\": ")
+		TypeB, err := json.MarshalIndent(m.Type, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(ContactPhoneB)
+		buffer.Write(TypeB)
 	}
-	if m.EmployFromThis.IsValid() {
-		buffer.WriteString(",\n\"EmployFromThis\": ")
-		EmployFromThisB, err := json.MarshalIndent(m.EmployFromThis, "", "\t")
+	if m.Password.IsValid() {
+		buffer.WriteString(",\n\"Password\": ")
+		PasswordB, err := json.MarshalIndent(m.Password, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(EmployFromThisB)
+		buffer.Write(PasswordB)
 	}
-	if m.Introduction.IsValid() {
-		buffer.WriteString(",\n\"Introduction\": ")
-		IntroductionB, err := json.MarshalIndent(m.Introduction, "", "\t")
+	if m.Phone.IsValid() {
+		buffer.WriteString(",\n\"Phone\": ")
+		PhoneB, err := json.MarshalIndent(m.Phone, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(IntroductionB)
+		buffer.Write(PhoneB)
 	}
-	if m.Zipcode.IsValid() {
-		buffer.WriteString(",\n\"Zipcode\": ")
-		ZipcodeB, err := json.MarshalIndent(m.Zipcode, "", "\t")
+	if m.Email.IsValid() {
+		buffer.WriteString(",\n\"Email\": ")
+		EmailB, err := json.MarshalIndent(m.Email, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(ZipcodeB)
+		buffer.Write(EmailB)
+	}
+	if m.PictureURL.IsValid() {
+		buffer.WriteString(",\n\"PictureURL\": ")
+		PictureURLB, err := json.MarshalIndent(m.PictureURL, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(PictureURLB)
+	}
+	if m.Question.IsValid() {
+		buffer.WriteString(",\n\"Question\": ")
+		QuestionB, err := json.MarshalIndent(m.Question, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(QuestionB)
+	}
+	if m.Answer.IsValid() {
+		buffer.WriteString(",\n\"Answer\": ")
+		AnswerB, err := json.MarshalIndent(m.Answer, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AnswerB)
+	}
+	if m.AvailableLogin.IsValid() {
+		buffer.WriteString(",\n\"AvailableLogin\": ")
+		AvailableLoginB, err := json.MarshalIndent(m.AvailableLogin, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AvailableLoginB)
+	}
+	if m.Operator.IsValid() {
+		buffer.WriteString(",\n\"Operator\": ")
+		OperatorB, err := json.MarshalIndent(m.Operator, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OperatorB)
+	}
+	if m.InsertDatetime.IsValid() {
+		buffer.WriteString(",\n\"InsertDatetime\": ")
+		InsertDatetimeB, err := json.MarshalIndent(m.InsertDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(InsertDatetimeB)
+	}
+	if m.UpdateDatetime.IsValid() {
+		buffer.WriteString(",\n\"UpdateDatetime\": ")
+		UpdateDatetimeB, err := json.MarshalIndent(m.UpdateDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UpdateDatetimeB)
 	}
 	if m.Status.IsValid() {
 		buffer.WriteString(",\n\"Status\": ")
@@ -808,208 +343,228 @@ func (m EmployEnterprise) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(StatusB)
 	}
-	if m.UpdateHash.IsValid() {
-		buffer.WriteString(",\n\"UpdateHash\": ")
-		UpdateHashB, err := json.MarshalIndent(m.UpdateHash, "", "\t")
+	if m.Remark1.IsValid() {
+		buffer.WriteString(",\n\"Remark1\": ")
+		Remark1B, err := json.MarshalIndent(m.Remark1, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(UpdateHashB)
+		buffer.Write(Remark1B)
 	}
-	if m.RejectReason.IsValid() {
-		buffer.WriteString(",\n\"RejectReason\": ")
-		RejectReasonB, err := json.MarshalIndent(m.RejectReason, "", "\t")
+	if m.Remark2.IsValid() {
+		buffer.WriteString(",\n\"Remark2\": ")
+		Remark2B, err := json.MarshalIndent(m.Remark2, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(RejectReasonB)
+		buffer.Write(Remark2B)
 	}
-	if m.LicenseImageID.IsValid() {
-		buffer.WriteString(",\n\"LicenseImageID\": ")
-		LicenseImageIDB, err := json.MarshalIndent(m.LicenseImageID, "", "\t")
+	if m.Remark3.IsValid() {
+		buffer.WriteString(",\n\"Remark3\": ")
+		Remark3B, err := json.MarshalIndent(m.Remark3, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(LicenseImageIDB)
+		buffer.Write(Remark3B)
 	}
-	if m.CreateTime.IsValid() {
-		buffer.WriteString(",\n\"CreateTime\": ")
-		CreateTimeB, err := json.MarshalIndent(m.CreateTime, "", "\t")
+	if m.Remark4.IsValid() {
+		buffer.WriteString(",\n\"Remark4\": ")
+		Remark4B, err := json.MarshalIndent(m.Remark4, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(CreateTimeB)
+		buffer.Write(Remark4B)
 	}
-	if m.UpdateTime.IsValid() {
-		buffer.WriteString(",\n\"UpdateTime\": ")
-		UpdateTimeB, err := json.MarshalIndent(m.UpdateTime, "", "\t")
+	if m.Nonego.IsValid() {
+		buffer.WriteString(",\n\"Nonego\": ")
+		NonegoB, err := json.MarshalIndent(m.Nonego, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(UpdateTimeB)
+		buffer.Write(NonegoB)
 	}
-	if m.Account != nil && m.Account.IsSynced() {
-		buffer.WriteString(",\n\"Account\": ")
-		AccountB, err := json.MarshalIndent(m.Account, "", "\t")
+	if m.BasicInfo != nil && m.BasicInfo.IsSynced() {
+		buffer.WriteString(",\n\"BasicInfo\": ")
+		BasicInfoB, err := json.MarshalIndent(m.BasicInfo, "", "\t")
 		if err != nil {
 			return nil, err
 		}
-		buffer.Write(AccountB)
+		buffer.Write(BasicInfoB)
 	}
 	buffer.WriteString("\n}")
 	return buffer.Bytes(), nil
 }
 
-type EmployEnterpriseList struct {
-	EmployEnterprise `json:"-"`
-	dupMap           map[string]int
-	List             []*EmployEnterprise
-	Total            int
+type UserList struct {
+	User   `json:"-"`
+	dupMap map[string]int
+	List   []*User
+	Total  int
 }
 
-func (m *EmployEnterprise) Collapse() {
-	if m.Account != nil && m.Account.IsSynced() {
-		m.Account.Collapse()
+func (m *User) Collapse() {
+	if m.BasicInfo != nil && m.BasicInfo.IsSynced() {
+		m.BasicInfo.Collapse()
 	}
 }
 
-func NewEmployEnterpriseList() *EmployEnterpriseList {
-	l := &EmployEnterpriseList{
-		EmployEnterprise{},
+func NewUserList() *UserList {
+	l := &UserList{
+		User{},
 		make(map[string]int),
-		make([]*EmployEnterprise, 0, 32),
+		make([]*User, 0, 32),
 		0,
 	}
 	l.Init(l, nil, nil)
-	l.SID.Init(l, "SID", "SID", 0)
-	l.ID.Init(l, "ID", "ID", 1)
-	l.AccountID.Init(l, "AccountID", "AccountID", 2)
-	l.Email.Init(l, "Email", "Email", 3)
-	l.UniformCode.Init(l, "UniformCode", "UniformCode", 4)
-	l.Name.Init(l, "Name", "Name", 5)
-	l.RegisterCityID.Init(l, "RegisterCityID", "RegisterCityID", 6)
-	l.NatureID.Init(l, "NatureID", "NatureID", 7)
-	l.ScopeID.Init(l, "ScopeID", "ScopeID", 8)
-	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 9)
-	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 10)
-	l.Website.Init(l, "Website", "Website", 11)
-	l.Contact.Init(l, "Contact", "Contact", 12)
-	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 13)
-	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 14)
-	l.Introduction.Init(l, "Introduction", "Introduction", 15)
-	l.Zipcode.Init(l, "Zipcode", "Zipcode", 16)
-	l.Status.Init(l, "Status", "Status", 17)
-	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 18)
-	l.RejectReason.Init(l, "RejectReason", "RejectReason", 19)
-	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 20)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 21)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 22)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.IntelUserCode.Init(l, "IntelUserCode", "IntelUserCode", 1)
+	l.UserCode.Init(l, "UserCode", "UserCode", 2)
+	l.Name.Init(l, "Name", "Name", 3)
+	l.Sex.Init(l, "Sex", "Sex", 4)
+	l.IdentityType.Init(l, "IdentityType", "IdentityType", 5)
+	l.IdentityNum.Init(l, "IdentityNum", "IdentityNum", 6)
+	l.ExpirationDate.Init(l, "ExpirationDate", "ExpirationDate", 7)
+	l.UniversityCode.Init(l, "UniversityCode", "UniversityCode", 8)
+	l.UserType.Init(l, "UserType", "UserType", 9)
+	l.EnrollmentStatus.Init(l, "EnrollmentStatus", "EnrollmentStatus", 10)
+	l.Type.Init(l, "Type", "Type", 11)
+	l.Password.Init(l, "Password", "Password", 12)
+	l.Phone.Init(l, "Phone", "Phone", 13)
+	l.Email.Init(l, "Email", "Email", 14)
+	l.PictureURL.Init(l, "PictureURL", "PictureURL", 15)
+	l.Question.Init(l, "Question", "Question", 16)
+	l.Answer.Init(l, "Answer", "Answer", 17)
+	l.AvailableLogin.Init(l, "AvailableLogin", "AvailableLogin", 18)
+	l.Operator.Init(l, "Operator", "Operator", 19)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 20)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 21)
+	l.Status.Init(l, "Status", "Status", 22)
+	l.Remark1.Init(l, "Remark1", "Remark1", 23)
+	l.Remark2.Init(l, "Remark2", "Remark2", 24)
+	l.Remark3.Init(l, "Remark3", "Remark3", 25)
+	l.Remark4.Init(l, "Remark4", "Remark4", 26)
+	l.Nonego.Init(l, "Nonego", "Nonego", 27)
 	l.InitRel()
 	return l
 }
 
-func newSubEmployEnterpriseList(parent nborm.Model) *EmployEnterpriseList {
-	l := &EmployEnterpriseList{
-		EmployEnterprise{},
+func newSubUserList(parent nborm.Model) *UserList {
+	l := &UserList{
+		User{},
 		make(map[string]int),
-		make([]*EmployEnterprise, 0, 32),
+		make([]*User, 0, 32),
 		0,
 	}
 	l.Init(l, parent, nil)
-	l.SID.Init(l, "SID", "SID", 0)
-	l.ID.Init(l, "ID", "ID", 1)
-	l.AccountID.Init(l, "AccountID", "AccountID", 2)
-	l.Email.Init(l, "Email", "Email", 3)
-	l.UniformCode.Init(l, "UniformCode", "UniformCode", 4)
-	l.Name.Init(l, "Name", "Name", 5)
-	l.RegisterCityID.Init(l, "RegisterCityID", "RegisterCityID", 6)
-	l.NatureID.Init(l, "NatureID", "NatureID", 7)
-	l.ScopeID.Init(l, "ScopeID", "ScopeID", 8)
-	l.OfficeCityID.Init(l, "OfficeCityID", "OfficeCityID", 9)
-	l.OfficeAddress.Init(l, "OfficeAddress", "OfficeAddress", 10)
-	l.Website.Init(l, "Website", "Website", 11)
-	l.Contact.Init(l, "Contact", "Contact", 12)
-	l.ContactPhone.Init(l, "ContactPhone", "ContactPhone", 13)
-	l.EmployFromThis.Init(l, "EmployFromThis", "EmployFromThis", 14)
-	l.Introduction.Init(l, "Introduction", "Introduction", 15)
-	l.Zipcode.Init(l, "Zipcode", "Zipcode", 16)
-	l.Status.Init(l, "Status", "Status", 17)
-	l.UpdateHash.Init(l, "UpdateHash", "UpdateHash", 18)
-	l.RejectReason.Init(l, "RejectReason", "RejectReason", 19)
-	l.LicenseImageID.Init(l, "LicenseImageID", "LicenseImageID", 20)
-	l.CreateTime.Init(l, "CreateTime", "CreateTime", 21)
-	l.UpdateTime.Init(l, "UpdateTime", "UpdateTime", 22)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.IntelUserCode.Init(l, "IntelUserCode", "IntelUserCode", 1)
+	l.UserCode.Init(l, "UserCode", "UserCode", 2)
+	l.Name.Init(l, "Name", "Name", 3)
+	l.Sex.Init(l, "Sex", "Sex", 4)
+	l.IdentityType.Init(l, "IdentityType", "IdentityType", 5)
+	l.IdentityNum.Init(l, "IdentityNum", "IdentityNum", 6)
+	l.ExpirationDate.Init(l, "ExpirationDate", "ExpirationDate", 7)
+	l.UniversityCode.Init(l, "UniversityCode", "UniversityCode", 8)
+	l.UserType.Init(l, "UserType", "UserType", 9)
+	l.EnrollmentStatus.Init(l, "EnrollmentStatus", "EnrollmentStatus", 10)
+	l.Type.Init(l, "Type", "Type", 11)
+	l.Password.Init(l, "Password", "Password", 12)
+	l.Phone.Init(l, "Phone", "Phone", 13)
+	l.Email.Init(l, "Email", "Email", 14)
+	l.PictureURL.Init(l, "PictureURL", "PictureURL", 15)
+	l.Question.Init(l, "Question", "Question", 16)
+	l.Answer.Init(l, "Answer", "Answer", 17)
+	l.AvailableLogin.Init(l, "AvailableLogin", "AvailableLogin", 18)
+	l.Operator.Init(l, "Operator", "Operator", 19)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 20)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 21)
+	l.Status.Init(l, "Status", "Status", 22)
+	l.Remark1.Init(l, "Remark1", "Remark1", 23)
+	l.Remark2.Init(l, "Remark2", "Remark2", 24)
+	l.Remark3.Init(l, "Remark3", "Remark3", 25)
+	l.Remark4.Init(l, "Remark4", "Remark4", 26)
+	l.Nonego.Init(l, "Nonego", "Nonego", 27)
 	return l
 }
 
-func (l *EmployEnterpriseList) NewModel() nborm.Model {
-	m := &EmployEnterprise{}
+func (l *UserList) NewModel() nborm.Model {
+	m := &User{}
 	m.Init(m, nil, l)
 	l.CopyAggs(m)
-	m.SID.Init(m, "SID", "SID", 0)
-	l.SID.CopyStatus(&m.SID)
-	m.ID.Init(m, "ID", "ID", 1)
-	l.ID.CopyStatus(&m.ID)
-	m.AccountID.Init(m, "AccountID", "AccountID", 2)
-	l.AccountID.CopyStatus(&m.AccountID)
-	m.Email.Init(m, "Email", "Email", 3)
-	l.Email.CopyStatus(&m.Email)
-	m.UniformCode.Init(m, "UniformCode", "UniformCode", 4)
-	l.UniformCode.CopyStatus(&m.UniformCode)
-	m.Name.Init(m, "Name", "Name", 5)
+	m.Id.Init(m, "Id", "Id", 0)
+	l.Id.CopyStatus(&m.Id)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 1)
+	l.IntelUserCode.CopyStatus(&m.IntelUserCode)
+	m.UserCode.Init(m, "UserCode", "UserCode", 2)
+	l.UserCode.CopyStatus(&m.UserCode)
+	m.Name.Init(m, "Name", "Name", 3)
 	l.Name.CopyStatus(&m.Name)
-	m.RegisterCityID.Init(m, "RegisterCityID", "RegisterCityID", 6)
-	l.RegisterCityID.CopyStatus(&m.RegisterCityID)
-	m.NatureID.Init(m, "NatureID", "NatureID", 7)
-	l.NatureID.CopyStatus(&m.NatureID)
-	m.ScopeID.Init(m, "ScopeID", "ScopeID", 8)
-	l.ScopeID.CopyStatus(&m.ScopeID)
-	m.OfficeCityID.Init(m, "OfficeCityID", "OfficeCityID", 9)
-	l.OfficeCityID.CopyStatus(&m.OfficeCityID)
-	m.OfficeAddress.Init(m, "OfficeAddress", "OfficeAddress", 10)
-	l.OfficeAddress.CopyStatus(&m.OfficeAddress)
-	m.Website.Init(m, "Website", "Website", 11)
-	l.Website.CopyStatus(&m.Website)
-	m.Contact.Init(m, "Contact", "Contact", 12)
-	l.Contact.CopyStatus(&m.Contact)
-	m.ContactPhone.Init(m, "ContactPhone", "ContactPhone", 13)
-	l.ContactPhone.CopyStatus(&m.ContactPhone)
-	m.EmployFromThis.Init(m, "EmployFromThis", "EmployFromThis", 14)
-	l.EmployFromThis.CopyStatus(&m.EmployFromThis)
-	m.Introduction.Init(m, "Introduction", "Introduction", 15)
-	l.Introduction.CopyStatus(&m.Introduction)
-	m.Zipcode.Init(m, "Zipcode", "Zipcode", 16)
-	l.Zipcode.CopyStatus(&m.Zipcode)
-	m.Status.Init(m, "Status", "Status", 17)
+	m.Sex.Init(m, "Sex", "Sex", 4)
+	l.Sex.CopyStatus(&m.Sex)
+	m.IdentityType.Init(m, "IdentityType", "IdentityType", 5)
+	l.IdentityType.CopyStatus(&m.IdentityType)
+	m.IdentityNum.Init(m, "IdentityNum", "IdentityNum", 6)
+	l.IdentityNum.CopyStatus(&m.IdentityNum)
+	m.ExpirationDate.Init(m, "ExpirationDate", "ExpirationDate", 7)
+	l.ExpirationDate.CopyStatus(&m.ExpirationDate)
+	m.UniversityCode.Init(m, "UniversityCode", "UniversityCode", 8)
+	l.UniversityCode.CopyStatus(&m.UniversityCode)
+	m.UserType.Init(m, "UserType", "UserType", 9)
+	l.UserType.CopyStatus(&m.UserType)
+	m.EnrollmentStatus.Init(m, "EnrollmentStatus", "EnrollmentStatus", 10)
+	l.EnrollmentStatus.CopyStatus(&m.EnrollmentStatus)
+	m.Type.Init(m, "Type", "Type", 11)
+	l.Type.CopyStatus(&m.Type)
+	m.Password.Init(m, "Password", "Password", 12)
+	l.Password.CopyStatus(&m.Password)
+	m.Phone.Init(m, "Phone", "Phone", 13)
+	l.Phone.CopyStatus(&m.Phone)
+	m.Email.Init(m, "Email", "Email", 14)
+	l.Email.CopyStatus(&m.Email)
+	m.PictureURL.Init(m, "PictureURL", "PictureURL", 15)
+	l.PictureURL.CopyStatus(&m.PictureURL)
+	m.Question.Init(m, "Question", "Question", 16)
+	l.Question.CopyStatus(&m.Question)
+	m.Answer.Init(m, "Answer", "Answer", 17)
+	l.Answer.CopyStatus(&m.Answer)
+	m.AvailableLogin.Init(m, "AvailableLogin", "AvailableLogin", 18)
+	l.AvailableLogin.CopyStatus(&m.AvailableLogin)
+	m.Operator.Init(m, "Operator", "Operator", 19)
+	l.Operator.CopyStatus(&m.Operator)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 20)
+	l.InsertDatetime.CopyStatus(&m.InsertDatetime)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 21)
+	l.UpdateDatetime.CopyStatus(&m.UpdateDatetime)
+	m.Status.Init(m, "Status", "Status", 22)
 	l.Status.CopyStatus(&m.Status)
-	m.UpdateHash.Init(m, "UpdateHash", "UpdateHash", 18)
-	l.UpdateHash.CopyStatus(&m.UpdateHash)
-	m.RejectReason.Init(m, "RejectReason", "RejectReason", 19)
-	l.RejectReason.CopyStatus(&m.RejectReason)
-	m.LicenseImageID.Init(m, "LicenseImageID", "LicenseImageID", 20)
-	l.LicenseImageID.CopyStatus(&m.LicenseImageID)
-	m.CreateTime.Init(m, "CreateTime", "CreateTime", 21)
-	l.CreateTime.CopyStatus(&m.CreateTime)
-	m.UpdateTime.Init(m, "UpdateTime", "UpdateTime", 22)
-	l.UpdateTime.CopyStatus(&m.UpdateTime)
+	m.Remark1.Init(m, "Remark1", "Remark1", 23)
+	l.Remark1.CopyStatus(&m.Remark1)
+	m.Remark2.Init(m, "Remark2", "Remark2", 24)
+	l.Remark2.CopyStatus(&m.Remark2)
+	m.Remark3.Init(m, "Remark3", "Remark3", 25)
+	l.Remark3.CopyStatus(&m.Remark3)
+	m.Remark4.Init(m, "Remark4", "Remark4", 26)
+	l.Remark4.CopyStatus(&m.Remark4)
+	m.Nonego.Init(m, "Nonego", "Nonego", 27)
+	l.Nonego.CopyStatus(&m.Nonego)
 	m.InitRel()
 	l.List = append(l.List, m)
 	return m
 }
 
-func (l *EmployEnterpriseList) SetTotal(total int) {
+func (l *UserList) SetTotal(total int) {
 	l.Total = total
 }
 
-func (l *EmployEnterpriseList) GetTotal() int {
+func (l *UserList) GetTotal() int {
 	return l.Total
 }
 
-func (l *EmployEnterpriseList) Len() int {
+func (l *UserList) Len() int {
 	return len(l.List)
 }
 
-func (l *EmployEnterpriseList) GetList() []nborm.Model {
+func (l *UserList) GetList() []nborm.Model {
 	modelList := make([]nborm.Model, 0, l.Len())
 	for _, m := range l.List {
 		modelList = append(modelList, m)
@@ -1017,7 +572,7 @@ func (l *EmployEnterpriseList) GetList() []nborm.Model {
 	return modelList
 }
 
-func (l EmployEnterpriseList) MarshalJSON() ([]byte, error) {
+func (l UserList) MarshalJSON() ([]byte, error) {
 	bs := make([]byte, 0, 1024)
 	bs = append(bs, []byte("{")...)
 	ListB, err := json.MarshalIndent(l.List, "", "\t")
@@ -1037,12 +592,12 @@ func (l EmployEnterpriseList) MarshalJSON() ([]byte, error) {
 	return bs, nil
 }
 
-func (l *EmployEnterpriseList) UnmarshalJSON(b []byte) error {
+func (l *UserList) UnmarshalJSON(b []byte) error {
 	if string(b) == "[]" {
 		return nil
 	}
 	jl := struct {
-		List  *[]*EmployEnterprise
+		List  *[]*User
 		Total *int
 	}{
 		&l.List,
@@ -1051,17 +606,17 @@ func (l *EmployEnterpriseList) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &jl)
 }
 
-func (l *EmployEnterpriseList) Collapse() {
+func (l *UserList) Collapse() {
 	idx := l.checkDup()
 	if idx >= 0 {
-		l.List[idx].Account = l.List[l.Len()-1].Account
+		l.List[idx].BasicInfo = l.List[l.Len()-1].BasicInfo
 		l.List = l.List[:len(l.List)-1]
 		l.List[idx].Collapse()
 	}
 }
 
-func (l *EmployEnterpriseList) Filter(f func(m *EmployEnterprise) bool) []*EmployEnterprise {
-	ll := make([]*EmployEnterprise, 0, l.Len())
+func (l *UserList) Filter(f func(m *User) bool) []*User {
+	ll := make([]*User, 0, l.Len())
 	for _, m := range l.List {
 		if f(m) {
 			ll = append(ll, m)
@@ -1070,80 +625,95 @@ func (l *EmployEnterpriseList) Filter(f func(m *EmployEnterprise) bool) []*Emplo
 	return ll
 }
 
-func (l *EmployEnterpriseList) checkDup() int {
+func (l *UserList) checkDup() int {
 	if l.Len() < 1 {
 		return -1
 	}
 	var builder strings.Builder
 	lastModel := l.List[l.Len()-1]
-	if lastModel.SID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.SID.AnyValue()))
+	if lastModel.Id.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Id.AnyValue()))
 	}
-	if lastModel.ID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.ID.AnyValue()))
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.AnyValue()))
 	}
-	if lastModel.AccountID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.AccountID.AnyValue()))
-	}
-	if lastModel.Email.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Email.AnyValue()))
-	}
-	if lastModel.UniformCode.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.UniformCode.AnyValue()))
+	if lastModel.UserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UserCode.AnyValue()))
 	}
 	if lastModel.Name.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.Name.AnyValue()))
 	}
-	if lastModel.RegisterCityID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.RegisterCityID.AnyValue()))
+	if lastModel.Sex.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Sex.AnyValue()))
 	}
-	if lastModel.NatureID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.NatureID.AnyValue()))
+	if lastModel.IdentityType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IdentityType.AnyValue()))
 	}
-	if lastModel.ScopeID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.ScopeID.AnyValue()))
+	if lastModel.IdentityNum.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IdentityNum.AnyValue()))
 	}
-	if lastModel.OfficeCityID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.OfficeCityID.AnyValue()))
+	if lastModel.ExpirationDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ExpirationDate.AnyValue()))
 	}
-	if lastModel.OfficeAddress.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.OfficeAddress.AnyValue()))
+	if lastModel.UniversityCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UniversityCode.AnyValue()))
 	}
-	if lastModel.Website.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Website.AnyValue()))
+	if lastModel.UserType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UserType.AnyValue()))
 	}
-	if lastModel.Contact.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Contact.AnyValue()))
+	if lastModel.EnrollmentStatus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnrollmentStatus.AnyValue()))
 	}
-	if lastModel.ContactPhone.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.ContactPhone.AnyValue()))
+	if lastModel.Type.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Type.AnyValue()))
 	}
-	if lastModel.EmployFromThis.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.EmployFromThis.AnyValue()))
+	if lastModel.Password.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Password.AnyValue()))
 	}
-	if lastModel.Introduction.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Introduction.AnyValue()))
+	if lastModel.Phone.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Phone.AnyValue()))
 	}
-	if lastModel.Zipcode.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.Zipcode.AnyValue()))
+	if lastModel.Email.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Email.AnyValue()))
+	}
+	if lastModel.PictureURL.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.PictureURL.AnyValue()))
+	}
+	if lastModel.Question.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Question.AnyValue()))
+	}
+	if lastModel.Answer.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Answer.AnyValue()))
+	}
+	if lastModel.AvailableLogin.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AvailableLogin.AnyValue()))
+	}
+	if lastModel.Operator.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Operator.AnyValue()))
+	}
+	if lastModel.InsertDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.InsertDatetime.AnyValue()))
+	}
+	if lastModel.UpdateDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateDatetime.AnyValue()))
 	}
 	if lastModel.Status.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.AnyValue()))
 	}
-	if lastModel.UpdateHash.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateHash.AnyValue()))
+	if lastModel.Remark1.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark1.AnyValue()))
 	}
-	if lastModel.RejectReason.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.RejectReason.AnyValue()))
+	if lastModel.Remark2.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark2.AnyValue()))
 	}
-	if lastModel.LicenseImageID.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.LicenseImageID.AnyValue()))
+	if lastModel.Remark3.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark3.AnyValue()))
 	}
-	if lastModel.CreateTime.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.CreateTime.AnyValue()))
+	if lastModel.Remark4.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark4.AnyValue()))
 	}
-	if lastModel.UpdateTime.IsValid() {
-		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.AnyValue()))
+	if lastModel.Nonego.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Nonego.AnyValue()))
 	}
 	if idx, ok := l.dupMap[builder.String()]; ok {
 		return idx
@@ -1152,7 +722,7 @@ func (l *EmployEnterpriseList) checkDup() int {
 	return -1
 }
 
-func (l *EmployEnterpriseList) Slice(low, high int) {
+func (l *UserList) Slice(low, high int) {
 	switch {
 	case high <= l.Len():
 		l.List = l.List[low:high]
@@ -1163,61 +733,61 @@ func (l *EmployEnterpriseList) Slice(low, high int) {
 	}
 }
 
-func (m *EmployEnterprise) String() string {
+func (m *User) String() string {
 	b, _ := json.Marshal(m)
 	return string(b)
 }
 
-func (l *EmployEnterpriseList) String() string {
+func (l *UserList) String() string {
 	b, _ := json.Marshal(l)
 	return string(b)
 }
 
-type EmployEnterpriseCacheElem struct {
+type UserCacheElem struct {
 	hashValue  string
-	model      *EmployEnterprise
+	model      *User
 	modifyTime time.Time
 }
 
-type EmployEnterpriseListCacheElem struct {
+type UserListCacheElem struct {
 	hashValue  string
-	list       *EmployEnterpriseList
+	list       *UserList
 	modifyTime time.Time
 }
 
-type EmployEnterpriseCacheManager struct {
-	container map[string]*EmployEnterpriseCacheElem
+type UserCacheManager struct {
+	container map[string]*UserCacheElem
 	query     chan string
-	in        chan *EmployEnterpriseCacheElem
-	out       chan *EmployEnterpriseCacheElem
+	in        chan *UserCacheElem
+	out       chan *UserCacheElem
 }
 
-type EmployEnterpriseListCacheManager struct {
-	container map[string]*EmployEnterpriseListCacheElem
+type UserListCacheManager struct {
+	container map[string]*UserListCacheElem
 	query     chan string
-	in        chan *EmployEnterpriseListCacheElem
-	out       chan *EmployEnterpriseListCacheElem
+	in        chan *UserListCacheElem
+	out       chan *UserListCacheElem
 }
 
-func newEmployEnterpriseCacheManager() *EmployEnterpriseCacheManager {
-	return &EmployEnterpriseCacheManager{
-		make(map[string]*EmployEnterpriseCacheElem),
+func newUserCacheManager() *UserCacheManager {
+	return &UserCacheManager{
+		make(map[string]*UserCacheElem),
 		make(chan string),
-		make(chan *EmployEnterpriseCacheElem),
-		make(chan *EmployEnterpriseCacheElem),
+		make(chan *UserCacheElem),
+		make(chan *UserCacheElem),
 	}
 }
 
-func newEmployEnterpriseListCacheManager() *EmployEnterpriseListCacheManager {
-	return &EmployEnterpriseListCacheManager{
-		make(map[string]*EmployEnterpriseListCacheElem),
+func newUserListCacheManager() *UserListCacheManager {
+	return &UserListCacheManager{
+		make(map[string]*UserListCacheElem),
 		make(chan string),
-		make(chan *EmployEnterpriseListCacheElem),
-		make(chan *EmployEnterpriseListCacheElem),
+		make(chan *UserListCacheElem),
+		make(chan *UserListCacheElem),
 	}
 }
 
-func (mgr *EmployEnterpriseCacheManager) run() {
+func (mgr *UserCacheManager) run() {
 	for {
 		select {
 		case h := <-mgr.query:
@@ -1228,7 +798,7 @@ func (mgr *EmployEnterpriseCacheManager) run() {
 	}
 }
 
-func (mgr *EmployEnterpriseListCacheManager) run() {
+func (mgr *UserListCacheManager) run() {
 	for {
 		select {
 		case h := <-mgr.query:
@@ -1239,13 +809,13 @@ func (mgr *EmployEnterpriseListCacheManager) run() {
 	}
 }
 
-var EmployEnterpriseCache = newEmployEnterpriseCacheManager()
+var UserCache = newUserCacheManager()
 
-var EmployEnterpriseListCache = newEmployEnterpriseListCacheManager()
+var UserListCache = newUserListCacheManager()
 
-func (m *EmployEnterprise) GetCache(hashVal string, timeout time.Duration) bool {
-	EmployEnterpriseCache.query <- hashVal
-	elem := <-EmployEnterpriseCache.out
+func (m *User) GetCache(hashVal string, timeout time.Duration) bool {
+	UserCache.query <- hashVal
+	elem := <-UserCache.out
 	if elem == nil || time.Since(elem.modifyTime) > timeout {
 		return false
 	}
@@ -1253,17 +823,17 @@ func (m *EmployEnterprise) GetCache(hashVal string, timeout time.Duration) bool 
 	return true
 }
 
-func (m *EmployEnterprise) SetCache(hashValue string) {
-	EmployEnterpriseCache.in <- &EmployEnterpriseCacheElem{
+func (m *User) SetCache(hashValue string) {
+	UserCache.in <- &UserCacheElem{
 		hashValue,
 		m,
 		time.Now(),
 	}
 }
 
-func (l *EmployEnterpriseList) GetListCache(hashValue string, timeout time.Duration) bool {
-	EmployEnterpriseListCache.query <- hashValue
-	elem := <-EmployEnterpriseListCache.out
+func (l *UserList) GetListCache(hashValue string, timeout time.Duration) bool {
+	UserListCache.query <- hashValue
+	elem := <-UserListCache.out
 	if elem == nil || time.Since(elem.modifyTime) > timeout {
 		return false
 	}
@@ -1271,8 +841,1546 @@ func (l *EmployEnterpriseList) GetListCache(hashValue string, timeout time.Durat
 	return true
 }
 
-func (l *EmployEnterpriseList) SetListCache(hashValue string) {
-	EmployEnterpriseListCache.in <- &EmployEnterpriseListCacheElem{
+func (l *UserList) SetListCache(hashValue string) {
+	UserListCache.in <- &UserListCacheElem{
+		hashValue,
+		l,
+		time.Now(),
+	}
+}
+
+func NewStudentbasicinfo() *Studentbasicinfo {
+	m := &Studentbasicinfo{}
+	m.Init(m, nil, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 2)
+	m.Class.Init(m, "Class", "Class", 3)
+	m.OtherName.Init(m, "OtherName", "OtherName", 4)
+	m.NameInPinyin.Init(m, "NameInPinyin", "NameInPinyin", 5)
+	m.EnglishName.Init(m, "EnglishName", "EnglishName", 6)
+	m.CountryCode.Init(m, "CountryCode", "CountryCode", 7)
+	m.NationalityCode.Init(m, "NationalityCode", "NationalityCode", 8)
+	m.Birthday.Init(m, "Birthday", "Birthday", 9)
+	m.PoliticalCode.Init(m, "PoliticalCode", "PoliticalCode", 10)
+	m.QQAcct.Init(m, "QQAcct", "QQAcct", 11)
+	m.WeChatAcct.Init(m, "WeChatAcct", "WeChatAcct", 12)
+	m.BankCardNumber.Init(m, "BankCardNumber", "BankCardNumber", 13)
+	m.AccountBankCode.Init(m, "AccountBankCode", "AccountBankCode", 14)
+	m.AllPowerfulCardNum.Init(m, "AllPowerfulCardNum", "AllPowerfulCardNum", 15)
+	m.MaritalCode.Init(m, "MaritalCode", "MaritalCode", 16)
+	m.OriginAreaCode.Init(m, "OriginAreaCode", "OriginAreaCode", 17)
+	m.StudentAreaCode.Init(m, "StudentAreaCode", "StudentAreaCode", 18)
+	m.Hobbies.Init(m, "Hobbies", "Hobbies", 19)
+	m.Creed.Init(m, "Creed", "Creed", 20)
+	m.TrainTicketinterval.Init(m, "TrainTicketinterval", "TrainTicketinterval", 21)
+	m.FamilyAddress.Init(m, "FamilyAddress", "FamilyAddress", 22)
+	m.DetailAddress.Init(m, "DetailAddress", "DetailAddress", 23)
+	m.PostCode.Init(m, "PostCode", "PostCode", 24)
+	m.HomePhone.Init(m, "HomePhone", "HomePhone", 25)
+	m.EnrollmentDate.Init(m, "EnrollmentDate", "EnrollmentDate", 26)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 27)
+	m.MidSchoolAddress.Init(m, "MidSchoolAddress", "MidSchoolAddress", 28)
+	m.MidSchoolName.Init(m, "MidSchoolName", "MidSchoolName", 29)
+	m.Referee.Init(m, "Referee", "Referee", 30)
+	m.RefereeDuty.Init(m, "RefereeDuty", "RefereeDuty", 31)
+	m.RefereePhone.Init(m, "RefereePhone", "RefereePhone", 32)
+	m.AdmissionTicketNo.Init(m, "AdmissionTicketNo", "AdmissionTicketNo", 33)
+	m.CollegeEntranceExamScores.Init(m, "CollegeEntranceExamScores", "CollegeEntranceExamScores", 34)
+	m.AdmissionYear.Init(m, "AdmissionYear", "AdmissionYear", 35)
+	m.ForeignLanguageCode.Init(m, "ForeignLanguageCode", "ForeignLanguageCode", 36)
+	m.StudentOrigin.Init(m, "StudentOrigin", "StudentOrigin", 37)
+	m.BizType.Init(m, "BizType", "BizType", 38)
+	m.TaskCode.Init(m, "TaskCode", "TaskCode", 39)
+	m.ApproveStatus.Init(m, "ApproveStatus", "ApproveStatus", 40)
+	m.Operator.Init(m, "Operator", "Operator", 41)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 42)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 43)
+	m.Status.Init(m, "Status", "Status", 44)
+	m.StudentStatus.Init(m, "StudentStatus", "StudentStatus", 45)
+	m.IsAuth.Init(m, "IsAuth", "IsAuth", 46)
+	m.Campus.Init(m, "Campus", "Campus", 47)
+	m.Zone.Init(m, "Zone", "Zone", 48)
+	m.Building.Init(m, "Building", "Building", 49)
+	m.Unit.Init(m, "Unit", "Unit", 50)
+	m.Room.Init(m, "Room", "Room", 51)
+	m.Bed.Init(m, "Bed", "Bed", 52)
+	m.StatusSort.Init(m, "StatusSort", "StatusSort", 53)
+	m.Height.Init(m, "Height", "Height", 54)
+	m.Weight.Init(m, "Weight", "Weight", 55)
+	m.FootSize.Init(m, "FootSize", "FootSize", 56)
+	m.ClothSize.Init(m, "ClothSize", "ClothSize", 57)
+	m.HeadSize.Init(m, "HeadSize", "HeadSize", 58)
+	m.Remark1.Init(m, "Remark1", "Remark1", 59)
+	m.Remark2.Init(m, "Remark2", "Remark2", 60)
+	m.Remark3.Init(m, "Remark3", "Remark3", 61)
+	m.Remark4.Init(m, "Remark4", "Remark4", 62)
+	m.IsPayment.Init(m, "IsPayment", "IsPayment", 63)
+	m.IsCheckIn.Init(m, "isCheckIn", "IsCheckIn", 64)
+	m.GetMilitaryTC.Init(m, "GetMilitaryTC", "GetMilitaryTC", 65)
+	m.OriginAreaName.Init(m, "OriginAreaName", "OriginAreaName", 66)
+	m.InitRel()
+	return m
+}
+
+func newSubStudentbasicinfo(parent nborm.Model) *Studentbasicinfo {
+	m := &Studentbasicinfo{}
+	m.Init(m, parent, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 2)
+	m.Class.Init(m, "Class", "Class", 3)
+	m.OtherName.Init(m, "OtherName", "OtherName", 4)
+	m.NameInPinyin.Init(m, "NameInPinyin", "NameInPinyin", 5)
+	m.EnglishName.Init(m, "EnglishName", "EnglishName", 6)
+	m.CountryCode.Init(m, "CountryCode", "CountryCode", 7)
+	m.NationalityCode.Init(m, "NationalityCode", "NationalityCode", 8)
+	m.Birthday.Init(m, "Birthday", "Birthday", 9)
+	m.PoliticalCode.Init(m, "PoliticalCode", "PoliticalCode", 10)
+	m.QQAcct.Init(m, "QQAcct", "QQAcct", 11)
+	m.WeChatAcct.Init(m, "WeChatAcct", "WeChatAcct", 12)
+	m.BankCardNumber.Init(m, "BankCardNumber", "BankCardNumber", 13)
+	m.AccountBankCode.Init(m, "AccountBankCode", "AccountBankCode", 14)
+	m.AllPowerfulCardNum.Init(m, "AllPowerfulCardNum", "AllPowerfulCardNum", 15)
+	m.MaritalCode.Init(m, "MaritalCode", "MaritalCode", 16)
+	m.OriginAreaCode.Init(m, "OriginAreaCode", "OriginAreaCode", 17)
+	m.StudentAreaCode.Init(m, "StudentAreaCode", "StudentAreaCode", 18)
+	m.Hobbies.Init(m, "Hobbies", "Hobbies", 19)
+	m.Creed.Init(m, "Creed", "Creed", 20)
+	m.TrainTicketinterval.Init(m, "TrainTicketinterval", "TrainTicketinterval", 21)
+	m.FamilyAddress.Init(m, "FamilyAddress", "FamilyAddress", 22)
+	m.DetailAddress.Init(m, "DetailAddress", "DetailAddress", 23)
+	m.PostCode.Init(m, "PostCode", "PostCode", 24)
+	m.HomePhone.Init(m, "HomePhone", "HomePhone", 25)
+	m.EnrollmentDate.Init(m, "EnrollmentDate", "EnrollmentDate", 26)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 27)
+	m.MidSchoolAddress.Init(m, "MidSchoolAddress", "MidSchoolAddress", 28)
+	m.MidSchoolName.Init(m, "MidSchoolName", "MidSchoolName", 29)
+	m.Referee.Init(m, "Referee", "Referee", 30)
+	m.RefereeDuty.Init(m, "RefereeDuty", "RefereeDuty", 31)
+	m.RefereePhone.Init(m, "RefereePhone", "RefereePhone", 32)
+	m.AdmissionTicketNo.Init(m, "AdmissionTicketNo", "AdmissionTicketNo", 33)
+	m.CollegeEntranceExamScores.Init(m, "CollegeEntranceExamScores", "CollegeEntranceExamScores", 34)
+	m.AdmissionYear.Init(m, "AdmissionYear", "AdmissionYear", 35)
+	m.ForeignLanguageCode.Init(m, "ForeignLanguageCode", "ForeignLanguageCode", 36)
+	m.StudentOrigin.Init(m, "StudentOrigin", "StudentOrigin", 37)
+	m.BizType.Init(m, "BizType", "BizType", 38)
+	m.TaskCode.Init(m, "TaskCode", "TaskCode", 39)
+	m.ApproveStatus.Init(m, "ApproveStatus", "ApproveStatus", 40)
+	m.Operator.Init(m, "Operator", "Operator", 41)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 42)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 43)
+	m.Status.Init(m, "Status", "Status", 44)
+	m.StudentStatus.Init(m, "StudentStatus", "StudentStatus", 45)
+	m.IsAuth.Init(m, "IsAuth", "IsAuth", 46)
+	m.Campus.Init(m, "Campus", "Campus", 47)
+	m.Zone.Init(m, "Zone", "Zone", 48)
+	m.Building.Init(m, "Building", "Building", 49)
+	m.Unit.Init(m, "Unit", "Unit", 50)
+	m.Room.Init(m, "Room", "Room", 51)
+	m.Bed.Init(m, "Bed", "Bed", 52)
+	m.StatusSort.Init(m, "StatusSort", "StatusSort", 53)
+	m.Height.Init(m, "Height", "Height", 54)
+	m.Weight.Init(m, "Weight", "Weight", 55)
+	m.FootSize.Init(m, "FootSize", "FootSize", 56)
+	m.ClothSize.Init(m, "ClothSize", "ClothSize", 57)
+	m.HeadSize.Init(m, "HeadSize", "HeadSize", 58)
+	m.Remark1.Init(m, "Remark1", "Remark1", 59)
+	m.Remark2.Init(m, "Remark2", "Remark2", 60)
+	m.Remark3.Init(m, "Remark3", "Remark3", 61)
+	m.Remark4.Init(m, "Remark4", "Remark4", 62)
+	m.IsPayment.Init(m, "IsPayment", "IsPayment", 63)
+	m.IsCheckIn.Init(m, "isCheckIn", "IsCheckIn", 64)
+	m.GetMilitaryTC.Init(m, "GetMilitaryTC", "GetMilitaryTC", 65)
+	m.OriginAreaName.Init(m, "OriginAreaName", "OriginAreaName", 66)
+	return m
+}
+
+func (m *Studentbasicinfo) InitRel() {
+	m.User = newSubUser(m)
+	var relInfo0 *nborm.RelationInfo
+	relInfo0 = relInfo0.Append("User", m.User, nborm.NewExpr("@=@", &m.IntelUserCode, &m.User.IntelUserCode))
+	m.AppendRelation(relInfo0)
+	m.AddRelInited()
+}
+
+func (m *Studentbasicinfo) DB() string {
+	return "*"
+}
+
+func (m *Studentbasicinfo) Tab() string {
+	return "studentbasicinfo"
+}
+
+func (m *Studentbasicinfo) FieldInfos() nborm.FieldInfoList {
+	return nborm.FieldInfoList{
+		{"Id", "Id", &m.Id, 0},
+		{"RecordId", "RecordId", &m.RecordId, 1},
+		{"IntelUserCode", "IntelUserCode", &m.IntelUserCode, 2},
+		{"Class", "Class", &m.Class, 3},
+		{"OtherName", "OtherName", &m.OtherName, 4},
+		{"NameInPinyin", "NameInPinyin", &m.NameInPinyin, 5},
+		{"EnglishName", "EnglishName", &m.EnglishName, 6},
+		{"CountryCode", "CountryCode", &m.CountryCode, 7},
+		{"NationalityCode", "NationalityCode", &m.NationalityCode, 8},
+		{"Birthday", "Birthday", &m.Birthday, 9},
+		{"PoliticalCode", "PoliticalCode", &m.PoliticalCode, 10},
+		{"QQAcct", "QQAcct", &m.QQAcct, 11},
+		{"WeChatAcct", "WeChatAcct", &m.WeChatAcct, 12},
+		{"BankCardNumber", "BankCardNumber", &m.BankCardNumber, 13},
+		{"AccountBankCode", "AccountBankCode", &m.AccountBankCode, 14},
+		{"AllPowerfulCardNum", "AllPowerfulCardNum", &m.AllPowerfulCardNum, 15},
+		{"MaritalCode", "MaritalCode", &m.MaritalCode, 16},
+		{"OriginAreaCode", "OriginAreaCode", &m.OriginAreaCode, 17},
+		{"StudentAreaCode", "StudentAreaCode", &m.StudentAreaCode, 18},
+		{"Hobbies", "Hobbies", &m.Hobbies, 19},
+		{"Creed", "Creed", &m.Creed, 20},
+		{"TrainTicketinterval", "TrainTicketinterval", &m.TrainTicketinterval, 21},
+		{"FamilyAddress", "FamilyAddress", &m.FamilyAddress, 22},
+		{"DetailAddress", "DetailAddress", &m.DetailAddress, 23},
+		{"PostCode", "PostCode", &m.PostCode, 24},
+		{"HomePhone", "HomePhone", &m.HomePhone, 25},
+		{"EnrollmentDate", "EnrollmentDate", &m.EnrollmentDate, 26},
+		{"GraduationDate", "GraduationDate", &m.GraduationDate, 27},
+		{"MidSchoolAddress", "MidSchoolAddress", &m.MidSchoolAddress, 28},
+		{"MidSchoolName", "MidSchoolName", &m.MidSchoolName, 29},
+		{"Referee", "Referee", &m.Referee, 30},
+		{"RefereeDuty", "RefereeDuty", &m.RefereeDuty, 31},
+		{"RefereePhone", "RefereePhone", &m.RefereePhone, 32},
+		{"AdmissionTicketNo", "AdmissionTicketNo", &m.AdmissionTicketNo, 33},
+		{"CollegeEntranceExamScores", "CollegeEntranceExamScores", &m.CollegeEntranceExamScores, 34},
+		{"AdmissionYear", "AdmissionYear", &m.AdmissionYear, 35},
+		{"ForeignLanguageCode", "ForeignLanguageCode", &m.ForeignLanguageCode, 36},
+		{"StudentOrigin", "StudentOrigin", &m.StudentOrigin, 37},
+		{"BizType", "BizType", &m.BizType, 38},
+		{"TaskCode", "TaskCode", &m.TaskCode, 39},
+		{"ApproveStatus", "ApproveStatus", &m.ApproveStatus, 40},
+		{"Operator", "Operator", &m.Operator, 41},
+		{"InsertDatetime", "InsertDatetime", &m.InsertDatetime, 42},
+		{"UpdateDatetime", "UpdateDatetime", &m.UpdateDatetime, 43},
+		{"Status", "Status", &m.Status, 44},
+		{"StudentStatus", "StudentStatus", &m.StudentStatus, 45},
+		{"IsAuth", "IsAuth", &m.IsAuth, 46},
+		{"Campus", "Campus", &m.Campus, 47},
+		{"Zone", "Zone", &m.Zone, 48},
+		{"Building", "Building", &m.Building, 49},
+		{"Unit", "Unit", &m.Unit, 50},
+		{"Room", "Room", &m.Room, 51},
+		{"Bed", "Bed", &m.Bed, 52},
+		{"StatusSort", "StatusSort", &m.StatusSort, 53},
+		{"Height", "Height", &m.Height, 54},
+		{"Weight", "Weight", &m.Weight, 55},
+		{"FootSize", "FootSize", &m.FootSize, 56},
+		{"ClothSize", "ClothSize", &m.ClothSize, 57},
+		{"HeadSize", "HeadSize", &m.HeadSize, 58},
+		{"Remark1", "Remark1", &m.Remark1, 59},
+		{"Remark2", "Remark2", &m.Remark2, 60},
+		{"Remark3", "Remark3", &m.Remark3, 61},
+		{"Remark4", "Remark4", &m.Remark4, 62},
+		{"IsPayment", "IsPayment", &m.IsPayment, 63},
+		{"isCheckIn", "IsCheckIn", &m.IsCheckIn, 64},
+		{"GetMilitaryTC", "GetMilitaryTC", &m.GetMilitaryTC, 65},
+		{"OriginAreaName", "OriginAreaName", &m.OriginAreaName, 66},
+	}
+}
+
+func (m *Studentbasicinfo) AutoIncField() nborm.Field {
+	return &m.Id
+}
+
+func (m *Studentbasicinfo) PrimaryKey() nborm.FieldList {
+	return nborm.FieldList{
+		&m.Id,
+	}
+}
+
+func (m *Studentbasicinfo) UniqueKeys() []nborm.FieldList {
+	return []nborm.FieldList{
+		{
+			&m.IntelUserCode,
+		},
+	}
+}
+func (m Studentbasicinfo) MarshalJSON() ([]byte, error) {
+	if !m.IsSynced() {
+		return []byte("null"), nil
+	}
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	buffer.WriteString("{\n\"Aggs\": ")
+	metaB, err := json.MarshalIndent(m.Meta, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	buffer.Write(metaB)
+	if m.Id.IsValid() {
+		buffer.WriteString(",\n\"Id\": ")
+		IdB, err := json.MarshalIndent(m.Id, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IdB)
+	}
+	if m.RecordId.IsValid() {
+		buffer.WriteString(",\n\"RecordId\": ")
+		RecordIdB, err := json.MarshalIndent(m.RecordId, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RecordIdB)
+	}
+	if m.IntelUserCode.IsValid() {
+		buffer.WriteString(",\n\"IntelUserCode\": ")
+		IntelUserCodeB, err := json.MarshalIndent(m.IntelUserCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IntelUserCodeB)
+	}
+	if m.Class.IsValid() {
+		buffer.WriteString(",\n\"Class\": ")
+		ClassB, err := json.MarshalIndent(m.Class, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClassB)
+	}
+	if m.OtherName.IsValid() {
+		buffer.WriteString(",\n\"OtherName\": ")
+		OtherNameB, err := json.MarshalIndent(m.OtherName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OtherNameB)
+	}
+	if m.NameInPinyin.IsValid() {
+		buffer.WriteString(",\n\"NameInPinyin\": ")
+		NameInPinyinB, err := json.MarshalIndent(m.NameInPinyin, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(NameInPinyinB)
+	}
+	if m.EnglishName.IsValid() {
+		buffer.WriteString(",\n\"EnglishName\": ")
+		EnglishNameB, err := json.MarshalIndent(m.EnglishName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(EnglishNameB)
+	}
+	if m.CountryCode.IsValid() {
+		buffer.WriteString(",\n\"CountryCode\": ")
+		CountryCodeB, err := json.MarshalIndent(m.CountryCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CountryCodeB)
+	}
+	if m.NationalityCode.IsValid() {
+		buffer.WriteString(",\n\"NationalityCode\": ")
+		NationalityCodeB, err := json.MarshalIndent(m.NationalityCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(NationalityCodeB)
+	}
+	if m.Birthday.IsValid() {
+		buffer.WriteString(",\n\"Birthday\": ")
+		BirthdayB, err := json.MarshalIndent(m.Birthday, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(BirthdayB)
+	}
+	if m.PoliticalCode.IsValid() {
+		buffer.WriteString(",\n\"PoliticalCode\": ")
+		PoliticalCodeB, err := json.MarshalIndent(m.PoliticalCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(PoliticalCodeB)
+	}
+	if m.QQAcct.IsValid() {
+		buffer.WriteString(",\n\"QQAcct\": ")
+		QQAcctB, err := json.MarshalIndent(m.QQAcct, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(QQAcctB)
+	}
+	if m.WeChatAcct.IsValid() {
+		buffer.WriteString(",\n\"WeChatAcct\": ")
+		WeChatAcctB, err := json.MarshalIndent(m.WeChatAcct, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(WeChatAcctB)
+	}
+	if m.BankCardNumber.IsValid() {
+		buffer.WriteString(",\n\"BankCardNumber\": ")
+		BankCardNumberB, err := json.MarshalIndent(m.BankCardNumber, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(BankCardNumberB)
+	}
+	if m.AccountBankCode.IsValid() {
+		buffer.WriteString(",\n\"AccountBankCode\": ")
+		AccountBankCodeB, err := json.MarshalIndent(m.AccountBankCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AccountBankCodeB)
+	}
+	if m.AllPowerfulCardNum.IsValid() {
+		buffer.WriteString(",\n\"AllPowerfulCardNum\": ")
+		AllPowerfulCardNumB, err := json.MarshalIndent(m.AllPowerfulCardNum, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AllPowerfulCardNumB)
+	}
+	if m.MaritalCode.IsValid() {
+		buffer.WriteString(",\n\"MaritalCode\": ")
+		MaritalCodeB, err := json.MarshalIndent(m.MaritalCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(MaritalCodeB)
+	}
+	if m.OriginAreaCode.IsValid() {
+		buffer.WriteString(",\n\"OriginAreaCode\": ")
+		OriginAreaCodeB, err := json.MarshalIndent(m.OriginAreaCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OriginAreaCodeB)
+	}
+	if m.StudentAreaCode.IsValid() {
+		buffer.WriteString(",\n\"StudentAreaCode\": ")
+		StudentAreaCodeB, err := json.MarshalIndent(m.StudentAreaCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentAreaCodeB)
+	}
+	if m.Hobbies.IsValid() {
+		buffer.WriteString(",\n\"Hobbies\": ")
+		HobbiesB, err := json.MarshalIndent(m.Hobbies, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(HobbiesB)
+	}
+	if m.Creed.IsValid() {
+		buffer.WriteString(",\n\"Creed\": ")
+		CreedB, err := json.MarshalIndent(m.Creed, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CreedB)
+	}
+	if m.TrainTicketinterval.IsValid() {
+		buffer.WriteString(",\n\"TrainTicketinterval\": ")
+		TrainTicketintervalB, err := json.MarshalIndent(m.TrainTicketinterval, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(TrainTicketintervalB)
+	}
+	if m.FamilyAddress.IsValid() {
+		buffer.WriteString(",\n\"FamilyAddress\": ")
+		FamilyAddressB, err := json.MarshalIndent(m.FamilyAddress, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(FamilyAddressB)
+	}
+	if m.DetailAddress.IsValid() {
+		buffer.WriteString(",\n\"DetailAddress\": ")
+		DetailAddressB, err := json.MarshalIndent(m.DetailAddress, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(DetailAddressB)
+	}
+	if m.PostCode.IsValid() {
+		buffer.WriteString(",\n\"PostCode\": ")
+		PostCodeB, err := json.MarshalIndent(m.PostCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(PostCodeB)
+	}
+	if m.HomePhone.IsValid() {
+		buffer.WriteString(",\n\"HomePhone\": ")
+		HomePhoneB, err := json.MarshalIndent(m.HomePhone, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(HomePhoneB)
+	}
+	if m.EnrollmentDate.IsValid() {
+		buffer.WriteString(",\n\"EnrollmentDate\": ")
+		EnrollmentDateB, err := json.MarshalIndent(m.EnrollmentDate, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(EnrollmentDateB)
+	}
+	if m.GraduationDate.IsValid() {
+		buffer.WriteString(",\n\"GraduationDate\": ")
+		GraduationDateB, err := json.MarshalIndent(m.GraduationDate, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GraduationDateB)
+	}
+	if m.MidSchoolAddress.IsValid() {
+		buffer.WriteString(",\n\"MidSchoolAddress\": ")
+		MidSchoolAddressB, err := json.MarshalIndent(m.MidSchoolAddress, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(MidSchoolAddressB)
+	}
+	if m.MidSchoolName.IsValid() {
+		buffer.WriteString(",\n\"MidSchoolName\": ")
+		MidSchoolNameB, err := json.MarshalIndent(m.MidSchoolName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(MidSchoolNameB)
+	}
+	if m.Referee.IsValid() {
+		buffer.WriteString(",\n\"Referee\": ")
+		RefereeB, err := json.MarshalIndent(m.Referee, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RefereeB)
+	}
+	if m.RefereeDuty.IsValid() {
+		buffer.WriteString(",\n\"RefereeDuty\": ")
+		RefereeDutyB, err := json.MarshalIndent(m.RefereeDuty, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RefereeDutyB)
+	}
+	if m.RefereePhone.IsValid() {
+		buffer.WriteString(",\n\"RefereePhone\": ")
+		RefereePhoneB, err := json.MarshalIndent(m.RefereePhone, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RefereePhoneB)
+	}
+	if m.AdmissionTicketNo.IsValid() {
+		buffer.WriteString(",\n\"AdmissionTicketNo\": ")
+		AdmissionTicketNoB, err := json.MarshalIndent(m.AdmissionTicketNo, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AdmissionTicketNoB)
+	}
+	if m.CollegeEntranceExamScores.IsValid() {
+		buffer.WriteString(",\n\"CollegeEntranceExamScores\": ")
+		CollegeEntranceExamScoresB, err := json.MarshalIndent(m.CollegeEntranceExamScores, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CollegeEntranceExamScoresB)
+	}
+	if m.AdmissionYear.IsValid() {
+		buffer.WriteString(",\n\"AdmissionYear\": ")
+		AdmissionYearB, err := json.MarshalIndent(m.AdmissionYear, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AdmissionYearB)
+	}
+	if m.ForeignLanguageCode.IsValid() {
+		buffer.WriteString(",\n\"ForeignLanguageCode\": ")
+		ForeignLanguageCodeB, err := json.MarshalIndent(m.ForeignLanguageCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ForeignLanguageCodeB)
+	}
+	if m.StudentOrigin.IsValid() {
+		buffer.WriteString(",\n\"StudentOrigin\": ")
+		StudentOriginB, err := json.MarshalIndent(m.StudentOrigin, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentOriginB)
+	}
+	if m.BizType.IsValid() {
+		buffer.WriteString(",\n\"BizType\": ")
+		BizTypeB, err := json.MarshalIndent(m.BizType, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(BizTypeB)
+	}
+	if m.TaskCode.IsValid() {
+		buffer.WriteString(",\n\"TaskCode\": ")
+		TaskCodeB, err := json.MarshalIndent(m.TaskCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(TaskCodeB)
+	}
+	if m.ApproveStatus.IsValid() {
+		buffer.WriteString(",\n\"ApproveStatus\": ")
+		ApproveStatusB, err := json.MarshalIndent(m.ApproveStatus, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ApproveStatusB)
+	}
+	if m.Operator.IsValid() {
+		buffer.WriteString(",\n\"Operator\": ")
+		OperatorB, err := json.MarshalIndent(m.Operator, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OperatorB)
+	}
+	if m.InsertDatetime.IsValid() {
+		buffer.WriteString(",\n\"InsertDatetime\": ")
+		InsertDatetimeB, err := json.MarshalIndent(m.InsertDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(InsertDatetimeB)
+	}
+	if m.UpdateDatetime.IsValid() {
+		buffer.WriteString(",\n\"UpdateDatetime\": ")
+		UpdateDatetimeB, err := json.MarshalIndent(m.UpdateDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UpdateDatetimeB)
+	}
+	if m.Status.IsValid() {
+		buffer.WriteString(",\n\"Status\": ")
+		StatusB, err := json.MarshalIndent(m.Status, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StatusB)
+	}
+	if m.StudentStatus.IsValid() {
+		buffer.WriteString(",\n\"StudentStatus\": ")
+		StudentStatusB, err := json.MarshalIndent(m.StudentStatus, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentStatusB)
+	}
+	if m.IsAuth.IsValid() {
+		buffer.WriteString(",\n\"IsAuth\": ")
+		IsAuthB, err := json.MarshalIndent(m.IsAuth, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IsAuthB)
+	}
+	if m.Campus.IsValid() {
+		buffer.WriteString(",\n\"Campus\": ")
+		CampusB, err := json.MarshalIndent(m.Campus, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CampusB)
+	}
+	if m.Zone.IsValid() {
+		buffer.WriteString(",\n\"Zone\": ")
+		ZoneB, err := json.MarshalIndent(m.Zone, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ZoneB)
+	}
+	if m.Building.IsValid() {
+		buffer.WriteString(",\n\"Building\": ")
+		BuildingB, err := json.MarshalIndent(m.Building, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(BuildingB)
+	}
+	if m.Unit.IsValid() {
+		buffer.WriteString(",\n\"Unit\": ")
+		UnitB, err := json.MarshalIndent(m.Unit, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UnitB)
+	}
+	if m.Room.IsValid() {
+		buffer.WriteString(",\n\"Room\": ")
+		RoomB, err := json.MarshalIndent(m.Room, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RoomB)
+	}
+	if m.Bed.IsValid() {
+		buffer.WriteString(",\n\"Bed\": ")
+		BedB, err := json.MarshalIndent(m.Bed, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(BedB)
+	}
+	if m.StatusSort.IsValid() {
+		buffer.WriteString(",\n\"StatusSort\": ")
+		StatusSortB, err := json.MarshalIndent(m.StatusSort, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StatusSortB)
+	}
+	if m.Height.IsValid() {
+		buffer.WriteString(",\n\"Height\": ")
+		HeightB, err := json.MarshalIndent(m.Height, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(HeightB)
+	}
+	if m.Weight.IsValid() {
+		buffer.WriteString(",\n\"Weight\": ")
+		WeightB, err := json.MarshalIndent(m.Weight, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(WeightB)
+	}
+	if m.FootSize.IsValid() {
+		buffer.WriteString(",\n\"FootSize\": ")
+		FootSizeB, err := json.MarshalIndent(m.FootSize, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(FootSizeB)
+	}
+	if m.ClothSize.IsValid() {
+		buffer.WriteString(",\n\"ClothSize\": ")
+		ClothSizeB, err := json.MarshalIndent(m.ClothSize, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClothSizeB)
+	}
+	if m.HeadSize.IsValid() {
+		buffer.WriteString(",\n\"HeadSize\": ")
+		HeadSizeB, err := json.MarshalIndent(m.HeadSize, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(HeadSizeB)
+	}
+	if m.Remark1.IsValid() {
+		buffer.WriteString(",\n\"Remark1\": ")
+		Remark1B, err := json.MarshalIndent(m.Remark1, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark1B)
+	}
+	if m.Remark2.IsValid() {
+		buffer.WriteString(",\n\"Remark2\": ")
+		Remark2B, err := json.MarshalIndent(m.Remark2, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark2B)
+	}
+	if m.Remark3.IsValid() {
+		buffer.WriteString(",\n\"Remark3\": ")
+		Remark3B, err := json.MarshalIndent(m.Remark3, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark3B)
+	}
+	if m.Remark4.IsValid() {
+		buffer.WriteString(",\n\"Remark4\": ")
+		Remark4B, err := json.MarshalIndent(m.Remark4, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark4B)
+	}
+	if m.IsPayment.IsValid() {
+		buffer.WriteString(",\n\"IsPayment\": ")
+		IsPaymentB, err := json.MarshalIndent(m.IsPayment, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IsPaymentB)
+	}
+	if m.IsCheckIn.IsValid() {
+		buffer.WriteString(",\n\"IsCheckIn\": ")
+		IsCheckInB, err := json.MarshalIndent(m.IsCheckIn, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IsCheckInB)
+	}
+	if m.GetMilitaryTC.IsValid() {
+		buffer.WriteString(",\n\"GetMilitaryTC\": ")
+		GetMilitaryTCB, err := json.MarshalIndent(m.GetMilitaryTC, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GetMilitaryTCB)
+	}
+	if m.OriginAreaName.IsValid() {
+		buffer.WriteString(",\n\"OriginAreaName\": ")
+		OriginAreaNameB, err := json.MarshalIndent(m.OriginAreaName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OriginAreaNameB)
+	}
+	if m.User != nil && m.User.IsSynced() {
+		buffer.WriteString(",\n\"User\": ")
+		UserB, err := json.MarshalIndent(m.User, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UserB)
+	}
+	buffer.WriteString("\n}")
+	return buffer.Bytes(), nil
+}
+
+type StudentbasicinfoList struct {
+	Studentbasicinfo `json:"-"`
+	dupMap           map[string]int
+	List             []*Studentbasicinfo
+	Total            int
+}
+
+func (m *Studentbasicinfo) Collapse() {
+	if m.User != nil && m.User.IsSynced() {
+		m.User.Collapse()
+	}
+}
+
+func NewStudentbasicinfoList() *StudentbasicinfoList {
+	l := &StudentbasicinfoList{
+		Studentbasicinfo{},
+		make(map[string]int),
+		make([]*Studentbasicinfo, 0, 32),
+		0,
+	}
+	l.Init(l, nil, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.RecordId.Init(l, "RecordId", "RecordId", 1)
+	l.IntelUserCode.Init(l, "IntelUserCode", "IntelUserCode", 2)
+	l.Class.Init(l, "Class", "Class", 3)
+	l.OtherName.Init(l, "OtherName", "OtherName", 4)
+	l.NameInPinyin.Init(l, "NameInPinyin", "NameInPinyin", 5)
+	l.EnglishName.Init(l, "EnglishName", "EnglishName", 6)
+	l.CountryCode.Init(l, "CountryCode", "CountryCode", 7)
+	l.NationalityCode.Init(l, "NationalityCode", "NationalityCode", 8)
+	l.Birthday.Init(l, "Birthday", "Birthday", 9)
+	l.PoliticalCode.Init(l, "PoliticalCode", "PoliticalCode", 10)
+	l.QQAcct.Init(l, "QQAcct", "QQAcct", 11)
+	l.WeChatAcct.Init(l, "WeChatAcct", "WeChatAcct", 12)
+	l.BankCardNumber.Init(l, "BankCardNumber", "BankCardNumber", 13)
+	l.AccountBankCode.Init(l, "AccountBankCode", "AccountBankCode", 14)
+	l.AllPowerfulCardNum.Init(l, "AllPowerfulCardNum", "AllPowerfulCardNum", 15)
+	l.MaritalCode.Init(l, "MaritalCode", "MaritalCode", 16)
+	l.OriginAreaCode.Init(l, "OriginAreaCode", "OriginAreaCode", 17)
+	l.StudentAreaCode.Init(l, "StudentAreaCode", "StudentAreaCode", 18)
+	l.Hobbies.Init(l, "Hobbies", "Hobbies", 19)
+	l.Creed.Init(l, "Creed", "Creed", 20)
+	l.TrainTicketinterval.Init(l, "TrainTicketinterval", "TrainTicketinterval", 21)
+	l.FamilyAddress.Init(l, "FamilyAddress", "FamilyAddress", 22)
+	l.DetailAddress.Init(l, "DetailAddress", "DetailAddress", 23)
+	l.PostCode.Init(l, "PostCode", "PostCode", 24)
+	l.HomePhone.Init(l, "HomePhone", "HomePhone", 25)
+	l.EnrollmentDate.Init(l, "EnrollmentDate", "EnrollmentDate", 26)
+	l.GraduationDate.Init(l, "GraduationDate", "GraduationDate", 27)
+	l.MidSchoolAddress.Init(l, "MidSchoolAddress", "MidSchoolAddress", 28)
+	l.MidSchoolName.Init(l, "MidSchoolName", "MidSchoolName", 29)
+	l.Referee.Init(l, "Referee", "Referee", 30)
+	l.RefereeDuty.Init(l, "RefereeDuty", "RefereeDuty", 31)
+	l.RefereePhone.Init(l, "RefereePhone", "RefereePhone", 32)
+	l.AdmissionTicketNo.Init(l, "AdmissionTicketNo", "AdmissionTicketNo", 33)
+	l.CollegeEntranceExamScores.Init(l, "CollegeEntranceExamScores", "CollegeEntranceExamScores", 34)
+	l.AdmissionYear.Init(l, "AdmissionYear", "AdmissionYear", 35)
+	l.ForeignLanguageCode.Init(l, "ForeignLanguageCode", "ForeignLanguageCode", 36)
+	l.StudentOrigin.Init(l, "StudentOrigin", "StudentOrigin", 37)
+	l.BizType.Init(l, "BizType", "BizType", 38)
+	l.TaskCode.Init(l, "TaskCode", "TaskCode", 39)
+	l.ApproveStatus.Init(l, "ApproveStatus", "ApproveStatus", 40)
+	l.Operator.Init(l, "Operator", "Operator", 41)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 42)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 43)
+	l.Status.Init(l, "Status", "Status", 44)
+	l.StudentStatus.Init(l, "StudentStatus", "StudentStatus", 45)
+	l.IsAuth.Init(l, "IsAuth", "IsAuth", 46)
+	l.Campus.Init(l, "Campus", "Campus", 47)
+	l.Zone.Init(l, "Zone", "Zone", 48)
+	l.Building.Init(l, "Building", "Building", 49)
+	l.Unit.Init(l, "Unit", "Unit", 50)
+	l.Room.Init(l, "Room", "Room", 51)
+	l.Bed.Init(l, "Bed", "Bed", 52)
+	l.StatusSort.Init(l, "StatusSort", "StatusSort", 53)
+	l.Height.Init(l, "Height", "Height", 54)
+	l.Weight.Init(l, "Weight", "Weight", 55)
+	l.FootSize.Init(l, "FootSize", "FootSize", 56)
+	l.ClothSize.Init(l, "ClothSize", "ClothSize", 57)
+	l.HeadSize.Init(l, "HeadSize", "HeadSize", 58)
+	l.Remark1.Init(l, "Remark1", "Remark1", 59)
+	l.Remark2.Init(l, "Remark2", "Remark2", 60)
+	l.Remark3.Init(l, "Remark3", "Remark3", 61)
+	l.Remark4.Init(l, "Remark4", "Remark4", 62)
+	l.IsPayment.Init(l, "IsPayment", "IsPayment", 63)
+	l.IsCheckIn.Init(l, "isCheckIn", "IsCheckIn", 64)
+	l.GetMilitaryTC.Init(l, "GetMilitaryTC", "GetMilitaryTC", 65)
+	l.OriginAreaName.Init(l, "OriginAreaName", "OriginAreaName", 66)
+	l.InitRel()
+	return l
+}
+
+func newSubStudentbasicinfoList(parent nborm.Model) *StudentbasicinfoList {
+	l := &StudentbasicinfoList{
+		Studentbasicinfo{},
+		make(map[string]int),
+		make([]*Studentbasicinfo, 0, 32),
+		0,
+	}
+	l.Init(l, parent, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.RecordId.Init(l, "RecordId", "RecordId", 1)
+	l.IntelUserCode.Init(l, "IntelUserCode", "IntelUserCode", 2)
+	l.Class.Init(l, "Class", "Class", 3)
+	l.OtherName.Init(l, "OtherName", "OtherName", 4)
+	l.NameInPinyin.Init(l, "NameInPinyin", "NameInPinyin", 5)
+	l.EnglishName.Init(l, "EnglishName", "EnglishName", 6)
+	l.CountryCode.Init(l, "CountryCode", "CountryCode", 7)
+	l.NationalityCode.Init(l, "NationalityCode", "NationalityCode", 8)
+	l.Birthday.Init(l, "Birthday", "Birthday", 9)
+	l.PoliticalCode.Init(l, "PoliticalCode", "PoliticalCode", 10)
+	l.QQAcct.Init(l, "QQAcct", "QQAcct", 11)
+	l.WeChatAcct.Init(l, "WeChatAcct", "WeChatAcct", 12)
+	l.BankCardNumber.Init(l, "BankCardNumber", "BankCardNumber", 13)
+	l.AccountBankCode.Init(l, "AccountBankCode", "AccountBankCode", 14)
+	l.AllPowerfulCardNum.Init(l, "AllPowerfulCardNum", "AllPowerfulCardNum", 15)
+	l.MaritalCode.Init(l, "MaritalCode", "MaritalCode", 16)
+	l.OriginAreaCode.Init(l, "OriginAreaCode", "OriginAreaCode", 17)
+	l.StudentAreaCode.Init(l, "StudentAreaCode", "StudentAreaCode", 18)
+	l.Hobbies.Init(l, "Hobbies", "Hobbies", 19)
+	l.Creed.Init(l, "Creed", "Creed", 20)
+	l.TrainTicketinterval.Init(l, "TrainTicketinterval", "TrainTicketinterval", 21)
+	l.FamilyAddress.Init(l, "FamilyAddress", "FamilyAddress", 22)
+	l.DetailAddress.Init(l, "DetailAddress", "DetailAddress", 23)
+	l.PostCode.Init(l, "PostCode", "PostCode", 24)
+	l.HomePhone.Init(l, "HomePhone", "HomePhone", 25)
+	l.EnrollmentDate.Init(l, "EnrollmentDate", "EnrollmentDate", 26)
+	l.GraduationDate.Init(l, "GraduationDate", "GraduationDate", 27)
+	l.MidSchoolAddress.Init(l, "MidSchoolAddress", "MidSchoolAddress", 28)
+	l.MidSchoolName.Init(l, "MidSchoolName", "MidSchoolName", 29)
+	l.Referee.Init(l, "Referee", "Referee", 30)
+	l.RefereeDuty.Init(l, "RefereeDuty", "RefereeDuty", 31)
+	l.RefereePhone.Init(l, "RefereePhone", "RefereePhone", 32)
+	l.AdmissionTicketNo.Init(l, "AdmissionTicketNo", "AdmissionTicketNo", 33)
+	l.CollegeEntranceExamScores.Init(l, "CollegeEntranceExamScores", "CollegeEntranceExamScores", 34)
+	l.AdmissionYear.Init(l, "AdmissionYear", "AdmissionYear", 35)
+	l.ForeignLanguageCode.Init(l, "ForeignLanguageCode", "ForeignLanguageCode", 36)
+	l.StudentOrigin.Init(l, "StudentOrigin", "StudentOrigin", 37)
+	l.BizType.Init(l, "BizType", "BizType", 38)
+	l.TaskCode.Init(l, "TaskCode", "TaskCode", 39)
+	l.ApproveStatus.Init(l, "ApproveStatus", "ApproveStatus", 40)
+	l.Operator.Init(l, "Operator", "Operator", 41)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 42)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 43)
+	l.Status.Init(l, "Status", "Status", 44)
+	l.StudentStatus.Init(l, "StudentStatus", "StudentStatus", 45)
+	l.IsAuth.Init(l, "IsAuth", "IsAuth", 46)
+	l.Campus.Init(l, "Campus", "Campus", 47)
+	l.Zone.Init(l, "Zone", "Zone", 48)
+	l.Building.Init(l, "Building", "Building", 49)
+	l.Unit.Init(l, "Unit", "Unit", 50)
+	l.Room.Init(l, "Room", "Room", 51)
+	l.Bed.Init(l, "Bed", "Bed", 52)
+	l.StatusSort.Init(l, "StatusSort", "StatusSort", 53)
+	l.Height.Init(l, "Height", "Height", 54)
+	l.Weight.Init(l, "Weight", "Weight", 55)
+	l.FootSize.Init(l, "FootSize", "FootSize", 56)
+	l.ClothSize.Init(l, "ClothSize", "ClothSize", 57)
+	l.HeadSize.Init(l, "HeadSize", "HeadSize", 58)
+	l.Remark1.Init(l, "Remark1", "Remark1", 59)
+	l.Remark2.Init(l, "Remark2", "Remark2", 60)
+	l.Remark3.Init(l, "Remark3", "Remark3", 61)
+	l.Remark4.Init(l, "Remark4", "Remark4", 62)
+	l.IsPayment.Init(l, "IsPayment", "IsPayment", 63)
+	l.IsCheckIn.Init(l, "isCheckIn", "IsCheckIn", 64)
+	l.GetMilitaryTC.Init(l, "GetMilitaryTC", "GetMilitaryTC", 65)
+	l.OriginAreaName.Init(l, "OriginAreaName", "OriginAreaName", 66)
+	return l
+}
+
+func (l *StudentbasicinfoList) NewModel() nborm.Model {
+	m := &Studentbasicinfo{}
+	m.Init(m, nil, l)
+	l.CopyAggs(m)
+	m.Id.Init(m, "Id", "Id", 0)
+	l.Id.CopyStatus(&m.Id)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	l.RecordId.CopyStatus(&m.RecordId)
+	m.IntelUserCode.Init(m, "IntelUserCode", "IntelUserCode", 2)
+	l.IntelUserCode.CopyStatus(&m.IntelUserCode)
+	m.Class.Init(m, "Class", "Class", 3)
+	l.Class.CopyStatus(&m.Class)
+	m.OtherName.Init(m, "OtherName", "OtherName", 4)
+	l.OtherName.CopyStatus(&m.OtherName)
+	m.NameInPinyin.Init(m, "NameInPinyin", "NameInPinyin", 5)
+	l.NameInPinyin.CopyStatus(&m.NameInPinyin)
+	m.EnglishName.Init(m, "EnglishName", "EnglishName", 6)
+	l.EnglishName.CopyStatus(&m.EnglishName)
+	m.CountryCode.Init(m, "CountryCode", "CountryCode", 7)
+	l.CountryCode.CopyStatus(&m.CountryCode)
+	m.NationalityCode.Init(m, "NationalityCode", "NationalityCode", 8)
+	l.NationalityCode.CopyStatus(&m.NationalityCode)
+	m.Birthday.Init(m, "Birthday", "Birthday", 9)
+	l.Birthday.CopyStatus(&m.Birthday)
+	m.PoliticalCode.Init(m, "PoliticalCode", "PoliticalCode", 10)
+	l.PoliticalCode.CopyStatus(&m.PoliticalCode)
+	m.QQAcct.Init(m, "QQAcct", "QQAcct", 11)
+	l.QQAcct.CopyStatus(&m.QQAcct)
+	m.WeChatAcct.Init(m, "WeChatAcct", "WeChatAcct", 12)
+	l.WeChatAcct.CopyStatus(&m.WeChatAcct)
+	m.BankCardNumber.Init(m, "BankCardNumber", "BankCardNumber", 13)
+	l.BankCardNumber.CopyStatus(&m.BankCardNumber)
+	m.AccountBankCode.Init(m, "AccountBankCode", "AccountBankCode", 14)
+	l.AccountBankCode.CopyStatus(&m.AccountBankCode)
+	m.AllPowerfulCardNum.Init(m, "AllPowerfulCardNum", "AllPowerfulCardNum", 15)
+	l.AllPowerfulCardNum.CopyStatus(&m.AllPowerfulCardNum)
+	m.MaritalCode.Init(m, "MaritalCode", "MaritalCode", 16)
+	l.MaritalCode.CopyStatus(&m.MaritalCode)
+	m.OriginAreaCode.Init(m, "OriginAreaCode", "OriginAreaCode", 17)
+	l.OriginAreaCode.CopyStatus(&m.OriginAreaCode)
+	m.StudentAreaCode.Init(m, "StudentAreaCode", "StudentAreaCode", 18)
+	l.StudentAreaCode.CopyStatus(&m.StudentAreaCode)
+	m.Hobbies.Init(m, "Hobbies", "Hobbies", 19)
+	l.Hobbies.CopyStatus(&m.Hobbies)
+	m.Creed.Init(m, "Creed", "Creed", 20)
+	l.Creed.CopyStatus(&m.Creed)
+	m.TrainTicketinterval.Init(m, "TrainTicketinterval", "TrainTicketinterval", 21)
+	l.TrainTicketinterval.CopyStatus(&m.TrainTicketinterval)
+	m.FamilyAddress.Init(m, "FamilyAddress", "FamilyAddress", 22)
+	l.FamilyAddress.CopyStatus(&m.FamilyAddress)
+	m.DetailAddress.Init(m, "DetailAddress", "DetailAddress", 23)
+	l.DetailAddress.CopyStatus(&m.DetailAddress)
+	m.PostCode.Init(m, "PostCode", "PostCode", 24)
+	l.PostCode.CopyStatus(&m.PostCode)
+	m.HomePhone.Init(m, "HomePhone", "HomePhone", 25)
+	l.HomePhone.CopyStatus(&m.HomePhone)
+	m.EnrollmentDate.Init(m, "EnrollmentDate", "EnrollmentDate", 26)
+	l.EnrollmentDate.CopyStatus(&m.EnrollmentDate)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 27)
+	l.GraduationDate.CopyStatus(&m.GraduationDate)
+	m.MidSchoolAddress.Init(m, "MidSchoolAddress", "MidSchoolAddress", 28)
+	l.MidSchoolAddress.CopyStatus(&m.MidSchoolAddress)
+	m.MidSchoolName.Init(m, "MidSchoolName", "MidSchoolName", 29)
+	l.MidSchoolName.CopyStatus(&m.MidSchoolName)
+	m.Referee.Init(m, "Referee", "Referee", 30)
+	l.Referee.CopyStatus(&m.Referee)
+	m.RefereeDuty.Init(m, "RefereeDuty", "RefereeDuty", 31)
+	l.RefereeDuty.CopyStatus(&m.RefereeDuty)
+	m.RefereePhone.Init(m, "RefereePhone", "RefereePhone", 32)
+	l.RefereePhone.CopyStatus(&m.RefereePhone)
+	m.AdmissionTicketNo.Init(m, "AdmissionTicketNo", "AdmissionTicketNo", 33)
+	l.AdmissionTicketNo.CopyStatus(&m.AdmissionTicketNo)
+	m.CollegeEntranceExamScores.Init(m, "CollegeEntranceExamScores", "CollegeEntranceExamScores", 34)
+	l.CollegeEntranceExamScores.CopyStatus(&m.CollegeEntranceExamScores)
+	m.AdmissionYear.Init(m, "AdmissionYear", "AdmissionYear", 35)
+	l.AdmissionYear.CopyStatus(&m.AdmissionYear)
+	m.ForeignLanguageCode.Init(m, "ForeignLanguageCode", "ForeignLanguageCode", 36)
+	l.ForeignLanguageCode.CopyStatus(&m.ForeignLanguageCode)
+	m.StudentOrigin.Init(m, "StudentOrigin", "StudentOrigin", 37)
+	l.StudentOrigin.CopyStatus(&m.StudentOrigin)
+	m.BizType.Init(m, "BizType", "BizType", 38)
+	l.BizType.CopyStatus(&m.BizType)
+	m.TaskCode.Init(m, "TaskCode", "TaskCode", 39)
+	l.TaskCode.CopyStatus(&m.TaskCode)
+	m.ApproveStatus.Init(m, "ApproveStatus", "ApproveStatus", 40)
+	l.ApproveStatus.CopyStatus(&m.ApproveStatus)
+	m.Operator.Init(m, "Operator", "Operator", 41)
+	l.Operator.CopyStatus(&m.Operator)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 42)
+	l.InsertDatetime.CopyStatus(&m.InsertDatetime)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 43)
+	l.UpdateDatetime.CopyStatus(&m.UpdateDatetime)
+	m.Status.Init(m, "Status", "Status", 44)
+	l.Status.CopyStatus(&m.Status)
+	m.StudentStatus.Init(m, "StudentStatus", "StudentStatus", 45)
+	l.StudentStatus.CopyStatus(&m.StudentStatus)
+	m.IsAuth.Init(m, "IsAuth", "IsAuth", 46)
+	l.IsAuth.CopyStatus(&m.IsAuth)
+	m.Campus.Init(m, "Campus", "Campus", 47)
+	l.Campus.CopyStatus(&m.Campus)
+	m.Zone.Init(m, "Zone", "Zone", 48)
+	l.Zone.CopyStatus(&m.Zone)
+	m.Building.Init(m, "Building", "Building", 49)
+	l.Building.CopyStatus(&m.Building)
+	m.Unit.Init(m, "Unit", "Unit", 50)
+	l.Unit.CopyStatus(&m.Unit)
+	m.Room.Init(m, "Room", "Room", 51)
+	l.Room.CopyStatus(&m.Room)
+	m.Bed.Init(m, "Bed", "Bed", 52)
+	l.Bed.CopyStatus(&m.Bed)
+	m.StatusSort.Init(m, "StatusSort", "StatusSort", 53)
+	l.StatusSort.CopyStatus(&m.StatusSort)
+	m.Height.Init(m, "Height", "Height", 54)
+	l.Height.CopyStatus(&m.Height)
+	m.Weight.Init(m, "Weight", "Weight", 55)
+	l.Weight.CopyStatus(&m.Weight)
+	m.FootSize.Init(m, "FootSize", "FootSize", 56)
+	l.FootSize.CopyStatus(&m.FootSize)
+	m.ClothSize.Init(m, "ClothSize", "ClothSize", 57)
+	l.ClothSize.CopyStatus(&m.ClothSize)
+	m.HeadSize.Init(m, "HeadSize", "HeadSize", 58)
+	l.HeadSize.CopyStatus(&m.HeadSize)
+	m.Remark1.Init(m, "Remark1", "Remark1", 59)
+	l.Remark1.CopyStatus(&m.Remark1)
+	m.Remark2.Init(m, "Remark2", "Remark2", 60)
+	l.Remark2.CopyStatus(&m.Remark2)
+	m.Remark3.Init(m, "Remark3", "Remark3", 61)
+	l.Remark3.CopyStatus(&m.Remark3)
+	m.Remark4.Init(m, "Remark4", "Remark4", 62)
+	l.Remark4.CopyStatus(&m.Remark4)
+	m.IsPayment.Init(m, "IsPayment", "IsPayment", 63)
+	l.IsPayment.CopyStatus(&m.IsPayment)
+	m.IsCheckIn.Init(m, "isCheckIn", "IsCheckIn", 64)
+	l.IsCheckIn.CopyStatus(&m.IsCheckIn)
+	m.GetMilitaryTC.Init(m, "GetMilitaryTC", "GetMilitaryTC", 65)
+	l.GetMilitaryTC.CopyStatus(&m.GetMilitaryTC)
+	m.OriginAreaName.Init(m, "OriginAreaName", "OriginAreaName", 66)
+	l.OriginAreaName.CopyStatus(&m.OriginAreaName)
+	m.InitRel()
+	l.List = append(l.List, m)
+	return m
+}
+
+func (l *StudentbasicinfoList) SetTotal(total int) {
+	l.Total = total
+}
+
+func (l *StudentbasicinfoList) GetTotal() int {
+	return l.Total
+}
+
+func (l *StudentbasicinfoList) Len() int {
+	return len(l.List)
+}
+
+func (l *StudentbasicinfoList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
+func (l StudentbasicinfoList) MarshalJSON() ([]byte, error) {
+	bs := make([]byte, 0, 1024)
+	bs = append(bs, []byte("{")...)
+	ListB, err := json.MarshalIndent(l.List, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	ListB = append([]byte("\"List\": "), ListB...)
+	bs = append(bs, ListB...)
+	bs = append(bs, []byte(", ")...)
+	TotalB, err := json.MarshalIndent(l.Total, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	TotalB = append([]byte("\"Total\": "), TotalB...)
+	bs = append(bs, TotalB...)
+	bs = append(bs, []byte("}")...)
+	return bs, nil
+}
+
+func (l *StudentbasicinfoList) UnmarshalJSON(b []byte) error {
+	if string(b) == "[]" {
+		return nil
+	}
+	jl := struct {
+		List  *[]*Studentbasicinfo
+		Total *int
+	}{
+		&l.List,
+		&l.Total,
+	}
+	return json.Unmarshal(b, &jl)
+}
+
+func (l *StudentbasicinfoList) Collapse() {
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].User = l.List[l.Len()-1].User
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
+}
+
+func (l *StudentbasicinfoList) Filter(f func(m *Studentbasicinfo) bool) []*Studentbasicinfo {
+	ll := make([]*Studentbasicinfo, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
+}
+
+func (l *StudentbasicinfoList) checkDup() int {
+	if l.Len() < 1 {
+		return -1
+	}
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.Id.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Id.AnyValue()))
+	}
+	if lastModel.RecordId.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RecordId.AnyValue()))
+	}
+	if lastModel.IntelUserCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IntelUserCode.AnyValue()))
+	}
+	if lastModel.Class.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Class.AnyValue()))
+	}
+	if lastModel.OtherName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.OtherName.AnyValue()))
+	}
+	if lastModel.NameInPinyin.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.NameInPinyin.AnyValue()))
+	}
+	if lastModel.EnglishName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnglishName.AnyValue()))
+	}
+	if lastModel.CountryCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CountryCode.AnyValue()))
+	}
+	if lastModel.NationalityCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.NationalityCode.AnyValue()))
+	}
+	if lastModel.Birthday.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Birthday.AnyValue()))
+	}
+	if lastModel.PoliticalCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.PoliticalCode.AnyValue()))
+	}
+	if lastModel.QQAcct.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.QQAcct.AnyValue()))
+	}
+	if lastModel.WeChatAcct.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.WeChatAcct.AnyValue()))
+	}
+	if lastModel.BankCardNumber.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.BankCardNumber.AnyValue()))
+	}
+	if lastModel.AccountBankCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AccountBankCode.AnyValue()))
+	}
+	if lastModel.AllPowerfulCardNum.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AllPowerfulCardNum.AnyValue()))
+	}
+	if lastModel.MaritalCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.MaritalCode.AnyValue()))
+	}
+	if lastModel.OriginAreaCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.OriginAreaCode.AnyValue()))
+	}
+	if lastModel.StudentAreaCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StudentAreaCode.AnyValue()))
+	}
+	if lastModel.Hobbies.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Hobbies.AnyValue()))
+	}
+	if lastModel.Creed.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Creed.AnyValue()))
+	}
+	if lastModel.TrainTicketinterval.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TrainTicketinterval.AnyValue()))
+	}
+	if lastModel.FamilyAddress.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.FamilyAddress.AnyValue()))
+	}
+	if lastModel.DetailAddress.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.DetailAddress.AnyValue()))
+	}
+	if lastModel.PostCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.PostCode.AnyValue()))
+	}
+	if lastModel.HomePhone.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.HomePhone.AnyValue()))
+	}
+	if lastModel.EnrollmentDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EnrollmentDate.AnyValue()))
+	}
+	if lastModel.GraduationDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GraduationDate.AnyValue()))
+	}
+	if lastModel.MidSchoolAddress.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.MidSchoolAddress.AnyValue()))
+	}
+	if lastModel.MidSchoolName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.MidSchoolName.AnyValue()))
+	}
+	if lastModel.Referee.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Referee.AnyValue()))
+	}
+	if lastModel.RefereeDuty.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RefereeDuty.AnyValue()))
+	}
+	if lastModel.RefereePhone.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RefereePhone.AnyValue()))
+	}
+	if lastModel.AdmissionTicketNo.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AdmissionTicketNo.AnyValue()))
+	}
+	if lastModel.CollegeEntranceExamScores.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CollegeEntranceExamScores.AnyValue()))
+	}
+	if lastModel.AdmissionYear.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.AdmissionYear.AnyValue()))
+	}
+	if lastModel.ForeignLanguageCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ForeignLanguageCode.AnyValue()))
+	}
+	if lastModel.StudentOrigin.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StudentOrigin.AnyValue()))
+	}
+	if lastModel.BizType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.BizType.AnyValue()))
+	}
+	if lastModel.TaskCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TaskCode.AnyValue()))
+	}
+	if lastModel.ApproveStatus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ApproveStatus.AnyValue()))
+	}
+	if lastModel.Operator.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Operator.AnyValue()))
+	}
+	if lastModel.InsertDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.InsertDatetime.AnyValue()))
+	}
+	if lastModel.UpdateDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateDatetime.AnyValue()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.AnyValue()))
+	}
+	if lastModel.StudentStatus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StudentStatus.AnyValue()))
+	}
+	if lastModel.IsAuth.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IsAuth.AnyValue()))
+	}
+	if lastModel.Campus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Campus.AnyValue()))
+	}
+	if lastModel.Zone.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Zone.AnyValue()))
+	}
+	if lastModel.Building.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Building.AnyValue()))
+	}
+	if lastModel.Unit.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Unit.AnyValue()))
+	}
+	if lastModel.Room.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Room.AnyValue()))
+	}
+	if lastModel.Bed.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Bed.AnyValue()))
+	}
+	if lastModel.StatusSort.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StatusSort.AnyValue()))
+	}
+	if lastModel.Height.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Height.AnyValue()))
+	}
+	if lastModel.Weight.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Weight.AnyValue()))
+	}
+	if lastModel.FootSize.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.FootSize.AnyValue()))
+	}
+	if lastModel.ClothSize.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ClothSize.AnyValue()))
+	}
+	if lastModel.HeadSize.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.HeadSize.AnyValue()))
+	}
+	if lastModel.Remark1.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark1.AnyValue()))
+	}
+	if lastModel.Remark2.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark2.AnyValue()))
+	}
+	if lastModel.Remark3.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark3.AnyValue()))
+	}
+	if lastModel.Remark4.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark4.AnyValue()))
+	}
+	if lastModel.IsPayment.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IsPayment.AnyValue()))
+	}
+	if lastModel.IsCheckIn.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.IsCheckIn.AnyValue()))
+	}
+	if lastModel.GetMilitaryTC.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GetMilitaryTC.AnyValue()))
+	}
+	if lastModel.OriginAreaName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.OriginAreaName.AnyValue()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
+}
+
+func (l *StudentbasicinfoList) Slice(low, high int) {
+	switch {
+	case high <= l.Len():
+		l.List = l.List[low:high]
+	case low <= l.Len() && high > l.Len():
+		l.List = l.List[low:]
+	default:
+		l.List = l.List[:0]
+	}
+}
+
+func (m *Studentbasicinfo) String() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func (l *StudentbasicinfoList) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
+}
+
+type StudentbasicinfoCacheElem struct {
+	hashValue  string
+	model      *Studentbasicinfo
+	modifyTime time.Time
+}
+
+type StudentbasicinfoListCacheElem struct {
+	hashValue  string
+	list       *StudentbasicinfoList
+	modifyTime time.Time
+}
+
+type StudentbasicinfoCacheManager struct {
+	container map[string]*StudentbasicinfoCacheElem
+	query     chan string
+	in        chan *StudentbasicinfoCacheElem
+	out       chan *StudentbasicinfoCacheElem
+}
+
+type StudentbasicinfoListCacheManager struct {
+	container map[string]*StudentbasicinfoListCacheElem
+	query     chan string
+	in        chan *StudentbasicinfoListCacheElem
+	out       chan *StudentbasicinfoListCacheElem
+}
+
+func newStudentbasicinfoCacheManager() *StudentbasicinfoCacheManager {
+	return &StudentbasicinfoCacheManager{
+		make(map[string]*StudentbasicinfoCacheElem),
+		make(chan string),
+		make(chan *StudentbasicinfoCacheElem),
+		make(chan *StudentbasicinfoCacheElem),
+	}
+}
+
+func newStudentbasicinfoListCacheManager() *StudentbasicinfoListCacheManager {
+	return &StudentbasicinfoListCacheManager{
+		make(map[string]*StudentbasicinfoListCacheElem),
+		make(chan string),
+		make(chan *StudentbasicinfoListCacheElem),
+		make(chan *StudentbasicinfoListCacheElem),
+	}
+}
+
+func (mgr *StudentbasicinfoCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+func (mgr *StudentbasicinfoListCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+var StudentbasicinfoCache = newStudentbasicinfoCacheManager()
+
+var StudentbasicinfoListCache = newStudentbasicinfoListCacheManager()
+
+func (m *Studentbasicinfo) GetCache(hashVal string, timeout time.Duration) bool {
+	StudentbasicinfoCache.query <- hashVal
+	elem := <-StudentbasicinfoCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*m = *elem.model
+	return true
+}
+
+func (m *Studentbasicinfo) SetCache(hashValue string) {
+	StudentbasicinfoCache.in <- &StudentbasicinfoCacheElem{
+		hashValue,
+		m,
+		time.Now(),
+	}
+}
+
+func (l *StudentbasicinfoList) GetListCache(hashValue string, timeout time.Duration) bool {
+	StudentbasicinfoListCache.query <- hashValue
+	elem := <-StudentbasicinfoListCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*l = *elem.list
+	return true
+}
+
+func (l *StudentbasicinfoList) SetListCache(hashValue string) {
+	StudentbasicinfoListCache.in <- &StudentbasicinfoListCacheElem{
 		hashValue,
 		l,
 		time.Now(),
@@ -1280,8 +2388,8 @@ func (l *EmployEnterpriseList) SetListCache(hashValue string) {
 }
 
 func init() {
-	go EmployAccountCache.run()
-	go EmployAccountListCache.run()
-	go EmployEnterpriseCache.run()
-	go EmployEnterpriseListCache.run()
+	go UserCache.run()
+	go UserListCache.run()
+	go StudentbasicinfoCache.run()
+	go StudentbasicinfoListCache.run()
 }

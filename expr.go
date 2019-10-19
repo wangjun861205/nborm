@@ -47,6 +47,7 @@ func NewExpr(sqlexpr string, values ...interface{}) *Expr {
 func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
+		w.Write([]byte(" "))
 		return
 	}
 	reader := strings.NewReader(e.exp)
@@ -120,6 +121,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstN
 func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
+		w.Write([]byte(" "))
 		return
 	}
 	reader := strings.NewReader(e.exp)
@@ -192,6 +194,7 @@ func (e *Expr) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, is
 func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
+		w.Write([]byte(" "))
 		return
 	}
 	reader := strings.NewReader(e.exp)
@@ -264,6 +267,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFir
 func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if len(e.values) == 0 {
 		w.Write([]byte(e.exp))
+		w.Write([]byte(" "))
 		return
 	}
 	reader := strings.NewReader(e.exp)

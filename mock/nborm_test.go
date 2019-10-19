@@ -2,8 +2,9 @@ package mock_nborm
 
 import (
 	"database/sql"
-	"fmt"
 	"testing"
+
+	"gotest.tools/assert"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/wangjun861205/nborm"
@@ -14,7 +15,7 @@ var db *sql.DB
 
 func init() {
 	nborm.SetDebug(true)
-	d, err := sql.Open("mysql", "root:Ydkj@0517@tcp(192.168.175.2:3306)/employment")
+	d, err := sql.Open("mysql", "wangjun:Wt20110523@tcp(localhost:3306)/qdxg")
 	if err != nil {
 		panic(err)
 	}
@@ -27,18 +28,150 @@ type test struct {
 }
 
 var tests = []test{
-	// {
-	// 	name: "insert",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.ID.SetExpr(nborm.NewExpr("UUID()"))
-	// 		acct.Phone.SetString("13793148691")
-	// 		acct.Password.SetExpr(nborm.NewExpr("MD5(?)", "123456"))
-	// 		if err := nborm.InsertOne(db, acct); err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 	},
-	// },
+
+	{
+		name: "insert",
+		f: func(t *testing.T) {
+			user := model.NewUser()
+			user.IntelUserCode.SetString("test")
+			user.Phone.SetString("test")
+			if err := nborm.InsertOne(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			u := model.NewUser()
+			u.SelectFields(&u.IntelUserCode)
+			u.Phone.AndWhere("=", "test")
+
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.IntelUserCode.AnyValue(), "test", "intelusercode is %s", u.IntelUserCode.AnyValue())
+		},
+	},
+	{
+		"delete",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.Phone.AndWhere("=", "test")
+			count := u.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Assert(t, count.AnyValue() > 0, "no rows for delete")
+			u.SetForDelete()
+			if _, err := nborm.Delete(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Assert(t, count.AnyValue() == 0, "still exists rows which should be deleted")
+		},
+	},
+	{
+		"expr insert",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.IntelUserCode.SetExpr(nborm.NewExpr("CONCAT('hello', 'world')"))
+			u.Phone.SetString("test")
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			u.IntelUserCode.ForSelect()
+			u.Phone.AndW()
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.IntelUserCode.AnyValue(), "helloworld", "intelusercode is %s", u.IntelUserCode.AnyValue())
+		},
+	},
+	{
+		"value update",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.Phone.AndWhere("=", "test")
+			u.Email.Update("test email")
+			if res, err := nborm.Update(db, u); err != nil {
+				t.Error(err)
+				return
+			} else if num, err := res.RowsAffected(); err != nil {
+				t.Error(err)
+				return
+			} else if num == 0 {
+				t.Error("no rows updated")
+				return
+			}
+			u.Email.ForSelect()
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.Email.AnyValue(), "test email", "email is %s", u.Email.AnyValue())
+		},
+	},
+	{
+		"expr update",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.Phone.AndWhere("=", "test")
+			u.Email.Update(nborm.NewExpr("SUBSTR(@, 6, 5)", &u.Email))
+			if res, err := nborm.Update(db, u); err != nil {
+				t.Error(err)
+				return
+			} else if num, err := res.RowsAffected(); err != nil {
+				t.Error(err)
+				return
+			} else if num == 0 {
+				t.Error("no rows updated")
+				return
+			}
+			u.Email.ForSelect()
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.Email.AnyValue(), "email", "email is %s", u.Email.AnyValue())
+		},
+	},
+	{
+		"group where query",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.IntelUserCode.ForSelect()
+			u.AndModelWhereGroup(u.Phone.AndEqWhere("test"), u.Email.AndEqWhere("email"))
+			u.OrModelWhereGroup(u.IntelUserCode.AndEqWhere("aaa"), u.IntelUserCode.AndEqWhere("bbb"))
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.IntelUserCode.AnyValue(), "helloworld", "intelusercode is %s", u.IntelUserCode.AnyValue())
+		},
+	},
+	{
+		"two table join query",
+		func(t *testing.T) {
+			l := model.NewUserList()
+			l.IntelUserCode.ForSelect()
+			l.BasicInfo.SetForJoin()
+			l.BasicInfo.IntelUserCode.ForSelect()
+			l.SetLimit(10, 0)
+			if err := nborm.Query(db, l); err != nil {
+				t.Error(err)
+				return
+			}
+			for _, u := range l.List {
+				assert.Equal(t, u.IntelUserCode.AnyValue(), u.BasicInfo.IntelUserCode.AnyValue(),
+					"user intelusercode is %s, basicinfo intelusercode is %s", u.IntelUserCode.AnyValue(), u.BasicInfo.IntelUserCode.AnyValue())
+			}
+		},
+	},
 	// {
 	// 	name: "insert or update",
 	// 	f: func(t *testing.T) {
@@ -110,18 +243,18 @@ var tests = []test{
 	// 		}
 	// 	},
 	// },
-	{
-		name: "aggregate",
-		f: func(t *testing.T) {
-			ent := model.NewEmployEnterpriseList()
-			ent.IntAgg(nborm.NewExpr("SUM(IF(@=1 OR @=2, 1, 0))", &ent.Status, &ent.Status), "count")
-			if err := nborm.Query(db, ent); err != nil {
-				t.Error(err)
-				return
-			}
-			fmt.Println(ent)
-		},
-	},
+	// {
+	// 	name: "aggregate",
+	// 	f: func(t *testing.T) {
+	// 		ent := model.NewEmployEnterpriseList()
+	// 		ent.IntAgg(nborm.NewExpr("SUM(IF(@=1 OR @=2, 1, 0))", &ent.Status, &ent.Status), "count")
+	// 		if err := nborm.Query(db, ent); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		fmt.Println(ent)
+	// 	},
+	// },
 }
 
 func TestNBorm(t *testing.T) {

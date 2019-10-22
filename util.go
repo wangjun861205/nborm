@@ -248,8 +248,9 @@ func getSelectedColumns(model Model, fields *[]interface{}) {
 	}
 }
 
-func genSelectedClause(model Model) string {
+func genSelectedClause(model Model) (string, []interface{}) {
 	var builder strings.Builder
+	values := make([]interface{}, 0, 8)
 	builder.WriteString("SELECT ")
 	if _, ok := model.(ModelList); ok {
 		builder.WriteString("SQL_CALC_FOUND_ROWS ")
@@ -265,16 +266,17 @@ func genSelectedClause(model Model) string {
 			builder.WriteString(f.fullColName())
 			builder.WriteString(", ")
 		case aggregator:
-			clause, _ := f.getExpr().toClause()
+			clause, vals := f.getExpr().toClause()
 			builder.WriteString(clause)
 			builder.WriteString(" AS ")
 			builder.WriteString(f.getName())
 			builder.WriteString(", ")
+			values = append(values, vals...)
 		default:
 			panic(fmt.Errorf("invalid field type (%T)", field))
 		}
 	}
-	return strings.TrimSuffix(builder.String(), ", ")
+	return strings.TrimSuffix(builder.String(), ", "), values
 }
 
 func getSelectFields(model Model) FieldList {

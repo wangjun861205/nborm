@@ -1,6 +1,8 @@
 package nborm
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func genInsertStmt(model Model) (string, []interface{}) {
 	inserts := model.getInserts()
@@ -15,7 +17,7 @@ func genInsertOrUpdateStmt(model Model) (string, []interface{}) {
 }
 
 func genSelectStmt(model Model) (string, []interface{}) {
-	selectedClause := genSelectedClause(model)
+	selectedClause, selectValues := genSelectedClause(model)
 	tabRefClause := genTabRefClause(model)
 	whereClause, whereValues := genWhereClause(model)
 	groupByClause := genGroupByClause(model)
@@ -26,13 +28,15 @@ func genSelectStmt(model Model) (string, []interface{}) {
 	if model.checkStatus(selectForUpdate) {
 		forUpdate = "FOR UPDATE"
 	}
+	values := append(selectValues, whereValues...)
+	values = append(values, havingValues...)
 	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
-		append(whereValues, havingValues...)
+		values
 
 }
 
 func genBackQueryStmt(model Model) (string, []interface{}) {
-	selectedClause := genSelectedClause(model)
+	selectedClause, selectValues := genSelectedClause(model)
 	tabRefClause := genBackTabRefClause(model)
 	whereClause, whereValues := genBackWhereClause(model)
 	groupByClause := genGroupByClause(model)
@@ -43,8 +47,10 @@ func genBackQueryStmt(model Model) (string, []interface{}) {
 	if model.checkStatus(selectForUpdate) {
 		forUpdate = "FOR UPDATE"
 	}
+	values := append(selectValues, whereValues...)
+	values = append(values, havingValues...)
 	return fmt.Sprintf("%s FROM %s %s %s %s %s %s %s", selectedClause, tabRefClause, whereClause, groupByClause, havingClause, orderByClause, limitClause, forUpdate),
-		append(whereValues, havingValues...)
+		values
 }
 
 func genUpdateStmt(model Model) (string, []interface{}) {

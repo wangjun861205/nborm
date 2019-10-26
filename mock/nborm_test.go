@@ -229,6 +229,31 @@ var tests = []test{
 			fmt.Println(users)
 		},
 	},
+	{
+		"uall",
+		func(t *testing.T) {
+			user := model.NewUser()
+			user.SetForDelete()
+			if _, err := nborm.Delete(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			user.IntelUserCode.SetString("test")
+			user.Phone.SetString("13793148690")
+			if err := nborm.InsertOne(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			user.Email.SetString("444055828@qq.com")
+			user.UAll()
+			isInsert, err := nborm.InsertOrUpdateOne(db, user)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Assert(t, !isInsert, "is insert not update")
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

@@ -540,6 +540,15 @@ func (m *modelClause) SelectForUpdate() Model {
 	return m
 }
 
+func (m *modelClause) UAll() Model {
+	for _, fieldInfo := range m.FieldInfos() {
+		if !fieldInfo.Field.isAutoInc() && !fieldInfo.Field.isPk() && !fieldInfo.Field.isUk() && fieldInfo.Field.IsValid() {
+			fieldInfo.Field.U()
+		}
+	}
+	return m
+}
+
 // Meta Model的元信息
 type Meta struct {
 	modelBaseInfo

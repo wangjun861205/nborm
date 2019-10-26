@@ -10,7 +10,7 @@ type ClauseField interface {
 	// AndW() ClauseField
 	// AndWhere(string, interface{}) ClauseField
 	// OrWhere(string, interface{}) ClauseField
-	// U() ClauseField
+	U() ClauseField
 	// Update(interface{}) ClauseField
 	toInsert(inserts *insertList)
 }
@@ -36,7 +36,7 @@ func (f *clauseField) OrW() ClauseField {
 // U 按自身值来生成更新表达式
 func (f *clauseField) U() ClauseField {
 	valueField := f.valueField()
-	valueField.ExprUpdate(valueField, NewExpr("?", valueField, valueField.value()))
+	valueField.ExprUpdate(valueField, NewExpr("?", valueField.value()))
 	return f
 }
 

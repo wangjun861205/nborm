@@ -22,43 +22,6 @@ type Executor interface {
 	Exec(string, ...interface{}) (sql.Result, error)
 }
 
-// BaseField 基础字段
-type BaseField interface {
-	Model
-	id() string
-	colName() string
-	setCol(string)
-	fieldName() string
-	setField(string)
-	getStatus() fieldStatus
-	setStatus(fieldStatus)
-	addStatus(fieldStatus)
-	removeStatus(fieldStatus)
-	checkFieldStatus(status fieldStatus) bool
-	IsValid() bool
-	setValid()
-	unsetValid()
-	IsNull() bool
-	SetNull()
-	unsetNull()
-	mustValid()
-	rawFullColName() string
-	fullColName() string
-	ForSelect()
-	ForSum()
-	getFieldIndex() int
-	clauser
-	// referencer
-}
-
-// Field Field
-type Field interface {
-	ClauseField
-	ValueField
-	dup() Field
-	Init(Model, string, string, int)
-}
-
 type baseModel interface {
 	SetForJoin() Model
 	SetForLeftJoin() Model

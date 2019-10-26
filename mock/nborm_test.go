@@ -2,7 +2,10 @@ package mock_nborm
 
 import (
 	"database/sql"
+	"math/rand"
+	"strings"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 
@@ -172,89 +175,68 @@ var tests = []test{
 			}
 		},
 	},
-	// {
-	// 	name: "insert or update",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.ID.SetExpr(nborm.NewExpr("UUID()"))
-	// 		acct.Phone.SetString("13793148692")
-	// 		acct.Phone.Update("13793148693")
-	// 		acct.CreateTime.Update(time.Now())
-	// 		acct.Password.SetExpr(nborm.NewExpr("MD5(?)", "123456"))
-	// 		if isInsert, err := nborm.InsertOrUpdateOne(db, acct); err != nil {
-	// 			t.Error(err)
-	// 		} else {
-	// 			fmt.Println(isInsert)
-	// 		}
-	// 	},
-	// },
-	// {
-	// 	name: "update",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.Phone.AndWhere("=", "13793148690")
-	// 		acct.Password.Update(nborm.NewExpr("MD5(?)", "123456"))
-	// 		acct.CreateTime.Update(time.Now())
-	// 		if _, err := nborm.Update(db, acct); err != nil {
-	// 			t.Error(err)
-	// 			return
-	// 		}
-	// 	},
-	// },
-	// {
-	// 	name: "query",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.Phone.AndWhere("=", "15665793333")
-	// 		acct.SelectAll()
-	// 		if err := nborm.Query(db, acct); err != nil {
-	// 			t.Error(err)
-	// 			return
-	// 		}
-	// 		fmt.Println(acct)
-	// 	},
-	// },
-	// {
-	// 	name: "join query",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.SelectAll()
-	// 		acct.Phone.AndWhere("=", "13793148690")
-	// 		acct.Enterprise.SetForLeftJoin()
-	// 		acct.Enterprise.SelectAll()
-	// 		if err := nborm.Query(db, acct); err != nil {
-	// 			t.Error(err)
-	// 			return
-	// 		}
-	// 		fmt.Println(acct)
-	// 	},
-	// },
-	// {
-	// 	name: "delete",
-	// 	f: func(t *testing.T) {
-	// 		acct := model.NewEmployAccount()
-	// 		acct.Phone.AndWhere("=", "13793148691")
-	// 		acct.SetForDelete()
-	// 		acct.Enterprise.SetForJoin()
-	// 		acct.Enterprise.SetForDelete()
-	// 		if _, err := nborm.Delete(db, acct); err != nil {
-	// 			t.Error(err)
-	// 			return
-	// 		}
-	// 	},
-	// },
-	// {
-	// 	name: "aggregate",
-	// 	f: func(t *testing.T) {
-	// 		ent := model.NewEmployEnterpriseList()
-	// 		ent.IntAgg(nborm.NewExpr("SUM(IF(@=1 OR @=2, 1, 0))", &ent.Status, &ent.Status), "count")
-	// 		if err := nborm.Query(db, ent); err != nil {
-	// 			t.Error(err)
-	// 			return
-	// 		}
-	// 		fmt.Println(ent)
-	// 	},
-	// },
+	{
+		"insert or update",
+		func(t *testing.T) {
+			user := model.NewUser()
+			user.SetForDelete()
+			if _, err := nborm.Delete(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			basicInfo := model.NewStudentbasicinfo()
+			basicInfo.SetForDelete()
+			if _, err := nborm.Delete(db, basicInfo); err != nil {
+				t.Error(err)
+				return
+			}
+			if err := bulkInsert(user, 1); err != nil {
+				t.Error(err)
+				return
+			}
+			user.Phone.Update("13793148690")
+			isInsert, err := nborm.InsertOrUpdateOne(db, user)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Assert(t, !isInsert, "still insert")
+		},
+	},
+}
+
+var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func randString(charNum int) string {
+	var builder strings.Builder
+	for i := 0; i < charNum; i++ {
+		builder.WriteRune(runes[rand.Intn(len(runes))])
+	}
+	return builder.String()
+}
+
+func bulkInsert(m nborm.Model, number int) error {
+	randStr := randString(8)
+	for i := 0; i < number; i++ {
+		for _, fieldInfo := range m.FieldInfos() {
+			if fieldInfo.ColName != "Id" {
+				switch f := fieldInfo.Field.(type) {
+				case *nborm.String:
+					f.SetString(randStr)
+				case *nborm.Int:
+					f.SetInt(rand.Intn(4))
+				}
+			}
+		}
+		if err := nborm.InsertOne(db, m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func TestNBorm(t *testing.T) {

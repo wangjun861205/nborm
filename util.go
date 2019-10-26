@@ -79,7 +79,7 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, selector
 				if !instanceModel.checkStatus(relInited) {
 					instanceModel.InitRel()
 				}
-				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)
+				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, selectors)
 			}
 		}
 	}

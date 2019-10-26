@@ -156,7 +156,7 @@ func genGroupByClause(model Model, w io.Writer, vals *[]interface{}, isFirstGrou
 	groupBys := model.getGroupBys()
 	groupBys.toClause(w, vals, isFirstGroup, isFirstNode)
 	for _, relInfo := range model.relations() {
-		if model.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			genGroupByClause(relInfo.lastModel(), w, vals, isFirstGroup, isFirstNode)
 		}
 	}

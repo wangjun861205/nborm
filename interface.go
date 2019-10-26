@@ -83,7 +83,6 @@ type clauseModel interface {
 	SelectAll() Model
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model
-	groupBySelectedFields(*[]referencer)
 	GroupBySelectedFields() Model
 	appendSelector(s selector)
 	getSelectors() *selectorList

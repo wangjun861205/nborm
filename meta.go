@@ -489,23 +489,27 @@ func (m *modelClause) SelectAll() Model {
 	return m
 }
 
-func (m *modelClause) groupBySelectedFields(refs *[]referencer) {
+// func (m *modelClause) groupBySelectedFields(refs *[]referencer) {
+// 	fields := getSelectFields(m)
+// 	for _, field := range fields {
+// 		*refs = append(*refs, field)
+// 	}
+// 	for _, relInfo := range m.relations() {
+// 		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+// 			relInfo.lastModel().groupBySelectedFields(refs)
+// 		}
+// 	}
+// }
+
+func (m *modelClause) GroupBySelectedFields() Model {
 	fields := getSelectFields(m)
 	for _, field := range fields {
-		*refs = append(*refs, field)
+		m.appendGroupBys(field)
 	}
 	for _, relInfo := range m.relations() {
 		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			relInfo.lastModel().groupBySelectedFields(refs)
+			relInfo.lastModel().GroupBySelectedFields()
 		}
-	}
-}
-
-func (m *modelClause) GroupBySelectedFields() Model {
-	refs := make([]referencer, 0, 8)
-	m.groupBySelectedFields(&refs)
-	for _, ref := range refs {
-		m.appendGroupBys(ref)
 	}
 	return m
 }

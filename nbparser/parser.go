@@ -714,6 +714,19 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) modelStringMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) String() string {
+		b, _ := json.Marshal(m)
+		return string(b)
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 // func (m *ModelInfo) modelUnmarshalJSONFunc() string {
 // 	s, err := nbfmt.Fmt(`
 // 	func (m *{{ model.Name }}) UnmarshalJSON(data []byte) error {
@@ -921,6 +934,19 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 		bs = append(bs, TotalB...)
 		bs = append(bs, []byte("}")...)
 		return bs, nil
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listStringMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) String() string {
+		b, _ := json.Marshal(l)
+		return string(b)
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1573,6 +1599,8 @@ func main() {
 			nf.WriteString(m.listFilterFunc())
 			nf.WriteString(m.listCheckDupFunc())
 			nf.WriteString(m.listSliceFunc())
+			nf.WriteString(m.modelStringMethod())
+			nf.WriteString(m.listStringMethod())
 
 			nf.WriteString(m.modelCacheElemType())
 			nf.WriteString(m.modelListCacheElemType())
@@ -1589,6 +1617,7 @@ func main() {
 			nf.WriteString(m.modelSetCacheMethod())
 			nf.WriteString(m.modelListGetCacheMethod())
 			nf.WriteString(m.modelListSetCacheMethod())
+
 		}
 		nf.WriteString(initFunc(modelInfos))
 		nf.Sync()

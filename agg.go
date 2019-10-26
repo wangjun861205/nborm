@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 )
 
 type aggregator interface {
-	toRefClause() string
-	toSimpleRefClause() string
+	referencer
+	clauser
 	getField() Field
 	getExpr() *Expr
 	getName() string
@@ -29,12 +30,41 @@ func newIntAgg(expr *Expr, name string) *IntAgg {
 	return &IntAgg{expr, name, f}
 }
 
-func (a *IntAgg) toRefClause() string {
-	return a.name
+func (a *IntAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *IntAgg) toSimpleRefClause() string {
-	return a.name
+func (a *IntAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("IntAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *IntAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *IntAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *IntAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *IntAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *IntAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *IntAgg) getField() Field {
@@ -72,12 +102,41 @@ func newStrAgg(expr *Expr, name string) *StrAgg {
 	return &StrAgg{expr, name, f}
 }
 
-func (a *StrAgg) toRefClause() string {
-	return a.name
+func (a *StrAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *StrAgg) toSimpleRefClause() string {
-	return a.name
+func (a *StrAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("StrAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *StrAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *StrAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *StrAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *StrAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *StrAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *StrAgg) getField() Field {
@@ -115,12 +174,41 @@ func newDateAgg(expr *Expr, name string) *DateAgg {
 	return &DateAgg{expr, name, f}
 }
 
-func (a *DateAgg) toRefClause() string {
-	return a.name
+func (a *DateAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *DateAgg) toSimpleRefClause() string {
-	return a.name
+func (a *DateAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DateAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *DateAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *DateAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DateAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DateAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *DateAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DateAgg) getField() Field {
@@ -158,12 +246,41 @@ func newDatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	return &DatetimeAgg{expr, name, f}
 }
 
-func (a *DatetimeAgg) toRefClause() string {
-	return a.name
+func (a *DatetimeAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *DatetimeAgg) toSimpleRefClause() string {
-	return a.name
+func (a *DatetimeAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DateTimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *DatetimeAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *DatetimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DatetimeAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DatetimeAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *DatetimeAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DatetimeAgg) getField() Field {
@@ -201,12 +318,41 @@ func newTimeAgg(expr *Expr, name string) *TimeAgg {
 	return &TimeAgg{expr, name, f}
 }
 
-func (a *TimeAgg) toRefClause() string {
-	return a.name
+func (a *TimeAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *TimeAgg) toSimpleRefClause() string {
-	return a.name
+func (a *TimeAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("TimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *TimeAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *TimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *TimeAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *TimeAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *TimeAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *TimeAgg) getField() Field {
@@ -244,12 +390,41 @@ func newDecAgg(expr *Expr, name string) *DecimalAgg {
 	return &DecimalAgg{expr, name, f}
 }
 
-func (a *DecimalAgg) toRefClause() string {
-	return a.name
+func (a *DecimalAgg) String() string {
+	return fmt.Sprintf("%s: %s", a.name, a.field.String())
 }
 
-func (a *DecimalAgg) toSimpleRefClause() string {
-	return a.name
+func (a *DecimalAgg) toScan(m Model, selectors *[]interface{}) {
+	for _, agg := range m.getAggs() {
+		if agg.getName() == a.name {
+			*selectors = append(*selectors, agg)
+			return
+		}
+	}
+	panic(fmt.Sprintf("DecimalAgg.toScan() error: cannot find agg(name: %s)", a.name))
+}
+
+// Scan 实现Scanner接口
+func (a *DecimalAgg) Scan(v interface{}) error {
+	return a.field.Scan(v)
+}
+
+func (a *DecimalAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DecimalAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (a *DecimalAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
+}
+
+func (a *DecimalAgg) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DecimalAgg) getField() Field {

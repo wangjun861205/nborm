@@ -25,6 +25,7 @@ type Executor interface {
 // BaseField 基础字段
 type BaseField interface {
 	Model
+	id() string
 	colName() string
 	setCol(string)
 	fieldName() string
@@ -33,6 +34,7 @@ type BaseField interface {
 	setStatus(fieldStatus)
 	addStatus(fieldStatus)
 	removeStatus(fieldStatus)
+	checkFieldStatus(status fieldStatus) bool
 	IsValid() bool
 	setValid()
 	unsetValid()
@@ -45,23 +47,8 @@ type BaseField interface {
 	ForSelect()
 	ForSum()
 	getFieldIndex() int
-}
-
-// ClauseField ClauseField
-type ClauseField interface {
-	AndW() ClauseField
-	AndWhere(string, interface{}) ClauseField
-	OrWhere(string, interface{}) ClauseField
-	U() ClauseField
-	Update(interface{}) ClauseField
-	Set(interface{}) ClauseField
-}
-
-// ValueField ValueField
-type ValueField interface {
-	BaseField
-	Scan(interface{}) error
-	value() interface{}
+	clauser
+	// referencer
 }
 
 // Field Field
@@ -70,33 +57,37 @@ type Field interface {
 	ValueField
 	dup() Field
 	Init(Model, string, string, int)
-	refClauser
 }
 
 type baseModel interface {
-	SelectDistinct() Model
 	SetForJoin() Model
 	SetForLeftJoin() Model
 	SetForRightJoin() Model
+	referencer
 }
 
 type clauseModel interface {
-	AscOrderBy(refClauser) Model
-	DescOrderBy(refClauser) Model
+	SelectDistinct() Model
+	AscOrderBy(referencer) Model
+	DescOrderBy(referencer) Model
 	AndExprWhere(*Expr) Model
 	OrExprWhere(*Expr) Model
-	AndModelWhereGroup(...*condition) Model
-	OrModelWhereGroup(...*condition) Model
+	AndModelWhereGroup(wheres ...wherer) Model
+	OrModelWhereGroup(wheres ...wherer) Model
 	AndHaving(*Expr) Model
 	OrHaving(*Expr) Model
-	AndHavingGroup(...*condition) Model
-	OrHavingGroup(...*condition) Model
-	ExprUpdate(*Expr) Model
-	ModelGroupBy(refClauser) Model
+	AndHavingGroup(...havinger) Model
+	OrHavingGroup(...havinger) Model
+	ExprUpdate(referencer, *Expr) Model
+	ModelGroupBy(referencer) Model
 	SelectAll() Model
 	SelectFields(...Field) Model
 	SelectExcept(...Field) Model
 	GroupBySelectedFields() Model
+	appendSelector(s selector)
+	getSelectors() *selectorList
+	appendAgg(agg aggregator)
+	appendUpdate(update *update) Model
 }
 
 // Model Model
@@ -124,8 +115,7 @@ type Model interface {
 	getIndex() int
 	setIndex(int)
 	genIndex() int
-	appendWheres(*Expr)
-	getWheres() exprList
+	getWheres() wherer
 	InitRel()
 	SetLimit(int, int)
 	getLimit() (int, int)
@@ -136,27 +126,14 @@ type Model interface {
 	setAggs(aggList)
 	GetCache(string, time.Duration) bool
 	SetCache(string)
-	getGroupBys() []refClauser
-	appendGroupBys(refClauser)
-	appendSelectedFieldIndexes(int)
-	getSelectedFieldIndexes() []int
-	getOrderBys() []refClauser
-	appendOrderBys(refClauser)
-	appendHavings(*Expr)
-	getHavings() exprList
-	getInserts() exprList
-	appendInserts(*Expr)
-	getUpdates() exprList
-}
-
-type refClauser interface {
-	toRefClause() string
-	toSimpleRefClause() string
-}
-
-type clauser interface {
-	toClause() (string, []interface{})
-	toSimpleClause() (string, []interface{})
+	getGroupBys() groupByList
+	appendGroupBys(referencer)
+	getOrderBys() orderByList
+	appendOrderBys(*orderBy)
+	appendHavings(havinger)
+	getHavings() havinger
+	getInserts() insertList
+	getUpdates() updateList
 }
 
 // ModelList ModelList

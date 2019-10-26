@@ -14,6 +14,7 @@ func genFlags() (*bool, *bool, func()) {
 func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	w.Write([]byte("INSERT INTO "))
 	w.Write([]byte(model.rawFullTabName()))
+	w.Write([]byte(" "))
 	inserts := model.getInserts()
 	isFirstGroup, isFirstNode, _ := genFlags()
 	inserts.toSimpleClause(w, vals, isFirstGroup, isFirstNode)

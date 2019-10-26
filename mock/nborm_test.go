@@ -2,6 +2,7 @@ package mock_nborm
 
 import (
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -203,6 +204,31 @@ var tests = []test{
 			assert.Assert(t, !isInsert, "still insert")
 		},
 	},
+	{
+		"group by selected fields",
+		func(t *testing.T) {
+			user := model.NewUser()
+			user.SetForDelete()
+			if _, err := nborm.Delete(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			if err := bulkInsert(user, 10); err != nil {
+				t.Error(err)
+				return
+			}
+			users := model.NewUserList()
+			users.SelectAll()
+			users.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
+			users.BasicInfo.SetForJoin().SelectAll()
+			users.GroupBySelectedFields()
+			if err := nborm.Query(db, users); err != nil {
+				t.Error(err)
+				return
+			}
+			fmt.Println(users)
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -220,16 +246,17 @@ func randString(charNum int) string {
 }
 
 func bulkInsert(m nborm.Model, number int) error {
-	randStr := randString(8)
 	for i := 0; i < number; i++ {
 		for _, fieldInfo := range m.FieldInfos() {
 			if fieldInfo.ColName != "Id" {
 				switch f := fieldInfo.Field.(type) {
 				case *nborm.String:
-					f.SetString(randStr)
+					f.SetString(randString(8))
 				case *nborm.Int:
 					f.SetInt(rand.Intn(4))
 				}
+			} else {
+				fieldInfo.Field.(*nborm.Int).SetInt(fieldInfo.Field.(*nborm.Int).AnyValue() + 1)
 			}
 		}
 		if err := nborm.InsertOne(db, m); err != nil {

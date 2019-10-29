@@ -54,132 +54,132 @@ func (f *clauseField) OrWhere(op string, value interface{}) ClauseField {
 	return f
 }
 
-func (f *clauseField) AndEq(value interface{}) ClauseField {
+func (f *clauseField) AndWhereEq(value interface{}) ClauseField {
 	f.AndWhere("=", value)
 	return f
 }
 
-func (f *clauseField) OrEq(value interface{}) ClauseField {
+func (f *clauseField) OrWhereEq(value interface{}) ClauseField {
 	f.OrWhere("=", value)
 	return f
 }
 
-func (f *clauseField) AndNeq(value interface{}) ClauseField {
+func (f *clauseField) AndWhereNeq(value interface{}) ClauseField {
 	f.AndWhere("<>", value)
 	return f
 }
 
-func (f *clauseField) OrNeq(value interface{}) ClauseField {
+func (f *clauseField) OrWhereNeq(value interface{}) ClauseField {
 	f.OrWhere("<>", value)
 	return f
 }
 
-func (f *clauseField) AndLt(value interface{}) ClauseField {
+func (f *clauseField) AndWhereLt(value interface{}) ClauseField {
 	f.AndWhere("<", value)
 	return f
 }
 
-func (f *clauseField) OrLt(value interface{}) ClauseField {
+func (f *clauseField) OrWhereLt(value interface{}) ClauseField {
 	f.OrWhere("<", value)
 	return f
 }
 
-func (f *clauseField) AndLte(value interface{}) ClauseField {
+func (f *clauseField) AndWhereLte(value interface{}) ClauseField {
 	f.AndWhere("<=", value)
 	return f
 }
 
-func (f *clauseField) OrLte(value interface{}) ClauseField {
+func (f *clauseField) OrWhereLte(value interface{}) ClauseField {
 	f.OrWhere("<=", value)
 	return f
 }
 
-func (f *clauseField) AndGt(value interface{}) ClauseField {
+func (f *clauseField) AndWhereGt(value interface{}) ClauseField {
 	f.AndWhere(">", value)
 	return f
 }
 
-func (f *clauseField) OrGt(value interface{}) ClauseField {
+func (f *clauseField) OrWhereGt(value interface{}) ClauseField {
 	f.OrWhere(">", value)
 	return f
 }
 
-func (f *clauseField) AndGte(value interface{}) ClauseField {
+func (f *clauseField) AndWhereGte(value interface{}) ClauseField {
 	f.AndWhere(">=", value)
 	return f
 }
 
-func (f *clauseField) OrGte(value interface{}) ClauseField {
+func (f *clauseField) OrWhereGte(value interface{}) ClauseField {
 	f.OrWhere(">=", value)
 	return f
 }
 
-func (f *clauseField) AndIsNull() ClauseField {
+func (f *clauseField) AndWhereIsNull() ClauseField {
 	f.AndWhere("IS NULL", nil)
 	return f
 }
 
-func (f *clauseField) OrIsNull() ClauseField {
+func (f *clauseField) OrWhereIsNull() ClauseField {
 	f.OrWhere("IS NULL", nil)
 	return f
 }
 
-func (f *clauseField) AndIsNotNull() ClauseField {
+func (f *clauseField) AndWhereIsNotNull() ClauseField {
 	f.AndWhere("IS NOT NULL", nil)
 	return f
 }
 
-func (f *clauseField) OrIsNotNull() ClauseField {
+func (f *clauseField) OrWhereIsNotNull() ClauseField {
 	f.OrWhere("IS NOT NULL", nil)
 	return f
 }
 
-func (f *clauseField) AndIn(value interface{}) ClauseField {
+func (f *clauseField) AndWhereIn(value interface{}) ClauseField {
 	f.AndWhere("IN", value)
 	return f
 }
 
-func (f *clauseField) OrIn(value interface{}) ClauseField {
+func (f *clauseField) OrWhereIn(value interface{}) ClauseField {
 	f.OrWhere("IN", value)
 	return f
 }
 
-func (f *clauseField) AndLike(value interface{}) ClauseField {
+func (f *clauseField) AndWhereLike(value interface{}) ClauseField {
 	f.AndWhere("LIKE", value)
 	return f
 }
 
-func (f *clauseField) OrLike(value interface{}) ClauseField {
+func (f *clauseField) OrWhereLike(value interface{}) ClauseField {
 	f.OrWhere("LIKE", value)
 	return f
 }
 
-func (f *clauseField) AndNotLike(value interface{}) ClauseField {
+func (f *clauseField) AndWhereNotLike(value interface{}) ClauseField {
 	f.AndWhere("NOT LIKE", value)
 	return f
 }
 
-func (f *clauseField) OrNotLike(value interface{}) ClauseField {
+func (f *clauseField) OrWhereNotLike(value interface{}) ClauseField {
 	f.OrWhere("NOT LIKE", value)
 	return f
 }
 
-func (f *clauseField) AndBetween(startValue, endValue interface{}) ClauseField {
+func (f *clauseField) AndWhereBetween(startValue, endValue interface{}) ClauseField {
 	f.valueField().AndExprWhere(NewExpr("@ BETWEEN ? AND ?", startValue, endValue))
 	return f
 }
 
-func (f *clauseField) OrBetween(startValue, endValue interface{}) ClauseField {
+func (f *clauseField) OrWhereBetween(startValue, endValue interface{}) ClauseField {
 	f.valueField().OrExprWhere(NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }
 
-func (f *clauseField) AndNotBetween(startValue, endValue interface{}) ClauseField {
+func (f *clauseField) AndWhereNotBetween(startValue, endValue interface{}) ClauseField {
 	f.valueField().AndExprWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }
 
-func (f *clauseField) OrNotBetween(startValue, endValue interface{}) ClauseField {
+func (f *clauseField) OrWhereNotBetween(startValue, endValue interface{}) ClauseField {
 	f.valueField().OrExprWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }

@@ -11,6 +11,7 @@ import (
 	"gotest.tools/assert"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/wangjun861205/nbcolor"
 	"github.com/wangjun861205/nborm"
 	"github.com/wangjun861205/nborm/mock/model"
 )
@@ -37,28 +38,42 @@ var tests = []test{
 		name: "insert",
 		f: func(t *testing.T) {
 			user := model.NewUser()
-			user.IntelUserCode.SetString("test")
-			user.Phone.SetString("test")
+			defer func() {
+				user.SetForDelete()
+				if _, err := nborm.Delete(db, user); err != nil {
+					t.Error(err)
+				}
+			}()
+			code := randString(16)
+			user.IntelUserCode.SetString(code)
+			user.Phone.SetString(code)
 			if err := nborm.InsertOne(db, user); err != nil {
 				t.Error(err)
 				return
 			}
 			u := model.NewUser()
 			u.SelectFields(&u.IntelUserCode)
-			u.Phone.AndWhere("=", "test")
-
+			u.Phone.AndWhere("=", code)
 			if err := nborm.Query(db, u); err != nil {
 				t.Error(err)
 				return
 			}
-			assert.Equal(t, u.IntelUserCode.AnyValue(), "test", "intelusercode is %s", u.IntelUserCode.AnyValue())
+			assert.Equal(t, u.IntelUserCode.AnyValue(), code, "intelusercode is %s", u.IntelUserCode.AnyValue())
 		},
 	},
 	{
 		"delete",
 		func(t *testing.T) {
 			u := model.NewUser()
-			u.Phone.AndWhere("=", "test")
+			defer bulkDelete(t, u)
+			code := randString(16)
+			u.IntelUserCode.SetString(code)
+			u.Phone.SetString(code)
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			u.Phone.AndWhere("=", code)
 			count := u.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
 			if err := nborm.Query(db, u); err != nil {
 				t.Error(err)
@@ -94,13 +109,25 @@ var tests = []test{
 				return
 			}
 			assert.Equal(t, u.IntelUserCode.AnyValue(), "helloworld", "intelusercode is %s", u.IntelUserCode.AnyValue())
+			u.SetForDelete()
+			if _, err := nborm.Delete(db, u); err != nil {
+				t.Error(err)
+				return
+			}
 		},
 	},
 	{
 		"value update",
 		func(t *testing.T) {
 			u := model.NewUser()
-			u.Phone.AndWhere("=", "test")
+			defer bulkDelete(t, u)
+			u.IntelUserCode.SetString("test")
+			u.Phone.SetString("13793148690")
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			u.Phone.AndWhere("=", "13793148690")
 			u.Email.Update("test email")
 			if res, err := nborm.Update(db, u); err != nil {
 				t.Error(err)
@@ -124,8 +151,15 @@ var tests = []test{
 		"expr update",
 		func(t *testing.T) {
 			u := model.NewUser()
-			u.Phone.AndWhere("=", "test")
-			u.Email.Update(nborm.NewExpr("SUBSTR(@, 6, 5)", &u.Email))
+			defer bulkDelete(t, u)
+			u.IntelUserCode.SetString("test")
+			u.Phone.SetString("13793148690")
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			u.IntelUserCode.AndWhere("=", "test")
+			u.Email.Update(nborm.NewExpr("CONCAT('hello', 'world')"))
 			if res, err := nborm.Update(db, u); err != nil {
 				t.Error(err)
 				return
@@ -141,26 +175,55 @@ var tests = []test{
 				t.Error(err)
 				return
 			}
-			assert.Equal(t, u.Email.AnyValue(), "email", "email is %s", u.Email.AnyValue())
+			assert.Equal(t, u.Email.AnyValue(), "helloworld", "email is %s", u.Email.AnyValue())
 		},
 	},
 	{
 		"group where query",
 		func(t *testing.T) {
 			u := model.NewUser()
+			defer bulkDelete(t, u)
+			u.IntelUserCode.SetString("test")
+			u.Phone.SetString("13793148690")
+			u.Email.SetString("email")
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
 			u.IntelUserCode.ForSelect()
-			u.AndModelWhereGroup(u.Phone.AndEqWhere("test"), u.Email.AndEqWhere("email"))
+			u.AndModelWhereGroup(u.Phone.AndEqWhere("13793148690"), u.Email.AndEqWhere("email"))
 			u.OrModelWhereGroup(u.IntelUserCode.AndEqWhere("aaa"), u.IntelUserCode.AndEqWhere("bbb"))
 			if err := nborm.Query(db, u); err != nil {
 				t.Error(err)
 				return
 			}
-			assert.Equal(t, u.IntelUserCode.AnyValue(), "helloworld", "intelusercode is %s", u.IntelUserCode.AnyValue())
+			assert.Equal(t, u.IntelUserCode.AnyValue(), "test", "intelusercode is %s", u.IntelUserCode.AnyValue())
 		},
 	},
 	{
 		"two table join query",
 		func(t *testing.T) {
+			u := model.NewUser()
+			defer bulkDelete(t, u)
+			u.IntelUserCode.SetString("test")
+			u.Phone.SetString("13793148690")
+			if err := nborm.InsertOne(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			b := model.NewStudentbasicinfo()
+			defer func() {
+				b.SetForDelete()
+				if _, err := nborm.Delete(db, b); err != nil {
+					fmt.Println(nbcolor.Red(err))
+				}
+			}()
+			b.IntelUserCode.SetString("test")
+			b.Class.SetString("class")
+			if err := nborm.InsertOne(db, b); err != nil {
+				t.Error(err)
+				return
+			}
 			l := model.NewUserList()
 			l.IntelUserCode.ForSelect()
 			l.BasicInfo.SetForJoin()
@@ -180,18 +243,10 @@ var tests = []test{
 		"insert or update",
 		func(t *testing.T) {
 			user := model.NewUser()
-			user.SetForDelete()
-			if _, err := nborm.Delete(db, user); err != nil {
-				t.Error(err)
-				return
-			}
-			basicInfo := model.NewStudentbasicinfo()
-			basicInfo.SetForDelete()
-			if _, err := nborm.Delete(db, basicInfo); err != nil {
-				t.Error(err)
-				return
-			}
-			if err := bulkInsert(user, 1); err != nil {
+			defer bulkDelete(t, user)
+			user.IntelUserCode.SetString("test")
+			user.Phone.SetString("123456789")
+			if err := nborm.InsertOne(db, user); err != nil {
 				t.Error(err)
 				return
 			}
@@ -202,43 +257,55 @@ var tests = []test{
 				return
 			}
 			assert.Assert(t, !isInsert, "still insert")
+			user.Phone.ForSelect()
+			user.IntelUserCode.AndWhereEq("13793148690")
+			if err := nborm.Query(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, user.Phone.AnyValue(), "123456789")
 		},
 	},
 	{
 		"group by selected fields",
 		func(t *testing.T) {
 			user := model.NewUser()
-			user.SetForDelete()
-			if _, err := nborm.Delete(db, user); err != nil {
+			info := model.NewStudentbasicinfo()
+			defer func() {
+				bulkDelete(t, user)
+				bulkDelete(t, info)
+			}()
+			for i := 0; i < 10; i++ {
+				user.Id.SetNull()
+				user.IntelUserCode.SetString(fmt.Sprintf("%d", i))
+				if err := nborm.InsertOne(db, user); err != nil {
+					t.Error(err)
+					return
+				}
+				info.Id.SetNull()
+				info.IntelUserCode.SetString(fmt.Sprintf("%d", i))
+				if err := nborm.InsertOne(db, info); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+			user.SelectAll()
+			count := user.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
+			user.BasicInfo.SetForJoin()
+			user.GroupBySelectedFields()
+			if err := nborm.Query(db, user); err != nil {
 				t.Error(err)
 				return
 			}
-			if err := bulkInsert(user, 10); err != nil {
-				t.Error(err)
-				return
-			}
-			users := model.NewUserList()
-			users.SelectAll()
-			users.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
-			users.BasicInfo.SetForJoin().SelectAll()
-			users.GroupBySelectedFields()
-			if err := nborm.Query(db, users); err != nil {
-				t.Error(err)
-				return
-			}
-			fmt.Println(users)
+			assert.Equal(t, count.AnyValue(), 1)
 		},
 	},
 	{
 		"uall",
 		func(t *testing.T) {
 			user := model.NewUser()
-			user.SetForDelete()
-			if _, err := nborm.Delete(db, user); err != nil {
-				t.Error(err)
-				return
-			}
-			user.IntelUserCode.SetString("test")
+			defer bulkDelete(t, user)
+			user.IntelUserCode.SetString("abc")
 			user.Phone.SetString("13793148690")
 			if err := nborm.InsertOne(db, user); err != nil {
 				t.Error(err)
@@ -252,6 +319,32 @@ var tests = []test{
 				return
 			}
 			assert.Assert(t, !isInsert, "is insert not update")
+		},
+	},
+	{
+		"eq query test",
+		func(t *testing.T) {
+			user := model.NewUser()
+			defer func() {
+				user.SetForDelete()
+				if _, err := nborm.Delete(db, user); err != nil {
+					t.Error(err)
+				}
+			}()
+			user.IntelUserCode.SetString("1234567")
+			user.Phone.SetString("13793148690")
+			if err := nborm.InsertOne(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			u := model.NewUser()
+			u.Phone.ForSelect()
+			u.IntelUserCode.AndWhereEq("1234567")
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.Phone.AnyValue(), "13793148690", "phone is %s", u.Phone.AnyValue())
 		},
 	},
 }
@@ -289,6 +382,13 @@ func bulkInsert(m nborm.Model, number int) error {
 		}
 	}
 	return nil
+}
+
+func bulkDelete(t *testing.T, m nborm.Model) {
+	m.SetForDelete()
+	if _, err := nborm.Delete(db, m); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestNBorm(t *testing.T) {

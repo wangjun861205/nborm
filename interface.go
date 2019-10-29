@@ -26,6 +26,7 @@ type baseModel interface {
 	SetForJoin() Model
 	SetForLeftJoin() Model
 	SetForRightJoin() Model
+	SetForDelete() Model
 	referencer
 }
 

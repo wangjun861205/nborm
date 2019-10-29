@@ -125,10 +125,12 @@ func (f stringValueField) MarshalJSON() ([]byte, error) {
 func (f *stringValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		f.removeStatus(notNull)
+		f.SetNull()
+		// f.removeStatus(notNull)
 		return nil
 	}
-	f.addStatus(notNull)
+	// f.addStatus(notNull)
+	f.unsetNull()
 	f.val = strings.Trim(string(b), "\"")
 	return nil
 }
@@ -238,8 +240,8 @@ func (f intValueField) MarshalJSON() ([]byte, error) {
 func (f intValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		// f.SetNull()
-		f.removeStatus(notNull)
+		f.SetNull()
+		// f.removeStatus(notNull)
 		return nil
 	}
 	v, err := strconv.ParseInt(string(b), 10, 64)
@@ -248,7 +250,8 @@ func (f intValueField) UnmarshalJSON(b []byte) error {
 	}
 	// f.SetInt(int(v))
 	f.val = int(v)
-	f.addStatus(notNull)
+	// f.addStatus(notNull)
+	f.unsetNull()
 	return nil
 }
 
@@ -371,7 +374,8 @@ func (f dateValueField) MarshalJSON() ([]byte, error) {
 func (f *dateValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		f.removeStatus(notNull)
+		f.SetNull()
+		// f.removeStatus(notNull)
 		return nil
 	}
 	t, err := time.ParseInLocation("2006-01-02", strings.Trim(string(b), "\""), time.Local)
@@ -380,7 +384,8 @@ func (f *dateValueField) UnmarshalJSON(b []byte) error {
 	}
 	// f.SetDate(t)
 	f.val = t
-	f.addStatus(notNull)
+	// f.addStatus(notNull)
+	f.unsetNull()
 	return nil
 }
 
@@ -503,8 +508,8 @@ func (f datetimeValueField) MarshalJSON() ([]byte, error) {
 func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		// f.SetNull()
-		f.removeStatus(notNull)
+		f.SetNull()
+		// f.removeStatus(notNull)
 		return nil
 	}
 	t, err := time.ParseInLocation("2006-01-02 15:04:05", strings.Trim(string(b), "\""), time.Local)
@@ -512,7 +517,8 @@ func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	// f.SetDatetime(t)
-	f.removeStatus(notNull)
+	// f.removeStatus(notNull)
+	f.unsetNull()
 	f.val = t
 	return nil
 
@@ -745,8 +751,8 @@ func (f decimalValueField) MarshalJSON() ([]byte, error) {
 func (f *decimalValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
-		// f.SetNull()
-		f.removeStatus(notNull)
+		f.SetNull()
+		// f.removeStatus(notNull)
 		return nil
 	}
 	d, err := strconv.ParseFloat(string(b), 64)
@@ -754,7 +760,8 @@ func (f *decimalValueField) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	// f.SetDecimal(d)
-	f.addStatus(notNull)
+	// f.addStatus(notNull)
+	f.unsetNull()
 	f.val = d
 	return nil
 }

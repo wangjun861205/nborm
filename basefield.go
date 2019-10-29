@@ -40,17 +40,17 @@ type BaseField interface {
 type fieldStatus int
 
 const (
-	invalid     fieldStatus = 0
-	valid       fieldStatus = 1
-	notNull     fieldStatus = 1 << 1
+	invalid fieldStatus = 0
+	valid   fieldStatus = 1
+	// notNull     fieldStatus = 1 << 1
+	null        fieldStatus = 1 << 1
 	primaryKey  fieldStatus = 1 << 2
 	autoInc     fieldStatus = 1 << 3
 	forSelect   fieldStatus = 1 << 4
 	forSum      fieldStatus = 1 << 5
 	forAscOrder fieldStatus = 1 << 6
 	forDscOrder fieldStatus = 1 << 7
-	// forAgg      fieldStatus = 1 << 8
-	forGroup fieldStatus = 1 << 9
+	forGroup    fieldStatus = 1 << 9
 )
 
 type baseField struct {
@@ -119,17 +119,21 @@ func (f *baseField) unsetValid() {
 
 // IsNull 是否为空值
 func (f *baseField) IsNull() bool {
-	return !(f.status&notNull == notNull)
+	// return !(f.status&notNull == notNull)
+	return f.checkFieldStatus(null)
 }
 
 // SetNull 设置为空值
 func (f *baseField) SetNull() {
 	f.addStatus(valid)
-	f.removeStatus(notNull)
+	f.addStatus(null)
+	// f.removeStatus(notNull)
 }
 
 func (f *baseField) unsetNull() {
-	f.addStatus(notNull)
+	// f.addStatus(notNull)
+	f.status &^= null
+
 }
 
 func (f *baseField) mustValid() {

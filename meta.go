@@ -367,7 +367,7 @@ func (m *modelClause) OrHavingGroup(havings ...havinger) Model {
 }
 
 // AndHaving 添加表达式having(and关系)
-func (m *modelClause) AndHaving(expr *Expr) Model {
+func (m *modelClause) AndExprHaving(expr *Expr) Model {
 	h := newHaving(expr, whereAnd)
 	if m.havings == nil {
 		m.havings = h
@@ -378,7 +378,7 @@ func (m *modelClause) AndHaving(expr *Expr) Model {
 }
 
 // OrHaving 添加表达式having(or关系)
-func (m *modelClause) OrHaving(expr *Expr) Model {
+func (m *modelClause) OrExprHaving(expr *Expr) Model {
 	h := newHaving(expr, whereOr)
 	if m.havings == nil {
 		m.havings = h

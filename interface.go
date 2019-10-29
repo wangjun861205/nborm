@@ -37,8 +37,8 @@ type clauseModel interface {
 	OrExprWhere(*Expr) Model
 	AndModelWhereGroup(wheres ...wherer) Model
 	OrModelWhereGroup(wheres ...wherer) Model
-	AndHaving(*Expr) Model
-	OrHaving(*Expr) Model
+	AndExprHaving(*Expr) Model
+	OrExprHaving(*Expr) Model
 	AndHavingGroup(...havinger) Model
 	OrHavingGroup(...havinger) Model
 	ExprUpdate(referencer, *Expr) Model

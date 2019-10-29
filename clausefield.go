@@ -185,132 +185,132 @@ func (f *clauseField) OrWhereNotBetween(startValue, endValue interface{}) Clause
 }
 
 func (f *clauseField) AndHavingEq(value interface{}) ClauseField {
-	f.valueField().AndHaving("=", value)
+	f.valueField().AndHaving(NewExpr("@ = ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) OrHavingEq(value interface{}) ClauseField {
-	f.OrHaving("=", value)
+	f.valueField().OrHaving(NewExpr("@ = ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) AndHavingNeq(value interface{}) ClauseField {
-	f.AndHaving("<>", value)
+	f.valueField().AndHaving(NewExpr("@ <> ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) OrHavingNeq(value interface{}) ClauseField {
-	f.OrHaving("<>", value)
+	f.valueField().OrHaving(NewExpr("@ <> ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) AndHavingLt(value interface{}) ClauseField {
-	f.AndHaving("<", value)
+	f.valueField().AndHaving(NewExpr("@ < ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) OrHavingLt(value interface{}) ClauseField {
-	f.OrHaving("<", value)
+	f.valueField().OrHaving(NewExpr("@ < ?", f.valueField(), value))
 	return f
 }
 
 func (f *clauseField) AndHavingLte(value interface{}) ClauseField {
-	f.AndHaving("<=", value)
+	f.valueField().AndHaving(NewExpr("@ <= ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingLte(value interface{}) ClauseField {
-	f.OrHaving("<=", value)
+	f.valueField().OrHaving(NewExpr("@ <= ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingGt(value interface{}) ClauseField {
-	f.AndHaving(">", value)
+	f.valueField().AndHaving(NewExpr("@ > ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingGt(value interface{}) ClauseField {
-	f.OrHaving(">", value)
+	f.valueField().OrHaving(NewExpr("@ > ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingGte(value interface{}) ClauseField {
-	f.AndHaving(">=", value)
+	f.valueField().AndHaving(NewExpr("@ >= ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingGte(value interface{}) ClauseField {
-	f.OrHaving(">=", value)
+	f.valueField().OrHaving(NewExpr("@ >= ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingIsNull() ClauseField {
-	f.AndHaving("IS NULL", nil)
+	f.valueField().AndHaving(NewExpr("@ IS NULL", f.valueField))
 	return f
 }
 
 func (f *clauseField) OrHavingIsNull() ClauseField {
-	f.OrHaving("IS NULL", nil)
+	f.valueField().OrHaving(NewExpr("@ IS NULL", f.valueField))
 	return f
 }
 
 func (f *clauseField) AndHavingIsNotNull() ClauseField {
-	f.AndHaving("IS NOT NULL", nil)
+	f.valueField().AndHaving(NewExpr("@ IS NOT NULL", f.valueField))
 	return f
 }
 
 func (f *clauseField) OrHavingIsNotNull() ClauseField {
-	f.OrHaving("IS NOT NULL", nil)
+	f.valueField().OrHaving(NewExpr("@ IS NOT NULL", f.valueField))
 	return f
 }
 
 func (f *clauseField) AndHavingIn(value interface{}) ClauseField {
-	f.AndHaving("IN", value)
+	f.valueField().AndHaving(NewExpr("@ IN ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingIn(value interface{}) ClauseField {
-	f.OrHaving("IN", value)
+	f.valueField().OrHaving(NewExpr("@ IN ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingLike(value interface{}) ClauseField {
-	f.AndHaving("LIKE", value)
+	f.valueField().AndHaving(NewExpr("@ LIKE ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingLike(value interface{}) ClauseField {
-	f.OrHaving("LIKE", value)
+	f.valueField().OrHaving(NewExpr("@ LIKE ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingNotLike(value interface{}) ClauseField {
-	f.AndHaving("NOT LIKE", value)
+	f.valueField().AndHaving(NewExpr("@ NOT LIKE ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) OrHavingNotLike(value interface{}) ClauseField {
-	f.OrHaving("NOT LIKE", value)
+	f.valueField().OrHaving(NewExpr("@ NOT LIKE ?", f.valueField, value))
 	return f
 }
 
 func (f *clauseField) AndHavingBetween(startValue, endValue interface{}) ClauseField {
-	f.valueField().AndExprWhere(NewExpr("@ BETWEEN ? AND ?", startValue, endValue))
+	f.valueField().AndHaving(NewExpr("@ BETWEEN ? AND ?", startValue, endValue))
 	return f
 }
 
 func (f *clauseField) OrHavingBetween(startValue, endValue interface{}) ClauseField {
-	f.valueField().OrExprWhere(NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+	f.valueField().OrHaving(NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }
 
 func (f *clauseField) AndHavingNotBetween(startValue, endValue interface{}) ClauseField {
-	f.valueField().AndExprWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+	f.valueField().AndHaving(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }
 
 func (f *clauseField) OrHavingNotBetween(startValue, endValue interface{}) ClauseField {
-	f.valueField().OrExprWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
+	f.valueField().OrHaving(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue))
 	return f
 }
 

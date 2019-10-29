@@ -54,6 +54,114 @@ func (f *clauseField) OrWhere(op string, value interface{}) ClauseField {
 	return f
 }
 
+func (f *clauseField) AndEq(value interface{}) ClauseField {
+	f.AndWhere("=", value)
+	return f
+}
+
+func (f *clauseField) OrEq(value interface{}) ClauseField {
+	f.OrWhere("=", value)
+	return f
+}
+
+func (f *clauseField) AndNeq(value interface{}) ClauseField {
+	f.AndWhere("<>", value)
+	return f
+}
+
+func (f *clauseField) OrNeq(value interface{}) ClauseField {
+	f.OrWhere("<>", value)
+	return f
+}
+
+func (f *clauseField) AndLt(value interface{}) *where {
+	f.AndWhere("<", value)
+}
+
+func (f *clauseField) OrLt(value interface{}) *where {
+	return newWhere(NewExpr("@ < ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndLte(value interface{}) *where {
+	return newWhere(NewExpr("@ <= ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrLte(value interface{}) *where {
+	return newWhere(NewExpr("@ <= ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndGt(value interface{}) *where {
+	return newWhere(NewExpr("@ > ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrGt(value interface{}) *where {
+	return newWhere(NewExpr("@ > ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndGte(value interface{}) *where {
+	return newWhere(NewExpr("@ >= ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrGte(value interface{}) *where {
+	return newWhere(NewExpr("@ >= ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndIsNull() *where {
+	return newWhere(NewExpr("@ IS NULL", f), whereAnd)
+}
+
+func (f *clauseField) OrIsNull() *where {
+	return newWhere(NewExpr("@ IS NULL", f), whereOr)
+}
+
+func (f *clauseField) AndIsNotNull() *where {
+	return newWhere(NewExpr("@ IS NOT NULL", f), whereAnd)
+}
+
+func (f *clauseField) OrIsNotNull() *where {
+	return newWhere(NewExpr("@ IS NOT NULL", f), whereOr)
+}
+
+func (f *clauseField) AndIn(value interface{}) *where {
+	return newWhere(NewExpr("@ IN ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrIn(value interface{}) *where {
+	return newWhere(NewExpr("@ NOT IN ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndLike(value interface{}) *where {
+	return newWhere(NewExpr("@ LIKE ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrLike(value interface{}) *where {
+	return newWhere(NewExpr("@ LIKE ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndNotLike(value interface{}) *where {
+	return newWhere(NewExpr("@ NOT LIKE ?", f.valueField(), value), whereAnd)
+}
+
+func (f *clauseField) OrNotLike(value interface{}) *where {
+	return newWhere(NewExpr("@ NOT LIKE ?", f.valueField(), value), whereOr)
+}
+
+func (f *clauseField) AndBetween(startValue, endValue interface{}) *where {
+	return newWhere(NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue), whereAnd)
+}
+
+func (f *clauseField) OrBetween(startValue, endValue interface{}) *where {
+	return newWhere(NewExpr("@ BETWEEN ? AND ?", f.valueField(), startValue, endValue), whereOr)
+}
+
+func (f *clauseField) AndNotBetween(startValue, endValue interface{}) *where {
+	return newWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue), whereAnd)
+}
+
+func (f *clauseField) OrNotBetween(startValue, endValue interface{}) *where {
+	return newWhere(NewExpr("@ NOT BETWEEN ? AND ?", f.valueField(), startValue, endValue), whereOr)
+}
+
 func (f *clauseField) AndEqWhere(value interface{}) *where {
 	return newWhere(NewExpr("@ = ?", f.valueField(), value), whereAnd)
 }

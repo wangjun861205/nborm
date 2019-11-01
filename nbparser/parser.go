@@ -970,7 +970,7 @@ func (m *ModelInfo) listStringMethod() string {
 func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
-		if string(b) == "[]" {
+		if string(b) == "[]" || string(b) == "null" {
 			return nil
 		}
 		jl := struct {
@@ -981,6 +981,21 @@ func (m *ModelInfo) listUnmarshalJSONFunc() string {
 			&l.Total,
 		}
 		return json.Unmarshal(b, &jl)
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listUnmarshalMetaFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) UnmarshalMeta(b []byte) error {
+		if string(b) == "null" {
+			return nil
+		}
+		return json.Unmarshal(b, &l.{{ model.Name }})
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1595,6 +1610,7 @@ func main() {
 			nf.WriteString(m.getInnerListFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
 			nf.WriteString(m.listUnmarshalJSONFunc())
+			nf.WriteString(m.listUnmarshalMetaFunc())
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
 			nf.WriteString(m.listCheckDupFunc())

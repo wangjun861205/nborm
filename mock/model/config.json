@@ -1,11 +1,15 @@
-
 {
 	"User": "wangjun",
 	"Password": "Wt20110523",
 	"Host": "localhost",
 	"Port": "3306",
 	"Database": "qdxg",
-	"Tables": ["user", "studentbasicinfo"],
+	"Tables": [
+		"user",
+		"studentbasicinfo",
+		"class",
+		"grade"
+	],
 	"AppendTables": [],
 	"MatchAllDB": true
 }

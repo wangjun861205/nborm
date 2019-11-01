@@ -41,6 +41,7 @@ type User struct {
 	Remark4          nborm.String      `col:"Remark4"`
 	Nonego           nborm.Int         `col:"Nonego"`
 	BasicInfo        *Studentbasicinfo `rel:"[@@.IntelUserCode=@$.IntelUserCode]"`
+	StudentClass     *Class            `rel:"[@@.IntelUserCode=@Studentbasicinfo.IntelUserCode]@Studentbasicinfo[@Studentbasicinfo.Class=@$.ClassCode]"`
 }
 
 //db:*
@@ -118,4 +119,64 @@ type Studentbasicinfo struct {
 	GetMilitaryTC             nborm.Int      `col:"GetMilitaryTC"`
 	OriginAreaName            nborm.String   `col:"OriginAreaName"`
 	User                      *User          `rel:"[@@.IntelUserCode=@$.IntelUserCode]"`
+	StudentClass              *Class         `rel:"[@@.Class=@$.ClassCode]"`
+}
+
+//db:*
+//tab:class
+//pk:Id
+//uk:ClassCode,Status
+type Class struct {
+	nborm.Meta `json:"Aggs"`
+
+	Id              nborm.Int             `col:"Id" auto_increment:"true"`
+	RecordId        nborm.String          `col:"RecordId"`
+	ClassCode       nborm.String          `col:"ClassCode"`
+	ClassName       nborm.String          `col:"ClassName"`
+	Campus          nborm.String          `col:"Campus"`
+	ResearchArea    nborm.String          `col:"ResearchArea"`
+	Grade           nborm.String          `col:"Grade"`
+	TrainingMode    nborm.String          `col:"TrainingMode"`
+	EntranceDate    nborm.String          `col:"EntranceDate"`
+	GraduationDate  nborm.String          `col:"GraduationDate"`
+	ProgramLength   nborm.String          `col:"ProgramLength"`
+	StudentType     nborm.String          `col:"StudentType"`
+	CredentialsType nborm.String          `col:"CredentialsType"`
+	DegreeType      nborm.String          `col:"DegreeType"`
+	Counselor       nborm.String          `col:"Counselor"`
+	Adviser         nborm.String          `col:"Adviser"`
+	Leadership      nborm.String          `col:"Leadership"`
+	Supervisor      nborm.String          `col:"Supervisor"`
+	Assistant1      nborm.String          `col:"Assistant1"`
+	Assistant2      nborm.String          `col:"Assistant2"`
+	Operator        nborm.String          `col:"Operator"`
+	InsertDatetime  nborm.Datetime        `col:"InsertDatetime"`
+	UpdateDatetime  nborm.Datetime        `col:"UpdateDatetime"`
+	Status          nborm.Int             `col:"Status"`
+	Remark1         nborm.String          `col:"Remark1"`
+	Remark2         nborm.String          `col:"Remark2"`
+	Remark3         nborm.String          `col:"Remark3"`
+	Remark4         nborm.String          `col:"Remark4"`
+	ClassGrade      *Grade                `rel:"[@@.Grade=@$.GradeCode]"`
+	Students        *StudentbasicinfoList `rel:"[@@.ClassCode=@$.Class]"`
+}
+
+//db:*
+//tab:grade
+//pk:Id
+//uk:GradeCode,Status
+type Grade struct {
+	nborm.Meta `json:"Aggs"`
+
+	Id             nborm.Int      `col:"Id" auto_increment:"true"`
+	GradeName      nborm.String   `col:"GradeName"`
+	GradeCode      nborm.String   `col:"GradeCode"`
+	InsertDatetime nborm.Datetime `col:"InsertDatetime"`
+	UpdateDatetime nborm.Datetime `col:"UpdateDatetime"`
+	Status         nborm.Int      `col:"Status"`
+	Remark1        nborm.String   `col:"Remark1"`
+	Remark2        nborm.String   `col:"Remark2"`
+	Remark3        nborm.String   `col:"Remark3"`
+	Remark4        nborm.String   `col:"Remark4"`
+	Classes        *ClassList     `rel:"[@@.GradeCode=@$.Grade]"`
 }

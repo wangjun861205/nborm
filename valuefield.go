@@ -126,10 +126,8 @@ func (f *stringValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
 		f.SetNull()
-		// f.removeStatus(notNull)
 		return nil
 	}
-	// f.addStatus(notNull)
 	f.unsetNull()
 	f.val = strings.Trim(string(b), "\"")
 	return nil
@@ -241,16 +239,13 @@ func (f intValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
 		f.SetNull()
-		// f.removeStatus(notNull)
 		return nil
 	}
 	v, err := strconv.ParseInt(string(b), 10, 64)
 	if err != nil {
 		return err
 	}
-	// f.SetInt(int(v))
 	f.val = int(v)
-	// f.addStatus(notNull)
 	f.unsetNull()
 	return nil
 }
@@ -375,16 +370,18 @@ func (f *dateValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
 		f.SetNull()
-		// f.removeStatus(notNull)
 		return nil
 	}
-	t, err := time.ParseInLocation("2006-01-02", strings.Trim(string(b), "\""), time.Local)
+	if t, err := time.ParseInLocation("2006-01-02", strings.Trim(string(b), "\""), time.Local); err == nil {
+		f.val = t
+		f.unsetNull()
+		return nil
+	}
+	it, err := strconv.ParseInt(string(b), 10, 64)
 	if err != nil {
 		return err
 	}
-	// f.SetDate(t)
-	f.val = t
-	// f.addStatus(notNull)
+	f.val = time.Unix(it, 0)
 	f.unsetNull()
 	return nil
 }
@@ -509,17 +506,19 @@ func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
 		f.SetNull()
-		// f.removeStatus(notNull)
 		return nil
 	}
-	t, err := time.ParseInLocation("2006-01-02 15:04:05", strings.Trim(string(b), "\""), time.Local)
+	if t, err := time.ParseInLocation("2006-01-02 15:04:05", strings.Trim(string(b), "\""), time.Local); err == nil {
+		f.unsetNull()
+		f.val = t
+		return nil
+	}
+	ti, err := strconv.ParseInt(string(b), 10, 64)
 	if err != nil {
 		return err
 	}
-	// f.SetDatetime(t)
-	// f.removeStatus(notNull)
 	f.unsetNull()
-	f.val = t
+	f.val = time.Unix(ti, 0)
 	return nil
 
 }
@@ -637,11 +636,31 @@ func (f *timeValueField) update(v interface{}) ValueField {
 	return f
 }
 
-func (f *timeValueField) MarshalJSON() ([]byte, error) {
+func (f timeValueField) MarshalJSON() ([]byte, error) {
 	if !f.IsValid() || f.IsNull() {
 		return []byte("null"), nil
 	}
 	return []byte(f.val.In(time.Local).Format("15:04:05")), nil
+}
+
+func (f *timeValueField) UnmarshalJSON(b []byte) error {
+	f.setValid()
+	if string(b) == "null" {
+		f.SetNull()
+		return nil
+	}
+	if t, err := time.ParseInLocation("15:04:05", strings.Trim(string(b), "\""), time.Local); err == nil {
+		f.unsetNull()
+		f.val = t
+		return nil
+	}
+	ti, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return err
+	}
+	f.val = time.Unix(ti, 0)
+	f.unsetNull()
+	return nil
 }
 
 type decimalValueField struct {

@@ -83,6 +83,12 @@ func (m *User) InitRel() {
 	var relInfo0 *nborm.RelationInfo
 	relInfo0 = relInfo0.Append("BasicInfo", m.BasicInfo, nborm.NewExpr("@=@", &m.IntelUserCode, &m.BasicInfo.IntelUserCode))
 	m.AppendRelation(relInfo0)
+	m.StudentClass = newSubClass(m)
+	var relInfo1 *nborm.RelationInfo
+	mm0 := newSubStudentbasicinfo(m)
+	relInfo1 = relInfo1.Append("StudentClass", mm0, nborm.NewExpr("@=@", &m.IntelUserCode, &mm0.IntelUserCode))
+	relInfo1 = relInfo1.Append("StudentClass", m.StudentClass, nborm.NewExpr("@=@", &mm0.Class, &m.StudentClass.ClassCode))
+	m.AppendRelation(relInfo1)
 	m.AddRelInited()
 }
 
@@ -391,6 +397,14 @@ func (m User) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(BasicInfoB)
 	}
+	if m.StudentClass != nil && m.StudentClass.IsSynced() {
+		buffer.WriteString(",\n\"StudentClass\": ")
+		StudentClassB, err := json.MarshalIndent(m.StudentClass, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentClassB)
+	}
 	buffer.WriteString("\n}")
 	return buffer.Bytes(), nil
 }
@@ -405,6 +419,9 @@ type UserList struct {
 func (m *User) Collapse() {
 	if m.BasicInfo != nil && m.BasicInfo.IsSynced() {
 		m.BasicInfo.Collapse()
+	}
+	if m.StudentClass != nil && m.StudentClass.IsSynced() {
+		m.StudentClass.Collapse()
 	}
 }
 
@@ -593,7 +610,7 @@ func (l UserList) MarshalJSON() ([]byte, error) {
 }
 
 func (l *UserList) UnmarshalJSON(b []byte) error {
-	if string(b) == "[]" {
+	if string(b) == "[]" || string(b) == "null" {
 		return nil
 	}
 	jl := struct {
@@ -606,10 +623,18 @@ func (l *UserList) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &jl)
 }
 
+func (l *UserList) UnmarshalMeta(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	return json.Unmarshal(b, &l.User)
+}
+
 func (l *UserList) Collapse() {
 	idx := l.checkDup()
 	if idx >= 0 {
 		l.List[idx].BasicInfo = l.List[l.Len()-1].BasicInfo
+		l.List[idx].StudentClass = l.List[l.Len()-1].StudentClass
 		l.List = l.List[:len(l.List)-1]
 		l.List[idx].Collapse()
 	}
@@ -1001,6 +1026,10 @@ func (m *Studentbasicinfo) InitRel() {
 	var relInfo0 *nborm.RelationInfo
 	relInfo0 = relInfo0.Append("User", m.User, nborm.NewExpr("@=@", &m.IntelUserCode, &m.User.IntelUserCode))
 	m.AppendRelation(relInfo0)
+	m.StudentClass = newSubClass(m)
+	var relInfo1 *nborm.RelationInfo
+	relInfo1 = relInfo1.Append("StudentClass", m.StudentClass, nborm.NewExpr("@=@", &m.Class, &m.StudentClass.ClassCode))
+	m.AppendRelation(relInfo1)
 	m.AddRelInited()
 }
 
@@ -1656,6 +1685,14 @@ func (m Studentbasicinfo) MarshalJSON() ([]byte, error) {
 		}
 		buffer.Write(UserB)
 	}
+	if m.StudentClass != nil && m.StudentClass.IsSynced() {
+		buffer.WriteString(",\n\"StudentClass\": ")
+		StudentClassB, err := json.MarshalIndent(m.StudentClass, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentClassB)
+	}
 	buffer.WriteString("\n}")
 	return buffer.Bytes(), nil
 }
@@ -1670,6 +1707,9 @@ type StudentbasicinfoList struct {
 func (m *Studentbasicinfo) Collapse() {
 	if m.User != nil && m.User.IsSynced() {
 		m.User.Collapse()
+	}
+	if m.StudentClass != nil && m.StudentClass.IsSynced() {
+		m.StudentClass.Collapse()
 	}
 }
 
@@ -2014,7 +2054,7 @@ func (l StudentbasicinfoList) MarshalJSON() ([]byte, error) {
 }
 
 func (l *StudentbasicinfoList) UnmarshalJSON(b []byte) error {
-	if string(b) == "[]" {
+	if string(b) == "[]" || string(b) == "null" {
 		return nil
 	}
 	jl := struct {
@@ -2027,10 +2067,18 @@ func (l *StudentbasicinfoList) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &jl)
 }
 
+func (l *StudentbasicinfoList) UnmarshalMeta(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	return json.Unmarshal(b, &l.Studentbasicinfo)
+}
+
 func (l *StudentbasicinfoList) Collapse() {
 	idx := l.checkDup()
 	if idx >= 0 {
 		l.List[idx].User = l.List[l.Len()-1].User
+		l.List[idx].StudentClass = l.List[l.Len()-1].StudentClass
 		l.List = l.List[:len(l.List)-1]
 		l.List[idx].Collapse()
 	}
@@ -2387,9 +2435,1397 @@ func (l *StudentbasicinfoList) SetListCache(hashValue string) {
 	}
 }
 
+func NewClass() *Class {
+	m := &Class{}
+	m.Init(m, nil, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	m.ClassCode.Init(m, "ClassCode", "ClassCode", 2)
+	m.ClassName.Init(m, "ClassName", "ClassName", 3)
+	m.Campus.Init(m, "Campus", "Campus", 4)
+	m.ResearchArea.Init(m, "ResearchArea", "ResearchArea", 5)
+	m.Grade.Init(m, "Grade", "Grade", 6)
+	m.TrainingMode.Init(m, "TrainingMode", "TrainingMode", 7)
+	m.EntranceDate.Init(m, "EntranceDate", "EntranceDate", 8)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 9)
+	m.ProgramLength.Init(m, "ProgramLength", "ProgramLength", 10)
+	m.StudentType.Init(m, "StudentType", "StudentType", 11)
+	m.CredentialsType.Init(m, "CredentialsType", "CredentialsType", 12)
+	m.DegreeType.Init(m, "DegreeType", "DegreeType", 13)
+	m.Counselor.Init(m, "Counselor", "Counselor", 14)
+	m.Adviser.Init(m, "Adviser", "Adviser", 15)
+	m.Leadership.Init(m, "Leadership", "Leadership", 16)
+	m.Supervisor.Init(m, "Supervisor", "Supervisor", 17)
+	m.Assistant1.Init(m, "Assistant1", "Assistant1", 18)
+	m.Assistant2.Init(m, "Assistant2", "Assistant2", 19)
+	m.Operator.Init(m, "Operator", "Operator", 20)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 21)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 22)
+	m.Status.Init(m, "Status", "Status", 23)
+	m.Remark1.Init(m, "Remark1", "Remark1", 24)
+	m.Remark2.Init(m, "Remark2", "Remark2", 25)
+	m.Remark3.Init(m, "Remark3", "Remark3", 26)
+	m.Remark4.Init(m, "Remark4", "Remark4", 27)
+	m.InitRel()
+	return m
+}
+
+func newSubClass(parent nborm.Model) *Class {
+	m := &Class{}
+	m.Init(m, parent, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	m.ClassCode.Init(m, "ClassCode", "ClassCode", 2)
+	m.ClassName.Init(m, "ClassName", "ClassName", 3)
+	m.Campus.Init(m, "Campus", "Campus", 4)
+	m.ResearchArea.Init(m, "ResearchArea", "ResearchArea", 5)
+	m.Grade.Init(m, "Grade", "Grade", 6)
+	m.TrainingMode.Init(m, "TrainingMode", "TrainingMode", 7)
+	m.EntranceDate.Init(m, "EntranceDate", "EntranceDate", 8)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 9)
+	m.ProgramLength.Init(m, "ProgramLength", "ProgramLength", 10)
+	m.StudentType.Init(m, "StudentType", "StudentType", 11)
+	m.CredentialsType.Init(m, "CredentialsType", "CredentialsType", 12)
+	m.DegreeType.Init(m, "DegreeType", "DegreeType", 13)
+	m.Counselor.Init(m, "Counselor", "Counselor", 14)
+	m.Adviser.Init(m, "Adviser", "Adviser", 15)
+	m.Leadership.Init(m, "Leadership", "Leadership", 16)
+	m.Supervisor.Init(m, "Supervisor", "Supervisor", 17)
+	m.Assistant1.Init(m, "Assistant1", "Assistant1", 18)
+	m.Assistant2.Init(m, "Assistant2", "Assistant2", 19)
+	m.Operator.Init(m, "Operator", "Operator", 20)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 21)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 22)
+	m.Status.Init(m, "Status", "Status", 23)
+	m.Remark1.Init(m, "Remark1", "Remark1", 24)
+	m.Remark2.Init(m, "Remark2", "Remark2", 25)
+	m.Remark3.Init(m, "Remark3", "Remark3", 26)
+	m.Remark4.Init(m, "Remark4", "Remark4", 27)
+	return m
+}
+
+func (m *Class) InitRel() {
+	m.ClassGrade = newSubGrade(m)
+	var relInfo0 *nborm.RelationInfo
+	relInfo0 = relInfo0.Append("ClassGrade", m.ClassGrade, nborm.NewExpr("@=@", &m.Grade, &m.ClassGrade.GradeCode))
+	m.AppendRelation(relInfo0)
+	m.Students = newSubStudentbasicinfoList(m)
+	m.Students.dupMap = make(map[string]int)
+	var relInfo1 *nborm.RelationInfo
+	relInfo1 = relInfo1.Append("Students", m.Students, nborm.NewExpr("@=@", &m.ClassCode, &m.Students.Class))
+	m.AppendRelation(relInfo1)
+	m.AddRelInited()
+}
+
+func (m *Class) DB() string {
+	return "*"
+}
+
+func (m *Class) Tab() string {
+	return "class"
+}
+
+func (m *Class) FieldInfos() nborm.FieldInfoList {
+	return nborm.FieldInfoList{
+		{"Id", "Id", &m.Id, 0},
+		{"RecordId", "RecordId", &m.RecordId, 1},
+		{"ClassCode", "ClassCode", &m.ClassCode, 2},
+		{"ClassName", "ClassName", &m.ClassName, 3},
+		{"Campus", "Campus", &m.Campus, 4},
+		{"ResearchArea", "ResearchArea", &m.ResearchArea, 5},
+		{"Grade", "Grade", &m.Grade, 6},
+		{"TrainingMode", "TrainingMode", &m.TrainingMode, 7},
+		{"EntranceDate", "EntranceDate", &m.EntranceDate, 8},
+		{"GraduationDate", "GraduationDate", &m.GraduationDate, 9},
+		{"ProgramLength", "ProgramLength", &m.ProgramLength, 10},
+		{"StudentType", "StudentType", &m.StudentType, 11},
+		{"CredentialsType", "CredentialsType", &m.CredentialsType, 12},
+		{"DegreeType", "DegreeType", &m.DegreeType, 13},
+		{"Counselor", "Counselor", &m.Counselor, 14},
+		{"Adviser", "Adviser", &m.Adviser, 15},
+		{"Leadership", "Leadership", &m.Leadership, 16},
+		{"Supervisor", "Supervisor", &m.Supervisor, 17},
+		{"Assistant1", "Assistant1", &m.Assistant1, 18},
+		{"Assistant2", "Assistant2", &m.Assistant2, 19},
+		{"Operator", "Operator", &m.Operator, 20},
+		{"InsertDatetime", "InsertDatetime", &m.InsertDatetime, 21},
+		{"UpdateDatetime", "UpdateDatetime", &m.UpdateDatetime, 22},
+		{"Status", "Status", &m.Status, 23},
+		{"Remark1", "Remark1", &m.Remark1, 24},
+		{"Remark2", "Remark2", &m.Remark2, 25},
+		{"Remark3", "Remark3", &m.Remark3, 26},
+		{"Remark4", "Remark4", &m.Remark4, 27},
+	}
+}
+
+func (m *Class) AutoIncField() nborm.Field {
+	return &m.Id
+}
+
+func (m *Class) PrimaryKey() nborm.FieldList {
+	return nborm.FieldList{
+		&m.Id,
+	}
+}
+
+func (m *Class) UniqueKeys() []nborm.FieldList {
+	return []nborm.FieldList{
+		{
+			&m.ClassCode,
+			&m.Status,
+		},
+	}
+}
+func (m Class) MarshalJSON() ([]byte, error) {
+	if !m.IsSynced() {
+		return []byte("null"), nil
+	}
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	buffer.WriteString("{\n\"Aggs\": ")
+	metaB, err := json.MarshalIndent(m.Meta, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	buffer.Write(metaB)
+	if m.Id.IsValid() {
+		buffer.WriteString(",\n\"Id\": ")
+		IdB, err := json.MarshalIndent(m.Id, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IdB)
+	}
+	if m.RecordId.IsValid() {
+		buffer.WriteString(",\n\"RecordId\": ")
+		RecordIdB, err := json.MarshalIndent(m.RecordId, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(RecordIdB)
+	}
+	if m.ClassCode.IsValid() {
+		buffer.WriteString(",\n\"ClassCode\": ")
+		ClassCodeB, err := json.MarshalIndent(m.ClassCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClassCodeB)
+	}
+	if m.ClassName.IsValid() {
+		buffer.WriteString(",\n\"ClassName\": ")
+		ClassNameB, err := json.MarshalIndent(m.ClassName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClassNameB)
+	}
+	if m.Campus.IsValid() {
+		buffer.WriteString(",\n\"Campus\": ")
+		CampusB, err := json.MarshalIndent(m.Campus, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CampusB)
+	}
+	if m.ResearchArea.IsValid() {
+		buffer.WriteString(",\n\"ResearchArea\": ")
+		ResearchAreaB, err := json.MarshalIndent(m.ResearchArea, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ResearchAreaB)
+	}
+	if m.Grade.IsValid() {
+		buffer.WriteString(",\n\"Grade\": ")
+		GradeB, err := json.MarshalIndent(m.Grade, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GradeB)
+	}
+	if m.TrainingMode.IsValid() {
+		buffer.WriteString(",\n\"TrainingMode\": ")
+		TrainingModeB, err := json.MarshalIndent(m.TrainingMode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(TrainingModeB)
+	}
+	if m.EntranceDate.IsValid() {
+		buffer.WriteString(",\n\"EntranceDate\": ")
+		EntranceDateB, err := json.MarshalIndent(m.EntranceDate, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(EntranceDateB)
+	}
+	if m.GraduationDate.IsValid() {
+		buffer.WriteString(",\n\"GraduationDate\": ")
+		GraduationDateB, err := json.MarshalIndent(m.GraduationDate, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GraduationDateB)
+	}
+	if m.ProgramLength.IsValid() {
+		buffer.WriteString(",\n\"ProgramLength\": ")
+		ProgramLengthB, err := json.MarshalIndent(m.ProgramLength, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ProgramLengthB)
+	}
+	if m.StudentType.IsValid() {
+		buffer.WriteString(",\n\"StudentType\": ")
+		StudentTypeB, err := json.MarshalIndent(m.StudentType, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentTypeB)
+	}
+	if m.CredentialsType.IsValid() {
+		buffer.WriteString(",\n\"CredentialsType\": ")
+		CredentialsTypeB, err := json.MarshalIndent(m.CredentialsType, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CredentialsTypeB)
+	}
+	if m.DegreeType.IsValid() {
+		buffer.WriteString(",\n\"DegreeType\": ")
+		DegreeTypeB, err := json.MarshalIndent(m.DegreeType, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(DegreeTypeB)
+	}
+	if m.Counselor.IsValid() {
+		buffer.WriteString(",\n\"Counselor\": ")
+		CounselorB, err := json.MarshalIndent(m.Counselor, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(CounselorB)
+	}
+	if m.Adviser.IsValid() {
+		buffer.WriteString(",\n\"Adviser\": ")
+		AdviserB, err := json.MarshalIndent(m.Adviser, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(AdviserB)
+	}
+	if m.Leadership.IsValid() {
+		buffer.WriteString(",\n\"Leadership\": ")
+		LeadershipB, err := json.MarshalIndent(m.Leadership, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(LeadershipB)
+	}
+	if m.Supervisor.IsValid() {
+		buffer.WriteString(",\n\"Supervisor\": ")
+		SupervisorB, err := json.MarshalIndent(m.Supervisor, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(SupervisorB)
+	}
+	if m.Assistant1.IsValid() {
+		buffer.WriteString(",\n\"Assistant1\": ")
+		Assistant1B, err := json.MarshalIndent(m.Assistant1, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Assistant1B)
+	}
+	if m.Assistant2.IsValid() {
+		buffer.WriteString(",\n\"Assistant2\": ")
+		Assistant2B, err := json.MarshalIndent(m.Assistant2, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Assistant2B)
+	}
+	if m.Operator.IsValid() {
+		buffer.WriteString(",\n\"Operator\": ")
+		OperatorB, err := json.MarshalIndent(m.Operator, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(OperatorB)
+	}
+	if m.InsertDatetime.IsValid() {
+		buffer.WriteString(",\n\"InsertDatetime\": ")
+		InsertDatetimeB, err := json.MarshalIndent(m.InsertDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(InsertDatetimeB)
+	}
+	if m.UpdateDatetime.IsValid() {
+		buffer.WriteString(",\n\"UpdateDatetime\": ")
+		UpdateDatetimeB, err := json.MarshalIndent(m.UpdateDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UpdateDatetimeB)
+	}
+	if m.Status.IsValid() {
+		buffer.WriteString(",\n\"Status\": ")
+		StatusB, err := json.MarshalIndent(m.Status, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StatusB)
+	}
+	if m.Remark1.IsValid() {
+		buffer.WriteString(",\n\"Remark1\": ")
+		Remark1B, err := json.MarshalIndent(m.Remark1, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark1B)
+	}
+	if m.Remark2.IsValid() {
+		buffer.WriteString(",\n\"Remark2\": ")
+		Remark2B, err := json.MarshalIndent(m.Remark2, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark2B)
+	}
+	if m.Remark3.IsValid() {
+		buffer.WriteString(",\n\"Remark3\": ")
+		Remark3B, err := json.MarshalIndent(m.Remark3, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark3B)
+	}
+	if m.Remark4.IsValid() {
+		buffer.WriteString(",\n\"Remark4\": ")
+		Remark4B, err := json.MarshalIndent(m.Remark4, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark4B)
+	}
+	if m.ClassGrade != nil && m.ClassGrade.IsSynced() {
+		buffer.WriteString(",\n\"ClassGrade\": ")
+		ClassGradeB, err := json.MarshalIndent(m.ClassGrade, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClassGradeB)
+	}
+	if m.Students != nil && m.Students.Len() > 0 {
+		buffer.WriteString(",\n\"Students\": ")
+		StudentsB, err := json.MarshalIndent(m.Students, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StudentsB)
+	}
+	buffer.WriteString("\n}")
+	return buffer.Bytes(), nil
+}
+
+type ClassList struct {
+	Class  `json:"-"`
+	dupMap map[string]int
+	List   []*Class
+	Total  int
+}
+
+func (m *Class) Collapse() {
+	if m.ClassGrade != nil && m.ClassGrade.IsSynced() {
+		m.ClassGrade.Collapse()
+	}
+	if m.Students != nil && m.Students.IsSynced() {
+		m.Students.Collapse()
+	}
+}
+
+func NewClassList() *ClassList {
+	l := &ClassList{
+		Class{},
+		make(map[string]int),
+		make([]*Class, 0, 32),
+		0,
+	}
+	l.Init(l, nil, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.RecordId.Init(l, "RecordId", "RecordId", 1)
+	l.ClassCode.Init(l, "ClassCode", "ClassCode", 2)
+	l.ClassName.Init(l, "ClassName", "ClassName", 3)
+	l.Campus.Init(l, "Campus", "Campus", 4)
+	l.ResearchArea.Init(l, "ResearchArea", "ResearchArea", 5)
+	l.Grade.Init(l, "Grade", "Grade", 6)
+	l.TrainingMode.Init(l, "TrainingMode", "TrainingMode", 7)
+	l.EntranceDate.Init(l, "EntranceDate", "EntranceDate", 8)
+	l.GraduationDate.Init(l, "GraduationDate", "GraduationDate", 9)
+	l.ProgramLength.Init(l, "ProgramLength", "ProgramLength", 10)
+	l.StudentType.Init(l, "StudentType", "StudentType", 11)
+	l.CredentialsType.Init(l, "CredentialsType", "CredentialsType", 12)
+	l.DegreeType.Init(l, "DegreeType", "DegreeType", 13)
+	l.Counselor.Init(l, "Counselor", "Counselor", 14)
+	l.Adviser.Init(l, "Adviser", "Adviser", 15)
+	l.Leadership.Init(l, "Leadership", "Leadership", 16)
+	l.Supervisor.Init(l, "Supervisor", "Supervisor", 17)
+	l.Assistant1.Init(l, "Assistant1", "Assistant1", 18)
+	l.Assistant2.Init(l, "Assistant2", "Assistant2", 19)
+	l.Operator.Init(l, "Operator", "Operator", 20)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 21)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 22)
+	l.Status.Init(l, "Status", "Status", 23)
+	l.Remark1.Init(l, "Remark1", "Remark1", 24)
+	l.Remark2.Init(l, "Remark2", "Remark2", 25)
+	l.Remark3.Init(l, "Remark3", "Remark3", 26)
+	l.Remark4.Init(l, "Remark4", "Remark4", 27)
+	l.InitRel()
+	return l
+}
+
+func newSubClassList(parent nborm.Model) *ClassList {
+	l := &ClassList{
+		Class{},
+		make(map[string]int),
+		make([]*Class, 0, 32),
+		0,
+	}
+	l.Init(l, parent, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.RecordId.Init(l, "RecordId", "RecordId", 1)
+	l.ClassCode.Init(l, "ClassCode", "ClassCode", 2)
+	l.ClassName.Init(l, "ClassName", "ClassName", 3)
+	l.Campus.Init(l, "Campus", "Campus", 4)
+	l.ResearchArea.Init(l, "ResearchArea", "ResearchArea", 5)
+	l.Grade.Init(l, "Grade", "Grade", 6)
+	l.TrainingMode.Init(l, "TrainingMode", "TrainingMode", 7)
+	l.EntranceDate.Init(l, "EntranceDate", "EntranceDate", 8)
+	l.GraduationDate.Init(l, "GraduationDate", "GraduationDate", 9)
+	l.ProgramLength.Init(l, "ProgramLength", "ProgramLength", 10)
+	l.StudentType.Init(l, "StudentType", "StudentType", 11)
+	l.CredentialsType.Init(l, "CredentialsType", "CredentialsType", 12)
+	l.DegreeType.Init(l, "DegreeType", "DegreeType", 13)
+	l.Counselor.Init(l, "Counselor", "Counselor", 14)
+	l.Adviser.Init(l, "Adviser", "Adviser", 15)
+	l.Leadership.Init(l, "Leadership", "Leadership", 16)
+	l.Supervisor.Init(l, "Supervisor", "Supervisor", 17)
+	l.Assistant1.Init(l, "Assistant1", "Assistant1", 18)
+	l.Assistant2.Init(l, "Assistant2", "Assistant2", 19)
+	l.Operator.Init(l, "Operator", "Operator", 20)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 21)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 22)
+	l.Status.Init(l, "Status", "Status", 23)
+	l.Remark1.Init(l, "Remark1", "Remark1", 24)
+	l.Remark2.Init(l, "Remark2", "Remark2", 25)
+	l.Remark3.Init(l, "Remark3", "Remark3", 26)
+	l.Remark4.Init(l, "Remark4", "Remark4", 27)
+	return l
+}
+
+func (l *ClassList) NewModel() nborm.Model {
+	m := &Class{}
+	m.Init(m, nil, l)
+	l.CopyAggs(m)
+	m.Id.Init(m, "Id", "Id", 0)
+	l.Id.CopyStatus(&m.Id)
+	m.RecordId.Init(m, "RecordId", "RecordId", 1)
+	l.RecordId.CopyStatus(&m.RecordId)
+	m.ClassCode.Init(m, "ClassCode", "ClassCode", 2)
+	l.ClassCode.CopyStatus(&m.ClassCode)
+	m.ClassName.Init(m, "ClassName", "ClassName", 3)
+	l.ClassName.CopyStatus(&m.ClassName)
+	m.Campus.Init(m, "Campus", "Campus", 4)
+	l.Campus.CopyStatus(&m.Campus)
+	m.ResearchArea.Init(m, "ResearchArea", "ResearchArea", 5)
+	l.ResearchArea.CopyStatus(&m.ResearchArea)
+	m.Grade.Init(m, "Grade", "Grade", 6)
+	l.Grade.CopyStatus(&m.Grade)
+	m.TrainingMode.Init(m, "TrainingMode", "TrainingMode", 7)
+	l.TrainingMode.CopyStatus(&m.TrainingMode)
+	m.EntranceDate.Init(m, "EntranceDate", "EntranceDate", 8)
+	l.EntranceDate.CopyStatus(&m.EntranceDate)
+	m.GraduationDate.Init(m, "GraduationDate", "GraduationDate", 9)
+	l.GraduationDate.CopyStatus(&m.GraduationDate)
+	m.ProgramLength.Init(m, "ProgramLength", "ProgramLength", 10)
+	l.ProgramLength.CopyStatus(&m.ProgramLength)
+	m.StudentType.Init(m, "StudentType", "StudentType", 11)
+	l.StudentType.CopyStatus(&m.StudentType)
+	m.CredentialsType.Init(m, "CredentialsType", "CredentialsType", 12)
+	l.CredentialsType.CopyStatus(&m.CredentialsType)
+	m.DegreeType.Init(m, "DegreeType", "DegreeType", 13)
+	l.DegreeType.CopyStatus(&m.DegreeType)
+	m.Counselor.Init(m, "Counselor", "Counselor", 14)
+	l.Counselor.CopyStatus(&m.Counselor)
+	m.Adviser.Init(m, "Adviser", "Adviser", 15)
+	l.Adviser.CopyStatus(&m.Adviser)
+	m.Leadership.Init(m, "Leadership", "Leadership", 16)
+	l.Leadership.CopyStatus(&m.Leadership)
+	m.Supervisor.Init(m, "Supervisor", "Supervisor", 17)
+	l.Supervisor.CopyStatus(&m.Supervisor)
+	m.Assistant1.Init(m, "Assistant1", "Assistant1", 18)
+	l.Assistant1.CopyStatus(&m.Assistant1)
+	m.Assistant2.Init(m, "Assistant2", "Assistant2", 19)
+	l.Assistant2.CopyStatus(&m.Assistant2)
+	m.Operator.Init(m, "Operator", "Operator", 20)
+	l.Operator.CopyStatus(&m.Operator)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 21)
+	l.InsertDatetime.CopyStatus(&m.InsertDatetime)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 22)
+	l.UpdateDatetime.CopyStatus(&m.UpdateDatetime)
+	m.Status.Init(m, "Status", "Status", 23)
+	l.Status.CopyStatus(&m.Status)
+	m.Remark1.Init(m, "Remark1", "Remark1", 24)
+	l.Remark1.CopyStatus(&m.Remark1)
+	m.Remark2.Init(m, "Remark2", "Remark2", 25)
+	l.Remark2.CopyStatus(&m.Remark2)
+	m.Remark3.Init(m, "Remark3", "Remark3", 26)
+	l.Remark3.CopyStatus(&m.Remark3)
+	m.Remark4.Init(m, "Remark4", "Remark4", 27)
+	l.Remark4.CopyStatus(&m.Remark4)
+	m.InitRel()
+	l.List = append(l.List, m)
+	return m
+}
+
+func (l *ClassList) SetTotal(total int) {
+	l.Total = total
+}
+
+func (l *ClassList) GetTotal() int {
+	return l.Total
+}
+
+func (l *ClassList) Len() int {
+	return len(l.List)
+}
+
+func (l *ClassList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
+func (l ClassList) MarshalJSON() ([]byte, error) {
+	bs := make([]byte, 0, 1024)
+	bs = append(bs, []byte("{")...)
+	ListB, err := json.MarshalIndent(l.List, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	ListB = append([]byte("\"List\": "), ListB...)
+	bs = append(bs, ListB...)
+	bs = append(bs, []byte(", ")...)
+	TotalB, err := json.MarshalIndent(l.Total, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	TotalB = append([]byte("\"Total\": "), TotalB...)
+	bs = append(bs, TotalB...)
+	bs = append(bs, []byte("}")...)
+	return bs, nil
+}
+
+func (l *ClassList) UnmarshalJSON(b []byte) error {
+	if string(b) == "[]" || string(b) == "null" {
+		return nil
+	}
+	jl := struct {
+		List  *[]*Class
+		Total *int
+	}{
+		&l.List,
+		&l.Total,
+	}
+	return json.Unmarshal(b, &jl)
+}
+
+func (l *ClassList) UnmarshalMeta(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	return json.Unmarshal(b, &l.Class)
+}
+
+func (l *ClassList) Collapse() {
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].ClassGrade = l.List[l.Len()-1].ClassGrade
+		l.List[idx].Students.checkDup()
+		l.List[idx].Students.List = append(l.List[idx].Students.List, l.List[l.Len()-1].Students.List...)
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
+}
+
+func (l *ClassList) Filter(f func(m *Class) bool) []*Class {
+	ll := make([]*Class, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
+}
+
+func (l *ClassList) checkDup() int {
+	if l.Len() < 1 {
+		return -1
+	}
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.Id.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Id.AnyValue()))
+	}
+	if lastModel.RecordId.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.RecordId.AnyValue()))
+	}
+	if lastModel.ClassCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ClassCode.AnyValue()))
+	}
+	if lastModel.ClassName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ClassName.AnyValue()))
+	}
+	if lastModel.Campus.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Campus.AnyValue()))
+	}
+	if lastModel.ResearchArea.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ResearchArea.AnyValue()))
+	}
+	if lastModel.Grade.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Grade.AnyValue()))
+	}
+	if lastModel.TrainingMode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.TrainingMode.AnyValue()))
+	}
+	if lastModel.EntranceDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.EntranceDate.AnyValue()))
+	}
+	if lastModel.GraduationDate.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GraduationDate.AnyValue()))
+	}
+	if lastModel.ProgramLength.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.ProgramLength.AnyValue()))
+	}
+	if lastModel.StudentType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.StudentType.AnyValue()))
+	}
+	if lastModel.CredentialsType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.CredentialsType.AnyValue()))
+	}
+	if lastModel.DegreeType.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.DegreeType.AnyValue()))
+	}
+	if lastModel.Counselor.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Counselor.AnyValue()))
+	}
+	if lastModel.Adviser.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Adviser.AnyValue()))
+	}
+	if lastModel.Leadership.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Leadership.AnyValue()))
+	}
+	if lastModel.Supervisor.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Supervisor.AnyValue()))
+	}
+	if lastModel.Assistant1.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Assistant1.AnyValue()))
+	}
+	if lastModel.Assistant2.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Assistant2.AnyValue()))
+	}
+	if lastModel.Operator.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Operator.AnyValue()))
+	}
+	if lastModel.InsertDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.InsertDatetime.AnyValue()))
+	}
+	if lastModel.UpdateDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateDatetime.AnyValue()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.AnyValue()))
+	}
+	if lastModel.Remark1.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark1.AnyValue()))
+	}
+	if lastModel.Remark2.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark2.AnyValue()))
+	}
+	if lastModel.Remark3.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark3.AnyValue()))
+	}
+	if lastModel.Remark4.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark4.AnyValue()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
+}
+
+func (l *ClassList) Slice(low, high int) {
+	switch {
+	case high <= l.Len():
+		l.List = l.List[low:high]
+	case low <= l.Len() && high > l.Len():
+		l.List = l.List[low:]
+	default:
+		l.List = l.List[:0]
+	}
+}
+
+func (m *Class) String() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func (l *ClassList) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
+}
+
+type ClassCacheElem struct {
+	hashValue  string
+	model      *Class
+	modifyTime time.Time
+}
+
+type ClassListCacheElem struct {
+	hashValue  string
+	list       *ClassList
+	modifyTime time.Time
+}
+
+type ClassCacheManager struct {
+	container map[string]*ClassCacheElem
+	query     chan string
+	in        chan *ClassCacheElem
+	out       chan *ClassCacheElem
+}
+
+type ClassListCacheManager struct {
+	container map[string]*ClassListCacheElem
+	query     chan string
+	in        chan *ClassListCacheElem
+	out       chan *ClassListCacheElem
+}
+
+func newClassCacheManager() *ClassCacheManager {
+	return &ClassCacheManager{
+		make(map[string]*ClassCacheElem),
+		make(chan string),
+		make(chan *ClassCacheElem),
+		make(chan *ClassCacheElem),
+	}
+}
+
+func newClassListCacheManager() *ClassListCacheManager {
+	return &ClassListCacheManager{
+		make(map[string]*ClassListCacheElem),
+		make(chan string),
+		make(chan *ClassListCacheElem),
+		make(chan *ClassListCacheElem),
+	}
+}
+
+func (mgr *ClassCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+func (mgr *ClassListCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+var ClassCache = newClassCacheManager()
+
+var ClassListCache = newClassListCacheManager()
+
+func (m *Class) GetCache(hashVal string, timeout time.Duration) bool {
+	ClassCache.query <- hashVal
+	elem := <-ClassCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*m = *elem.model
+	return true
+}
+
+func (m *Class) SetCache(hashValue string) {
+	ClassCache.in <- &ClassCacheElem{
+		hashValue,
+		m,
+		time.Now(),
+	}
+}
+
+func (l *ClassList) GetListCache(hashValue string, timeout time.Duration) bool {
+	ClassListCache.query <- hashValue
+	elem := <-ClassListCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*l = *elem.list
+	return true
+}
+
+func (l *ClassList) SetListCache(hashValue string) {
+	ClassListCache.in <- &ClassListCacheElem{
+		hashValue,
+		l,
+		time.Now(),
+	}
+}
+
+func NewGrade() *Grade {
+	m := &Grade{}
+	m.Init(m, nil, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.GradeName.Init(m, "GradeName", "GradeName", 1)
+	m.GradeCode.Init(m, "GradeCode", "GradeCode", 2)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 3)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 4)
+	m.Status.Init(m, "Status", "Status", 5)
+	m.Remark1.Init(m, "Remark1", "Remark1", 6)
+	m.Remark2.Init(m, "Remark2", "Remark2", 7)
+	m.Remark3.Init(m, "Remark3", "Remark3", 8)
+	m.Remark4.Init(m, "Remark4", "Remark4", 9)
+	m.InitRel()
+	return m
+}
+
+func newSubGrade(parent nborm.Model) *Grade {
+	m := &Grade{}
+	m.Init(m, parent, nil)
+	m.Id.Init(m, "Id", "Id", 0)
+	m.GradeName.Init(m, "GradeName", "GradeName", 1)
+	m.GradeCode.Init(m, "GradeCode", "GradeCode", 2)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 3)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 4)
+	m.Status.Init(m, "Status", "Status", 5)
+	m.Remark1.Init(m, "Remark1", "Remark1", 6)
+	m.Remark2.Init(m, "Remark2", "Remark2", 7)
+	m.Remark3.Init(m, "Remark3", "Remark3", 8)
+	m.Remark4.Init(m, "Remark4", "Remark4", 9)
+	return m
+}
+
+func (m *Grade) InitRel() {
+	m.Classes = newSubClassList(m)
+	m.Classes.dupMap = make(map[string]int)
+	var relInfo0 *nborm.RelationInfo
+	relInfo0 = relInfo0.Append("Classes", m.Classes, nborm.NewExpr("@=@", &m.GradeCode, &m.Classes.Grade))
+	m.AppendRelation(relInfo0)
+	m.AddRelInited()
+}
+
+func (m *Grade) DB() string {
+	return "*"
+}
+
+func (m *Grade) Tab() string {
+	return "grade"
+}
+
+func (m *Grade) FieldInfos() nborm.FieldInfoList {
+	return nborm.FieldInfoList{
+		{"Id", "Id", &m.Id, 0},
+		{"GradeName", "GradeName", &m.GradeName, 1},
+		{"GradeCode", "GradeCode", &m.GradeCode, 2},
+		{"InsertDatetime", "InsertDatetime", &m.InsertDatetime, 3},
+		{"UpdateDatetime", "UpdateDatetime", &m.UpdateDatetime, 4},
+		{"Status", "Status", &m.Status, 5},
+		{"Remark1", "Remark1", &m.Remark1, 6},
+		{"Remark2", "Remark2", &m.Remark2, 7},
+		{"Remark3", "Remark3", &m.Remark3, 8},
+		{"Remark4", "Remark4", &m.Remark4, 9},
+	}
+}
+
+func (m *Grade) AutoIncField() nborm.Field {
+	return &m.Id
+}
+
+func (m *Grade) PrimaryKey() nborm.FieldList {
+	return nborm.FieldList{
+		&m.Id,
+	}
+}
+
+func (m *Grade) UniqueKeys() []nborm.FieldList {
+	return []nborm.FieldList{
+		{
+			&m.GradeCode,
+			&m.Status,
+		},
+	}
+}
+func (m Grade) MarshalJSON() ([]byte, error) {
+	if !m.IsSynced() {
+		return []byte("null"), nil
+	}
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	buffer.WriteString("{\n\"Aggs\": ")
+	metaB, err := json.MarshalIndent(m.Meta, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	buffer.Write(metaB)
+	if m.Id.IsValid() {
+		buffer.WriteString(",\n\"Id\": ")
+		IdB, err := json.MarshalIndent(m.Id, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(IdB)
+	}
+	if m.GradeName.IsValid() {
+		buffer.WriteString(",\n\"GradeName\": ")
+		GradeNameB, err := json.MarshalIndent(m.GradeName, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GradeNameB)
+	}
+	if m.GradeCode.IsValid() {
+		buffer.WriteString(",\n\"GradeCode\": ")
+		GradeCodeB, err := json.MarshalIndent(m.GradeCode, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(GradeCodeB)
+	}
+	if m.InsertDatetime.IsValid() {
+		buffer.WriteString(",\n\"InsertDatetime\": ")
+		InsertDatetimeB, err := json.MarshalIndent(m.InsertDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(InsertDatetimeB)
+	}
+	if m.UpdateDatetime.IsValid() {
+		buffer.WriteString(",\n\"UpdateDatetime\": ")
+		UpdateDatetimeB, err := json.MarshalIndent(m.UpdateDatetime, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(UpdateDatetimeB)
+	}
+	if m.Status.IsValid() {
+		buffer.WriteString(",\n\"Status\": ")
+		StatusB, err := json.MarshalIndent(m.Status, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(StatusB)
+	}
+	if m.Remark1.IsValid() {
+		buffer.WriteString(",\n\"Remark1\": ")
+		Remark1B, err := json.MarshalIndent(m.Remark1, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark1B)
+	}
+	if m.Remark2.IsValid() {
+		buffer.WriteString(",\n\"Remark2\": ")
+		Remark2B, err := json.MarshalIndent(m.Remark2, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark2B)
+	}
+	if m.Remark3.IsValid() {
+		buffer.WriteString(",\n\"Remark3\": ")
+		Remark3B, err := json.MarshalIndent(m.Remark3, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark3B)
+	}
+	if m.Remark4.IsValid() {
+		buffer.WriteString(",\n\"Remark4\": ")
+		Remark4B, err := json.MarshalIndent(m.Remark4, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(Remark4B)
+	}
+	if m.Classes != nil && m.Classes.Len() > 0 {
+		buffer.WriteString(",\n\"Classes\": ")
+		ClassesB, err := json.MarshalIndent(m.Classes, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(ClassesB)
+	}
+	buffer.WriteString("\n}")
+	return buffer.Bytes(), nil
+}
+
+type GradeList struct {
+	Grade  `json:"-"`
+	dupMap map[string]int
+	List   []*Grade
+	Total  int
+}
+
+func (m *Grade) Collapse() {
+	if m.Classes != nil && m.Classes.IsSynced() {
+		m.Classes.Collapse()
+	}
+}
+
+func NewGradeList() *GradeList {
+	l := &GradeList{
+		Grade{},
+		make(map[string]int),
+		make([]*Grade, 0, 32),
+		0,
+	}
+	l.Init(l, nil, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.GradeName.Init(l, "GradeName", "GradeName", 1)
+	l.GradeCode.Init(l, "GradeCode", "GradeCode", 2)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 3)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 4)
+	l.Status.Init(l, "Status", "Status", 5)
+	l.Remark1.Init(l, "Remark1", "Remark1", 6)
+	l.Remark2.Init(l, "Remark2", "Remark2", 7)
+	l.Remark3.Init(l, "Remark3", "Remark3", 8)
+	l.Remark4.Init(l, "Remark4", "Remark4", 9)
+	l.InitRel()
+	return l
+}
+
+func newSubGradeList(parent nborm.Model) *GradeList {
+	l := &GradeList{
+		Grade{},
+		make(map[string]int),
+		make([]*Grade, 0, 32),
+		0,
+	}
+	l.Init(l, parent, nil)
+	l.Id.Init(l, "Id", "Id", 0)
+	l.GradeName.Init(l, "GradeName", "GradeName", 1)
+	l.GradeCode.Init(l, "GradeCode", "GradeCode", 2)
+	l.InsertDatetime.Init(l, "InsertDatetime", "InsertDatetime", 3)
+	l.UpdateDatetime.Init(l, "UpdateDatetime", "UpdateDatetime", 4)
+	l.Status.Init(l, "Status", "Status", 5)
+	l.Remark1.Init(l, "Remark1", "Remark1", 6)
+	l.Remark2.Init(l, "Remark2", "Remark2", 7)
+	l.Remark3.Init(l, "Remark3", "Remark3", 8)
+	l.Remark4.Init(l, "Remark4", "Remark4", 9)
+	return l
+}
+
+func (l *GradeList) NewModel() nborm.Model {
+	m := &Grade{}
+	m.Init(m, nil, l)
+	l.CopyAggs(m)
+	m.Id.Init(m, "Id", "Id", 0)
+	l.Id.CopyStatus(&m.Id)
+	m.GradeName.Init(m, "GradeName", "GradeName", 1)
+	l.GradeName.CopyStatus(&m.GradeName)
+	m.GradeCode.Init(m, "GradeCode", "GradeCode", 2)
+	l.GradeCode.CopyStatus(&m.GradeCode)
+	m.InsertDatetime.Init(m, "InsertDatetime", "InsertDatetime", 3)
+	l.InsertDatetime.CopyStatus(&m.InsertDatetime)
+	m.UpdateDatetime.Init(m, "UpdateDatetime", "UpdateDatetime", 4)
+	l.UpdateDatetime.CopyStatus(&m.UpdateDatetime)
+	m.Status.Init(m, "Status", "Status", 5)
+	l.Status.CopyStatus(&m.Status)
+	m.Remark1.Init(m, "Remark1", "Remark1", 6)
+	l.Remark1.CopyStatus(&m.Remark1)
+	m.Remark2.Init(m, "Remark2", "Remark2", 7)
+	l.Remark2.CopyStatus(&m.Remark2)
+	m.Remark3.Init(m, "Remark3", "Remark3", 8)
+	l.Remark3.CopyStatus(&m.Remark3)
+	m.Remark4.Init(m, "Remark4", "Remark4", 9)
+	l.Remark4.CopyStatus(&m.Remark4)
+	m.InitRel()
+	l.List = append(l.List, m)
+	return m
+}
+
+func (l *GradeList) SetTotal(total int) {
+	l.Total = total
+}
+
+func (l *GradeList) GetTotal() int {
+	return l.Total
+}
+
+func (l *GradeList) Len() int {
+	return len(l.List)
+}
+
+func (l *GradeList) GetList() []nborm.Model {
+	modelList := make([]nborm.Model, 0, l.Len())
+	for _, m := range l.List {
+		modelList = append(modelList, m)
+	}
+	return modelList
+}
+
+func (l GradeList) MarshalJSON() ([]byte, error) {
+	bs := make([]byte, 0, 1024)
+	bs = append(bs, []byte("{")...)
+	ListB, err := json.MarshalIndent(l.List, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	ListB = append([]byte("\"List\": "), ListB...)
+	bs = append(bs, ListB...)
+	bs = append(bs, []byte(", ")...)
+	TotalB, err := json.MarshalIndent(l.Total, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	TotalB = append([]byte("\"Total\": "), TotalB...)
+	bs = append(bs, TotalB...)
+	bs = append(bs, []byte("}")...)
+	return bs, nil
+}
+
+func (l *GradeList) UnmarshalJSON(b []byte) error {
+	if string(b) == "[]" || string(b) == "null" {
+		return nil
+	}
+	jl := struct {
+		List  *[]*Grade
+		Total *int
+	}{
+		&l.List,
+		&l.Total,
+	}
+	return json.Unmarshal(b, &jl)
+}
+
+func (l *GradeList) UnmarshalMeta(b []byte) error {
+	if string(b) == "null" {
+		return nil
+	}
+	return json.Unmarshal(b, &l.Grade)
+}
+
+func (l *GradeList) Collapse() {
+	idx := l.checkDup()
+	if idx >= 0 {
+		l.List[idx].Classes.checkDup()
+		l.List[idx].Classes.List = append(l.List[idx].Classes.List, l.List[l.Len()-1].Classes.List...)
+		l.List = l.List[:len(l.List)-1]
+		l.List[idx].Collapse()
+	}
+}
+
+func (l *GradeList) Filter(f func(m *Grade) bool) []*Grade {
+	ll := make([]*Grade, 0, l.Len())
+	for _, m := range l.List {
+		if f(m) {
+			ll = append(ll, m)
+		}
+	}
+	return ll
+}
+
+func (l *GradeList) checkDup() int {
+	if l.Len() < 1 {
+		return -1
+	}
+	var builder strings.Builder
+	lastModel := l.List[l.Len()-1]
+	if lastModel.Id.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Id.AnyValue()))
+	}
+	if lastModel.GradeName.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GradeName.AnyValue()))
+	}
+	if lastModel.GradeCode.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.GradeCode.AnyValue()))
+	}
+	if lastModel.InsertDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.InsertDatetime.AnyValue()))
+	}
+	if lastModel.UpdateDatetime.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateDatetime.AnyValue()))
+	}
+	if lastModel.Status.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Status.AnyValue()))
+	}
+	if lastModel.Remark1.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark1.AnyValue()))
+	}
+	if lastModel.Remark2.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark2.AnyValue()))
+	}
+	if lastModel.Remark3.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark3.AnyValue()))
+	}
+	if lastModel.Remark4.IsValid() {
+		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark4.AnyValue()))
+	}
+	if idx, ok := l.dupMap[builder.String()]; ok {
+		return idx
+	}
+	l.dupMap[builder.String()] = l.Len() - 1
+	return -1
+}
+
+func (l *GradeList) Slice(low, high int) {
+	switch {
+	case high <= l.Len():
+		l.List = l.List[low:high]
+	case low <= l.Len() && high > l.Len():
+		l.List = l.List[low:]
+	default:
+		l.List = l.List[:0]
+	}
+}
+
+func (m *Grade) String() string {
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func (l *GradeList) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
+}
+
+type GradeCacheElem struct {
+	hashValue  string
+	model      *Grade
+	modifyTime time.Time
+}
+
+type GradeListCacheElem struct {
+	hashValue  string
+	list       *GradeList
+	modifyTime time.Time
+}
+
+type GradeCacheManager struct {
+	container map[string]*GradeCacheElem
+	query     chan string
+	in        chan *GradeCacheElem
+	out       chan *GradeCacheElem
+}
+
+type GradeListCacheManager struct {
+	container map[string]*GradeListCacheElem
+	query     chan string
+	in        chan *GradeListCacheElem
+	out       chan *GradeListCacheElem
+}
+
+func newGradeCacheManager() *GradeCacheManager {
+	return &GradeCacheManager{
+		make(map[string]*GradeCacheElem),
+		make(chan string),
+		make(chan *GradeCacheElem),
+		make(chan *GradeCacheElem),
+	}
+}
+
+func newGradeListCacheManager() *GradeListCacheManager {
+	return &GradeListCacheManager{
+		make(map[string]*GradeListCacheElem),
+		make(chan string),
+		make(chan *GradeListCacheElem),
+		make(chan *GradeListCacheElem),
+	}
+}
+
+func (mgr *GradeCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+func (mgr *GradeListCacheManager) run() {
+	for {
+		select {
+		case h := <-mgr.query:
+			mgr.out <- mgr.container[h]
+		case elem := <-mgr.in:
+			mgr.container[elem.hashValue] = elem
+		}
+	}
+}
+
+var GradeCache = newGradeCacheManager()
+
+var GradeListCache = newGradeListCacheManager()
+
+func (m *Grade) GetCache(hashVal string, timeout time.Duration) bool {
+	GradeCache.query <- hashVal
+	elem := <-GradeCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*m = *elem.model
+	return true
+}
+
+func (m *Grade) SetCache(hashValue string) {
+	GradeCache.in <- &GradeCacheElem{
+		hashValue,
+		m,
+		time.Now(),
+	}
+}
+
+func (l *GradeList) GetListCache(hashValue string, timeout time.Duration) bool {
+	GradeListCache.query <- hashValue
+	elem := <-GradeListCache.out
+	if elem == nil || time.Since(elem.modifyTime) > timeout {
+		return false
+	}
+	*l = *elem.list
+	return true
+}
+
+func (l *GradeList) SetListCache(hashValue string) {
+	GradeListCache.in <- &GradeListCacheElem{
+		hashValue,
+		l,
+		time.Now(),
+	}
+}
+
 func init() {
 	go UserCache.run()
 	go UserListCache.run()
 	go StudentbasicinfoCache.run()
 	go StudentbasicinfoListCache.run()
+	go ClassCache.run()
+	go ClassListCache.run()
+	go GradeCache.run()
+	go GradeListCache.run()
 }

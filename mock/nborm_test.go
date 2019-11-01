@@ -2,6 +2,7 @@ package mock_nborm
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -345,6 +346,157 @@ var tests = []test{
 				return
 			}
 			assert.Equal(t, u.Phone.AnyValue(), "13793148690", "phone is %s", u.Phone.AnyValue())
+		},
+	},
+	{
+		"triple table join",
+		func(t *testing.T) {
+			grade := model.NewGrade()
+			defer bulkDelete(t, grade)
+			gradecode := randString(16)
+			grade.GradeCode.SetString(gradecode)
+			grade.GradeName.SetString(gradecode)
+			if err := nborm.InsertOne(db, grade); err != nil {
+				t.Error(err)
+				return
+			}
+			class := model.NewClass()
+			defer bulkDelete(t, class)
+			classcode := randString(16)
+			class.ClassName.SetString(classcode)
+			class.ClassCode.SetString(classcode)
+			class.Grade.SetString(gradecode)
+			if err := nborm.InsertOne(db, class); err != nil {
+				t.Error(err)
+				return
+			}
+			info := model.NewStudentbasicinfo()
+			defer bulkDelete(t, info)
+			intelusercode := randString(16)
+			info.IntelUserCode.SetString(intelusercode)
+			info.Class.SetString(classcode)
+			if err := nborm.InsertOne(db, info); err != nil {
+				t.Error(err)
+				return
+			}
+			user := model.NewUser()
+			defer bulkDelete(t, user)
+			user.IntelUserCode.SetString(intelusercode)
+			if err := nborm.InsertOne(db, user); err != nil {
+				t.Error(err)
+				return
+			}
+			u := model.NewUser()
+			u.StudentClass.SetForJoin()
+			u.StudentClass.ClassCode.ForSelect()
+			u.IntelUserCode.AndWhereEq(intelusercode)
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, u.StudentClass.ClassCode.AnyValue(), classcode)
+		},
+	},
+	{
+		"back query",
+		func(t *testing.T) {
+			g := model.NewGrade()
+			defer bulkDelete(t, g)
+			gradecode := randString(16)
+			g.GradeName.SetString(gradecode)
+			g.GradeCode.SetString(gradecode)
+			if err := nborm.InsertOne(db, g); err != nil {
+				t.Error(err)
+				return
+			}
+			c := model.NewClass()
+			defer bulkDelete(t, c)
+			classcode := randString(16)
+			c.Grade.SetString(gradecode)
+			c.ClassName.SetString(classcode)
+			c.ClassCode.SetString(classcode)
+			if err := nborm.InsertOne(db, c); err != nil {
+				t.Error(err)
+				return
+			}
+			s := model.NewStudentbasicinfo()
+			defer bulkDelete(t, s)
+			for i := 0; i < 10; i++ {
+				s.Id.SetNull()
+				intelusercode := randString(16)
+				s.IntelUserCode.SetString(intelusercode)
+				s.Class.SetString(classcode)
+				if err := nborm.InsertOne(db, s); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+			c.SelectFields(&c.Id)
+			c.ClassCode.AndWhereEq(classcode)
+			if err := nborm.Query(db, c); err != nil {
+				t.Error(err)
+				return
+			}
+			c.Students.Id.ForSelect()
+			if err := nborm.BackQuery(db, c.Students); err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, c.Students.Len(), 10)
+		},
+	},
+	{
+		"unmarshal",
+		func(t *testing.T) {
+			u := model.NewUser()
+			b := []byte(`
+			{
+				"Name": "test",
+				"InsertDatetime": "2019-10-30 15:04:05"
+			}`)
+			if err := json.Unmarshal(b, u); err != nil {
+				t.Error(err)
+				return
+			}
+			y, m, d := u.InsertDatetime.AnyValue().Date()
+			assert.Assert(t, y == 2019 && m == 10 && d == 30)
+		},
+	},
+	{
+		"unmarshal list",
+		func(t *testing.T) {
+			us := model.NewUserList()
+			b := []byte(`
+			{
+				"List": [{
+					"Name": "test",
+					"InsertDatetime": "2019-10-30 15:04:05"
+				}],
+				"Total": 1
+			}`)
+			if err := json.Unmarshal(b, us); err != nil {
+				t.Error(err)
+				return
+			}
+			y, m, d := us.List[0].InsertDatetime.AnyValue().Date()
+			assert.Assert(t, y == 2019 && m == 10 && d == 30)
+		},
+	},
+	{
+		"unmarshal list meta",
+		func(t *testing.T) {
+			us := model.NewUserList()
+			b := []byte(`
+			{
+				"Name": "test",
+				"InsertDatetime": "2019-10-30 15:04:05"
+			}`)
+			if err := us.UnmarshalMeta(b); err != nil {
+				t.Error(err)
+				return
+			}
+			y, m, d := us.InsertDatetime.AnyValue().Date()
+			assert.Assert(t, y == 2019 && m == 10 && d == 30)
 		},
 	},
 }

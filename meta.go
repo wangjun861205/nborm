@@ -261,6 +261,11 @@ func (m *modelClause) SetLimit(limit, offset int) {
 }
 
 func (m *modelClause) appendSelector(s selector) {
+	for _, sel := range m.selectors.list {
+		if s == sel {
+			return
+		}
+	}
 	m.selectors.list = append(m.selectors.list, s)
 }
 
@@ -277,6 +282,11 @@ func (m *modelClause) getUpdates() updateList {
 }
 
 func (m *modelClause) appendUpdate(update *update) Model {
+	for _, u := range m.updates {
+		if u.field == update.field {
+			panic(fmt.Errorf("duplicated update for same column (%s)", update.field.(ValueField).rawFullColName()))
+		}
+	}
 	m.updates = append(m.updates, update)
 	return m
 }

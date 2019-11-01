@@ -499,6 +499,37 @@ var tests = []test{
 			assert.Assert(t, y == 2019 && m == 10 && d == 30)
 		},
 	},
+	{
+		"duplicate selector",
+		func(t *testing.T) {
+			u := model.NewUser()
+			count1 := u.IntAgg(nborm.NewExpr("COUNT(*)"), "count1")
+			count2 := u.IntAgg(nborm.NewExpr("COUNT(*)"), "count2")
+			u.SelectAll()
+			u.Id.ForSelect()
+			u.GroupBySelectedFields()
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+			fmt.Println(count1.AnyValue())
+			fmt.Println(count2.AnyValue())
+		},
+	},
+	{
+		"duplicate update",
+		func(t *testing.T) {
+			defer func() {
+				err := recover()
+				fmt.Println(err)
+				assert.Assert(t, err != nil)
+			}()
+			u := model.NewUser()
+			u.Name.Update("duplicate update")
+			u.Name.Update("panic")
+			t.Error("want panic")
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

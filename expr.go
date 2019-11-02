@@ -73,7 +73,7 @@ func (e *Expr) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstN
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
-
+					w.Write([]byte(string(r)))
 				} else {
 					quoteStack = append(quoteStack, r)
 					w.Write([]byte(string(r)))
@@ -220,7 +220,7 @@ func (e *Expr) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFir
 					if len(quoteStack) == 0 {
 						stat = normal
 					}
-
+					w.Write([]byte(string(r)))
 				} else {
 					quoteStack = append(quoteStack, r)
 					w.Write([]byte(string(r)))

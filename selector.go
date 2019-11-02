@@ -16,6 +16,7 @@ type selector interface {
 	clauser
 	sql.Scanner
 	toScan(m Model, selectors *[]interface{})
+	getField() Field
 }
 
 type selectorList struct {
@@ -67,4 +68,33 @@ func (l selectorList) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGr
 	}
 	l.list = l.list[1:]
 	l.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+type exprSelect struct {
+	field Field
+	expr  *Expr
+}
+
+func newExprSelect(f Field, expr *Expr) *exprSelect {
+	return &exprSelect{f, expr}
+}
+
+func (s *exprSelect) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	s.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (s *exprSelect) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	s.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func (s *exprSelect) Scan(v interface{}) error {
+	return s.field.Scan(v)
+}
+
+func (s *exprSelect) toScan(m Model, selectors *[]interface{}) {
+	s.field.toScan(m, selectors)
+}
+
+func (s *exprSelect) getField() Field {
+	return s.field
 }

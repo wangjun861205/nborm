@@ -27,6 +27,7 @@ type BaseField interface {
 	mustValid()
 	rawFullColName() string
 	fullColName() string
+	getField() Field
 	ForSelect()
 	ForSum()
 	getFieldIndex() int
@@ -55,10 +56,11 @@ const (
 
 type baseField struct {
 	Model
-	col    string
-	field  string
-	index  int
-	status fieldStatus
+	col        string
+	field      string
+	index      int
+	status     fieldStatus
+	selectExpr *Expr
 }
 
 func (f *baseField) init(model Model, colName, fieldName string, index int) {
@@ -156,8 +158,26 @@ func (f *baseField) rawFullColName() string {
 	return fmt.Sprintf("%s.`%s`", f.rawFullTabName(), f.col)
 }
 
+func (f *baseField) getField() Field {
+	return f.Model.FieldInfos()[f.index].Field
+}
+
 func (f *baseField) ForSelect() {
+	for _, s := range f.getSelectors().list {
+		if s.getField() == f.getField() {
+			return
+		}
+	}
 	f.appendSelector(f.Model.FieldInfos()[f.index].Field)
+}
+
+func (f *baseField) ForExprSelect(expr *Expr) {
+	for _, s := range f.getSelectors().list {
+		if s.getField() == f.getField() {
+			return
+		}
+	}
+	f.appendSelector(newExprSelect(f.Model.FieldInfos()[f.index].Field, expr))
 }
 
 func (f *baseField) getFieldIndex() int {

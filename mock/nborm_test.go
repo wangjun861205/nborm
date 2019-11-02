@@ -544,6 +544,26 @@ var tests = []test{
 			}
 		},
 	},
+	{
+		"expr select",
+		func(t *testing.T) {
+			u := model.NewUser()
+			defer bulkDelete(t, u)
+			if err := bulkInsert(u, 10); err != nil {
+				t.Error(err)
+				return
+			}
+			us := model.NewUserList()
+			us.Name.ForExprSelect(nborm.NewExpr("CONCAT(@, 'hello', 'world')", &us.Name))
+			if err := nborm.Query(db, us); err != nil {
+				t.Error(err)
+				return
+			}
+			for _, u := range us.List {
+				fmt.Println(u.Name.AnyValue())
+			}
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

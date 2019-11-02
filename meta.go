@@ -470,6 +470,11 @@ func (m *modelClause) getGroupBys() groupByList {
 }
 
 func (m *modelClause) appendGroupBys(ref referencer) {
+	for _, g := range m.groupBys {
+		if g.referencer == ref {
+			return
+		}
+	}
 	m.groupBys = append(m.groupBys, &groupBy{ref})
 }
 

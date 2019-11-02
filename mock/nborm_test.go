@@ -530,6 +530,20 @@ var tests = []test{
 			t.Error("want panic")
 		},
 	},
+	{
+		"duplicate group by",
+		func(t *testing.T) {
+			u := model.NewUser()
+			u.SelectAll()
+			u.IntAgg(nborm.NewExpr("COUNT(*)"), "count")
+			u.GroupBySelectedFields()
+			u.GroupBySelectedFields()
+			if err := nborm.Query(db, u); err != nil {
+				t.Error(err)
+				return
+			}
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

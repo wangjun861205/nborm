@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -313,4 +314,27 @@ func (l aggList) copy() aggList {
 
 	}
 	return nl
+}
+
+func (l aggList) forCheckDup() string {
+	var builder strings.Builder
+	for _, agg := range l {
+		switch a := agg.(type) {
+		case *StrAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		case *IntAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		case *DateAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		case *DatetimeAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		case *TimeAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		case *DecimalAgg:
+			builder.WriteString(fmt.Sprintf("%v", a.AnyValue()))
+		default:
+			panic(fmt.Errorf("unsupported field type (%T)", agg))
+		}
+	}
+	return builder.String()
 }

@@ -452,6 +452,10 @@ func (m *modelClause) SelectForUpdate() Model {
 	return m
 }
 
+func (m *modelClause) AggCheckDup() string {
+	return m.aggs.forCheckDup()
+}
+
 // Meta Model的元信息
 type Meta struct {
 	modelBaseInfo

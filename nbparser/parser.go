@@ -770,6 +770,7 @@ func (m *ModelInfo) listCheckDupFunc() string {
 				builder.WriteString(fmt.Sprintf("%v", lastModel.{{ f.Field }}.AnyValue()))
 			}
 		{{ endfor }}
+		builder.WriteString(lastModel.AggCheckDup())
 		if idx, ok := l.dupMap[builder.String()]; ok {
 			return idx
 		}

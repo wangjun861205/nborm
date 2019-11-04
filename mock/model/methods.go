@@ -374,6 +374,7 @@ func (l *EmployAccountList) checkDup() int {
 	if lastModel.UpdateTime.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.AnyValue()))
 	}
+	builder.WriteString(lastModel.AggCheckDup())
 	if idx, ok := l.dupMap[builder.String()]; ok {
 		return idx
 	}
@@ -1121,6 +1122,7 @@ func (l *EmployEnterpriseList) checkDup() int {
 	if lastModel.UpdateTime.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.UpdateTime.AnyValue()))
 	}
+	builder.WriteString(lastModel.AggCheckDup())
 	if idx, ok := l.dupMap[builder.String()]; ok {
 		return idx
 	}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 )
 
@@ -262,7 +263,19 @@ func valToPlaceholder(val interface{}) string {
 	case []Field:
 		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
 	default:
-		panic("unsupported value type to convert to placeholder")
+		// panic("unsupported value type to convert to placeholder")
+		refVal := reflect.ValueOf(val)
+		switch refVal.Kind() {
+		case reflect.Int, reflect.Uint, reflect.Int8, reflect.Int16, reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
+			return "?"
+		case reflect.Array:
+			return strings.TrimSuffix(strings.Repeat("?, ", refVal.Len()), ", ")
+		case reflect.Slice:
+			return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", refVal.Len()), ", "))
+		default:
+			panic("unsupported value type to convert to placeholder")
+		}
 	}
 }
 
@@ -327,7 +340,23 @@ func expandArg(val interface{}) (values []interface{}) {
 			values = append(values, ev.value())
 		}
 	default:
-		panic("unsupported value type to convert to placeholder")
+		// panic("unsupported value type to convert to placeholder")
+		refVal := reflect.ValueOf(val)
+		switch refVal.Kind() {
+		case reflect.Int, reflect.Uint, reflect.Int8, reflect.Int16, reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
+			values = append(values, refVal.Interface())
+		case reflect.Array:
+			for i := 0; i < refVal.Len(); i++ {
+				values = append(values, refVal.Index(i).Interface())
+			}
+		case reflect.Slice:
+			for i := 0; i < refVal.Len(); i++ {
+				values = append(values, refVal.Index(i).Interface())
+			}
+		default:
+			panic("unsupported value type to convert to placeholder")
+		}
 	}
 	return
 }

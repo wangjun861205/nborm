@@ -270,6 +270,9 @@ func parseRelation(tag string) error {
 				} else {
 					panic(fmt.Errorf("invalid rel tag(%s)", tag))
 				}
+			case field:
+				statStack = append(statStack, on)
+				builder.WriteRune(r)
 			default:
 				panic(fmt.Errorf("invalid rel tag(%s)", tag))
 			}

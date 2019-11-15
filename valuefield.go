@@ -235,7 +235,7 @@ func (f intValueField) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("%d", f.val)), nil
 }
 
-func (f intValueField) UnmarshalJSON(b []byte) error {
+func (f *intValueField) UnmarshalJSON(b []byte) error {
 	f.addStatus(valid)
 	if string(b) == "null" {
 		f.SetNull()

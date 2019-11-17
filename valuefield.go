@@ -3,6 +3,7 @@ package nborm
 import (
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type ValueField interface {
 	toScan(m Model, selectors *[]interface{})
 	set(v interface{}) ValueField
 	update(v interface{}) ValueField
+	setByReq(req *http.Request) error
 }
 
 type stringValueField struct {
@@ -24,8 +26,8 @@ type stringValueField struct {
 	exp *Expr
 }
 
-func (f *stringValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *stringValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *stringValueField) String() string {
@@ -133,14 +135,26 @@ func (f *stringValueField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (f *stringValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		f.SetString(m[key][0])
+	}
+	return nil
+}
+
 type intValueField struct {
 	baseField
 	val int
 	exp *Expr
 }
 
-func (f *intValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *intValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *intValueField) String() string {
@@ -250,6 +264,22 @@ func (f *intValueField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (f *intValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		i64, err := strconv.ParseInt(m[key][0], 10, 64)
+		if err != nil {
+			return err
+		}
+		f.SetInt(int(i64))
+	}
+	return nil
+}
+
 func (f *intValueField) AnyValue() int {
 	return f.val
 }
@@ -260,8 +290,8 @@ type dateValueField struct {
 	exp *Expr
 }
 
-func (f *dateValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *dateValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *dateValueField) String() string {
@@ -386,6 +416,26 @@ func (f *dateValueField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (f *dateValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		if t, err := time.ParseInLocation("2006-01-02", m[key][0], time.Local); err == nil {
+			f.SetDate(t)
+			return nil
+		}
+		it, err := strconv.ParseInt(m[key][0], 10, 64)
+		if err != nil {
+			return err
+		}
+		f.SetDate(time.Unix(it, 0))
+	}
+	return nil
+}
+
 func (f *dateValueField) AnyValue() time.Time {
 	return f.val
 }
@@ -396,8 +446,8 @@ type datetimeValueField struct {
 	exp *Expr
 }
 
-func (f *datetimeValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *datetimeValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *datetimeValueField) String() string {
@@ -520,7 +570,26 @@ func (f *datetimeValueField) UnmarshalJSON(b []byte) error {
 	f.unsetNull()
 	f.val = time.Unix(ti, 0)
 	return nil
+}
 
+func (f *datetimeValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", m[key][0], time.Local); err == nil {
+			f.SetDatetime(t)
+			return nil
+		}
+		ti, err := strconv.ParseInt(m[key][0], 10, 64)
+		if err != nil {
+			return err
+		}
+		f.SetDatetime(time.Unix(ti, 0))
+	}
+	return nil
 }
 
 func (f *datetimeValueField) AnyValue() time.Time {
@@ -533,8 +602,8 @@ type timeValueField struct {
 	exp *Expr
 }
 
-func (f *timeValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *timeValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *timeValueField) String() string {
@@ -663,14 +732,34 @@ func (f *timeValueField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (f *timeValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		if t, err := time.ParseInLocation("15:04:05", m[key][0], time.Local); err == nil {
+			f.SetTime(t)
+			return nil
+		}
+		ti, err := strconv.ParseInt(m[key][0], 10, 64)
+		if err != nil {
+			return err
+		}
+		f.SetTime(time.Unix(ti, 0))
+	}
+	return nil
+}
+
 type decimalValueField struct {
 	baseField
 	val float64
 	exp *Expr
 }
 
-func (f *decimalValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *decimalValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *decimalValueField) String() string {
@@ -785,6 +874,22 @@ func (f *decimalValueField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (f *decimalValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		val, err := strconv.ParseFloat(m[key][0], 64)
+		if err != nil {
+			return err
+		}
+		f.SetDecimal(val)
+	}
+	return nil
+}
+
 func (f *decimalValueField) AnyValue() float64 {
 	return f.val
 }
@@ -795,8 +900,8 @@ type byteValueField struct {
 	exp *Expr
 }
 
-func (f *byteValueField) init(model Model, colName, fieldName string, index int) {
-	f.baseField.init(model, colName, fieldName, index)
+func (f *byteValueField) init(model Model, colName, fieldName, formName string, index int) {
+	f.baseField.init(model, colName, fieldName, formName, index)
 }
 
 func (f *byteValueField) String() string {
@@ -893,4 +998,20 @@ func (f byteValueField) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return []byte(fmt.Sprintf("%x", f.val)), nil
+}
+
+func (f *byteValueField) setByReq(req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	m := map[string][]string(req.Form)
+	key := f.formName()
+	if len(m[key]) > 0 {
+		val, err := hex.DecodeString(m[key][0])
+		if err != nil {
+			return err
+		}
+		f.SetBytes(val)
+	}
+	return nil
 }

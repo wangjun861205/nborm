@@ -5,7 +5,7 @@ type Field interface {
 	ClauseField
 	ValueField
 	dup() Field
-	Init(Model, string, string, int)
+	Init(Model Model, colName, fieldName, formName string, index int)
 }
 
 // FieldInfo Field的基本信息
@@ -29,11 +29,11 @@ type String struct {
 }
 
 // Init 初始化方法
-func (f *String) Init(model Model, colName, fieldName string, index int) {
+func (f *String) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.stringValueField
 	}
-	f.stringValueField.init(model, colName, fieldName, index)
+	f.stringValueField.init(model, colName, fieldName, formName, index)
 }
 
 // String 实现Stringer接口
@@ -55,11 +55,11 @@ type Int struct {
 }
 
 // Init 初始化方法
-func (f *Int) Init(model Model, colName, fieldName string, index int) {
+func (f *Int) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.intValueField
 	}
-	f.intValueField.init(model, colName, fieldName, index)
+	f.intValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Int) String() string {
@@ -80,11 +80,11 @@ type Date struct {
 }
 
 // Init 初始化方法
-func (f *Date) Init(model Model, colName, fieldName string, index int) {
+func (f *Date) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.dateValueField
 	}
-	f.dateValueField.init(model, colName, fieldName, index)
+	f.dateValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Date) String() string {
@@ -105,11 +105,11 @@ type Datetime struct {
 }
 
 // Init 初始化方法
-func (f *Datetime) Init(model Model, colName, fieldName string, index int) {
+func (f *Datetime) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.datetimeValueField
 	}
-	f.datetimeValueField.init(model, colName, fieldName, index)
+	f.datetimeValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Datetime) String() string {
@@ -130,11 +130,11 @@ type Decimal struct {
 }
 
 // Init 初始化方法
-func (f *Decimal) Init(model Model, colName, fieldName string, index int) {
+func (f *Decimal) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.decimalValueField
 	}
-	f.decimalValueField.init(model, colName, fieldName, index)
+	f.decimalValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Decimal) String() string {
@@ -155,11 +155,11 @@ type Time struct {
 }
 
 // Init 初始化方法
-func (f *Time) Init(model Model, colName, fieldName string, index int) {
+func (f *Time) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.timeValueField
 	}
-	f.timeValueField.init(model, colName, fieldName, index)
+	f.timeValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Time) String() string {
@@ -178,11 +178,11 @@ type Bytes struct {
 }
 
 // Init 初始化方法
-func (f *Bytes) Init(model Model, colName, fieldName string, index int) {
+func (f *Bytes) Init(model Model, colName, fieldName, formName string, index int) {
 	f.clauseField.valueField = func() ValueField {
 		return &f.byteValueField
 	}
-	f.byteValueField.init(model, colName, fieldName, index)
+	f.byteValueField.init(model, colName, fieldName, formName, index)
 }
 
 func (f Bytes) String() string {

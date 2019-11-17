@@ -33,6 +33,7 @@ var pkRe = regexp.MustCompile(`(?m)pk:([0-9a-zA-Z,]+)$`)
 var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
+var formRe = regexp.MustCompile(`form:"(\w+)`)
 
 var relWholeRe = regexp.MustCompile(`rel:"(.*?)"`)
 var relModelRe = regexp.MustCompile(`@([\w@\$]+)\[(.+?)\](?:->|$)`)
@@ -290,8 +291,6 @@ func parseRelation(tag string) error {
 			case modelIndex:
 				if statStack[len(statStack)-3] == on {
 					statStack = append(statStack, field)
-					lastElem := info.Elems[len(info.Elems)-1]
-					lastElem.Fields = append(lastElem.Fields, new(RelField))
 					builder.WriteRune(r)
 				} else {
 					panic(fmt.Errorf("invalid rel tag(%s)", tag))
@@ -313,7 +312,7 @@ func parseRelation(tag string) error {
 			case value, quote:
 				builder.WriteRune(r)
 			case modelIndex:
-				switch statStack[len(statStack)-2] {
+				switch statStack[len(statStack)-3] {
 				case neutral:
 					lastElem := info.Elems[len(info.Elems)-1]
 					lastElem.DstModel.ModelName += string(r)
@@ -394,6 +393,7 @@ type FieldInfo struct {
 	Col   string
 	Field string
 	IsInc bool
+	Form  string
 }
 
 type MidWhere struct {
@@ -511,7 +511,7 @@ func (m *ModelInfo) newModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
 		{{ endfor }}
 		m.InitRel()
 		return m
@@ -529,7 +529,7 @@ func (m *ModelInfo) newSubModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
 		{{ endfor }}
 		return m
 	}
@@ -810,7 +810,7 @@ func (m *ModelInfo) newListFunc() string {
 		}
 		l.Init(l, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
 		{{ endfor }}
 		l.InitRel()
 		return l
@@ -833,7 +833,7 @@ func (m *ModelInfo) newSubListFunc() string {
 		}
 		l.Init(l, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
 		{{ endfor }}
 		return l
 	}
@@ -851,7 +851,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 		m.Init(m, nil, l)
 		l.CopyAggs(m)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
 			l.{{ field.Field }}.CopyStatus(&m.{{ field.Field }})
 		{{ endfor }}
 		m.InitRel()
@@ -1336,6 +1336,12 @@ func parseFieldTag(field, tag string) error {
 		lastField.Col = field
 	} else {
 		lastField.Col = colGroup[1]
+	}
+	formGroup := formRe.FindStringSubmatch(tag)
+	if len(formGroup) != 2 {
+		lastField.Form = field
+	} else {
+		lastField.Form = formGroup[1]
 	}
 	lastField.IsInc = incRe.MatchString(tag)
 	return nil
@@ -1882,7 +1888,7 @@ func createFile(tables []*Table) string {
 		type {{ tab.ModelName }} struct {
 			nborm.Meta
 			{{ for _, col in tab.Columns }}
-				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }} form:\"{{ col.Name }}\"`"+`
 			{{ endfor }}
 		}
 	{{ endfor }}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 )
 
 type modelStatus int
@@ -562,6 +563,15 @@ func (m *modelClause) UAll() Model {
 		}
 	}
 	return m
+}
+
+func (m *modelClause) FromReq(req *http.Request) error {
+	for _, fieldInfo := range m.FieldInfos() {
+		if err := fieldInfo.Field.setByReq(req); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Meta Model的元信息

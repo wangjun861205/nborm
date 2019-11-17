@@ -26,7 +26,7 @@ type IntAgg struct {
 
 func newIntAgg(expr *Expr, name string) *IntAgg {
 	f := new(Int)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &IntAgg{expr, name, f}
 }
 
@@ -98,7 +98,7 @@ type StrAgg struct {
 
 func newStrAgg(expr *Expr, name string) *StrAgg {
 	f := new(String)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &StrAgg{expr, name, f}
 }
 
@@ -170,7 +170,7 @@ type DateAgg struct {
 
 func newDateAgg(expr *Expr, name string) *DateAgg {
 	f := new(Date)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &DateAgg{expr, name, f}
 }
 
@@ -242,7 +242,7 @@ type DatetimeAgg struct {
 
 func newDatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	f := new(Datetime)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &DatetimeAgg{expr, name, f}
 }
 
@@ -314,7 +314,7 @@ type TimeAgg struct {
 
 func newTimeAgg(expr *Expr, name string) *TimeAgg {
 	f := new(Time)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &TimeAgg{expr, name, f}
 }
 
@@ -386,7 +386,7 @@ type DecimalAgg struct {
 
 func newDecAgg(expr *Expr, name string) *DecimalAgg {
 	f := new(Decimal)
-	f.Init(nil, name, "", -1)
+	f.Init(nil, name, "", "", -1)
 	return &DecimalAgg{expr, name, f}
 }
 

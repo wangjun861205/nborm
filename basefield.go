@@ -12,6 +12,7 @@ type BaseField interface {
 	colName() string
 	setCol(string)
 	fieldName() string
+	formName() string
 	setField(string)
 	getStatus() fieldStatus
 	setStatus(fieldStatus)
@@ -58,15 +59,17 @@ type baseField struct {
 	Model
 	col        string
 	field      string
+	form       string
 	index      int
 	status     fieldStatus
 	selectExpr *Expr
 }
 
-func (f *baseField) init(model Model, colName, fieldName string, index int) {
+func (f *baseField) init(model Model, colName, fieldName, form string, index int) {
 	f.Model = model
 	f.col = colName
 	f.field = fieldName
+	f.form = form
 	f.index = index
 }
 
@@ -80,6 +83,10 @@ func (f *baseField) setCol(col string) {
 
 func (f *baseField) fieldName() string {
 	return f.field
+}
+
+func (f *baseField) formName() string {
+	return f.form
 }
 
 func (f *baseField) setField(field string) {

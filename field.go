@@ -41,6 +41,10 @@ func (f String) String() string {
 	return f.stringValueField.String()
 }
 
+func (f *String) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
+}
+
 func (f *String) dup() Field {
 	nf := *f
 	return &nf
@@ -64,6 +68,10 @@ func (f *Int) Init(model Model, colName, fieldName, formName string, index int) 
 
 func (f Int) String() string {
 	return f.intValueField.String()
+}
+
+func (f *Int) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
 }
 
 func (f *Int) dup() Field {
@@ -91,6 +99,10 @@ func (f Date) String() string {
 	return f.dateValueField.String()
 }
 
+func (f *Date) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
+}
+
 func (f *Date) dup() Field {
 	nf := *f
 	return &nf
@@ -114,6 +126,10 @@ func (f *Datetime) Init(model Model, colName, fieldName, formName string, index 
 
 func (f Datetime) String() string {
 	return f.datetimeValueField.String()
+}
+
+func (f *Datetime) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
 }
 
 func (f *Datetime) dup() Field {
@@ -141,6 +157,10 @@ func (f Decimal) String() string {
 	return f.decimalValueField.String()
 }
 
+func (f *Decimal) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
+}
+
 func (f *Decimal) dup() Field {
 	nf := *f
 	return &nf
@@ -166,6 +186,10 @@ func (f Time) String() string {
 	return f.timeValueField.String()
 }
 
+func (f *Time) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
+}
+
 func (f *Time) dup() Field {
 	nf := *f
 	return &nf
@@ -187,6 +211,10 @@ func (f *Bytes) Init(model Model, colName, fieldName, formName string, index int
 
 func (f Bytes) String() string {
 	return f.byteValueField.String()
+}
+
+func (f *Bytes) sqlLiteral() string {
+	return f.clauseField.sqlLiteral()
 }
 
 func (f *Bytes) dup() Field {

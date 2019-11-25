@@ -574,6 +574,26 @@ func (m *modelClause) FromReq(req *http.Request) error {
 	return nil
 }
 
+func (m *modelClause) ClearWhere() Model {
+	m.wheres = nil
+	for _, info := range m.relations() {
+		if info.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			info.lastModel().(*modelClause).ClearWhere()
+		}
+	}
+	return m
+}
+
+func (m *modelClause) ClearSelect() Model {
+	m.selectors = selectorList{0, make([]selector, 0, 8)}
+	for _, info := range m.relations() {
+		if info.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			info.lastModel().(*modelClause).ClearSelect()
+		}
+	}
+	return m
+}
+
 // Meta Model的元信息
 type Meta struct {
 	modelBaseInfo

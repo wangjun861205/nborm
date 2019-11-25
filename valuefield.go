@@ -18,6 +18,8 @@ type ValueField interface {
 	set(v interface{}) ValueField
 	update(v interface{}) ValueField
 	setByReq(req *http.Request) error
+	sqlLiteral() string
+	getExpr() *Expr
 }
 
 type stringValueField struct {
@@ -86,8 +88,23 @@ func (f *stringValueField) value() *Expr {
 	return NewExpr("?", f.val)
 }
 
+func (f *stringValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`"%s"`, f.val)
+}
+
 func (f *stringValueField) AnyValue() string {
 	return f.val
+}
+
+func (f *stringValueField) getExpr() *Expr {
+	return f.exp
 }
 
 func (f *stringValueField) SetExpr(exp *Expr) *stringValueField {
@@ -208,12 +225,27 @@ func (f *intValueField) value() *Expr {
 	return NewExpr("?", f.val)
 }
 
+func (f *intValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`%d`, f.val)
+}
+
 func (f *intValueField) Value() (int, bool) {
 	f.mustValid()
 	if f.IsNull() {
 		return 0, true
 	}
 	return f.val, false
+}
+
+func (f *intValueField) getExpr() *Expr {
+	return f.exp
 }
 
 func (f *intValueField) SetExpr(exp *Expr) *intValueField {
@@ -357,6 +389,21 @@ func (f *dateValueField) value() *Expr {
 		return f.exp
 	}
 	return NewExpr("?", f.val.In(time.Local).Format("2006-01-02"))
+}
+
+func (f *dateValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`"%s"`, f.val.Format("2006-01-02"))
+}
+
+func (f *dateValueField) getExpr() *Expr {
+	return f.exp
 }
 
 func (f *dateValueField) SetExpr(exp *Expr) *dateValueField {
@@ -515,6 +562,21 @@ func (f *datetimeValueField) value() *Expr {
 	return NewExpr("?", f.val.In(time.Local).Format("2006-01-02 15:04:05"))
 }
 
+func (f *datetimeValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`"%s"`, f.val.Format("2006-01-02 15:04:05"))
+}
+
+func (f *datetimeValueField) getExpr() *Expr {
+	return f.exp
+}
+
 func (f *datetimeValueField) SetExpr(exp *Expr) *datetimeValueField {
 	f.setValid()
 	f.unsetNull()
@@ -671,8 +733,23 @@ func (f *timeValueField) value() *Expr {
 	return NewExpr("?", f.val.In(time.Local).Format("15:04:05"))
 }
 
+func (f *timeValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`"%s"`, f.val.Format("15:04:05"))
+}
+
 func (f *timeValueField) AnyValue() time.Time {
 	return f.val
+}
+
+func (f *timeValueField) getExpr() *Expr {
+	return f.exp
 }
 
 func (f *timeValueField) SetExpr(exp *Expr) *timeValueField {
@@ -823,6 +900,21 @@ func (f *decimalValueField) value() *Expr {
 	return NewExpr("?", f.val)
 }
 
+func (f *decimalValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`%f`, f.val)
+}
+
+func (f *decimalValueField) getExpr() *Expr {
+	return f.exp
+}
+
 func (f *decimalValueField) SetExpr(exp *Expr) *decimalValueField {
 	f.setValid()
 	f.unsetNull()
@@ -963,8 +1055,23 @@ func (f *byteValueField) value() *Expr {
 	return NewExpr("?", fmt.Sprintf("x'%x'", f.val))
 }
 
+func (f *byteValueField) sqlLiteral() string {
+	f.mustValid()
+	if f.IsNull() {
+		return "NULL"
+	}
+	if f.exp != nil {
+		return f.exp.exp
+	}
+	return fmt.Sprintf(`x"%x"`, f.val)
+}
+
 func (f *byteValueField) AnyValue() []byte {
 	return f.val
+}
+
+func (f *byteValueField) getExpr() *Expr {
+	return f.exp
 }
 
 func (f *byteValueField) SetExpr(exp *Expr) *byteValueField {

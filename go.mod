@@ -12,16 +12,18 @@ require (
 	github.com/antlinker/taskpool v0.0.0-20160907102619-5a9cbac47a81 // indirect
 	github.com/astaxie/beego v1.12.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.3.1 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/kavu/go_reuseport v1.4.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/satori/go.uuid v1.2.0
+	github.com/spf13/afero v1.2.2 // indirect
 	github.com/wangjun861205/nbcolor v0.0.0-20190419023604-8a3a6415b243
 	github.com/wangjun861205/nbfmt v1.0.0
+	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20160220154919-db14e161995a // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/olivere/elastic.v3 v3.0.75 // indirect
 	gopkg.in/redis.v3 v3.6.4 // indirect
-	gotest.tools v2.2.0+incompatible
+	gotest.tools v2.2.0+incompatible // indirect
 )

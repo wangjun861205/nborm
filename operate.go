@@ -1,13 +1,18 @@
 package nborm
 
 import (
+	"bufio"
 	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+	"path"
+
 	"strings"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/wangjun861205/nbcolor"
 )
 
@@ -62,6 +67,80 @@ func InsertOne(exe Executor, model Model) error {
 		model.AutoIncField().set(int(lid))
 	}
 	model.addModelStatus(synced)
+	return nil
+}
+
+func BulkInsert(exe Executor, models []Model) error {
+	var needCommit bool
+	if ex, ok := exe.(*sql.DB); ok {
+		var err error
+		if exe, err = ex.Begin(); err != nil {
+			return err
+		}
+		needCommit = true
+	}
+	var builder strings.Builder
+	values := make([][]interface{}, 0, 100000)
+	genBulkInsertStmt(models, &builder, &values)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(builder.String()))
+	}
+	stmt, err := exe.(*sql.Tx).Prepare(builder.String())
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for i, vals := range values {
+		// fmt.Println(nbcolor.Green(fmt.Sprintf("%v", vals)))
+		res, err := stmt.Exec(vals...)
+		if err != nil {
+			if needCommit {
+				exe.(*sql.Tx).Rollback()
+				return err
+			}
+			return err
+		}
+		if models[i].AutoIncField() != nil {
+			lid, err := res.LastInsertId()
+			if err != nil {
+				return err
+			}
+			models[i].AutoIncField().set(int(lid))
+			models[i].addModelStatus(synced)
+		}
+	}
+	if needCommit {
+		return exe.(*sql.Tx).Commit()
+	}
+	return nil
+}
+
+func LoadDateInfile(exe Executor, models []Model) error {
+	filename := fmt.Sprintf("%s.csv", uuid.NewV1().String())
+	tempFile, err := os.OpenFile(path.Join("/var/lib/mysql-files", filename), os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		return err
+	}
+	fileWriter := bufio.NewWriterSize(tempFile, 1<<28)
+	var builder strings.Builder
+	genLoadDataInfileStmt(models, &builder, fileWriter, path.Join("/var/lib/mysql-files", filename))
+	if DEBUG {
+		fmt.Println(nbcolor.Green(builder.String()))
+	}
+	bufSize := fileWriter.Buffered()
+	if err := fileWriter.Flush(); err != nil {
+		return err
+	}
+	tempFile.Truncate(int64(bufSize))
+	if err := tempFile.Sync(); err != nil {
+		return err
+	}
+	if err := tempFile.Close(); err != nil {
+		return err
+	}
+	if _, err := exe.Exec(builder.String()); err != nil {
+		return err
+	}
 	return nil
 }
 

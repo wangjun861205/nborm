@@ -10,7 +10,7 @@ type ClauseField interface {
 	// AndW() ClauseField
 	// AndWhere(string, interface{}) ClauseField
 	// OrWhere(string, interface{}) ClauseField
-	U() ClauseField
+	U() error
 	// Update(interface{}) ClauseField
 	toInsert(inserts *insertList)
 }
@@ -20,23 +20,396 @@ type clauseField struct {
 }
 
 // AndW 按自身值来生成And Where
-func (f *clauseField) AndW() ClauseField {
+func (f *clauseField) AndW() error {
 	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
 	valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWEq() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWNeq() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWGt() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWGte() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWLt() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWLte() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWLike() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	return nil
+}
+
+func (f *clauseField) AndWNotLike() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ NOT LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	return nil
+}
+
+func (f *clauseField) AndWIs() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) AndWNotIs() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.AndExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OpAndW() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWEq() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWNeq() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWGt() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWGte() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWLt() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWLte() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWLike() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWNotLike() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ NOT LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWIs() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpAndWNotIs() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.AndExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
+	}
 	return f
 }
 
 // OrW 按自身值来生成Or Where
-func (f *clauseField) OrW() ClauseField {
+func (f *clauseField) OrW() error {
 	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
 	valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWEq() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWNeq() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWGt() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWGte() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWLt() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWLte() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWLike() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	return nil
+}
+
+func (f *clauseField) OrWNotLike() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ NOT LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
+	return nil
+}
+
+func (f *clauseField) OrWIs() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OrWNotIs() error {
+	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
+	valueField.OrExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OpOrW() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWEq() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWNeq() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWGt() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWGte() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWLt() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWLte() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWLike() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ LIKE %%?%%", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWNotLike() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ NOT LIKE %%?%%", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWIs() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
+	}
+	return f
+}
+
+func (f *clauseField) OpOrWNotIs() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.OrExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
+	}
 	return f
 }
 
 // U 按自身值来生成更新表达式
-func (f *clauseField) U() ClauseField {
+func (f *clauseField) U() error {
 	valueField := f.valueField()
+	if !valueField.IsValid() {
+		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+	}
 	valueField.ExprUpdate(valueField, NewExpr("?", valueField.value()))
+	return nil
+}
+
+func (f *clauseField) OpU() ClauseField {
+	valueField := f.valueField()
+	if valueField.IsValid() {
+		valueField.ExprUpdate(valueField, NewExpr("?", valueField.value()))
+	}
 	return f
 }
 
@@ -556,4 +929,8 @@ func (f *clauseField) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup
 func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	w.Write([]byte(f.valueField().rawFullColName()))
 	w.Write([]byte(" "))
+}
+
+func (f *clauseField) sqlLiteral() string {
+	return f.valueField().sqlLiteral()
 }

@@ -337,6 +337,10 @@ func (e *Expr) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirstGroup,
 	w.Write([]byte(" "))
 }
 
+func (e *Expr) sqlLiteral() string {
+	return e.exp
+}
+
 // exprList 自定义sql表达式列表类型
 type exprList []*Expr
 

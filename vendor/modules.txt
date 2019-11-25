@@ -1,0 +1,10 @@
+# github.com/go-sql-driver/mysql v1.4.1
+github.com/go-sql-driver/mysql
+# github.com/satori/go.uuid v1.2.0
+github.com/satori/go.uuid
+# github.com/wangjun861205/nbcolor v0.0.0-20190419023604-8a3a6415b243
+github.com/wangjun861205/nbcolor
+# github.com/wangjun861205/nbfmt v1.0.0
+github.com/wangjun861205/nbfmt
+# google.golang.org/appengine v1.6.5
+google.golang.org/appengine/cloudsql

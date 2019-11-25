@@ -2,6 +2,7 @@ package nborm
 
 import (
 	"io"
+	"strings"
 )
 
 func genFlags() (*bool, *bool, func()) {
@@ -18,6 +19,59 @@ func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	inserts := model.getInserts()
 	isFirstGroup, isFirstNode, _ := genFlags()
 	inserts.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func genBulkInsertStmt(models []Model, w io.Writer, vals *[][]interface{}) {
+	fakeVals := make([]interface{}, 0, 8)
+	w.Write([]byte("INSERT INTO "))
+	w.Write([]byte(models[0].rawFullTabName()))
+	inserts := models[0].getInserts()
+	isFirstGroup, isFirstNode, reset := genFlags()
+	inserts.toSimpleRefClause(w, &fakeVals, isFirstGroup, isFirstNode)
+	w.Write([]byte(") "))
+	reset()
+	inserts.toValueListClause(w, &fakeVals, isFirstGroup, isFirstNode)
+	w.Write([]byte(")"))
+	for _, m := range models {
+		var fakeBuilder strings.Builder
+		fg, fn, _ := genFlags()
+		vs := make([]interface{}, 0, 8)
+		inserts := m.getInserts()
+		for _, inst := range inserts {
+			inst.value.toClause(&fakeBuilder, &vs, fg, fn)
+		}
+		*vals = append(*vals, vs)
+	}
+}
+
+func genLoadDataInfileStmt(models []Model, w io.Writer, fw io.Writer, filename string) {
+	w.Write([]byte("LOAD DATA INFILE '"))
+	w.Write([]byte(filename))
+	w.Write([]byte("' INTO TABLE "))
+	w.Write([]byte(models[0].rawFullTabName()))
+	w.Write([]byte(` FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS `))
+	inserts := models[0].getInserts()
+	vals := make([]interface{}, 0, 8)
+	fg, fn, reset := genFlags()
+	inserts.toSimpleRefClause(w, &vals, fg, fn)
+	w.Write([]byte(") "))
+	reset()
+	for _, inst := range inserts {
+		inst.toLoadDataExpr(w, &vals, fg, fn)
+	}
+	reset()
+	for _, inst := range inserts {
+		inst.toCSVColName(fw, &vals, fg, fn)
+	}
+	fw.Write([]byte("\n"))
+	for _, m := range models {
+		insts := m.getInserts()
+		reset()
+		for _, inst := range insts {
+			inst.toCSVVal(fw, &vals, fg, fn)
+		}
+		fw.Write([]byte("\n"))
+	}
 }
 
 func genInsertOrUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {

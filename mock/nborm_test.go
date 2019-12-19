@@ -2,6 +2,8 @@ package mock_nborm
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -17,6 +19,7 @@ var db *sql.DB
 func init() {
 	nborm.SetDebug(true)
 	d, err := sql.Open("mysql", "wangjun:Wt20110523@tcp(localhost:3306)/qdxg")
+	// d, err := sql.Open("mysql", "wangjun:Wt20110523@tcp(192.168.0.2:3306)/qdxg")
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +32,43 @@ type test struct {
 }
 
 var tests = []test{
-
+	{
+		name: "list bulk insert",
+		f: func(t *testing.T) {
+			tx, err := db.Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			defer tx.Commit()
+			if _, err := tx.Exec("SET UNIQUE_CHECKS=0"); err != nil {
+				t.Error(err)
+				return
+			}
+			defer func() {
+				if _, err := tx.Exec("SET UNIQUE_CHECKS=1"); err != nil {
+					t.Error(err)
+					return
+				}
+			}()
+			users := model.NewUserList()
+			users.IntelUserCode.ForBulkInsert()
+			users.Name.ForBulkInsert()
+			users.Phone.ForBulkInsert()
+			users.IdentityNum.SetExpr(nborm.NewExpr("NOW()"))
+			for i := 0; i < 20000; i++ {
+				m := model.NewUser()
+				m.IntelUserCode.SetString(randString(16))
+				m.Name.SetString("xxxxxx")
+				m.Phone.SetString(randString(16))
+				m.IdentityNum.SetString("zzzzzzzz")
+				users.List = append(users.List, m)
+			}
+			if err := nborm.ListBulkInsert(tx, users); err != nil {
+				t.Error(err)
+			}
+		},
+	},
 	// {
 	// 	name: "bulk insert",
 	// 	f: func(t *testing.T) {
@@ -45,21 +84,21 @@ var tests = []test{
 	// 		}
 	// 	},
 	// },
-	{
-		name: "load data infile",
-		f: func(t *testing.T) {
-			users := make([]nborm.Model, 80000)
-			for i := range users {
-				m := model.NewUser()
-				m.IntelUserCode.SetString(randString(16))
-				m.Phone.SetString("xxxxxxxxx")
-				users[i] = m
-			}
-			if err := nborm.LoadDateInfile(db, users); err != nil {
-				t.Error(err)
-			}
-		},
-	},
+	// {
+	// 	name: "load data infile",
+	// 	f: func(t *testing.T) {
+	// 		users := make([]nborm.Model, 80000)
+	// 		for i := range users {
+	// 			m := model.NewUser()
+	// 			m.IntelUserCode.SetString(randString(16))
+	// 			m.Phone.SetString("xxxxxxxxx")
+	// 			users[i] = m
+	// 		}
+	// 		if err := nborm.LoadDateInfile(db, users); err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 	},
+	// },
 	// 	{
 	// 	name: "insert",
 	// 	f: func(t *testing.T) {
@@ -74,6 +113,33 @@ var tests = []test{
 	// 		user.IntelUserCode.SetString(code)
 	// 		user.Phone.SetString(code)
 	// 		if err := nborm.InsertOne(db, user); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		u := model.NewUser()
+	// 		u.SelectFields(&u.IntelUserCode)
+	// 		u.Phone.AndWhere("=", code)
+	// 		if err := nborm.Query(db, u); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		assert.Equal(t, u.IntelUserCode.AnyValue(), code, "intelusercode is %s", u.IntelUserCode.AnyValue())
+	// 	},
+	// },
+	// {
+	// 	name: "insert ignore",
+	// 	f: func(t *testing.T) {
+	// 		user := model.NewUser()
+	// 		defer func() {
+	// 			user.SetForDelete()
+	// 			if _, err := nborm.Delete(db, user); err != nil {
+	// 				t.Error(err)
+	// 			}
+	// 		}()
+	// 		code := randString(16)
+	// 		user.IntelUserCode.SetString(code)
+	// 		user.Phone.SetString(code)
+	// 		if err := nborm.InsertIgnoreOne(db, user); err != nil {
 	// 			t.Error(err)
 	// 			return
 	// 		}
@@ -588,6 +654,18 @@ var tests = []test{
 	// 			fmt.Println(u.Name.AnyValue())
 	// 		}
 	// },
+	{
+		"unmarshal list",
+		func(t *testing.T) {
+			b := []byte(`{ "Name": "wangjun" }`)
+			l := model.NewUser()
+			if err := json.Unmarshal(b, l); err != nil {
+				t.Error(err)
+				return
+			}
+			fmt.Println(l.Name.AnyValue())
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -635,5 +713,47 @@ func bulkDelete(t *testing.T, m nborm.Model) {
 func TestNBorm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, tt.f)
+	}
+}
+
+func listBulkInsert() error {
+	// tx, err := db.Begin()
+	// if err != nil {
+	// 	return err
+	// }
+	// defer tx.Commit()
+	// if _, err := tx.Exec("SET UNIQUE_CHECKS=0"); err != nil {
+	// 	return err
+	// }
+	// defer func() {
+	// 	if _, err := tx.Exec("SET UNIQUE_CHECKS=1"); err != nil {
+	// 		fmt.Println(nbcolor.Red(err))
+	// 	}
+	// }()
+	users := model.NewUserList()
+	users.IntelUserCode.ForBulkInsert()
+	users.Name.ForBulkInsert()
+	users.Phone.ForBulkInsert()
+	users.IdentityNum.SetExpr(nborm.NewExpr("NOW()"))
+	for i := 0; i < 20000; i++ {
+		m := model.NewUser()
+		m.IntelUserCode.SetString(randString(16))
+		m.Name.SetString("xxxxxx")
+		m.Phone.SetString(randString(16))
+		m.IdentityNum.SetString("zzzzzzzz")
+		users.List = append(users.List, m)
+	}
+	if err := nborm.ListBulkInsert(db, users); err != nil {
+		return err
+	}
+	return nil
+}
+
+func BenchmarkListBulkInsert(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if err := listBulkInsert(); err != nil {
+			b.Error(err)
+			return
+		}
 	}
 }

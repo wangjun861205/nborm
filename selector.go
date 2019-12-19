@@ -43,7 +43,7 @@ func (l selectorList) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, i
 			w.Write([]byte("SQL_CALC_FOUND_ROWS "))
 		}
 		if l.checkStatus(selectorStatusDistinct) {
-			w.Write([]byte("DISTINCT"))
+			w.Write([]byte("DISTINCT "))
 		}
 		l.list[0].toClause(w, vals, isFirstGroup, isFirstNode)
 	} else {

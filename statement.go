@@ -1,6 +1,7 @@
 package nborm
 
 import (
+	"fmt"
 	"io"
 	"strings"
 )
@@ -19,6 +20,86 @@ func genInsertStmt(model Model, w io.Writer, vals *[]interface{}) {
 	inserts := model.getInserts()
 	isFirstGroup, isFirstNode, _ := genFlags()
 	inserts.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func genInsertIgnoreStmt(model Model, w io.Writer, vals *[]interface{}) {
+	w.Write([]byte("INSERT IGNORE INTO "))
+	w.Write([]byte(model.rawFullTabName()))
+	w.Write([]byte(" "))
+	inserts := model.getInserts()
+	isFirstGroup, isFirstNode, _ := genFlags()
+	inserts.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+}
+
+func genListBulkInsertStmt(l ModelList, w io.Writer, vals *[][]interface{}) {
+	w.Write([]byte("INSERT "))
+	if l.checkStatus(insertIgnore) {
+		w.Write([]byte("IGNORE "))
+	}
+	w.Write([]byte("INTO "))
+	w.Write([]byte(l.Tab()))
+	w.Write([]byte(" ("))
+	isFirst := true
+	var exprWriter strings.Builder
+	valueFieldIndex := make([]int, 0, len(l.FieldInfos()))
+	exprFieldIndex := make([]int, 0, len(l.FieldInfos()))
+	exprValues := make([]interface{}, 0, len(l.FieldInfos()))
+	for i, fieldInfo := range l.FieldInfos() {
+		switch {
+		case fieldInfo.Field.checkFieldStatus(forBulkInsert):
+			if isFirst {
+				isFirst = false
+				w.Write([]byte(fmt.Sprintf("`%s`", fieldInfo.Field.colName())))
+			} else {
+				w.Write([]byte(", "))
+				w.Write([]byte(fmt.Sprintf("`%s`", fieldInfo.Field.colName())))
+			}
+			valueFieldIndex = append(valueFieldIndex, i)
+		case fieldInfo.Field.IsValid() && fieldInfo.Field.getExpr() != nil:
+			exprFieldIndex = append(exprFieldIndex, i)
+			if exprWriter.Len() == 0 {
+				// exprWriter.WriteString(fieldInfo.Field.colName())
+				exprWriter.WriteString(fmt.Sprintf("`%s`", fieldInfo.Field.colName()))
+			} else {
+				exprWriter.WriteString(", ")
+				// exprWriter.WriteString(fieldInfo.Field.colName())
+				exprWriter.WriteString(fmt.Sprintf("`%s`", fieldInfo.Field.colName()))
+			}
+		}
+	}
+	if exprWriter.Len() > 0 {
+		w.Write([]byte(", "))
+		w.Write([]byte(exprWriter.String()))
+	}
+	w.Write([]byte(") VALUES ("))
+	w.Write([]byte(strings.TrimSuffix(strings.Repeat("?, ", len(valueFieldIndex)), ", ")))
+	for i, idx := range exprFieldIndex {
+		isFirstGroup, isFirstNode, _ := genFlags()
+		if len(valueFieldIndex) == 0 {
+			if i == 0 {
+				l.FieldInfos()[idx].Field.getExpr().toClause(w, &exprValues, isFirstGroup, isFirstNode)
+			} else {
+				w.Write([]byte(", "))
+				l.FieldInfos()[idx].Field.getExpr().toClause(w, &exprValues, isFirstGroup, isFirstNode)
+			}
+		} else {
+			w.Write([]byte(", "))
+			l.FieldInfos()[idx].Field.getExpr().toClause(w, &exprValues, isFirstGroup, isFirstNode)
+		}
+	}
+	w.Write([]byte(") "))
+	var fakeWriter strings.Builder
+	for _, m := range l.GetList() {
+		values := make([]interface{}, 0, len(valueFieldIndex))
+		fieldInfos := m.FieldInfos()
+		for _, idx := range valueFieldIndex {
+			field := fieldInfos[idx].Field
+			isFirstGroup, isFirstNode, _ := genFlags()
+			field.value().toClause(&fakeWriter, &values, isFirstGroup, isFirstNode)
+		}
+		values = append(values, exprValues...)
+		*vals = append(*vals, values)
+	}
 }
 
 func genBulkInsertStmt(models []Model, w io.Writer, vals *[][]interface{}) {

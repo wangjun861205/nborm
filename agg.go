@@ -15,6 +15,7 @@ type aggregator interface {
 	getExpr() *Expr
 	getName() string
 	MarshalJSON() ([]byte, error)
+	GetField() Field
 }
 
 // IntAgg 整数汇总
@@ -26,7 +27,7 @@ type IntAgg struct {
 
 func newIntAgg(expr *Expr, name string) *IntAgg {
 	f := new(Int)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &IntAgg{expr, name, f}
 }
 
@@ -35,13 +36,28 @@ func (a *IntAgg) String() string {
 }
 
 func (a *IntAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newIntAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+	// } else {
+	// 	for _, agg := range m.getAggs() {
+	// 		if agg.getName() == a.name {
+	// 			*selectors = append(*selectors, agg)
+	// 			return
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("IntAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("IntAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
 }
 
 // Scan 实现Scanner接口
@@ -51,10 +67,16 @@ func (a *IntAgg) Scan(v interface{}) error {
 
 func (a *IntAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *IntAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *IntAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -89,6 +111,10 @@ func (a *IntAgg) AnyValue() int {
 	return a.field.AnyValue()
 }
 
+func (a *IntAgg) GetField() Field {
+	return a.field
+}
+
 // StrAgg 字符串汇总
 type StrAgg struct {
 	expr  *Expr
@@ -98,7 +124,7 @@ type StrAgg struct {
 
 func newStrAgg(expr *Expr, name string) *StrAgg {
 	f := new(String)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &StrAgg{expr, name, f}
 }
 
@@ -107,13 +133,23 @@ func (a *StrAgg) String() string {
 }
 
 func (a *StrAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newStrAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+
+	// } else {
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("StrAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
+	// panic(fmt.Sprintf("StrAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 }
 
 // Scan 实现Scanner接口
@@ -123,10 +159,16 @@ func (a *StrAgg) Scan(v interface{}) error {
 
 func (a *StrAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *StrAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *StrAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -161,6 +203,10 @@ func (a *StrAgg) AnyValue() string {
 	return a.field.AnyValue()
 }
 
+func (a *StrAgg) GetField() Field {
+	return a.field
+}
+
 // DateAgg 日期汇总
 type DateAgg struct {
 	expr  *Expr
@@ -170,7 +216,7 @@ type DateAgg struct {
 
 func newDateAgg(expr *Expr, name string) *DateAgg {
 	f := new(Date)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &DateAgg{expr, name, f}
 }
 
@@ -179,13 +225,28 @@ func (a *DateAgg) String() string {
 }
 
 func (a *DateAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newDateAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+	// } else {
+	// 	for _, agg := range m.getAggs() {
+	// 		if agg.getName() == a.name {
+	// 			*selectors = append(*selectors, agg)
+	// 			return
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("DateAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("DateAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
 }
 
 // Scan 实现Scanner接口
@@ -195,10 +256,16 @@ func (a *DateAgg) Scan(v interface{}) error {
 
 func (a *DateAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DateAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DateAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -233,6 +300,10 @@ func (a *DateAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+func (a *DateAgg) GetField() Field {
+	return a.field
+}
+
 // DatetimeAgg 日期时间汇总
 type DatetimeAgg struct {
 	expr  *Expr
@@ -242,7 +313,7 @@ type DatetimeAgg struct {
 
 func newDatetimeAgg(expr *Expr, name string) *DatetimeAgg {
 	f := new(Datetime)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &DatetimeAgg{expr, name, f}
 }
 
@@ -251,13 +322,28 @@ func (a *DatetimeAgg) String() string {
 }
 
 func (a *DatetimeAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newDatetimeAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+	// } else {
+	// 	for _, agg := range m.getAggs() {
+	// 		if agg.getName() == a.name {
+	// 			*selectors = append(*selectors, agg)
+	// 			return
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("DateTimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("DateTimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
 }
 
 // Scan 实现Scanner接口
@@ -267,10 +353,16 @@ func (a *DatetimeAgg) Scan(v interface{}) error {
 
 func (a *DatetimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DatetimeAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DatetimeAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -305,6 +397,10 @@ func (a *DatetimeAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+func (a *DatetimeAgg) GetField() Field {
+	return a.field
+}
+
 // TimeAgg 时间汇总
 type TimeAgg struct {
 	expr  *Expr
@@ -314,7 +410,7 @@ type TimeAgg struct {
 
 func newTimeAgg(expr *Expr, name string) *TimeAgg {
 	f := new(Time)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &TimeAgg{expr, name, f}
 }
 
@@ -323,13 +419,28 @@ func (a *TimeAgg) String() string {
 }
 
 func (a *TimeAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newTimeAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+	// } else {
+	// 	for _, agg := range m.getAggs() {
+	// 		if agg.getName() == a.name {
+	// 			*selectors = append(*selectors, agg)
+	// 			return
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("TimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("TimeAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
 }
 
 // Scan 实现Scanner接口
@@ -339,10 +450,16 @@ func (a *TimeAgg) Scan(v interface{}) error {
 
 func (a *TimeAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *TimeAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *TimeAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -377,6 +494,10 @@ func (a *TimeAgg) AnyValue() time.Time {
 	return a.field.AnyValue()
 }
 
+func (a *TimeAgg) GetField() Field {
+	return a.field
+}
+
 // DecimalAgg 浮点数汇总
 type DecimalAgg struct {
 	expr  *Expr
@@ -386,7 +507,7 @@ type DecimalAgg struct {
 
 func newDecAgg(expr *Expr, name string) *DecimalAgg {
 	f := new(Decimal)
-	f.Init(nil, name, "", "", -1)
+	f.Init(nil, name, "", "", "", -1)
 	return &DecimalAgg{expr, name, f}
 }
 
@@ -395,13 +516,28 @@ func (a *DecimalAgg) String() string {
 }
 
 func (a *DecimalAgg) toScan(m Model, selectors *[]interface{}) {
+	// if m.getConList() != nil {
+	// 	na := newDecAgg(a.expr, a.name)
+	// 	m.appendAgg(na)
+	// 	*selectors = append(*selectors, na)
+	// } else {
+	// 	for _, agg := range m.getAggs() {
+	// 		if agg.getName() == a.name {
+	// 			*selectors = append(*selectors, agg)
+	// 			return
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("DecimalAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	// }
 	for _, agg := range m.getAggs() {
 		if agg.getName() == a.name {
 			*selectors = append(*selectors, agg)
 			return
 		}
 	}
-	panic(fmt.Sprintf("DecimalAgg.toScan() error: cannot find agg(name: %s)", a.name))
+	na := newStrAgg(a.expr, a.name)
+	m.appendAgg(na)
+	*selectors = append(*selectors, na)
 }
 
 // Scan 实现Scanner接口
@@ -411,10 +547,16 @@ func (a *DecimalAgg) Scan(v interface{}) error {
 
 func (a *DecimalAgg) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DecimalAgg) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	a.expr.toSimpleClause(w, vals, isFirstGroup, isFirstNode)
+	w.Write([]byte("AS "))
+	w.Write([]byte(a.name))
+	w.Write([]byte(" "))
 }
 
 func (a *DecimalAgg) toRefClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
@@ -447,6 +589,10 @@ func (a *DecimalAgg) MarshalJSON() ([]byte, error) {
 // AnyValue 直接返回数据
 func (a *DecimalAgg) AnyValue() float64 {
 	return a.field.AnyValue()
+}
+
+func (a *DecimalAgg) GetField() Field {
+	return a.field
 }
 
 func marshalAgg(agg aggregator) ([]byte, error) {
@@ -489,3 +635,22 @@ func (l aggList) copy() aggList {
 	}
 	return nl
 }
+
+// 尝试将Aggs作为Model的Field来进行JSON Marshal
+// func (l aggList) MarshalJSON() ([]byte, error) {
+// 	buf := &bytes.Buffer{}
+// 	if len(l) == 0 {
+// 		return []byte("{}"), nil
+// 	}
+// 	for _, agg := range l {
+// 		b, err := marshalAgg(agg)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		buf.Write(bytes.Trim(b, "{}"))
+// 		buf.WriteString(",")
+// 	}
+// 	b := []byte(fmt.Sprintf("{%s}", bytes.Trim(buf.Bytes(), ",")))
+// 	fmt.Println(string(b))
+// 	return b, nil
+// }

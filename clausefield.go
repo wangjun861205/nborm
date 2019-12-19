@@ -23,7 +23,8 @@ type clauseField struct {
 func (f *clauseField) AndW() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndW() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
 	return nil
@@ -32,7 +33,8 @@ func (f *clauseField) AndW() error {
 func (f *clauseField) AndWEq() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWEq() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
 	return nil
@@ -41,7 +43,8 @@ func (f *clauseField) AndWEq() error {
 func (f *clauseField) AndWNeq() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWNeq() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
 	return nil
@@ -50,7 +53,8 @@ func (f *clauseField) AndWNeq() error {
 func (f *clauseField) AndWGt() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWGt() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
 	return nil
@@ -59,7 +63,8 @@ func (f *clauseField) AndWGt() error {
 func (f *clauseField) AndWGte() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWGte() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
 	return nil
@@ -68,7 +73,8 @@ func (f *clauseField) AndWGte() error {
 func (f *clauseField) AndWLt() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWLt() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
 	return nil
@@ -77,7 +83,8 @@ func (f *clauseField) AndWLt() error {
 func (f *clauseField) AndWLte() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWLte() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
 	return nil
@@ -86,7 +93,8 @@ func (f *clauseField) AndWLte() error {
 func (f *clauseField) AndWLike() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWLike() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
 	return nil
@@ -95,7 +103,8 @@ func (f *clauseField) AndWLike() error {
 func (f *clauseField) AndWNotLike() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWNotLike() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ NOT LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
 	return nil
@@ -104,7 +113,8 @@ func (f *clauseField) AndWNotLike() error {
 func (f *clauseField) AndWIs() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWIs() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
 	return nil
@@ -113,7 +123,8 @@ func (f *clauseField) AndWIs() error {
 func (f *clauseField) AndWNotIs() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for AndWNotIs() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.AndExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
 	return nil
@@ -211,7 +222,8 @@ func (f *clauseField) OpAndWNotIs() ClauseField {
 func (f *clauseField) OrW() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrW() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
 	return nil
@@ -220,7 +232,8 @@ func (f *clauseField) OrW() error {
 func (f *clauseField) OrWEq() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWEq() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ = ?", valueField, valueField.value()))
 	return nil
@@ -229,7 +242,8 @@ func (f *clauseField) OrWEq() error {
 func (f *clauseField) OrWNeq() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWNeq() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ <> ?", valueField, valueField.value()))
 	return nil
@@ -238,7 +252,8 @@ func (f *clauseField) OrWNeq() error {
 func (f *clauseField) OrWGt() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWGt() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ > ?", valueField, valueField.value()))
 	return nil
@@ -247,7 +262,8 @@ func (f *clauseField) OrWGt() error {
 func (f *clauseField) OrWGte() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWGte() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ >= ?", valueField, valueField.value()))
 	return nil
@@ -256,7 +272,8 @@ func (f *clauseField) OrWGte() error {
 func (f *clauseField) OrWLt() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWLt() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ < ?", valueField, valueField.value()))
 	return nil
@@ -265,7 +282,8 @@ func (f *clauseField) OrWLt() error {
 func (f *clauseField) OrWLte() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWLte() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ <= ?", valueField, valueField.value()))
 	return nil
@@ -274,7 +292,8 @@ func (f *clauseField) OrWLte() error {
 func (f *clauseField) OrWLike() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWLike() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
 	return nil
@@ -283,7 +302,8 @@ func (f *clauseField) OrWLike() error {
 func (f *clauseField) OrWNotLike() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWNotLike() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ NOT LIKE ?", valueField, fmt.Sprintf("%%%s%%", valueField.(*stringValueField).AnyValue())))
 	return nil
@@ -292,7 +312,8 @@ func (f *clauseField) OrWNotLike() error {
 func (f *clauseField) OrWIs() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWIs() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ IS ?", valueField, valueField.value()))
 	return nil
@@ -301,7 +322,8 @@ func (f *clauseField) OrWIs() error {
 func (f *clauseField) OrWNotIs() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for OrWNotIs() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.OrExprWhere(NewExpr("@ NOT IS ?", valueField, valueField.value()))
 	return nil
@@ -399,7 +421,8 @@ func (f *clauseField) OpOrWNotIs() ClauseField {
 func (f *clauseField) U() error {
 	valueField := f.valueField()
 	if !valueField.IsValid() {
-		return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		// return fmt.Errorf("invalid field (%s)", valueField.fullColName())
+		return newErr(ErrCodeInvalidField, fmt.Sprintf("invalid field for U() (field name: %s)", valueField.fieldName()), nil)
 	}
 	valueField.ExprUpdate(valueField, NewExpr("?", valueField.value()))
 	return nil

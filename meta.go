@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type modelStatus int
@@ -28,6 +31,7 @@ const (
 	containSubOrder  modelStatus = 1 << 25
 	forDelete        modelStatus = 1 << 26
 	selectForUpdate  modelStatus = 1 << 27
+	insertIgnore     modelStatus = 1 << 28
 )
 
 type modelBaseInfo struct {
@@ -195,6 +199,30 @@ func (m *modelBaseInfo) dup() modelBaseInfo {
 	d := *m
 	d.rels = nil
 	return d
+}
+
+func (m *modelBaseInfo) AppendOn(relName string, expr *Expr) Model {
+	var got bool
+	for _, rel := range m.relations() {
+		if rel.name == relName {
+			got = true
+			lastRel := rel
+			for lastRel.next != nil {
+				lastRel = lastRel.next
+			}
+			lastRel.on.exp = lastRel.on.exp + " AND " + expr.exp
+			lastRel.on.values = append(lastRel.on.values, expr.values...)
+		}
+	}
+	if !got {
+		panic(fmt.Sprintf("cannot find relation (%s)", relName))
+	}
+	return m
+}
+
+func (m *modelBaseInfo) SetForInsertIgnore() Model {
+	m.addModelStatus(insertIgnore)
+	return m
 }
 
 type modelClause struct {
@@ -407,6 +435,7 @@ func (m *modelClause) appendAgg(agg aggregator) {
 func (m *modelClause) StrAgg(expr *Expr, name string) *StrAgg {
 	agg := newStrAgg(expr, name)
 	m.aggs = append(m.aggs, agg)
+	m.appendSelector(agg)
 	m.addModelStatus(forModelAgg)
 	return agg
 }
@@ -518,10 +547,15 @@ func (m *modelClause) SelectAll() Model {
 // }
 
 func (m *modelClause) GroupBySelectedFields() Model {
-	fields := getSelectFields(m)
-	for _, field := range fields {
-		m.appendGroupBys(field)
+	for _, sel := range m.getSelectors().list {
+		if field, ok := sel.(Field); ok {
+			m.appendGroupBys(field)
+		}
 	}
+	// fields := getSelectFields(m)
+	// for _, field := range fields {
+	// 	m.appendGroupBys(field)
+	// }
 	for _, relInfo := range m.relations() {
 		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			relInfo.lastModel().GroupBySelectedFields()
@@ -574,6 +608,49 @@ func (m *modelClause) FromReq(req *http.Request) error {
 	return nil
 }
 
+func (m *modelClause) FromBody(req *http.Request) error {
+	b, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		// return err
+		return newErr(ErrCodeIO, fmt.Sprintf("failed to read request body (model: %s)", m.Tab()), err)
+	}
+	if err := json.Unmarshal(b, m.Model); err != nil {
+		return newErr(ErrCodeSerialize, fmt.Sprintf("failed to unmarshal json (model: %s)", m.Tab()), err)
+	}
+	return nil
+}
+
+func (m *modelClause) FromGinCtx(ctx *gin.Context) error {
+	for _, p := range ctx.Params {
+		for _, info := range m.FieldInfos() {
+			if info.Field.formName() == p.Key {
+				if err := info.Field.setByStr(p.Value); err != nil {
+					return err
+				}
+				break
+			}
+		}
+	}
+	for _, info := range m.FieldInfos() {
+		if val, exist := ctx.GetQuery(info.Field.formName()); exist {
+			if err := info.Field.setByStr(val); err != nil {
+				return err
+			}
+			break
+		}
+	}
+	switch ctx.Request.Method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
+		decoder := json.NewDecoder(ctx.Request.Body)
+		if err := decoder.Decode(m.Model); err != nil {
+			return newErr(ErrCodeSerialize, fmt.Sprintf("failed to unmarshal json (model: %s)", m.Tab()), err)
+		}
+		return nil
+	default:
+		return nil
+	}
+}
+
 func (m *modelClause) ClearWhere() Model {
 	m.wheres = nil
 	for _, info := range m.relations() {
@@ -588,7 +665,7 @@ func (m *modelClause) ClearSelect() Model {
 	m.selectors = selectorList{0, make([]selector, 0, 8)}
 	for _, info := range m.relations() {
 		if info.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			info.lastModel().(*modelClause).ClearSelect()
+			info.lastModel().ClearSelect()
 		}
 	}
 	return m
@@ -616,4 +693,16 @@ func (m *Meta) Init(model, parent Model, conList ModelList) {
 // MarshalJSON MarshalJSON
 func (m Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.modelClause.aggs)
+}
+
+func (m Meta) GetModel() Model {
+	return m.modelBaseInfo.Model
+}
+
+func (m Meta) SetSynced() {
+	m.modelBaseInfo.Model.addModelStatus(synced)
+}
+
+func (m Meta) UnsetSynced() {
+	m.modelBaseInfo.Model.removeModelStatus(synced)
 }

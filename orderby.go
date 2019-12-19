@@ -23,8 +23,19 @@ func newOrderBy(referencer referencer, order orderType) *orderBy {
 func (o *orderBy) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if *isFirstNode {
 		*isFirstNode = false
+		w.Write([]byte(" "))
+	} else {
+		w.Write([]byte(", "))
+	}
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("ORDER BY "))
 	}
+	// if *isFirstNode {
+	// 	*isFirstNode = false
+	// 	w.Write([]byte("ORDER BY "))
+
+	// }
 	o.referencer.toRefClause(w, vals, isFirstGroup, isFirstNode)
 	w.Write([]byte(string(o.order)))
 	w.Write([]byte(" "))
@@ -33,11 +44,20 @@ func (o *orderBy) toClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFir
 func (o *orderBy) toSimpleClause(w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	if *isFirstNode {
 		*isFirstNode = false
+		w.Write([]byte(" "))
+	} else {
+		w.Write([]byte(", "))
+	}
+	if *isFirstGroup {
+		*isFirstGroup = false
 		w.Write([]byte("ORDER BY "))
 	}
+	// if *isFirstNode {
+	// 	*isFirstNode = false
+	// 	w.Write([]byte("ORDER BY "))
+	// }
 	o.referencer.toSimpleRefClause(w, vals, isFirstGroup, isFirstNode)
 	w.Write([]byte(string(o.order)))
-	w.Write([]byte(" "))
 }
 
 type orderByList []*orderBy

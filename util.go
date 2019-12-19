@@ -74,13 +74,22 @@ func getFieldsForScan(classModel, instanceModel Model, models *[]Model, selector
 	for i, rel := range classModel.relations() {
 		if rel.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			if subClassModel, ok := rel.lastModel().(ModelList); ok {
-				subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
-				getFieldsForScan(subClassModel, subInstanceModel, models, selectors)
+				if !instanceModel.checkStatus(relInited) {
+					instanceModel.InitRel()
+				}
+				// 尝试修复即使没有要Scan的字段仍然在List中创建Model的问题
+				if len(subClassModel.getSelectors().list) > 0 {
+					subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
+					getFieldsForScan(subClassModel, subInstanceModel, models, selectors)
+				}
 			} else {
 				if !instanceModel.checkStatus(relInited) {
 					instanceModel.InitRel()
 				}
-				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, selectors)
+				// 尝试修复即使没有要Scan的字段仍然将Model放入要Scan的Model列表中的问题
+				if len(rel.lastModel().getSelectors().list) > 0 {
+					getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, selectors)
+				}
 			}
 		}
 	}
@@ -170,7 +179,7 @@ func genUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup
 	model.getUpdates().toClause(w, vals, isFirstGroup, isFirstNode)
 	for _, relInfo := range model.relations() {
 		subModel := relInfo.lastModel()
-		if subModel.checkStatus(forUpdate | containSubUpdate) {
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			genUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
 		}
 	}
@@ -180,7 +189,7 @@ func genSimpleUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirs
 	model.getUpdates().toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	for _, relInfo := range model.relations() {
 		subModel := relInfo.lastModel()
-		if subModel.checkStatus(forUpdate | containSubUpdate) {
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			genSimpleUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
 		}
 	}

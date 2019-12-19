@@ -52,6 +52,7 @@ type clauseModel interface {
 	getSelectors() *selectorList
 	appendAgg(agg aggregator)
 	appendUpdate(update *update) Model
+	ClearSelect() Model
 }
 
 // Model Model

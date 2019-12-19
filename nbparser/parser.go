@@ -33,7 +33,8 @@ var pkRe = regexp.MustCompile(`(?m)pk:([0-9a-zA-Z,]+)$`)
 var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
-var formRe = regexp.MustCompile(`form:"(\w+)`)
+var formRe = regexp.MustCompile(`form:"(\w+)"`)
+var uriRe = regexp.MustCompile(`uri:"(\w+)"`)
 
 var relWholeRe = regexp.MustCompile(`rel:"(.*?)"`)
 var relModelRe = regexp.MustCompile(`@([\w@\$]+)\[(.+?)\](?:->|$)`)
@@ -376,7 +377,7 @@ func parseRelation(tag string) error {
 			}
 		default:
 			switch statStack[len(statStack)-1] {
-			case value, quote:
+			case value, quote, on:
 				builder.WriteRune(r)
 			case field:
 				builder.WriteRune(r)
@@ -394,6 +395,7 @@ type FieldInfo struct {
 	Field string
 	IsInc bool
 	Form  string
+	URI   string
 }
 
 type MidWhere struct {
@@ -511,7 +513,7 @@ func (m *ModelInfo) newModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		m.InitRel()
 		return m
@@ -529,7 +531,7 @@ func (m *ModelInfo) newSubModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		return m
 	}
@@ -810,7 +812,7 @@ func (m *ModelInfo) newListFunc() string {
 		}
 		l.Init(l, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		l.InitRel()
 		return l
@@ -833,7 +835,7 @@ func (m *ModelInfo) newSubListFunc() string {
 		}
 		l.Init(l, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		return l
 	}
@@ -851,7 +853,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 		m.Init(m, nil, l)
 		l.CopyAggs(m)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 			l.{{ field.Field }}.CopyStatus(&m.{{ field.Field }})
 		{{ endfor }}
 		m.InitRel()
@@ -970,20 +972,62 @@ func (m *ModelInfo) listStringMethod() string {
 // 	return s
 // }
 
+// func (m *ModelInfo) listUnmarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
+// 		if string(b) == "[]" || string(b) == "null" {
+// 			return nil
+// 		}
+// 		jl := struct {
+// 			List *[]*{{ model.Name }}
+// 			Total *int
+// 		} {
+// 			&l.List,
+// 			&l.Total,
+// 		}
+// 		return json.Unmarshal(b, &jl)
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
+// func (m *ModelInfo) bindingModelStruct() string {
+// 	s, err := nbfmt.Fmt(`
+// 	type {{ model.Name }}BindModel struct{
+// 		{{ for _, fieldInfo in model.FieldInfos }}
+// 		{{ fieldInfo.Field }} nborm.Field `+"`form:\"{{ fieldInfo.Form }}\"`\n"+`
+// 		{{ endfor }}
+// 		}
+// 		`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
+// func (m *ModelInfo) modelBindingModelFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (m *{{ model.Name }}) BindModel() *{{ model.Name }}BindModel {
+// 		return &{{ model.Name }}BindModel {
+// 			{{ for _, fieldInfo in model.FieldInfos }}
+// 			{{ fieldInfo.Field }}: &m.{{ fieldInfo.Field }},
+// 			{{ endfor }}
+// 		}
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
-		if string(b) == "[]" || string(b) == "null" {
-			return nil
-		}
-		jl := struct {
-			List *[]*{{ model.Name }}
-			Total *int
-		} {
-			&l.List,
-			&l.Total,
-		}
-		return json.Unmarshal(b, &jl)
+		return json.Unmarshal(b, &l.{{ model.Name }})
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1343,6 +1387,12 @@ func parseFieldTag(field, tag string) error {
 	} else {
 		lastField.Form = formGroup[1]
 	}
+	uriGroup := uriRe.FindStringSubmatch(tag)
+	if len(uriGroup) != 2 {
+		lastField.URI = field
+	} else {
+		lastField.URI = uriGroup[1]
+	}
 	lastField.IsInc = incRe.MatchString(tag)
 	return nil
 }
@@ -1643,6 +1693,9 @@ func main() {
 			nf.WriteString(m.modelListGetCacheMethod())
 			nf.WriteString(m.modelListSetCacheMethod())
 
+			// nf.WriteString(m.bindingModelStruct())
+			// nf.WriteString(m.modelBindingModelFunc())
+
 		}
 		nf.WriteString(initFunc(modelInfos))
 		nf.Sync()
@@ -1888,7 +1941,7 @@ func createFile(tables []*Table) string {
 		type {{ tab.ModelName }} struct {
 			nborm.Meta
 			{{ for _, col in tab.Columns }}
-				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }} form:\"{{ col.Name }}\"`"+`
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }} form:\"{{ col.Name }}\" uri:\"{{ col.Name }}\"`"+`
 			{{ endfor }}
 		}
 	{{ endfor }}

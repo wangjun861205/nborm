@@ -13,6 +13,7 @@ type BaseField interface {
 	setCol(string)
 	fieldName() string
 	formName() string
+	uriName() string
 	setField(string)
 	getStatus() fieldStatus
 	setStatus(fieldStatus)
@@ -42,17 +43,17 @@ type BaseField interface {
 type fieldStatus int
 
 const (
-	invalid fieldStatus = 0
-	valid   fieldStatus = 1
-	// notNull     fieldStatus = 1 << 1
-	null        fieldStatus = 1 << 1
-	primaryKey  fieldStatus = 1 << 2
-	autoInc     fieldStatus = 1 << 3
-	forSelect   fieldStatus = 1 << 4
-	forSum      fieldStatus = 1 << 5
-	forAscOrder fieldStatus = 1 << 6
-	forDscOrder fieldStatus = 1 << 7
-	forGroup    fieldStatus = 1 << 9
+	invalid       fieldStatus = 0
+	valid         fieldStatus = 1
+	null          fieldStatus = 1 << 1
+	primaryKey    fieldStatus = 1 << 2
+	autoInc       fieldStatus = 1 << 3
+	forSelect     fieldStatus = 1 << 4
+	forSum        fieldStatus = 1 << 5
+	forAscOrder   fieldStatus = 1 << 6
+	forDscOrder   fieldStatus = 1 << 7
+	forGroup      fieldStatus = 1 << 9
+	forBulkInsert fieldStatus = 1 << 10
 )
 
 type baseField struct {
@@ -60,16 +61,18 @@ type baseField struct {
 	col        string
 	field      string
 	form       string
+	uri        string
 	index      int
 	status     fieldStatus
 	selectExpr *Expr
 }
 
-func (f *baseField) init(model Model, colName, fieldName, form string, index int) {
+func (f *baseField) init(model Model, colName, fieldName, formName, uriName string, index int) {
 	f.Model = model
 	f.col = colName
 	f.field = fieldName
-	f.form = form
+	f.form = formName
+	f.uri = uriName
 	f.index = index
 }
 
@@ -87,6 +90,10 @@ func (f *baseField) fieldName() string {
 
 func (f *baseField) formName() string {
 	return f.form
+}
+
+func (f *baseField) uriName() string {
+	return f.uri
 }
 
 func (f *baseField) setField(field string) {
@@ -265,4 +272,8 @@ func (f *baseField) isUk() bool {
 		}
 	}
 	return false
+}
+
+func (f *baseField) ForBulkInsert() {
+	f.addStatus(forBulkInsert)
 }

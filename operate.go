@@ -112,7 +112,7 @@ func ListBulkInsert(exe Executor, l ModelList) error {
 	}
 	stmt, err := exe.(*sql.Tx).Prepare(builder.String())
 	if err != nil {
-		return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() error (model: %s)", l.Tab()), err)
+		return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() perpare error (model: %s)", l.Tab()), err)
 	}
 	defer stmt.Close()
 	for _, vals := range values {
@@ -120,7 +120,7 @@ func ListBulkInsert(exe Executor, l ModelList) error {
 		if err != nil {
 			if needCommit {
 				exe.(*sql.Tx).Rollback()
-				return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() error (model: %s)", l.Tab()), err)
+				return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() execute error (model: %s)", l.Tab()), err)
 			}
 			return err
 		}
@@ -135,7 +135,7 @@ func ListBulkInsert(exe Executor, l ModelList) error {
 	}
 	if needCommit {
 		if err := exe.(*sql.Tx).Commit(); err != nil {
-			return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() error (model: %s)", l.Tab()), err)
+			return newErr(ErrCodeExecute, fmt.Sprintf("ListBulkInsert() commit error (model: %s)", l.Tab()), err)
 		}
 	}
 	return nil
@@ -298,6 +298,29 @@ func Update(exe Executor, model Model) (sql.Result, error) {
 		return nil, newErr(ErrCodeExecute, fmt.Sprintf("Update() error (model: %s)", model.Tab()), err)
 	}
 	return res, nil
+}
+
+func BulkUpdate(exe Executor, model Model) error {
+	var builder strings.Builder
+	values := make([][]interface{}, 0, 16)
+	genBulkUpdateStmt(model, &builder, &values)
+	if DEBUG {
+		fmt.Println(nbcolor.Green(fmt.Sprintf("%s", builder.String())))
+	}
+	stmt, err := exe.Prepare(builder.String())
+	if err != nil {
+		return newErr(ErrCodePrepareStatement, fmt.Sprintf("BulkUpdate() error (model: %s)", model.Tab()), err)
+	}
+	defer stmt.Close()
+	for _, vs := range values {
+		if DEBUG {
+			fmt.Println(nbcolor.Green(fmt.Sprintf("%v", vs)))
+		}
+		if _, err := stmt.Exec(vs...); err != nil {
+			return newErr(ErrCodeExecute, fmt.Sprintf("BulkUpdate() error (model: %s)", model.Tab()), err)
+		}
+	}
+	return nil
 }
 
 // Delete 删除

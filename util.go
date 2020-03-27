@@ -185,6 +185,145 @@ func genUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup
 	}
 }
 
+func genBulkUpdateClause(model Model, w io.Writer, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	for _, fieldInfo := range model.FieldInfos() {
+		if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+			if *isFirstNode {
+				*isFirstNode = false
+				w.Write([]byte("SET "))
+				fieldInfo.Field.toRefClause(w, nil, isFirstGroup, isFirstNode)
+				w.Write([]byte("= ? "))
+			} else {
+				w.Write([]byte(", "))
+				fieldInfo.Field.toRefClause(w, nil, isFirstGroup, isFirstNode)
+				w.Write([]byte("= ? "))
+			}
+		}
+	}
+	for _, relInfo := range model.relations() {
+		subModel := relInfo.lastModel()
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genBulkUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
+		}
+	}
+}
+
+func getBulkUpdateValues(model Model, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	if *isFirstGroup {
+		*isFirstGroup = false
+		*isFirstNode = true
+		*vals = append(*vals, make([]interface{}, 0, 8))
+	}
+	if l, ok := model.(ModelList); ok {
+		for _, m := range l.GetList() {
+			getBulkUpdateValues(m, vals, isFirstGroup, isFirstNode)
+		}
+	} else {
+		if l := model.getConList(); l != nil {
+			if *isFirstNode {
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getUpdateValue())
+					}
+				}
+			} else {
+				var count int
+				for parent := l.getParent(); parent != nil; parent = parent.getParent() {
+					for _, fieldInfo := range parent.FieldInfos() {
+						if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+							count++
+						}
+					}
+				}
+				prevArgs := make([]interface{}, count)
+				copy(prevArgs, (*vals)[len(*vals)-1][:count])
+				*vals = append(*vals, prevArgs)
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getUpdateValue())
+					}
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		} else {
+			for _, fieldInfo := range model.FieldInfos() {
+				if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+					(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], fieldInfo.Field.getUpdateValue())
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		}
+		*isFirstGroup = true
+		*isFirstNode = false
+	}
+}
+
+func getBulkWhereValues(model Model, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	if *isFirstGroup {
+		*isFirstGroup = false
+		*isFirstNode = true
+		*vals = append(*vals, make([]interface{}, 0, 8))
+	}
+	if l, ok := model.(ModelList); ok {
+		for _, m := range l.GetList() {
+			getBulkWhereValues(m, vals, isFirstGroup, isFirstNode)
+		}
+	} else {
+		if l := model.getConList(); l != nil {
+			if *isFirstNode {
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkWhere) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getBulkWhereValues()...)
+					}
+				}
+			} else {
+				var count int
+				for parent := l.getParent(); parent != nil; parent = parent.getParent() {
+					for _, fieldInfo := range parent.FieldInfos() {
+						if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+							count++
+						}
+					}
+				}
+				prevArgs := make([]interface{}, count)
+				copy(prevArgs, (*vals)[len(*vals)-1][:count])
+				*vals = append(*vals, prevArgs)
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getBulkWhereValues()...)
+					}
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		} else {
+			for _, fieldInfo := range model.FieldInfos() {
+				if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+					(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], fieldInfo.Field.getBulkWhereValues()...)
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		}
+		*isFirstGroup = true
+		*isFirstNode = false
+	}
+}
+
 func genSimpleUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
 	model.getUpdates().toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	for _, relInfo := range model.relations() {

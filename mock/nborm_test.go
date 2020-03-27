@@ -2,8 +2,6 @@ package mock_nborm
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -33,42 +31,59 @@ type test struct {
 
 var tests = []test{
 	{
-		name: "list bulk insert",
+		name: "bulk update",
 		f: func(t *testing.T) {
-			tx, err := db.Begin()
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			defer tx.Commit()
-			if _, err := tx.Exec("SET UNIQUE_CHECKS=0"); err != nil {
-				t.Error(err)
-				return
-			}
-			defer func() {
-				if _, err := tx.Exec("SET UNIQUE_CHECKS=1"); err != nil {
-					t.Error(err)
-					return
-				}
-			}()
 			users := model.NewUserList()
-			users.IntelUserCode.ForBulkInsert()
-			users.Name.ForBulkInsert()
-			users.Phone.ForBulkInsert()
-			users.IdentityNum.SetExpr(nborm.NewExpr("NOW()"))
-			for i := 0; i < 20000; i++ {
-				m := model.NewUser()
-				m.IntelUserCode.SetString(randString(16))
-				m.Name.SetString("xxxxxx")
-				m.Phone.SetString(randString(16))
-				m.IdentityNum.SetString("zzzzzzzz")
-				users.List = append(users.List, m)
+			users.Name.ForBulkUpdate()
+			users.Id.AndBulkWhereStr("= ?")
+			for i := 0; i < 100; i++ {
+				user := users.NewModel().(*model.User)
+				user.Name.Update(randString(10))
+				user.Id.AppendBulkWhereValues("xxxx")
 			}
-			if err := nborm.ListBulkInsert(tx, users); err != nil {
+			if err := nborm.BulkUpdate(db, users); err != nil {
 				t.Error(err)
+				return
 			}
 		},
 	},
+	// {
+	// 	name: "list bulk insert",
+	// 	f: func(t *testing.T) {
+	// 		tx, err := db.Begin()
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		defer tx.Commit()
+	// 		if _, err := tx.Exec("SET UNIQUE_CHECKS=0"); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		defer func() {
+	// 			if _, err := tx.Exec("SET UNIQUE_CHECKS=1"); err != nil {
+	// 				t.Error(err)
+	// 				return
+	// 			}
+	// 		}()
+	// 		users := model.NewUserList()
+	// 		users.IntelUserCode.ForBulkInsert()
+	// 		users.Name.ForBulkInsert()
+	// 		users.Phone.ForBulkInsert()
+	// 		users.IdentityNum.SetExpr(nborm.NewExpr("NOW()"))
+	// 		for i := 0; i < 20000; i++ {
+	// 			m := model.NewUser()
+	// 			m.IntelUserCode.SetString(randString(16))
+	// 			m.Name.SetString("xxxxxx")
+	// 			m.Phone.SetString(randString(16))
+	// 			m.IdentityNum.SetString("zzzzzzzz")
+	// 			users.List = append(users.List, m)
+	// 		}
+	// 		if err := nborm.ListBulkInsert(tx, users); err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 	},
+	// },
 	// {
 	// 	name: "bulk insert",
 	// 	f: func(t *testing.T) {
@@ -654,18 +669,18 @@ var tests = []test{
 	// 			fmt.Println(u.Name.AnyValue())
 	// 		}
 	// },
-	{
-		"unmarshal list",
-		func(t *testing.T) {
-			b := []byte(`{ "Name": "wangjun" }`)
-			l := model.NewUser()
-			if err := json.Unmarshal(b, l); err != nil {
-				t.Error(err)
-				return
-			}
-			fmt.Println(l.Name.AnyValue())
-		},
-	},
+	// {
+	// 	"unmarshal list",
+	// 	func(t *testing.T) {
+	// 		b := []byte(`{ "Name": "wangjun" }`)
+	// 		l := model.NewUser()
+	// 		if err := json.Unmarshal(b, l); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 		fmt.Println(l.Name.AnyValue())
+	// 	},
+	// },
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -755,5 +770,11 @@ func BenchmarkListBulkInsert(b *testing.B) {
 			b.Error(err)
 			return
 		}
+	}
+}
+
+func TestNborm(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, test.f)
 	}
 }

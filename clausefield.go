@@ -957,3 +957,30 @@ func (f *clauseField) toSimpleRefClause(w io.Writer, vals *[]interface{}, isFirs
 func (f *clauseField) sqlLiteral() string {
 	return f.valueField().sqlLiteral()
 }
+
+// ===================================================================
+
+func (f *clauseField) AndBulkWhereStr(str string) ClauseField {
+	f.valueField().addStatus(forBulkWhere)
+	if f.valueField().getBulkWhereStr() == "" {
+		f.valueField().setBulkWhereStr(fmt.Sprintf("AND %s %s ", f.valueField().fullColName(), str))
+	} else {
+		f.valueField().setBulkWhereStr(fmt.Sprintf("%s AND %s %s ", f.valueField().getBulkWhereStr(), f.valueField().fullColName(), str))
+	}
+	return f
+}
+
+func (f *clauseField) OrBulkWhereStr(str string) ClauseField {
+	f.valueField().addStatus(forBulkWhere)
+	if f.valueField().getBulkWhereStr() == "" {
+		f.valueField().setBulkWhereStr(fmt.Sprintf("OR %s %s ", f.valueField().fullColName(), str))
+	} else {
+		f.valueField().setBulkWhereStr(fmt.Sprintf("%s OR %s %s ", f.valueField().getBulkWhereStr(), f.valueField().fullColName(), str))
+	}
+	return f
+}
+
+func (f *clauseField) AppendBulkWhereValues(vals ...interface{}) ClauseField {
+	f.valueField().appendBulkWhereValue(vals...)
+	return f
+}

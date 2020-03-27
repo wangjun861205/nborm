@@ -54,6 +54,8 @@ const (
 	forDscOrder   fieldStatus = 1 << 7
 	forGroup      fieldStatus = 1 << 9
 	forBulkInsert fieldStatus = 1 << 10
+	forBulkUpdate fieldStatus = 1 << 11
+	forBulkWhere  fieldStatus = 1 << 12
 )
 
 type baseField struct {
@@ -276,4 +278,12 @@ func (f *baseField) isUk() bool {
 
 func (f *baseField) ForBulkInsert() {
 	f.addStatus(forBulkInsert)
+}
+
+func (f *baseField) ForBulkUpdate() {
+	f.addStatus(forBulkUpdate)
+}
+
+func (f *baseField) ForBulkWhere() {
+	f.addStatus(forBulkWhere)
 }

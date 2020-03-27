@@ -27,6 +27,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/spf13/afero v1.2.2 // indirect
+	github.com/tealeg/xlsx v1.0.5 // indirect
 	github.com/wangjun861205/nbcolor v0.0.0-20190419023604-8a3a6415b243
 	github.com/wangjun861205/nbfmt v1.0.0
 	golang.org/x/sys v0.0.0-20191126131656-8a8471f7e56d // indirect

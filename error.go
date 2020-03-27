@@ -11,6 +11,7 @@ const (
 	ErrCodeInvalidValueType
 	ErrCodeExecute
 	ErrCodeInvalidValueFormat
+	ErrCodePrepareStatement
 )
 
 type Error struct {

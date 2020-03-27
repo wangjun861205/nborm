@@ -17,16 +17,24 @@ type ValueField interface {
 	toScan(m Model, selectors *[]interface{})
 	set(v interface{}) ValueField
 	update(v interface{}) ValueField
+	getUpdateValue() interface{}
 	setByReq(req *http.Request) error
 	sqlLiteral() string
 	getExpr() *Expr
 	setByStr(str string) error
+	setBulkWhereStr(string)
+	getBulkWhereStr() string
+	appendBulkWhereValue(...interface{})
+	getBulkWhereValues() []interface{}
 }
 
 type stringValueField struct {
 	baseField
-	val string
-	exp *Expr
+	val           string
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *stringValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -132,8 +140,14 @@ func (f *stringValueField) set(v interface{}) ValueField {
 }
 
 func (f *stringValueField) update(v interface{}) ValueField {
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	upd := newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(upd)
+	f.updVal = v
 	return f
+}
+
+func (f *stringValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f stringValueField) MarshalJSON() ([]byte, error) {
@@ -171,10 +185,29 @@ func (f *stringValueField) setByStr(str string) error {
 	return nil
 }
 
+func (f *stringValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *stringValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *stringValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *stringValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type intValueField struct {
 	baseField
-	val int
-	exp *Expr
+	val           int
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *intValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -277,8 +310,14 @@ func (f *intValueField) set(v interface{}) ValueField {
 }
 
 func (f *intValueField) update(v interface{}) ValueField {
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal := newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *intValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f intValueField) MarshalJSON() ([]byte, error) {
@@ -332,10 +371,29 @@ func (f *intValueField) AnyValue() int {
 	return f.val
 }
 
+func (f *intValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *intValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *intValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *intValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type dateValueField struct {
 	baseField
-	val time.Time
-	exp *Expr
+	val           time.Time
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *dateValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -444,12 +502,21 @@ func (f *dateValueField) set(v interface{}) ValueField {
 }
 
 func (f *dateValueField) update(v interface{}) ValueField {
+	var updVal *update
 	if t, ok := v.(time.Time); ok {
-		f.appendUpdate(newUpdate(f, NewExpr("?", t.In(time.Local).Format("2006-01-02"))))
+		updVal = newUpdate(f, NewExpr("?", t.In(time.Local).Format("2006-01-02")))
+		f.appendUpdate(updVal)
+		f.updVal = t.In(time.Local).Format("2006-01-02")
 		return f
 	}
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal = newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *dateValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f dateValueField) MarshalJSON() ([]byte, error) {
@@ -516,10 +583,29 @@ func (f *dateValueField) AnyValue() time.Time {
 	return f.val
 }
 
+func (f *dateValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *dateValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *dateValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *dateValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type datetimeValueField struct {
 	baseField
-	val time.Time
-	exp *Expr
+	val           time.Time
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *datetimeValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -628,12 +714,21 @@ func (f *datetimeValueField) set(v interface{}) ValueField {
 }
 
 func (f *datetimeValueField) update(v interface{}) ValueField {
+	var updVal *update
 	if t, ok := v.(time.Time); ok {
-		f.appendUpdate(newUpdate(f, NewExpr("?", t.In(time.Local).Format("2006-01-02 15:04:05"))))
+		updVal = newUpdate(f, NewExpr("?", t.In(time.Local).Format("2006-01-02 15:04:05")))
+		f.appendUpdate(updVal)
+		f.updVal = t.In(time.Local).Format("2006-01-02 15:04:05")
 		return f
 	}
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal = newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *datetimeValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f datetimeValueField) MarshalJSON() ([]byte, error) {
@@ -700,10 +795,29 @@ func (f *datetimeValueField) AnyValue() time.Time {
 	return f.val
 }
 
+func (f *datetimeValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *datetimeValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *datetimeValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *datetimeValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type timeValueField struct {
 	baseField
-	val time.Time
-	exp *Expr
+	val           time.Time
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *timeValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -816,12 +930,21 @@ func (f *timeValueField) set(v interface{}) ValueField {
 }
 
 func (f *timeValueField) update(v interface{}) ValueField {
+	var updVal *update
 	if t, ok := v.(time.Time); ok {
-		f.appendUpdate(newUpdate(f, NewExpr("?", t.In(time.Local).Format("2006-01-02 15:04:05"))))
+		updVal = newUpdate(f, NewExpr("?", t.In(time.Local).Format("15:04:05")))
+		f.appendUpdate(updVal)
+		f.updVal = t.In(time.Local).Format("15:04:05")
 		return f
 	}
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal = newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *timeValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f timeValueField) MarshalJSON() ([]byte, error) {
@@ -884,10 +1007,29 @@ func (f *timeValueField) setByStr(str string) error {
 	return nil
 }
 
+func (f *timeValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *timeValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *timeValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *timeValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type decimalValueField struct {
 	baseField
-	val float64
-	exp *Expr
+	val           float64
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *decimalValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -992,8 +1134,14 @@ func (f *decimalValueField) set(v interface{}) ValueField {
 }
 
 func (f *decimalValueField) update(v interface{}) ValueField {
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal := newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *decimalValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f decimalValueField) MarshalJSON() ([]byte, error) {
@@ -1050,10 +1198,29 @@ func (f *decimalValueField) AnyValue() float64 {
 	return f.val
 }
 
+func (f *decimalValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *decimalValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *decimalValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *decimalValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
+}
+
 type byteValueField struct {
 	baseField
-	val []byte
-	exp *Expr
+	val           []byte
+	exp           *Expr
+	updVal        interface{}
+	bulkWhereStr  string
+	bulkWhereVals []interface{}
 }
 
 func (f *byteValueField) init(model Model, colName, fieldName, formName, uriName string, index int) {
@@ -1160,8 +1327,14 @@ func (f *byteValueField) set(v interface{}) ValueField {
 }
 
 func (f *byteValueField) update(v interface{}) ValueField {
-	f.appendUpdate(newUpdate(f, NewExpr("?", v)))
+	updVal := newUpdate(f, NewExpr("?", v))
+	f.appendUpdate(updVal)
+	f.updVal = v
 	return f
+}
+
+func (f *byteValueField) getUpdateValue() interface{} {
+	return f.updVal
 }
 
 func (f byteValueField) MarshalJSON() ([]byte, error) {
@@ -1194,4 +1367,20 @@ func (f *byteValueField) setByStr(str string) error {
 	}
 	f.SetBytes(val)
 	return nil
+}
+
+func (f *byteValueField) setBulkWhereStr(str string) {
+	f.bulkWhereStr = str
+}
+
+func (f *byteValueField) getBulkWhereStr() string {
+	return f.bulkWhereStr
+}
+
+func (f *byteValueField) appendBulkWhereValue(vals ...interface{}) {
+	f.bulkWhereVals = append(f.bulkWhereVals, vals...)
+}
+
+func (f *byteValueField) getBulkWhereValues() []interface{} {
+	return f.bulkWhereVals
 }

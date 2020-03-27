@@ -3,6 +3,7 @@ package nborm
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 )
 
@@ -214,6 +215,25 @@ func genUpdateStmt(model Model, w io.Writer, vals *[]interface{}) {
 	genWhereClause(model, w, vals, isFirstGroup, isFirstNode)
 }
 
+func genBulkUpdateStmt(model Model, w io.Writer, vals *[][]interface{}) {
+	w.Write([]byte("UPDATE "))
+	isFirstGroup, isFirstNode, reset := genFlags()
+	*isFirstNode = false
+	genTabRefClause(model, nil, noJoin, w, nil, isFirstNode)
+	reset()
+	genBulkUpdateClause(model, w, vals, isFirstGroup, isFirstNode)
+	reset()
+	genBulkWhereClause(model, w, isFirstGroup, isFirstNode)
+	reset()
+	getBulkUpdateValues(model, vals, isFirstGroup, isFirstNode)
+	reset()
+	whereVals := make([][]interface{}, 0, 128)
+	getBulkWhereValues(model, &whereVals, isFirstGroup, isFirstNode)
+	for i := range *vals {
+		(*vals)[i] = append((*vals)[i], whereVals[i]...)
+	}
+}
+
 func genDeleteStmt(model Model, w io.Writer, vals *[]interface{}) {
 	isFirstGroup, isFirstNode, reset := genFlags()
 	genDeleteClause(model, w, vals, isFirstNode)
@@ -248,6 +268,27 @@ func genWhereClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup,
 		dstModel := relInfo.lastModel()
 		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			genWhereClause(dstModel, w, vals, isFirstGroup, isFirstNode)
+		}
+	}
+}
+
+var trimAndOrRe = regexp.MustCompile("^(AND|OR)")
+
+func genBulkWhereClause(model Model, w io.Writer, isFirstGroup, isFirstNode *bool) {
+	for _, fieldInfo := range model.FieldInfos() {
+		if fieldInfo.Field.checkFieldStatus(forBulkWhere) {
+			if *isFirstNode {
+				*isFirstNode = false
+				w.Write([]byte("WHERE "))
+				w.Write([]byte(trimAndOrRe.ReplaceAllString(fieldInfo.Field.getBulkWhereStr(), "")))
+			} else {
+				w.Write([]byte(trimAndOrRe.ReplaceAllString(fieldInfo.Field.getBulkWhereStr(), "")))
+			}
+		}
+	}
+	for _, relInfo := range model.relations() {
+		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genBulkWhereClause(relInfo.lastModel(), w, isFirstGroup, isFirstNode)
 		}
 	}
 }

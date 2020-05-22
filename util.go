@@ -3,6 +3,8 @@ package nborm
 import (
 	"database/sql"
 	"fmt"
+	"io"
+	"reflect"
 	"strings"
 )
 
@@ -19,6 +21,7 @@ func initModel(model Model) {
 		if model.getConList() != nil {
 			model.setParent(model.getConList().getParent())
 			model.setIndex(model.getConList().getIndex())
+			model.genAlias()
 		} else {
 			model.genAlias()
 		}
@@ -63,26 +66,30 @@ func getField(model Model, fieldName string) Field {
 	panic(fmt.Sprintf("field not exists(%s.%s.%s)", model.DB(), model.Tab(), fieldName))
 }
 
-func getFieldsForScan(classModel, instanceModel Model, models *[]Model, fields *[]interface{}) {
-	instanceAllFields := getAllFields(instanceModel)
-	for _, index := range classModel.getSelectedFieldIndexes() {
-		*fields = append(*fields, instanceAllFields[index])
-	}
-	aggs := instanceModel.getAggs()
-	for _, agg := range aggs {
-		*fields = append(*fields, agg.getField())
+func getFieldsForScan(classModel, instanceModel Model, models *[]Model, selectors *[]interface{}) {
+	for _, sel := range classModel.getSelectors().list {
+		sel.toScan(instanceModel, selectors)
 	}
 	*models = append(*models, instanceModel)
 	for i, rel := range classModel.relations() {
 		if rel.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
 			if subClassModel, ok := rel.lastModel().(ModelList); ok {
-				subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
-				getFieldsForScan(subClassModel, subInstanceModel, models, fields)
+				if !instanceModel.checkStatus(relInited) {
+					instanceModel.InitRel()
+				}
+				// 尝试修复即使没有要Scan的字段仍然在List中创建Model的问题
+				if len(subClassModel.getSelectors().list) > 0 {
+					subInstanceModel := instanceModel.relations()[i].lastModel().(ModelList).NewModel()
+					getFieldsForScan(subClassModel, subInstanceModel, models, selectors)
+				}
 			} else {
 				if !instanceModel.checkStatus(relInited) {
 					instanceModel.InitRel()
 				}
-				getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, fields)
+				// 尝试修复即使没有要Scan的字段仍然将Model放入要Scan的Model列表中的问题
+				if len(rel.lastModel().getSelectors().list) > 0 {
+					getFieldsForScan(rel.lastModel(), instanceModel.relations()[i].lastModel(), models, selectors)
+				}
 			}
 		}
 	}
@@ -93,46 +100,6 @@ func toInsert(field Field, cl *[]string, pl *[]string, vl *[]interface{}) {
 	*cl = append(*cl, field.colName())
 	*pl = append(*pl, "?")
 	*vl = append(*vl, field.value())
-}
-
-func joinQueryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
-	rows, err := exe.Query(stmt, whereValues...)
-	if err != nil {
-		return err
-	}
-	for rows.Next() {
-		models := make([]Model, 0, 8)
-		fields := make([]interface{}, 0, 64)
-		if l, ok := model.(ModelList); ok {
-			m := l.NewModel()
-			getFieldsForScan(l, m, &models, &fields)
-		} else {
-			getFieldsForScan(model, model, &models, &fields)
-		}
-		if err := rows.Scan(fields...); err != nil {
-			return err
-		}
-		for _, m := range models {
-			m.addModelStatus(synced)
-			if conList := m.getConList(); conList != nil {
-				conList.addModelStatus(synced)
-			}
-		}
-		model.Collapse()
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-	if err := rows.Close(); err != nil {
-		return err
-	}
-	if l, ok := model.(ModelList); ok {
-		l.SetTotal(l.Len())
-		if limit, offset := l.getLimit(); limit > 0 {
-			l.Slice(offset, offset+limit)
-		}
-	}
-	return nil
 }
 
 func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interface{}) error {
@@ -152,10 +119,10 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		defer rows.Close()
 		for rows.Next() {
 			models := make([]Model, 0, 4)
-			fields := make([]interface{}, 0, 32)
+			selectors := make([]interface{}, 0, 32)
 			m := l.NewModel()
-			getFieldsForScan(l, m, &models, &fields)
-			if err := rows.Scan(fields...); err != nil {
+			getFieldsForScan(l, m, &models, &selectors)
+			if err := rows.Scan(selectors...); err != nil {
 				return err
 			}
 			for _, m := range models {
@@ -188,9 +155,9 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 		defer rows.Close()
 		for rows.Next() {
 			models := make([]Model, 0, 4)
-			fields := make([]interface{}, 0, 32)
-			getFieldsForScan(model, model, &models, &fields)
-			if err := rows.Scan(fields...); err != nil {
+			selectors := make([]interface{}, 0, 32)
+			getFieldsForScan(model, model, &models, &selectors)
+			if err := rows.Scan(selectors...); err != nil {
 				return err
 			}
 			for _, m := range models {
@@ -208,75 +175,163 @@ func queryAndScan(exe Executor, model Model, stmt string, whereValues ...interfa
 	return nil
 }
 
-func getUpdates(model Model, updates *exprList) {
-	if model.checkStatus(forUpdate) {
-		*updates = append(*updates, model.getUpdates()...)
+func genUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	model.getUpdates().toClause(w, vals, isFirstGroup, isFirstNode)
+	for _, relInfo := range model.relations() {
+		subModel := relInfo.lastModel()
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
+		}
+	}
+}
+
+func genBulkUpdateClause(model Model, w io.Writer, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	for _, fieldInfo := range model.FieldInfos() {
+		if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+			if *isFirstNode {
+				*isFirstNode = false
+				w.Write([]byte("SET "))
+				fieldInfo.Field.toRefClause(w, nil, isFirstGroup, isFirstNode)
+				w.Write([]byte("= ? "))
+			} else {
+				w.Write([]byte(", "))
+				fieldInfo.Field.toRefClause(w, nil, isFirstGroup, isFirstNode)
+				w.Write([]byte("= ? "))
+			}
+		}
 	}
 	for _, relInfo := range model.relations() {
 		subModel := relInfo.lastModel()
-		if subModel.checkStatus(forUpdate | containSubUpdate) {
-			getUpdates(subModel, updates)
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genBulkUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
 		}
 	}
 }
 
-func genUpdateClause(model Model) (string, []interface{}) {
-	updates := make(exprList, 0, 16)
-	getUpdates(model, &updates)
-	return updates.toClause(assignExpr)
+func getBulkUpdateValues(model Model, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	if *isFirstGroup {
+		*isFirstGroup = false
+		*isFirstNode = true
+		*vals = append(*vals, make([]interface{}, 0, 8))
+	}
+	if l, ok := model.(ModelList); ok {
+		for _, m := range l.GetList() {
+			getBulkUpdateValues(m, vals, isFirstGroup, isFirstNode)
+		}
+	} else {
+		if l := model.getConList(); l != nil {
+			if *isFirstNode {
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getUpdateValue())
+					}
+				}
+			} else {
+				var count int
+				for parent := l.getParent(); parent != nil; parent = parent.getParent() {
+					for _, fieldInfo := range parent.FieldInfos() {
+						if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+							count++
+						}
+					}
+				}
+				prevArgs := make([]interface{}, count)
+				copy(prevArgs, (*vals)[len(*vals)-1][:count])
+				*vals = append(*vals, prevArgs)
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getUpdateValue())
+					}
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		} else {
+			for _, fieldInfo := range model.FieldInfos() {
+				if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+					(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], fieldInfo.Field.getUpdateValue())
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		}
+		*isFirstGroup = true
+		*isFirstNode = false
+	}
 }
 
-func genSimpleUpdateClause(model Model) (string, []interface{}) {
-	updates := make(exprList, 0, 16)
-	getUpdates(model, &updates)
-	return updates.toSimpleClause(assignExpr)
+func getBulkWhereValues(model Model, vals *[][]interface{}, isFirstGroup, isFirstNode *bool) {
+	if *isFirstGroup {
+		*isFirstGroup = false
+		*isFirstNode = true
+		*vals = append(*vals, make([]interface{}, 0, 8))
+	}
+	if l, ok := model.(ModelList); ok {
+		for _, m := range l.GetList() {
+			getBulkWhereValues(m, vals, isFirstGroup, isFirstNode)
+		}
+	} else {
+		if l := model.getConList(); l != nil {
+			if *isFirstNode {
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkWhere) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getBulkWhereValues()...)
+					}
+				}
+			} else {
+				var count int
+				for parent := l.getParent(); parent != nil; parent = parent.getParent() {
+					for _, fieldInfo := range parent.FieldInfos() {
+						if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+							count++
+						}
+					}
+				}
+				prevArgs := make([]interface{}, count)
+				copy(prevArgs, (*vals)[len(*vals)-1][:count])
+				*vals = append(*vals, prevArgs)
+				for i, fieldInfo := range l.FieldInfos() {
+					if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+						(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], model.FieldInfos()[i].Field.getBulkWhereValues()...)
+					}
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		} else {
+			for _, fieldInfo := range model.FieldInfos() {
+				if fieldInfo.Field.checkFieldStatus(forBulkUpdate) {
+					(*vals)[len(*vals)-1] = append((*vals)[len(*vals)-1], fieldInfo.Field.getBulkWhereValues()...)
+				}
+			}
+			for _, relInfo := range model.relations() {
+				if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
+					getBulkUpdateValues(relInfo.lastModel(), vals, isFirstGroup, isFirstNode)
+				}
+			}
+		}
+		*isFirstGroup = true
+		*isFirstNode = false
+	}
 }
 
-func getSelectedColumns(model Model, fields *[]interface{}) {
-	allFields := getAllFields(model)
-	for _, index := range model.getSelectedFieldIndexes() {
-		*fields = append(*fields, allFields[index])
-	}
-	aggs := model.getAggs()
-	for _, agg := range aggs {
-		*fields = append(*fields, agg)
-	}
+func genSimpleUpdateClause(model Model, w io.Writer, vals *[]interface{}, isFirstGroup, isFirstNode *bool) {
+	model.getUpdates().toSimpleClause(w, vals, isFirstGroup, isFirstNode)
 	for _, relInfo := range model.relations() {
-		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getSelectedColumns(relInfo.lastModel(), fields)
+		subModel := relInfo.lastModel()
+		if subModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genSimpleUpdateClause(subModel, w, vals, isFirstGroup, isFirstNode)
 		}
 	}
-}
-
-func genSelectedClause(model Model) (string, []interface{}) {
-	var builder strings.Builder
-	values := make([]interface{}, 0, 8)
-	builder.WriteString("SELECT ")
-	if _, ok := model.(ModelList); ok {
-		builder.WriteString("SQL_CALC_FOUND_ROWS ")
-	}
-	if model.checkStatus(distinct) {
-		builder.WriteString("DISTINCT ")
-	}
-	fields := make([]interface{}, 0, 64)
-	getSelectedColumns(model, &fields)
-	for _, field := range fields {
-		switch f := field.(type) {
-		case Field:
-			builder.WriteString(f.fullColName())
-			builder.WriteString(", ")
-		case aggregator:
-			clause, vals := f.getExpr().toClause()
-			builder.WriteString(clause)
-			builder.WriteString(" AS ")
-			builder.WriteString(f.getName())
-			builder.WriteString(", ")
-			values = append(values, vals...)
-		default:
-			panic(fmt.Errorf("invalid field type (%T)", field))
-		}
-	}
-	return strings.TrimSuffix(builder.String(), ", "), values
 }
 
 func getSelectFields(model Model) FieldList {
@@ -285,30 +340,6 @@ func getSelectFields(model Model) FieldList {
 		return getAllFields(model)
 	}
 	return selectFields
-}
-
-func getOrderBys(model Model, orderBys *[]refClauser) {
-	*orderBys = append(*orderBys, model.getOrderBys()...)
-	for _, relInfo := range model.relations() {
-		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getOrderBys(relInfo.lastModel(), orderBys)
-		}
-	}
-}
-
-func genOrderByClause(model Model) string {
-	orderBys := make([]refClauser, 0, 8)
-	getOrderBys(model, &orderBys)
-	if len(orderBys) == 0 {
-		return ""
-	}
-	var builder strings.Builder
-	builder.WriteString("ORDER BY ")
-	for _, orderBy := range orderBys {
-		builder.WriteString(orderBy.toRefClause())
-		builder.WriteString(", ")
-	}
-	return strings.TrimSuffix(builder.String(), ", ")
 }
 
 func genPlaceHolder(val []interface{}) string {
@@ -329,143 +360,12 @@ func genPlaceHolder(val []interface{}) string {
 	}
 }
 
-func getTabRef(model Model, refs *[]string) {
-	for _, relInfo := range model.relations() {
-		dstModel := relInfo.lastModel()
-		switch {
-		case dstModel.checkStatus(forJoin):
-			*refs = append(*refs, relInfo.toClause(join))
-			getTabRef(dstModel, refs)
-		case dstModel.checkStatus(forLeftJoin):
-			*refs = append(*refs, relInfo.toClause(leftJoin))
-			getTabRef(dstModel, refs)
-		case dstModel.checkStatus(forRightJoin):
-			*refs = append(*refs, relInfo.toClause(rightJoin))
-			getTabRef(dstModel, refs)
-		}
-	}
-}
-
-func genTabRefClause(model Model) string {
-	refs := make([]string, 0, 4)
-	refs = append(refs, model.fullTabName())
-	getTabRef(model, &refs)
-	return strings.Join(refs, " ")
-}
-
-func genBackTabRefClause(model Model) string {
-	parent := model.getParent()
-	if parent == nil {
-		panic("no parent model for back query")
-	}
-	refs := make([]string, 0, 4)
-	refs = append(refs, parent.fullTabName())
-	var got bool
-	for _, relInfo := range parent.relations() {
-		if relInfo.lastModel() == model {
-			refs = append(refs, relInfo.toClause(join))
-			got = true
-			break
-		}
-	}
-	if !got {
-		panic("cannot find relation")
-	}
-	getTabRef(model, &refs)
-	return strings.Join(refs, " ")
-}
-
-func getWheres(model Model, wheres *exprList) {
-	*wheres = append(*wheres, model.getWheres()...)
-	for _, relInfo := range model.relations() {
-		dstModel := relInfo.lastModel()
-		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getWheres(dstModel, wheres)
-		}
-	}
-}
-
-func genWhereClause(model Model) (string, []interface{}) {
-	wheres := make(exprList, 0, 8)
-	getWheres(model, &wheres)
-	if len(wheres) == 0 {
-		return "", nil
-	}
-	return wheres.toClause(whereExpr)
-}
-
-func genBackWhereClause(model Model) (string, []interface{}) {
-	parent := model.getParent()
-	if parent == nil {
-		panic("no parent model for back query")
-	}
-	wheres := make(exprList, 0, 8)
-	for _, k := range parent.PrimaryKey() {
-		wheres = append(wheres, NewExpr("@ = ?", k, k.value()))
-	}
-	getWheres(model, &wheres)
-	return wheres.toClause(whereExpr)
-}
-
-func genSimpleWhereClause(model Model) (string, []interface{}) {
-	wheres := model.getWheres()
-	if len(wheres) == 0 {
-		return "", nil
-	}
-	return wheres.toSimpleClause(whereExpr)
-}
-
-func genLimitClause(model Model) string {
+func genLimitClause(model Model, w io.Writer, vals *[]interface{}) {
 	limit, offset := model.getLimit()
 	if limit == 0 {
-		return ""
+		return
 	}
-	return fmt.Sprintf("LIMIT %d, %d", offset, limit)
-}
-
-func getGroupByFields(model Model, groupBys *[]refClauser) {
-	for _, g := range model.getGroupBys() {
-		*groupBys = append(*groupBys, g)
-	}
-	for _, relInfo := range model.relations() {
-		if relInfo.lastModel().checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getGroupByFields(relInfo.lastModel(), groupBys)
-		}
-	}
-}
-
-func genGroupByClause(model Model) string {
-	groupBys := make([]refClauser, 0, 8)
-	getGroupByFields(model, &groupBys)
-	if len(groupBys) == 0 {
-		return ""
-	}
-	var builder strings.Builder
-	builder.WriteString("GROUP BY ")
-	for _, g := range groupBys {
-		builder.WriteString(g.toRefClause())
-		builder.WriteString(", ")
-	}
-	return strings.TrimSuffix(builder.String(), ", ")
-}
-
-func getHavings(model Model, havings *exprList) {
-	*havings = append(*havings, model.getHavings()...)
-	for _, relInfo := range model.relations() {
-		dstModel := relInfo.lastModel()
-		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
-			getHavings(dstModel, havings)
-		}
-	}
-}
-
-func genHavingClause(model Model) (string, []interface{}) {
-	havings := make(exprList, 0, 8)
-	getHavings(model, &havings)
-	if len(havings) == 0 {
-		return "", nil
-	}
-	return havings.toClause(havingExpr)
+	w.Write([]byte(fmt.Sprintf("LIMIT %d, %d ", offset, limit)))
 }
 
 func genInsertClause(model Model) (string, []interface{}) {
@@ -511,7 +411,19 @@ func valToPlaceholder(val interface{}) string {
 	case []Field:
 		return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", len(v)), ", "))
 	default:
-		panic("unsupported value type to convert to placeholder")
+		// panic("unsupported value type to convert to placeholder")
+		refVal := reflect.ValueOf(val)
+		switch refVal.Kind() {
+		case reflect.Int, reflect.Uint, reflect.Int8, reflect.Int16, reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
+			return "?"
+		case reflect.Array:
+			return strings.TrimSuffix(strings.Repeat("?, ", refVal.Len()), ", ")
+		case reflect.Slice:
+			return fmt.Sprintf("(%s)", strings.TrimSuffix(strings.Repeat("?, ", refVal.Len()), ", "))
+		default:
+			panic("unsupported value type to convert to placeholder")
+		}
 	}
 }
 
@@ -576,7 +488,23 @@ func expandArg(val interface{}) (values []interface{}) {
 			values = append(values, ev.value())
 		}
 	default:
-		panic("unsupported value type to convert to placeholder")
+		// panic("unsupported value type to convert to placeholder")
+		refVal := reflect.ValueOf(val)
+		switch refVal.Kind() {
+		case reflect.Int, reflect.Uint, reflect.Int8, reflect.Int16, reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64, reflect.Uint64,
+			reflect.Float32, reflect.Float64:
+			values = append(values, refVal.Interface())
+		case reflect.Array:
+			for i := 0; i < refVal.Len(); i++ {
+				values = append(values, refVal.Index(i).Interface())
+			}
+		case reflect.Slice:
+			for i := 0; i < refVal.Len(); i++ {
+				values = append(values, refVal.Index(i).Interface())
+			}
+		default:
+			panic("unsupported value type to convert to placeholder")
+		}
 	}
 	return
 }
@@ -593,8 +521,21 @@ func getDeleteModels(model Model, models *[]string) {
 	}
 }
 
-func genDeleteClause(model Model) string {
-	deleteModels := make([]string, 0, 4)
-	getDeleteModels(model, &deleteModels)
-	return fmt.Sprintf("DELETE %s", strings.Join(deleteModels, ", "))
+func genDeleteClause(model Model, w io.Writer, vals *[]interface{}, isFirstNode *bool) {
+	if model.checkStatus(forDelete) {
+		if *isFirstNode {
+			*isFirstNode = false
+			w.Write([]byte("DELETE "))
+		} else {
+			w.Write([]byte(", "))
+		}
+		w.Write([]byte(model.getAlias()))
+		w.Write([]byte(" "))
+	}
+	for _, relInfo := range model.relations() {
+		dstModel := relInfo.lastModel()
+		if dstModel.checkStatus(forJoin | forLeftJoin | forRightJoin) {
+			genDeleteClause(dstModel, w, vals, isFirstNode)
+		}
+	}
 }

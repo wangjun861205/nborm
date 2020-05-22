@@ -1,12 +1,13 @@
 package nborm
 
 import (
-	"strings"
+	"io"
 )
 
 type joinType string
 
 const (
+	noJoin    joinType = ""
 	join      joinType = "JOIN"
 	leftJoin  joinType = "LEFT JOIN"
 	rightJoin joinType = "RIGHT JOIN"
@@ -61,43 +62,34 @@ func (r *RelationInfo) Append(name string, dst Model, on *Expr) *RelationInfo {
 	return r
 }
 
-func (r *RelationInfo) toClause(joinType joinType) string {
-	var builder strings.Builder
+func (r *RelationInfo) toClause(joinType joinType, w io.Writer, vals *[]interface{}) {
 	for rel := r; rel != nil; rel = rel.next {
-		builder.WriteString(string(joinType))
-		builder.WriteString(" ")
-		builder.WriteString(rel.dstModel.fullTabName())
-		builder.WriteString(" ON ")
-		onClause, _ := rel.on.toClause()
-		builder.WriteString(onClause)
-		builder.WriteString(" ")
+		w.Write([]byte(string(joinType)))
+		w.Write([]byte(" "))
+		w.Write([]byte(rel.dstModel.fullTabName()))
+		w.Write([]byte(" ON "))
+		rel.on.toClause(w, vals, nil, nil)
 	}
-	return builder.String()
 }
 
-func (r *RelationInfo) toRevClause(srcModel Model, joinType joinType) string {
+func (r *RelationInfo) toRevClause(srcModel Model, joinType joinType, w io.Writer, vals *[]interface{}) {
 	last := r
 	for last.next != nil {
 		last = last.next
 	}
-	var builder strings.Builder
 	for last.prev != nil {
-		builder.WriteString(string(joinType))
-		builder.WriteString(" ")
-		builder.WriteString(last.prev.dstModel.fullTabName())
-		builder.WriteString(" ON ")
-		onClause, _ := last.on.toClause()
-		builder.WriteString(onClause)
-		builder.WriteString(" ")
+		w.Write([]byte(string(joinType)))
+		w.Write([]byte(" "))
+		w.Write([]byte(last.prev.dstModel.fullTabName()))
+		w.Write([]byte(" ON "))
+		last.on.toClause(w, vals, nil, nil)
 		last = last.prev
 	}
-	builder.WriteString(string(joinType))
-	builder.WriteString(" ")
-	builder.WriteString(srcModel.fullTabName())
-	builder.WriteString(" ON ")
-	onClause, _ := last.on.toClause()
-	builder.WriteString(onClause)
-	return builder.String()
+	w.Write([]byte(string(joinType)))
+	w.Write([]byte(" "))
+	w.Write([]byte(srcModel.fullTabName()))
+	w.Write([]byte(" ON "))
+	last.on.toClause(w, vals, nil, nil)
 }
 
 // RelationInfoList 关系列表

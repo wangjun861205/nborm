@@ -33,6 +33,8 @@ var pkRe = regexp.MustCompile(`(?m)pk:([0-9a-zA-Z,]+)$`)
 var unisRe = regexp.MustCompile(`(?m)uk:([0-9a-zA-Z,]+)$`)
 var colRe = regexp.MustCompile(`col:"(\w+)"`)
 var incRe = regexp.MustCompile(`auto_increment:"true"`)
+var formRe = regexp.MustCompile(`form:"(\w+)"`)
+var uriRe = regexp.MustCompile(`uri:"(\w+)"`)
 
 var relWholeRe = regexp.MustCompile(`rel:"(.*?)"`)
 var relModelRe = regexp.MustCompile(`@([\w@\$]+)\[(.+?)\](?:->|$)`)
@@ -270,6 +272,9 @@ func parseRelation(tag string) error {
 				} else {
 					panic(fmt.Errorf("invalid rel tag(%s)", tag))
 				}
+			case field:
+				statStack = append(statStack, on)
+				builder.WriteRune(r)
 			default:
 				panic(fmt.Errorf("invalid rel tag(%s)", tag))
 			}
@@ -287,8 +292,6 @@ func parseRelation(tag string) error {
 			case modelIndex:
 				if statStack[len(statStack)-3] == on {
 					statStack = append(statStack, field)
-					lastElem := info.Elems[len(info.Elems)-1]
-					lastElem.Fields = append(lastElem.Fields, new(RelField))
 					builder.WriteRune(r)
 				} else {
 					panic(fmt.Errorf("invalid rel tag(%s)", tag))
@@ -310,7 +313,7 @@ func parseRelation(tag string) error {
 			case value, quote:
 				builder.WriteRune(r)
 			case modelIndex:
-				switch statStack[len(statStack)-2] {
+				switch statStack[len(statStack)-3] {
 				case neutral:
 					lastElem := info.Elems[len(info.Elems)-1]
 					lastElem.DstModel.ModelName += string(r)
@@ -374,7 +377,7 @@ func parseRelation(tag string) error {
 			}
 		default:
 			switch statStack[len(statStack)-1] {
-			case value, quote:
+			case value, quote, on:
 				builder.WriteRune(r)
 			case field:
 				builder.WriteRune(r)
@@ -391,6 +394,8 @@ type FieldInfo struct {
 	Col   string
 	Field string
 	IsInc bool
+	Form  string
+	URI   string
 }
 
 type MidWhere struct {
@@ -508,7 +513,7 @@ func (m *ModelInfo) newModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		m.InitRel()
 		return m
@@ -526,7 +531,7 @@ func (m *ModelInfo) newSubModelFunc() string {
 		m := &{{ model.Name }}{}
 		m.Init(m, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		return m
 	}
@@ -714,6 +719,19 @@ func (m *ModelInfo) modelMarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) modelStringMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) String() string {
+		b, _ := json.Marshal(m)
+		return string(b)
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 // func (m *ModelInfo) modelUnmarshalJSONFunc() string {
 // 	s, err := nbfmt.Fmt(`
 // 	func (m *{{ model.Name }}) UnmarshalJSON(data []byte) error {
@@ -795,7 +813,7 @@ func (m *ModelInfo) newListFunc() string {
 		}
 		l.Init(l, nil, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		l.InitRel()
 		return l
@@ -818,7 +836,7 @@ func (m *ModelInfo) newSubListFunc() string {
 		}
 		l.Init(l, parent, nil)
 		{{ for i, field in model.FieldInfos }}
-			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			l.{{ field.Field }}.Init(l, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 		{{ endfor }}
 		return l
 	}
@@ -836,7 +854,7 @@ func (m *ModelInfo) listNewModelFunc() string {
 		m.Init(m, nil, l)
 		l.CopyAggs(m)
 		{{ for i, field in model.FieldInfos }}
-			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", {{ i }})
+			m.{{ field.Field }}.Init(m, "{{ field.Col }}", "{{ field.Field }}", "{{ field.Form }}", "{{ field.URI }}", {{ i }})
 			l.{{ field.Field }}.CopyStatus(&m.{{ field.Field }})
 		{{ endfor }}
 		m.InitRel()
@@ -930,6 +948,19 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 	return s
 }
 
+func (m *ModelInfo) listStringMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) String() string {
+		b, _ := json.Marshal(l)
+		return string(b)
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 // func (m *ModelInfo) listUnmarshalJSONFunc() string {
 // 	s, err := nbfmt.Fmt(`
 // 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
@@ -942,20 +973,77 @@ func (m *ModelInfo) listMarshalJSONFunc() string {
 // 	return s
 // }
 
+// func (m *ModelInfo) listUnmarshalJSONFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
+// 		if string(b) == "[]" || string(b) == "null" {
+// 			return nil
+// 		}
+// 		jl := struct {
+// 			List *[]*{{ model.Name }}
+// 			Total *int
+// 		} {
+// 			&l.List,
+// 			&l.Total,
+// 		}
+// 		return json.Unmarshal(b, &jl)
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
+// func (m *ModelInfo) bindingModelStruct() string {
+// 	s, err := nbfmt.Fmt(`
+// 	type {{ model.Name }}BindModel struct{
+// 		{{ for _, fieldInfo in model.FieldInfos }}
+// 		{{ fieldInfo.Field }} nborm.Field `+"`form:\"{{ fieldInfo.Form }}\"`\n"+`
+// 		{{ endfor }}
+// 		}
+// 		`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
+// func (m *ModelInfo) modelBindingModelFunc() string {
+// 	s, err := nbfmt.Fmt(`
+// 	func (m *{{ model.Name }}) BindModel() *{{ model.Name }}BindModel {
+// 		return &{{ model.Name }}BindModel {
+// 			{{ for _, fieldInfo in model.FieldInfos }}
+// 			{{ fieldInfo.Field }}: &m.{{ fieldInfo.Field }},
+// 			{{ endfor }}
+// 		}
+// 	}
+// 	`, map[string]interface{}{"model": m})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return s
+// }
+
 func (m *ModelInfo) listUnmarshalJSONFunc() string {
 	s, err := nbfmt.Fmt(`
 	func (l *{{ model.Name }}List) UnmarshalJSON(b []byte) error {
-		if string(b) == "[]" {
+		return json.Unmarshal(b, &l.{{ model.Name }})
+	}
+	`, map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) listUnmarshalMetaFunc() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) UnmarshalMeta(b []byte) error {
+		if string(b) == "null" {
 			return nil
 		}
-		jl := struct {
-			List *[]*{{ model.Name }}
-			Total *int
-		} {
-			&l.List,
-			&l.Total,
-		}
-		return json.Unmarshal(b, &jl)
+		return json.Unmarshal(b, &l.{{ model.Name }})
 	}
 	`, map[string]interface{}{"model": m})
 	if err != nil {
@@ -1260,6 +1348,138 @@ func (m *ModelInfo) modelListSetCacheMethod() string {
 	return s
 }
 
+func (m *ModelInfo) modelFromQueryMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) FromQuery(query interface{}) (*{{ model.Name }}, error) {
+		val, typ := reflect.ValueOf(query), reflect.TypeOf(query)
+		for typ.Kind() == reflect.Ptr {
+			val = val.Elem()
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("FromQuery() only support struct: %s(%s)", typ.Name(), typ.Kind())
+		}
+		{{ for i, col in model.FieldInfos }}
+			ftyp{{ i }}, exists := typ.FieldByName("{{ col.Field }}")
+			if exists {
+				fval{{ i }} := val.FieldByName("{{ col.Field }}")
+				fop{{ i }}, ok := ftyp{{ i }}.Tag.Lookup("op")
+				for fval{{ i }}.Kind() == reflect.Ptr && !fval{{ i }}.IsNil() {
+					fval{{ i }} = fval{{ i }}.Elem()
+				}
+				if fval{{ i }}.Kind() != reflect.Ptr {
+					if !ok {
+						m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+					} else {
+						switch fop{{ i }} {
+						case "=":
+							m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						case "!=":
+							m.{{ col.Field }}.AndWhereNeq(fval{{ i }}.Interface())
+						case ">":
+							m.{{ col.Field }}.AndWhereGt(fval{{ i }}.Interface())
+						case ">=":
+							m.{{ col.Field }}.AndWhereGte(fval{{ i }}.Interface())
+						case "<":
+							m.{{ col.Field }}.AndWhereLt(fval{{ i }}.Interface())
+						case "<=":
+							m.{{ col.Field }}.AndWhereLte(fval{{ i }}.Interface())
+						case "llike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "rlike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "alike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "nllike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "nrlike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "nalike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "in":
+							m.{{ col.Field }}.AndWhereIn(fval{{ i }}.Interface())
+						default:
+							return nil, fmt.Errorf("unknown op tag: %s", fop{{ i }})
+						}
+					}
+				}
+			}
+		{{ endfor }}
+		return m, nil
+	}`,
+		map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListFromQueryMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) FromQuery(query interface{}) (*{{ model.Name }}List, error) {
+		val, typ := reflect.ValueOf(query), reflect.TypeOf(query)
+		for typ.Kind() == reflect.Ptr {
+			val = val.Elem()
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("FromQuery() only support struct: %s(%s)", typ.Name(), typ.Kind())
+		}
+		{{ for i, col in model.FieldInfos }}
+			ftyp{{ i }}, exists := typ.FieldByName("{{ col.Field }}")
+			if exists {
+				fval{{ i }} := val.FieldByName("{{ col.Field }}")
+				fop{{ i }}, ok := ftyp{{ i }}.Tag.Lookup("op")
+				for fval{{ i }}.Kind() == reflect.Ptr && !fval{{ i }}.IsNil() {
+					fval{{ i }} = fval{{ i }}.Elem()
+				}
+				if fval{{ i }}.Kind() != reflect.Ptr {
+					if !ok {
+						l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+					} else {
+						switch fop{{ i }} {
+						case "=":
+							l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						case "!=":
+							l.{{ col.Field }}.AndWhereNeq(fval{{ i }}.Interface())
+						case ">":
+							l.{{ col.Field }}.AndWhereGt(fval{{ i }}.Interface())
+						case ">=":
+							l.{{ col.Field }}.AndWhereGte(fval{{ i }}.Interface())
+						case "<":
+							l.{{ col.Field }}.AndWhereLt(fval{{ i }}.Interface())
+						case "<=":
+							l.{{ col.Field }}.AndWhereLte(fval{{ i }}.Interface())
+						case "llike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "rlike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "alike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "nllike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "nrlike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "nalike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "in":
+							l.{{ col.Field }}.AndWhereIn(fval{{ i }}.Interface())
+						default:
+							return nil, fmt.Errorf("unknown op tag: %s", fop{{ i }})
+						}
+					}
+				}
+			}
+		{{ endfor }}
+		return l, nil
+	}`,
+		map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func parseComment(com string) error {
 	fmt.Println(nbcolor.Green(com))
 	lastModelInfo := modelInfos[len(modelInfos)-1]
@@ -1293,6 +1513,18 @@ func parseFieldTag(field, tag string) error {
 		lastField.Col = field
 	} else {
 		lastField.Col = colGroup[1]
+	}
+	formGroup := formRe.FindStringSubmatch(tag)
+	if len(formGroup) != 2 {
+		lastField.Form = field
+	} else {
+		lastField.Form = formGroup[1]
+	}
+	uriGroup := uriRe.FindStringSubmatch(tag)
+	if len(uriGroup) != 2 {
+		lastField.URI = field
+	} else {
+		lastField.URI = uriGroup[1]
 	}
 	lastField.IsInc = incRe.MatchString(tag)
 	return nil
@@ -1543,6 +1775,7 @@ func main() {
 			"time"
 			"encoding/json"
 			"bytes"
+			"reflect"
 		)
 		`)
 		for _, m := range modelInfos {
@@ -1570,10 +1803,13 @@ func main() {
 			nf.WriteString(m.getInnerListFunc())
 			nf.WriteString(m.listMarshalJSONFunc())
 			nf.WriteString(m.listUnmarshalJSONFunc())
+			nf.WriteString(m.listUnmarshalMetaFunc())
 			nf.WriteString(m.listCollapseFunc())
 			nf.WriteString(m.listFilterFunc())
 			nf.WriteString(m.listCheckDupFunc())
 			nf.WriteString(m.listSliceFunc())
+			nf.WriteString(m.modelStringMethod())
+			nf.WriteString(m.listStringMethod())
 
 			nf.WriteString(m.modelCacheElemType())
 			nf.WriteString(m.modelListCacheElemType())
@@ -1590,6 +1826,13 @@ func main() {
 			nf.WriteString(m.modelSetCacheMethod())
 			nf.WriteString(m.modelListGetCacheMethod())
 			nf.WriteString(m.modelListSetCacheMethod())
+
+			nf.WriteString(m.modelFromQueryMethod())
+			nf.WriteString(m.modelListFromQueryMethod())
+
+			// nf.WriteString(m.bindingModelStruct())
+			// nf.WriteString(m.modelBindingModelFunc())
+
 		}
 		nf.WriteString(initFunc(modelInfos))
 		nf.Sync()
@@ -1835,7 +2078,7 @@ func createFile(tables []*Table) string {
 		type {{ tab.ModelName }} struct {
 			nborm.Meta
 			{{ for _, col in tab.Columns }}
-				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }}`"+`
+				{{ col.FieldName }} {{ col.FieldType }} `+"`col:\"{{ col.Name }}\"{{ if col.IsInc == true }} auto_increment:\"true\"{{ endif }} form:\"{{ col.Name }}\" uri:\"{{ col.Name }}\"`"+`
 			{{ endfor }}
 		}
 	{{ endfor }}

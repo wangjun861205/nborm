@@ -30,23 +30,23 @@ type test struct {
 }
 
 var tests = []test{
-	{
-		name: "bulk update",
-		f: func(t *testing.T) {
-			users := model.NewUserList()
-			users.Name.ForBulkUpdate()
-			users.Id.AndBulkWhereStr("= ?")
-			for i := 0; i < 100; i++ {
-				user := users.NewModel().(*model.User)
-				user.Name.Update(randString(10))
-				user.Id.AppendBulkWhereValues("xxxx")
-			}
-			if err := nborm.BulkUpdate(db, users); err != nil {
-				t.Error(err)
-				return
-			}
-		},
-	},
+	// {
+	// 	name: "bulk update",
+	// 	f: func(t *testing.T) {
+	// 		users := model.NewUserList()
+	// 		users.Name.ForBulkUpdate()
+	// 		users.Id.AndBulkWhereStr("= ?")
+	// 		for i := 0; i < 100; i++ {
+	// 			user := users.NewModel().(*model.User)
+	// 			user.Name.Update(randString(10))
+	// 			user.Id.AppendBulkWhereValues("xxxx")
+	// 		}
+	// 		if err := nborm.BulkUpdate(db, users); err != nil {
+	// 			t.Error(err)
+	// 			return
+	// 		}
+	// 	},
+	// },
 	// {
 	// 	name: "list bulk insert",
 	// 	f: func(t *testing.T) {
@@ -432,6 +432,7 @@ var tests = []test{
 	// 	"eq query test",
 	// 	func(t *testing.T) {
 	// 		user := model.NewUser()
+	// 		model.NewUserList()
 	// 		defer func() {
 	// 			user.SetForDelete()
 	// 			if _, err := nborm.Delete(db, user); err != nil {
@@ -681,6 +682,50 @@ var tests = []test{
 	// 		fmt.Println(l.Name.AnyValue())
 	// 	},
 	// },
+	// {
+	// 	"model from query",
+	// 	func(t *testing.T) {
+	// 		query := struct {
+	// 			IntelUserCode *string `op:"alike"`
+	// 			Class         *string `op:"alike"`
+	// 		}{
+	// 			nil,
+	// 			nil,
+	// 		}
+	// 		stuinfo, err := model.NewStudentbasicinfo().FromQuery(query)
+	// 		if err != nil {
+	// 			t.Fatal(err)
+	// 		}
+	// 		stuinfo.SelectAll()
+	// 		if err := nborm.Query(db, stuinfo); err != nil {
+	// 			t.Fatal(err)
+	// 		}
+	// 	},
+	// },
+	{
+		"list from query",
+		func(t *testing.T) {
+			type query struct {
+				IntelUserCode *string `op:"="`
+				Class         *string `op:"="`
+			}
+			var q query
+			qf1 := "hello"
+			qf2 := "world"
+			q.IntelUserCode = &qf1
+			q.Class = &qf2
+			stuinfos, err := model.NewStudentbasicinfoList().FromQuery(q)
+			if err != nil {
+				t.Fatal(err)
+			}
+			stuinfos.IntelUserCode.ForSelect()
+			stuinfos.Class.ForSelect()
+			if err := nborm.Query(db, stuinfos); err != nil {
+				t.Fatal(err)
+			}
+
+		},
+	},
 }
 
 var runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

@@ -1347,6 +1347,138 @@ func (m *ModelInfo) modelListSetCacheMethod() string {
 	return s
 }
 
+func (m *ModelInfo) modelFromQueryMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (m *{{ model.Name }}) FromQuery(query interface{}) (*{{ model.Name }}, error) {
+		val, typ := reflect.ValueOf(query), reflect.TypeOf(query)
+		for typ.Kind() == reflect.Ptr {
+			val = val.Elem()
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("FromQuery() only support struct: %s(%s)", typ.Name(), typ.Kind())
+		}
+		{{ for i, col in model.FieldInfos }}
+			ftyp{{ i }}, exists := typ.FieldByName("{{ col.Field }}")
+			if exists {
+				fval{{ i }} := val.FieldByName("{{ col.Field }}")
+				fop{{ i }}, ok := ftyp{{ i }}.Tag.Lookup("op")
+				for fval{{ i }}.Kind() == reflect.Ptr && !fval{{ i }}.IsNil() {
+					fval{{ i }} = fval{{ i }}.Elem()
+				}
+				if fval{{ i }}.Kind() != reflect.Ptr {
+					if !ok {
+						m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+					} else {
+						switch fop{{ i }} {
+						case "=":
+							m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						case "!=":
+							m.{{ col.Field }}.AndWhereNeq(fval{{ i }}.Interface())
+						case ">":
+							m.{{ col.Field }}.AndWhereGt(fval{{ i }}.Interface())
+						case ">=":
+							m.{{ col.Field }}.AndWhereGte(fval{{ i }}.Interface())
+						case "<":
+							m.{{ col.Field }}.AndWhereLt(fval{{ i }}.Interface())
+						case "<=":
+							m.{{ col.Field }}.AndWhereLte(fval{{ i }}.Interface())
+						case "llike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "rlike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "alike":
+							m.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "nllike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "nrlike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "nalike":
+							m.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "in":
+							m.{{ col.Field }}.AndWhereIn(fval{{ i }}.Interface())
+						default:
+							return nil, fmt.Errorf("unknown op tag: %s", fop{{ i }})
+						}
+					}
+				}
+			}
+		{{ endfor }}
+		return m, nil
+	}`,
+		map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (m *ModelInfo) modelListFromQueryMethod() string {
+	s, err := nbfmt.Fmt(`
+	func (l *{{ model.Name }}List) FromQuery(query interface{}) (*{{ model.Name }}List, error) {
+		val, typ := reflect.ValueOf(query), reflect.TypeOf(query)
+		for typ.Kind() == reflect.Ptr {
+			val = val.Elem()
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("FromQuery() only support struct: %s(%s)", typ.Name(), typ.Kind())
+		}
+		{{ for i, col in model.FieldInfos }}
+			ftyp{{ i }}, exists := typ.FieldByName("{{ col.Field }}")
+			if exists {
+				fval{{ i }} := val.FieldByName("{{ col.Field }}")
+				fop{{ i }}, ok := ftyp{{ i }}.Tag.Lookup("op")
+				for fval{{ i }}.Kind() == reflect.Ptr && !fval{{ i }}.IsNil() {
+					fval{{ i }} = fval{{ i }}.Elem()
+				}
+				if fval{{ i }}.Kind() != reflect.Ptr {
+					if !ok {
+						l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+					} else {
+						switch fop{{ i }} {
+						case "=":
+							l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						case "!=":
+							l.{{ col.Field }}.AndWhereNeq(fval{{ i }}.Interface())
+						case ">":
+							l.{{ col.Field }}.AndWhereGt(fval{{ i }}.Interface())
+						case ">=":
+							l.{{ col.Field }}.AndWhereGte(fval{{ i }}.Interface())
+						case "<":
+							l.{{ col.Field }}.AndWhereLt(fval{{ i }}.Interface())
+						case "<=":
+							l.{{ col.Field }}.AndWhereLte(fval{{ i }}.Interface())
+						case "llike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "rlike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "alike":
+							l.{{ col.Field }}.AndWhereLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "nllike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s", fval{{ i }}.String()))
+						case "nrlike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%s%%", fval{{ i }}.String()))
+						case "nalike":
+							l.{{ col.Field }}.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval{{ i }}.String()))
+						case "in":
+							l.{{ col.Field }}.AndWhereIn(fval{{ i }}.Interface())
+						default:
+							return nil, fmt.Errorf("unknown op tag: %s", fop{{ i }})
+						}
+					}
+				}
+			}
+		{{ endfor }}
+		return l, nil
+	}`,
+		map[string]interface{}{"model": m})
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 func parseComment(com string) error {
 	fmt.Println(nbcolor.Green(com))
 	lastModelInfo := modelInfos[len(modelInfos)-1]
@@ -1642,6 +1774,7 @@ func main() {
 			"time"
 			"encoding/json"
 			"bytes"
+			"reflect"
 		)
 		`)
 		for _, m := range modelInfos {
@@ -1692,6 +1825,9 @@ func main() {
 			nf.WriteString(m.modelSetCacheMethod())
 			nf.WriteString(m.modelListGetCacheMethod())
 			nf.WriteString(m.modelListSetCacheMethod())
+
+			nf.WriteString(m.modelFromQueryMethod())
+			nf.WriteString(m.modelListFromQueryMethod())
 
 			// nf.WriteString(m.bindingModelStruct())
 			// nf.WriteString(m.modelBindingModelFunc())

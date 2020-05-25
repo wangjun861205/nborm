@@ -1369,7 +1369,8 @@ func (m *ModelInfo) modelFromQueryMethod() string {
 				}
 				if fval{{ i }}.Kind() != reflect.Ptr {
 					if !ok {
-						m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+							m.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						}
 					} else {
 						switch fop{{ i }} {
 						case "=":
@@ -1403,6 +1404,14 @@ func (m *ModelInfo) modelFromQueryMethod() string {
 						}
 					}
 				}
+		{{ endfor }}
+		{{ for i, rel in model.RelInfos }}
+			styp{{ i }}, exists := typ.FieldByName("{{ rel.FieldName }}")
+			if exists && styp{{ i }}.Type.Kind() == reflect.Struct {
+				sval{{ i }} := val.FieldByName("{{ rel.FieldName }}")
+				m.{{ rel.FieldName }}.InitRel()
+				m.{{ rel.FieldName }}.SetForJoin()
+				m.{{ rel.FieldName }}.FromQuery(sval{{ i }}.Interface())
 			}
 		{{ endfor }}
 		return m, nil
@@ -1435,7 +1444,18 @@ func (m *ModelInfo) modelListFromQueryMethod() string {
 				}
 				if fval{{ i }}.Kind() != reflect.Ptr {
 					if !ok {
-						l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						switch fval{{ i }}.Kind() {
+						case reflect.Struct:
+							{{ for _, rel in model.RelInfos }}
+								if ftyp{{ i }}.Name == "{{ rel.FieldName }}" {
+									l.{{ rel.FieldName }}.InitRel()
+									l.{{ rel.FieldName }}.SetForJoin()
+									l.{{ rel.FieldName }}.FromQuery(fval{{ i }}.Interface())
+								}
+							{{ endfor }}
+						default:
+							l.{{ col.Field }}.AndWhereEq(fval{{ i }}.Interface())
+						}
 					} else {
 						switch fop{{ i }} {
 						case "=":
@@ -1469,6 +1489,15 @@ func (m *ModelInfo) modelListFromQueryMethod() string {
 						}
 					}
 				}
+			}
+		{{ endfor }}
+		{{ for i, rel in model.RelInfos }}
+			styp{{ i }}, exists := typ.FieldByName("{{ rel.FieldName }}")
+			if exists && styp{{ i }}.Type.Kind() == reflect.Struct {
+				sval{{ i }} := val.FieldByName("{{ rel.FieldName }}")
+				l.{{ rel.FieldName }}.InitRel()
+				l.{{ rel.FieldName }}.SetForJoin()
+				l.{{ rel.FieldName }}.FromQuery(sval{{ i }}.Interface())
 			}
 		{{ endfor }}
 		return l, nil

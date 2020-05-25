@@ -885,37 +885,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
 				m.Id.AndWhereEq(fval0.Interface())
-			} else {
-				switch fop0 {
-				case "=":
-					m.Id.AndWhereEq(fval0.Interface())
-				case "!=":
-					m.Id.AndWhereNeq(fval0.Interface())
-				case ">":
-					m.Id.AndWhereGt(fval0.Interface())
-				case ">=":
-					m.Id.AndWhereGte(fval0.Interface())
-				case "<":
-					m.Id.AndWhereLt(fval0.Interface())
-				case "<=":
-					m.Id.AndWhereLte(fval0.Interface())
-				case "llike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "rlike":
-					m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "alike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "nllike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "nrlike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "nalike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "in":
-					m.Id.AndWhereIn(fval0.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop0)
-				}
+			}
+		} else {
+			switch fop0 {
+			case "=":
+				m.Id.AndWhereEq(fval0.Interface())
+			case "!=":
+				m.Id.AndWhereNeq(fval0.Interface())
+			case ">":
+				m.Id.AndWhereGt(fval0.Interface())
+			case ">=":
+				m.Id.AndWhereGte(fval0.Interface())
+			case "<":
+				m.Id.AndWhereLt(fval0.Interface())
+			case "<=":
+				m.Id.AndWhereLte(fval0.Interface())
+			case "llike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "rlike":
+				m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "alike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "nllike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "nrlike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "nalike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "in":
+				m.Id.AndWhereIn(fval0.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop0)
 			}
 		}
 	}
@@ -929,37 +929,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
 				m.IntelUserCode.AndWhereEq(fval1.Interface())
-			} else {
-				switch fop1 {
-				case "=":
-					m.IntelUserCode.AndWhereEq(fval1.Interface())
-				case "!=":
-					m.IntelUserCode.AndWhereNeq(fval1.Interface())
-				case ">":
-					m.IntelUserCode.AndWhereGt(fval1.Interface())
-				case ">=":
-					m.IntelUserCode.AndWhereGte(fval1.Interface())
-				case "<":
-					m.IntelUserCode.AndWhereLt(fval1.Interface())
-				case "<=":
-					m.IntelUserCode.AndWhereLte(fval1.Interface())
-				case "llike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "rlike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "alike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "nllike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "nrlike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "nalike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "in":
-					m.IntelUserCode.AndWhereIn(fval1.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop1)
-				}
+			}
+		} else {
+			switch fop1 {
+			case "=":
+				m.IntelUserCode.AndWhereEq(fval1.Interface())
+			case "!=":
+				m.IntelUserCode.AndWhereNeq(fval1.Interface())
+			case ">":
+				m.IntelUserCode.AndWhereGt(fval1.Interface())
+			case ">=":
+				m.IntelUserCode.AndWhereGte(fval1.Interface())
+			case "<":
+				m.IntelUserCode.AndWhereLt(fval1.Interface())
+			case "<=":
+				m.IntelUserCode.AndWhereLte(fval1.Interface())
+			case "llike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "rlike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "alike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "nllike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "nrlike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "nalike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "in":
+				m.IntelUserCode.AndWhereIn(fval1.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop1)
 			}
 		}
 	}
@@ -973,37 +973,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
 				m.UserCode.AndWhereEq(fval2.Interface())
-			} else {
-				switch fop2 {
-				case "=":
-					m.UserCode.AndWhereEq(fval2.Interface())
-				case "!=":
-					m.UserCode.AndWhereNeq(fval2.Interface())
-				case ">":
-					m.UserCode.AndWhereGt(fval2.Interface())
-				case ">=":
-					m.UserCode.AndWhereGte(fval2.Interface())
-				case "<":
-					m.UserCode.AndWhereLt(fval2.Interface())
-				case "<=":
-					m.UserCode.AndWhereLte(fval2.Interface())
-				case "llike":
-					m.UserCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "rlike":
-					m.UserCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "alike":
-					m.UserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "nllike":
-					m.UserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "nrlike":
-					m.UserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "nalike":
-					m.UserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "in":
-					m.UserCode.AndWhereIn(fval2.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop2)
-				}
+			}
+		} else {
+			switch fop2 {
+			case "=":
+				m.UserCode.AndWhereEq(fval2.Interface())
+			case "!=":
+				m.UserCode.AndWhereNeq(fval2.Interface())
+			case ">":
+				m.UserCode.AndWhereGt(fval2.Interface())
+			case ">=":
+				m.UserCode.AndWhereGte(fval2.Interface())
+			case "<":
+				m.UserCode.AndWhereLt(fval2.Interface())
+			case "<=":
+				m.UserCode.AndWhereLte(fval2.Interface())
+			case "llike":
+				m.UserCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "rlike":
+				m.UserCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "alike":
+				m.UserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "nllike":
+				m.UserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "nrlike":
+				m.UserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "nalike":
+				m.UserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "in":
+				m.UserCode.AndWhereIn(fval2.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop2)
 			}
 		}
 	}
@@ -1017,37 +1017,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
 				m.Name.AndWhereEq(fval3.Interface())
-			} else {
-				switch fop3 {
-				case "=":
-					m.Name.AndWhereEq(fval3.Interface())
-				case "!=":
-					m.Name.AndWhereNeq(fval3.Interface())
-				case ">":
-					m.Name.AndWhereGt(fval3.Interface())
-				case ">=":
-					m.Name.AndWhereGte(fval3.Interface())
-				case "<":
-					m.Name.AndWhereLt(fval3.Interface())
-				case "<=":
-					m.Name.AndWhereLte(fval3.Interface())
-				case "llike":
-					m.Name.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "rlike":
-					m.Name.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "alike":
-					m.Name.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "nllike":
-					m.Name.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "nrlike":
-					m.Name.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "nalike":
-					m.Name.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "in":
-					m.Name.AndWhereIn(fval3.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop3)
-				}
+			}
+		} else {
+			switch fop3 {
+			case "=":
+				m.Name.AndWhereEq(fval3.Interface())
+			case "!=":
+				m.Name.AndWhereNeq(fval3.Interface())
+			case ">":
+				m.Name.AndWhereGt(fval3.Interface())
+			case ">=":
+				m.Name.AndWhereGte(fval3.Interface())
+			case "<":
+				m.Name.AndWhereLt(fval3.Interface())
+			case "<=":
+				m.Name.AndWhereLte(fval3.Interface())
+			case "llike":
+				m.Name.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "rlike":
+				m.Name.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "alike":
+				m.Name.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "nllike":
+				m.Name.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "nrlike":
+				m.Name.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "nalike":
+				m.Name.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "in":
+				m.Name.AndWhereIn(fval3.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop3)
 			}
 		}
 	}
@@ -1061,37 +1061,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
 				m.Sex.AndWhereEq(fval4.Interface())
-			} else {
-				switch fop4 {
-				case "=":
-					m.Sex.AndWhereEq(fval4.Interface())
-				case "!=":
-					m.Sex.AndWhereNeq(fval4.Interface())
-				case ">":
-					m.Sex.AndWhereGt(fval4.Interface())
-				case ">=":
-					m.Sex.AndWhereGte(fval4.Interface())
-				case "<":
-					m.Sex.AndWhereLt(fval4.Interface())
-				case "<=":
-					m.Sex.AndWhereLte(fval4.Interface())
-				case "llike":
-					m.Sex.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "rlike":
-					m.Sex.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "alike":
-					m.Sex.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "nllike":
-					m.Sex.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "nrlike":
-					m.Sex.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "nalike":
-					m.Sex.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "in":
-					m.Sex.AndWhereIn(fval4.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop4)
-				}
+			}
+		} else {
+			switch fop4 {
+			case "=":
+				m.Sex.AndWhereEq(fval4.Interface())
+			case "!=":
+				m.Sex.AndWhereNeq(fval4.Interface())
+			case ">":
+				m.Sex.AndWhereGt(fval4.Interface())
+			case ">=":
+				m.Sex.AndWhereGte(fval4.Interface())
+			case "<":
+				m.Sex.AndWhereLt(fval4.Interface())
+			case "<=":
+				m.Sex.AndWhereLte(fval4.Interface())
+			case "llike":
+				m.Sex.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "rlike":
+				m.Sex.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "alike":
+				m.Sex.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "nllike":
+				m.Sex.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "nrlike":
+				m.Sex.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "nalike":
+				m.Sex.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "in":
+				m.Sex.AndWhereIn(fval4.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop4)
 			}
 		}
 	}
@@ -1105,37 +1105,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
 				m.IdentityType.AndWhereEq(fval5.Interface())
-			} else {
-				switch fop5 {
-				case "=":
-					m.IdentityType.AndWhereEq(fval5.Interface())
-				case "!=":
-					m.IdentityType.AndWhereNeq(fval5.Interface())
-				case ">":
-					m.IdentityType.AndWhereGt(fval5.Interface())
-				case ">=":
-					m.IdentityType.AndWhereGte(fval5.Interface())
-				case "<":
-					m.IdentityType.AndWhereLt(fval5.Interface())
-				case "<=":
-					m.IdentityType.AndWhereLte(fval5.Interface())
-				case "llike":
-					m.IdentityType.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "rlike":
-					m.IdentityType.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "alike":
-					m.IdentityType.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "nllike":
-					m.IdentityType.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "nrlike":
-					m.IdentityType.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "nalike":
-					m.IdentityType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "in":
-					m.IdentityType.AndWhereIn(fval5.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop5)
-				}
+			}
+		} else {
+			switch fop5 {
+			case "=":
+				m.IdentityType.AndWhereEq(fval5.Interface())
+			case "!=":
+				m.IdentityType.AndWhereNeq(fval5.Interface())
+			case ">":
+				m.IdentityType.AndWhereGt(fval5.Interface())
+			case ">=":
+				m.IdentityType.AndWhereGte(fval5.Interface())
+			case "<":
+				m.IdentityType.AndWhereLt(fval5.Interface())
+			case "<=":
+				m.IdentityType.AndWhereLte(fval5.Interface())
+			case "llike":
+				m.IdentityType.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "rlike":
+				m.IdentityType.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "alike":
+				m.IdentityType.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "nllike":
+				m.IdentityType.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "nrlike":
+				m.IdentityType.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "nalike":
+				m.IdentityType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "in":
+				m.IdentityType.AndWhereIn(fval5.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop5)
 			}
 		}
 	}
@@ -1149,37 +1149,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
 				m.IdentityNum.AndWhereEq(fval6.Interface())
-			} else {
-				switch fop6 {
-				case "=":
-					m.IdentityNum.AndWhereEq(fval6.Interface())
-				case "!=":
-					m.IdentityNum.AndWhereNeq(fval6.Interface())
-				case ">":
-					m.IdentityNum.AndWhereGt(fval6.Interface())
-				case ">=":
-					m.IdentityNum.AndWhereGte(fval6.Interface())
-				case "<":
-					m.IdentityNum.AndWhereLt(fval6.Interface())
-				case "<=":
-					m.IdentityNum.AndWhereLte(fval6.Interface())
-				case "llike":
-					m.IdentityNum.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "rlike":
-					m.IdentityNum.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "alike":
-					m.IdentityNum.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "nllike":
-					m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "nrlike":
-					m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "nalike":
-					m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "in":
-					m.IdentityNum.AndWhereIn(fval6.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop6)
-				}
+			}
+		} else {
+			switch fop6 {
+			case "=":
+				m.IdentityNum.AndWhereEq(fval6.Interface())
+			case "!=":
+				m.IdentityNum.AndWhereNeq(fval6.Interface())
+			case ">":
+				m.IdentityNum.AndWhereGt(fval6.Interface())
+			case ">=":
+				m.IdentityNum.AndWhereGte(fval6.Interface())
+			case "<":
+				m.IdentityNum.AndWhereLt(fval6.Interface())
+			case "<=":
+				m.IdentityNum.AndWhereLte(fval6.Interface())
+			case "llike":
+				m.IdentityNum.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "rlike":
+				m.IdentityNum.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "alike":
+				m.IdentityNum.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "nllike":
+				m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "nrlike":
+				m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "nalike":
+				m.IdentityNum.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "in":
+				m.IdentityNum.AndWhereIn(fval6.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop6)
 			}
 		}
 	}
@@ -1193,37 +1193,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
 				m.ExpirationDate.AndWhereEq(fval7.Interface())
-			} else {
-				switch fop7 {
-				case "=":
-					m.ExpirationDate.AndWhereEq(fval7.Interface())
-				case "!=":
-					m.ExpirationDate.AndWhereNeq(fval7.Interface())
-				case ">":
-					m.ExpirationDate.AndWhereGt(fval7.Interface())
-				case ">=":
-					m.ExpirationDate.AndWhereGte(fval7.Interface())
-				case "<":
-					m.ExpirationDate.AndWhereLt(fval7.Interface())
-				case "<=":
-					m.ExpirationDate.AndWhereLte(fval7.Interface())
-				case "llike":
-					m.ExpirationDate.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "rlike":
-					m.ExpirationDate.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "alike":
-					m.ExpirationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "nllike":
-					m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "nrlike":
-					m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "nalike":
-					m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "in":
-					m.ExpirationDate.AndWhereIn(fval7.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop7)
-				}
+			}
+		} else {
+			switch fop7 {
+			case "=":
+				m.ExpirationDate.AndWhereEq(fval7.Interface())
+			case "!=":
+				m.ExpirationDate.AndWhereNeq(fval7.Interface())
+			case ">":
+				m.ExpirationDate.AndWhereGt(fval7.Interface())
+			case ">=":
+				m.ExpirationDate.AndWhereGte(fval7.Interface())
+			case "<":
+				m.ExpirationDate.AndWhereLt(fval7.Interface())
+			case "<=":
+				m.ExpirationDate.AndWhereLte(fval7.Interface())
+			case "llike":
+				m.ExpirationDate.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "rlike":
+				m.ExpirationDate.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "alike":
+				m.ExpirationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "nllike":
+				m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "nrlike":
+				m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "nalike":
+				m.ExpirationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "in":
+				m.ExpirationDate.AndWhereIn(fval7.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop7)
 			}
 		}
 	}
@@ -1237,37 +1237,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
 				m.UniversityCode.AndWhereEq(fval8.Interface())
-			} else {
-				switch fop8 {
-				case "=":
-					m.UniversityCode.AndWhereEq(fval8.Interface())
-				case "!=":
-					m.UniversityCode.AndWhereNeq(fval8.Interface())
-				case ">":
-					m.UniversityCode.AndWhereGt(fval8.Interface())
-				case ">=":
-					m.UniversityCode.AndWhereGte(fval8.Interface())
-				case "<":
-					m.UniversityCode.AndWhereLt(fval8.Interface())
-				case "<=":
-					m.UniversityCode.AndWhereLte(fval8.Interface())
-				case "llike":
-					m.UniversityCode.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "rlike":
-					m.UniversityCode.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "alike":
-					m.UniversityCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "nllike":
-					m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "nrlike":
-					m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "nalike":
-					m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "in":
-					m.UniversityCode.AndWhereIn(fval8.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop8)
-				}
+			}
+		} else {
+			switch fop8 {
+			case "=":
+				m.UniversityCode.AndWhereEq(fval8.Interface())
+			case "!=":
+				m.UniversityCode.AndWhereNeq(fval8.Interface())
+			case ">":
+				m.UniversityCode.AndWhereGt(fval8.Interface())
+			case ">=":
+				m.UniversityCode.AndWhereGte(fval8.Interface())
+			case "<":
+				m.UniversityCode.AndWhereLt(fval8.Interface())
+			case "<=":
+				m.UniversityCode.AndWhereLte(fval8.Interface())
+			case "llike":
+				m.UniversityCode.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "rlike":
+				m.UniversityCode.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "alike":
+				m.UniversityCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "nllike":
+				m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "nrlike":
+				m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "nalike":
+				m.UniversityCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "in":
+				m.UniversityCode.AndWhereIn(fval8.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop8)
 			}
 		}
 	}
@@ -1281,37 +1281,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
 				m.UserType.AndWhereEq(fval9.Interface())
-			} else {
-				switch fop9 {
-				case "=":
-					m.UserType.AndWhereEq(fval9.Interface())
-				case "!=":
-					m.UserType.AndWhereNeq(fval9.Interface())
-				case ">":
-					m.UserType.AndWhereGt(fval9.Interface())
-				case ">=":
-					m.UserType.AndWhereGte(fval9.Interface())
-				case "<":
-					m.UserType.AndWhereLt(fval9.Interface())
-				case "<=":
-					m.UserType.AndWhereLte(fval9.Interface())
-				case "llike":
-					m.UserType.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "rlike":
-					m.UserType.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "alike":
-					m.UserType.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "nllike":
-					m.UserType.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "nrlike":
-					m.UserType.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "nalike":
-					m.UserType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "in":
-					m.UserType.AndWhereIn(fval9.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop9)
-				}
+			}
+		} else {
+			switch fop9 {
+			case "=":
+				m.UserType.AndWhereEq(fval9.Interface())
+			case "!=":
+				m.UserType.AndWhereNeq(fval9.Interface())
+			case ">":
+				m.UserType.AndWhereGt(fval9.Interface())
+			case ">=":
+				m.UserType.AndWhereGte(fval9.Interface())
+			case "<":
+				m.UserType.AndWhereLt(fval9.Interface())
+			case "<=":
+				m.UserType.AndWhereLte(fval9.Interface())
+			case "llike":
+				m.UserType.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "rlike":
+				m.UserType.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "alike":
+				m.UserType.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "nllike":
+				m.UserType.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "nrlike":
+				m.UserType.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "nalike":
+				m.UserType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "in":
+				m.UserType.AndWhereIn(fval9.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop9)
 			}
 		}
 	}
@@ -1325,37 +1325,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
 				m.EnrollmentStatus.AndWhereEq(fval10.Interface())
-			} else {
-				switch fop10 {
-				case "=":
-					m.EnrollmentStatus.AndWhereEq(fval10.Interface())
-				case "!=":
-					m.EnrollmentStatus.AndWhereNeq(fval10.Interface())
-				case ">":
-					m.EnrollmentStatus.AndWhereGt(fval10.Interface())
-				case ">=":
-					m.EnrollmentStatus.AndWhereGte(fval10.Interface())
-				case "<":
-					m.EnrollmentStatus.AndWhereLt(fval10.Interface())
-				case "<=":
-					m.EnrollmentStatus.AndWhereLte(fval10.Interface())
-				case "llike":
-					m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "rlike":
-					m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "alike":
-					m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "nllike":
-					m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "nrlike":
-					m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "nalike":
-					m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "in":
-					m.EnrollmentStatus.AndWhereIn(fval10.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop10)
-				}
+			}
+		} else {
+			switch fop10 {
+			case "=":
+				m.EnrollmentStatus.AndWhereEq(fval10.Interface())
+			case "!=":
+				m.EnrollmentStatus.AndWhereNeq(fval10.Interface())
+			case ">":
+				m.EnrollmentStatus.AndWhereGt(fval10.Interface())
+			case ">=":
+				m.EnrollmentStatus.AndWhereGte(fval10.Interface())
+			case "<":
+				m.EnrollmentStatus.AndWhereLt(fval10.Interface())
+			case "<=":
+				m.EnrollmentStatus.AndWhereLte(fval10.Interface())
+			case "llike":
+				m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "rlike":
+				m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "alike":
+				m.EnrollmentStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "nllike":
+				m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "nrlike":
+				m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "nalike":
+				m.EnrollmentStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "in":
+				m.EnrollmentStatus.AndWhereIn(fval10.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop10)
 			}
 		}
 	}
@@ -1369,37 +1369,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
 				m.Type.AndWhereEq(fval11.Interface())
-			} else {
-				switch fop11 {
-				case "=":
-					m.Type.AndWhereEq(fval11.Interface())
-				case "!=":
-					m.Type.AndWhereNeq(fval11.Interface())
-				case ">":
-					m.Type.AndWhereGt(fval11.Interface())
-				case ">=":
-					m.Type.AndWhereGte(fval11.Interface())
-				case "<":
-					m.Type.AndWhereLt(fval11.Interface())
-				case "<=":
-					m.Type.AndWhereLte(fval11.Interface())
-				case "llike":
-					m.Type.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "rlike":
-					m.Type.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "alike":
-					m.Type.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "nllike":
-					m.Type.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "nrlike":
-					m.Type.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "nalike":
-					m.Type.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "in":
-					m.Type.AndWhereIn(fval11.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop11)
-				}
+			}
+		} else {
+			switch fop11 {
+			case "=":
+				m.Type.AndWhereEq(fval11.Interface())
+			case "!=":
+				m.Type.AndWhereNeq(fval11.Interface())
+			case ">":
+				m.Type.AndWhereGt(fval11.Interface())
+			case ">=":
+				m.Type.AndWhereGte(fval11.Interface())
+			case "<":
+				m.Type.AndWhereLt(fval11.Interface())
+			case "<=":
+				m.Type.AndWhereLte(fval11.Interface())
+			case "llike":
+				m.Type.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "rlike":
+				m.Type.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "alike":
+				m.Type.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "nllike":
+				m.Type.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "nrlike":
+				m.Type.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "nalike":
+				m.Type.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "in":
+				m.Type.AndWhereIn(fval11.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop11)
 			}
 		}
 	}
@@ -1413,37 +1413,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
 				m.Password.AndWhereEq(fval12.Interface())
-			} else {
-				switch fop12 {
-				case "=":
-					m.Password.AndWhereEq(fval12.Interface())
-				case "!=":
-					m.Password.AndWhereNeq(fval12.Interface())
-				case ">":
-					m.Password.AndWhereGt(fval12.Interface())
-				case ">=":
-					m.Password.AndWhereGte(fval12.Interface())
-				case "<":
-					m.Password.AndWhereLt(fval12.Interface())
-				case "<=":
-					m.Password.AndWhereLte(fval12.Interface())
-				case "llike":
-					m.Password.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "rlike":
-					m.Password.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "alike":
-					m.Password.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "nllike":
-					m.Password.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "nrlike":
-					m.Password.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "nalike":
-					m.Password.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "in":
-					m.Password.AndWhereIn(fval12.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop12)
-				}
+			}
+		} else {
+			switch fop12 {
+			case "=":
+				m.Password.AndWhereEq(fval12.Interface())
+			case "!=":
+				m.Password.AndWhereNeq(fval12.Interface())
+			case ">":
+				m.Password.AndWhereGt(fval12.Interface())
+			case ">=":
+				m.Password.AndWhereGte(fval12.Interface())
+			case "<":
+				m.Password.AndWhereLt(fval12.Interface())
+			case "<=":
+				m.Password.AndWhereLte(fval12.Interface())
+			case "llike":
+				m.Password.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "rlike":
+				m.Password.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "alike":
+				m.Password.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "nllike":
+				m.Password.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "nrlike":
+				m.Password.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "nalike":
+				m.Password.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "in":
+				m.Password.AndWhereIn(fval12.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop12)
 			}
 		}
 	}
@@ -1457,37 +1457,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
 				m.Phone.AndWhereEq(fval13.Interface())
-			} else {
-				switch fop13 {
-				case "=":
-					m.Phone.AndWhereEq(fval13.Interface())
-				case "!=":
-					m.Phone.AndWhereNeq(fval13.Interface())
-				case ">":
-					m.Phone.AndWhereGt(fval13.Interface())
-				case ">=":
-					m.Phone.AndWhereGte(fval13.Interface())
-				case "<":
-					m.Phone.AndWhereLt(fval13.Interface())
-				case "<=":
-					m.Phone.AndWhereLte(fval13.Interface())
-				case "llike":
-					m.Phone.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "rlike":
-					m.Phone.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "alike":
-					m.Phone.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "nllike":
-					m.Phone.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "nrlike":
-					m.Phone.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "nalike":
-					m.Phone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "in":
-					m.Phone.AndWhereIn(fval13.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop13)
-				}
+			}
+		} else {
+			switch fop13 {
+			case "=":
+				m.Phone.AndWhereEq(fval13.Interface())
+			case "!=":
+				m.Phone.AndWhereNeq(fval13.Interface())
+			case ">":
+				m.Phone.AndWhereGt(fval13.Interface())
+			case ">=":
+				m.Phone.AndWhereGte(fval13.Interface())
+			case "<":
+				m.Phone.AndWhereLt(fval13.Interface())
+			case "<=":
+				m.Phone.AndWhereLte(fval13.Interface())
+			case "llike":
+				m.Phone.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "rlike":
+				m.Phone.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "alike":
+				m.Phone.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "nllike":
+				m.Phone.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "nrlike":
+				m.Phone.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "nalike":
+				m.Phone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "in":
+				m.Phone.AndWhereIn(fval13.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop13)
 			}
 		}
 	}
@@ -1501,37 +1501,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
 				m.Email.AndWhereEq(fval14.Interface())
-			} else {
-				switch fop14 {
-				case "=":
-					m.Email.AndWhereEq(fval14.Interface())
-				case "!=":
-					m.Email.AndWhereNeq(fval14.Interface())
-				case ">":
-					m.Email.AndWhereGt(fval14.Interface())
-				case ">=":
-					m.Email.AndWhereGte(fval14.Interface())
-				case "<":
-					m.Email.AndWhereLt(fval14.Interface())
-				case "<=":
-					m.Email.AndWhereLte(fval14.Interface())
-				case "llike":
-					m.Email.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "rlike":
-					m.Email.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "alike":
-					m.Email.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "nllike":
-					m.Email.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "nrlike":
-					m.Email.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "nalike":
-					m.Email.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "in":
-					m.Email.AndWhereIn(fval14.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop14)
-				}
+			}
+		} else {
+			switch fop14 {
+			case "=":
+				m.Email.AndWhereEq(fval14.Interface())
+			case "!=":
+				m.Email.AndWhereNeq(fval14.Interface())
+			case ">":
+				m.Email.AndWhereGt(fval14.Interface())
+			case ">=":
+				m.Email.AndWhereGte(fval14.Interface())
+			case "<":
+				m.Email.AndWhereLt(fval14.Interface())
+			case "<=":
+				m.Email.AndWhereLte(fval14.Interface())
+			case "llike":
+				m.Email.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "rlike":
+				m.Email.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "alike":
+				m.Email.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "nllike":
+				m.Email.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "nrlike":
+				m.Email.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "nalike":
+				m.Email.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "in":
+				m.Email.AndWhereIn(fval14.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop14)
 			}
 		}
 	}
@@ -1545,37 +1545,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
 				m.PictureURL.AndWhereEq(fval15.Interface())
-			} else {
-				switch fop15 {
-				case "=":
-					m.PictureURL.AndWhereEq(fval15.Interface())
-				case "!=":
-					m.PictureURL.AndWhereNeq(fval15.Interface())
-				case ">":
-					m.PictureURL.AndWhereGt(fval15.Interface())
-				case ">=":
-					m.PictureURL.AndWhereGte(fval15.Interface())
-				case "<":
-					m.PictureURL.AndWhereLt(fval15.Interface())
-				case "<=":
-					m.PictureURL.AndWhereLte(fval15.Interface())
-				case "llike":
-					m.PictureURL.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "rlike":
-					m.PictureURL.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "alike":
-					m.PictureURL.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "nllike":
-					m.PictureURL.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "nrlike":
-					m.PictureURL.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "nalike":
-					m.PictureURL.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "in":
-					m.PictureURL.AndWhereIn(fval15.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop15)
-				}
+			}
+		} else {
+			switch fop15 {
+			case "=":
+				m.PictureURL.AndWhereEq(fval15.Interface())
+			case "!=":
+				m.PictureURL.AndWhereNeq(fval15.Interface())
+			case ">":
+				m.PictureURL.AndWhereGt(fval15.Interface())
+			case ">=":
+				m.PictureURL.AndWhereGte(fval15.Interface())
+			case "<":
+				m.PictureURL.AndWhereLt(fval15.Interface())
+			case "<=":
+				m.PictureURL.AndWhereLte(fval15.Interface())
+			case "llike":
+				m.PictureURL.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "rlike":
+				m.PictureURL.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "alike":
+				m.PictureURL.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "nllike":
+				m.PictureURL.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "nrlike":
+				m.PictureURL.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "nalike":
+				m.PictureURL.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "in":
+				m.PictureURL.AndWhereIn(fval15.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop15)
 			}
 		}
 	}
@@ -1589,37 +1589,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
 				m.Question.AndWhereEq(fval16.Interface())
-			} else {
-				switch fop16 {
-				case "=":
-					m.Question.AndWhereEq(fval16.Interface())
-				case "!=":
-					m.Question.AndWhereNeq(fval16.Interface())
-				case ">":
-					m.Question.AndWhereGt(fval16.Interface())
-				case ">=":
-					m.Question.AndWhereGte(fval16.Interface())
-				case "<":
-					m.Question.AndWhereLt(fval16.Interface())
-				case "<=":
-					m.Question.AndWhereLte(fval16.Interface())
-				case "llike":
-					m.Question.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "rlike":
-					m.Question.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "alike":
-					m.Question.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "nllike":
-					m.Question.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "nrlike":
-					m.Question.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "nalike":
-					m.Question.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "in":
-					m.Question.AndWhereIn(fval16.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop16)
-				}
+			}
+		} else {
+			switch fop16 {
+			case "=":
+				m.Question.AndWhereEq(fval16.Interface())
+			case "!=":
+				m.Question.AndWhereNeq(fval16.Interface())
+			case ">":
+				m.Question.AndWhereGt(fval16.Interface())
+			case ">=":
+				m.Question.AndWhereGte(fval16.Interface())
+			case "<":
+				m.Question.AndWhereLt(fval16.Interface())
+			case "<=":
+				m.Question.AndWhereLte(fval16.Interface())
+			case "llike":
+				m.Question.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "rlike":
+				m.Question.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "alike":
+				m.Question.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "nllike":
+				m.Question.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "nrlike":
+				m.Question.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "nalike":
+				m.Question.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "in":
+				m.Question.AndWhereIn(fval16.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop16)
 			}
 		}
 	}
@@ -1633,37 +1633,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
 				m.Answer.AndWhereEq(fval17.Interface())
-			} else {
-				switch fop17 {
-				case "=":
-					m.Answer.AndWhereEq(fval17.Interface())
-				case "!=":
-					m.Answer.AndWhereNeq(fval17.Interface())
-				case ">":
-					m.Answer.AndWhereGt(fval17.Interface())
-				case ">=":
-					m.Answer.AndWhereGte(fval17.Interface())
-				case "<":
-					m.Answer.AndWhereLt(fval17.Interface())
-				case "<=":
-					m.Answer.AndWhereLte(fval17.Interface())
-				case "llike":
-					m.Answer.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "rlike":
-					m.Answer.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "alike":
-					m.Answer.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "nllike":
-					m.Answer.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "nrlike":
-					m.Answer.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "nalike":
-					m.Answer.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "in":
-					m.Answer.AndWhereIn(fval17.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop17)
-				}
+			}
+		} else {
+			switch fop17 {
+			case "=":
+				m.Answer.AndWhereEq(fval17.Interface())
+			case "!=":
+				m.Answer.AndWhereNeq(fval17.Interface())
+			case ">":
+				m.Answer.AndWhereGt(fval17.Interface())
+			case ">=":
+				m.Answer.AndWhereGte(fval17.Interface())
+			case "<":
+				m.Answer.AndWhereLt(fval17.Interface())
+			case "<=":
+				m.Answer.AndWhereLte(fval17.Interface())
+			case "llike":
+				m.Answer.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "rlike":
+				m.Answer.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "alike":
+				m.Answer.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "nllike":
+				m.Answer.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "nrlike":
+				m.Answer.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "nalike":
+				m.Answer.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "in":
+				m.Answer.AndWhereIn(fval17.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop17)
 			}
 		}
 	}
@@ -1677,37 +1677,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
 				m.AvailableLogin.AndWhereEq(fval18.Interface())
-			} else {
-				switch fop18 {
-				case "=":
-					m.AvailableLogin.AndWhereEq(fval18.Interface())
-				case "!=":
-					m.AvailableLogin.AndWhereNeq(fval18.Interface())
-				case ">":
-					m.AvailableLogin.AndWhereGt(fval18.Interface())
-				case ">=":
-					m.AvailableLogin.AndWhereGte(fval18.Interface())
-				case "<":
-					m.AvailableLogin.AndWhereLt(fval18.Interface())
-				case "<=":
-					m.AvailableLogin.AndWhereLte(fval18.Interface())
-				case "llike":
-					m.AvailableLogin.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "rlike":
-					m.AvailableLogin.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "alike":
-					m.AvailableLogin.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "nllike":
-					m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "nrlike":
-					m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "nalike":
-					m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "in":
-					m.AvailableLogin.AndWhereIn(fval18.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop18)
-				}
+			}
+		} else {
+			switch fop18 {
+			case "=":
+				m.AvailableLogin.AndWhereEq(fval18.Interface())
+			case "!=":
+				m.AvailableLogin.AndWhereNeq(fval18.Interface())
+			case ">":
+				m.AvailableLogin.AndWhereGt(fval18.Interface())
+			case ">=":
+				m.AvailableLogin.AndWhereGte(fval18.Interface())
+			case "<":
+				m.AvailableLogin.AndWhereLt(fval18.Interface())
+			case "<=":
+				m.AvailableLogin.AndWhereLte(fval18.Interface())
+			case "llike":
+				m.AvailableLogin.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "rlike":
+				m.AvailableLogin.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "alike":
+				m.AvailableLogin.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "nllike":
+				m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "nrlike":
+				m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "nalike":
+				m.AvailableLogin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "in":
+				m.AvailableLogin.AndWhereIn(fval18.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop18)
 			}
 		}
 	}
@@ -1721,37 +1721,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
 				m.Operator.AndWhereEq(fval19.Interface())
-			} else {
-				switch fop19 {
-				case "=":
-					m.Operator.AndWhereEq(fval19.Interface())
-				case "!=":
-					m.Operator.AndWhereNeq(fval19.Interface())
-				case ">":
-					m.Operator.AndWhereGt(fval19.Interface())
-				case ">=":
-					m.Operator.AndWhereGte(fval19.Interface())
-				case "<":
-					m.Operator.AndWhereLt(fval19.Interface())
-				case "<=":
-					m.Operator.AndWhereLte(fval19.Interface())
-				case "llike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "rlike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "alike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "nllike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "nrlike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "nalike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "in":
-					m.Operator.AndWhereIn(fval19.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop19)
-				}
+			}
+		} else {
+			switch fop19 {
+			case "=":
+				m.Operator.AndWhereEq(fval19.Interface())
+			case "!=":
+				m.Operator.AndWhereNeq(fval19.Interface())
+			case ">":
+				m.Operator.AndWhereGt(fval19.Interface())
+			case ">=":
+				m.Operator.AndWhereGte(fval19.Interface())
+			case "<":
+				m.Operator.AndWhereLt(fval19.Interface())
+			case "<=":
+				m.Operator.AndWhereLte(fval19.Interface())
+			case "llike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "rlike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "alike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "nllike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "nrlike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "nalike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "in":
+				m.Operator.AndWhereIn(fval19.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop19)
 			}
 		}
 	}
@@ -1765,37 +1765,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
 				m.InsertDatetime.AndWhereEq(fval20.Interface())
-			} else {
-				switch fop20 {
-				case "=":
-					m.InsertDatetime.AndWhereEq(fval20.Interface())
-				case "!=":
-					m.InsertDatetime.AndWhereNeq(fval20.Interface())
-				case ">":
-					m.InsertDatetime.AndWhereGt(fval20.Interface())
-				case ">=":
-					m.InsertDatetime.AndWhereGte(fval20.Interface())
-				case "<":
-					m.InsertDatetime.AndWhereLt(fval20.Interface())
-				case "<=":
-					m.InsertDatetime.AndWhereLte(fval20.Interface())
-				case "llike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "rlike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "alike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "nllike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "nrlike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "nalike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "in":
-					m.InsertDatetime.AndWhereIn(fval20.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop20)
-				}
+			}
+		} else {
+			switch fop20 {
+			case "=":
+				m.InsertDatetime.AndWhereEq(fval20.Interface())
+			case "!=":
+				m.InsertDatetime.AndWhereNeq(fval20.Interface())
+			case ">":
+				m.InsertDatetime.AndWhereGt(fval20.Interface())
+			case ">=":
+				m.InsertDatetime.AndWhereGte(fval20.Interface())
+			case "<":
+				m.InsertDatetime.AndWhereLt(fval20.Interface())
+			case "<=":
+				m.InsertDatetime.AndWhereLte(fval20.Interface())
+			case "llike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "rlike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "alike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "nllike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "nrlike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "nalike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "in":
+				m.InsertDatetime.AndWhereIn(fval20.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop20)
 			}
 		}
 	}
@@ -1809,37 +1809,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
 				m.UpdateDatetime.AndWhereEq(fval21.Interface())
-			} else {
-				switch fop21 {
-				case "=":
-					m.UpdateDatetime.AndWhereEq(fval21.Interface())
-				case "!=":
-					m.UpdateDatetime.AndWhereNeq(fval21.Interface())
-				case ">":
-					m.UpdateDatetime.AndWhereGt(fval21.Interface())
-				case ">=":
-					m.UpdateDatetime.AndWhereGte(fval21.Interface())
-				case "<":
-					m.UpdateDatetime.AndWhereLt(fval21.Interface())
-				case "<=":
-					m.UpdateDatetime.AndWhereLte(fval21.Interface())
-				case "llike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "rlike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "alike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "nllike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "nrlike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "nalike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "in":
-					m.UpdateDatetime.AndWhereIn(fval21.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop21)
-				}
+			}
+		} else {
+			switch fop21 {
+			case "=":
+				m.UpdateDatetime.AndWhereEq(fval21.Interface())
+			case "!=":
+				m.UpdateDatetime.AndWhereNeq(fval21.Interface())
+			case ">":
+				m.UpdateDatetime.AndWhereGt(fval21.Interface())
+			case ">=":
+				m.UpdateDatetime.AndWhereGte(fval21.Interface())
+			case "<":
+				m.UpdateDatetime.AndWhereLt(fval21.Interface())
+			case "<=":
+				m.UpdateDatetime.AndWhereLte(fval21.Interface())
+			case "llike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "rlike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "alike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "nllike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "nrlike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "nalike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "in":
+				m.UpdateDatetime.AndWhereIn(fval21.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop21)
 			}
 		}
 	}
@@ -1853,37 +1853,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
 				m.Status.AndWhereEq(fval22.Interface())
-			} else {
-				switch fop22 {
-				case "=":
-					m.Status.AndWhereEq(fval22.Interface())
-				case "!=":
-					m.Status.AndWhereNeq(fval22.Interface())
-				case ">":
-					m.Status.AndWhereGt(fval22.Interface())
-				case ">=":
-					m.Status.AndWhereGte(fval22.Interface())
-				case "<":
-					m.Status.AndWhereLt(fval22.Interface())
-				case "<=":
-					m.Status.AndWhereLte(fval22.Interface())
-				case "llike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "rlike":
-					m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "alike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "nllike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "nrlike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "nalike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "in":
-					m.Status.AndWhereIn(fval22.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop22)
-				}
+			}
+		} else {
+			switch fop22 {
+			case "=":
+				m.Status.AndWhereEq(fval22.Interface())
+			case "!=":
+				m.Status.AndWhereNeq(fval22.Interface())
+			case ">":
+				m.Status.AndWhereGt(fval22.Interface())
+			case ">=":
+				m.Status.AndWhereGte(fval22.Interface())
+			case "<":
+				m.Status.AndWhereLt(fval22.Interface())
+			case "<=":
+				m.Status.AndWhereLte(fval22.Interface())
+			case "llike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "rlike":
+				m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "alike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "nllike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "nrlike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "nalike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "in":
+				m.Status.AndWhereIn(fval22.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop22)
 			}
 		}
 	}
@@ -1897,37 +1897,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark1.AndWhereEq(fval23.Interface())
-			} else {
-				switch fop23 {
-				case "=":
-					m.Remark1.AndWhereEq(fval23.Interface())
-				case "!=":
-					m.Remark1.AndWhereNeq(fval23.Interface())
-				case ">":
-					m.Remark1.AndWhereGt(fval23.Interface())
-				case ">=":
-					m.Remark1.AndWhereGte(fval23.Interface())
-				case "<":
-					m.Remark1.AndWhereLt(fval23.Interface())
-				case "<=":
-					m.Remark1.AndWhereLte(fval23.Interface())
-				case "llike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "rlike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "alike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "nllike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "nrlike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "nalike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "in":
-					m.Remark1.AndWhereIn(fval23.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop23)
-				}
+			}
+		} else {
+			switch fop23 {
+			case "=":
+				m.Remark1.AndWhereEq(fval23.Interface())
+			case "!=":
+				m.Remark1.AndWhereNeq(fval23.Interface())
+			case ">":
+				m.Remark1.AndWhereGt(fval23.Interface())
+			case ">=":
+				m.Remark1.AndWhereGte(fval23.Interface())
+			case "<":
+				m.Remark1.AndWhereLt(fval23.Interface())
+			case "<=":
+				m.Remark1.AndWhereLte(fval23.Interface())
+			case "llike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "rlike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "alike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "nllike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "nrlike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "nalike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "in":
+				m.Remark1.AndWhereIn(fval23.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop23)
 			}
 		}
 	}
@@ -1941,37 +1941,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark2.AndWhereEq(fval24.Interface())
-			} else {
-				switch fop24 {
-				case "=":
-					m.Remark2.AndWhereEq(fval24.Interface())
-				case "!=":
-					m.Remark2.AndWhereNeq(fval24.Interface())
-				case ">":
-					m.Remark2.AndWhereGt(fval24.Interface())
-				case ">=":
-					m.Remark2.AndWhereGte(fval24.Interface())
-				case "<":
-					m.Remark2.AndWhereLt(fval24.Interface())
-				case "<=":
-					m.Remark2.AndWhereLte(fval24.Interface())
-				case "llike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "rlike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "alike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "nllike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "nrlike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "nalike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "in":
-					m.Remark2.AndWhereIn(fval24.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop24)
-				}
+			}
+		} else {
+			switch fop24 {
+			case "=":
+				m.Remark2.AndWhereEq(fval24.Interface())
+			case "!=":
+				m.Remark2.AndWhereNeq(fval24.Interface())
+			case ">":
+				m.Remark2.AndWhereGt(fval24.Interface())
+			case ">=":
+				m.Remark2.AndWhereGte(fval24.Interface())
+			case "<":
+				m.Remark2.AndWhereLt(fval24.Interface())
+			case "<=":
+				m.Remark2.AndWhereLte(fval24.Interface())
+			case "llike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "rlike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "alike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "nllike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "nrlike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "nalike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "in":
+				m.Remark2.AndWhereIn(fval24.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop24)
 			}
 		}
 	}
@@ -1985,37 +1985,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark3.AndWhereEq(fval25.Interface())
-			} else {
-				switch fop25 {
-				case "=":
-					m.Remark3.AndWhereEq(fval25.Interface())
-				case "!=":
-					m.Remark3.AndWhereNeq(fval25.Interface())
-				case ">":
-					m.Remark3.AndWhereGt(fval25.Interface())
-				case ">=":
-					m.Remark3.AndWhereGte(fval25.Interface())
-				case "<":
-					m.Remark3.AndWhereLt(fval25.Interface())
-				case "<=":
-					m.Remark3.AndWhereLte(fval25.Interface())
-				case "llike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "rlike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "alike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "nllike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "nrlike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "nalike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "in":
-					m.Remark3.AndWhereIn(fval25.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop25)
-				}
+			}
+		} else {
+			switch fop25 {
+			case "=":
+				m.Remark3.AndWhereEq(fval25.Interface())
+			case "!=":
+				m.Remark3.AndWhereNeq(fval25.Interface())
+			case ">":
+				m.Remark3.AndWhereGt(fval25.Interface())
+			case ">=":
+				m.Remark3.AndWhereGte(fval25.Interface())
+			case "<":
+				m.Remark3.AndWhereLt(fval25.Interface())
+			case "<=":
+				m.Remark3.AndWhereLte(fval25.Interface())
+			case "llike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "rlike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "alike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "nllike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "nrlike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "nalike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "in":
+				m.Remark3.AndWhereIn(fval25.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop25)
 			}
 		}
 	}
@@ -2029,37 +2029,37 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark4.AndWhereEq(fval26.Interface())
-			} else {
-				switch fop26 {
-				case "=":
-					m.Remark4.AndWhereEq(fval26.Interface())
-				case "!=":
-					m.Remark4.AndWhereNeq(fval26.Interface())
-				case ">":
-					m.Remark4.AndWhereGt(fval26.Interface())
-				case ">=":
-					m.Remark4.AndWhereGte(fval26.Interface())
-				case "<":
-					m.Remark4.AndWhereLt(fval26.Interface())
-				case "<=":
-					m.Remark4.AndWhereLte(fval26.Interface())
-				case "llike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "rlike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "alike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "nllike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "nrlike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "nalike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "in":
-					m.Remark4.AndWhereIn(fval26.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop26)
-				}
+			}
+		} else {
+			switch fop26 {
+			case "=":
+				m.Remark4.AndWhereEq(fval26.Interface())
+			case "!=":
+				m.Remark4.AndWhereNeq(fval26.Interface())
+			case ">":
+				m.Remark4.AndWhereGt(fval26.Interface())
+			case ">=":
+				m.Remark4.AndWhereGte(fval26.Interface())
+			case "<":
+				m.Remark4.AndWhereLt(fval26.Interface())
+			case "<=":
+				m.Remark4.AndWhereLte(fval26.Interface())
+			case "llike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "rlike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "alike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "nllike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "nrlike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "nalike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "in":
+				m.Remark4.AndWhereIn(fval26.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop26)
 			}
 		}
 	}
@@ -2073,39 +2073,53 @@ func (m *User) FromQuery(query interface{}) (*User, error) {
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
 				m.Nonego.AndWhereEq(fval27.Interface())
-			} else {
-				switch fop27 {
-				case "=":
-					m.Nonego.AndWhereEq(fval27.Interface())
-				case "!=":
-					m.Nonego.AndWhereNeq(fval27.Interface())
-				case ">":
-					m.Nonego.AndWhereGt(fval27.Interface())
-				case ">=":
-					m.Nonego.AndWhereGte(fval27.Interface())
-				case "<":
-					m.Nonego.AndWhereLt(fval27.Interface())
-				case "<=":
-					m.Nonego.AndWhereLte(fval27.Interface())
-				case "llike":
-					m.Nonego.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "rlike":
-					m.Nonego.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "alike":
-					m.Nonego.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "nllike":
-					m.Nonego.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "nrlike":
-					m.Nonego.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "nalike":
-					m.Nonego.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "in":
-					m.Nonego.AndWhereIn(fval27.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop27)
-				}
+			}
+		} else {
+			switch fop27 {
+			case "=":
+				m.Nonego.AndWhereEq(fval27.Interface())
+			case "!=":
+				m.Nonego.AndWhereNeq(fval27.Interface())
+			case ">":
+				m.Nonego.AndWhereGt(fval27.Interface())
+			case ">=":
+				m.Nonego.AndWhereGte(fval27.Interface())
+			case "<":
+				m.Nonego.AndWhereLt(fval27.Interface())
+			case "<=":
+				m.Nonego.AndWhereLte(fval27.Interface())
+			case "llike":
+				m.Nonego.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "rlike":
+				m.Nonego.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "alike":
+				m.Nonego.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "nllike":
+				m.Nonego.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "nrlike":
+				m.Nonego.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "nalike":
+				m.Nonego.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "in":
+				m.Nonego.AndWhereIn(fval27.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop27)
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("BasicInfo")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("BasicInfo")
+		m.BasicInfo.InitRel()
+		m.BasicInfo.SetForJoin()
+		m.BasicInfo.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("StudentClass")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("StudentClass")
+		m.StudentClass.InitRel()
+		m.StudentClass.SetForJoin()
+		m.StudentClass.FromQuery(sval1.Interface())
 	}
 	return m, nil
 }
@@ -2127,7 +2141,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
-				l.Id.AndWhereEq(fval0.Interface())
+				switch fval0.Kind() {
+				case reflect.Struct:
+					if ftyp0.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval0.Interface())
+					}
+					if ftyp0.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval0.Interface())
+					}
+				default:
+					l.Id.AndWhereEq(fval0.Interface())
+				}
 			} else {
 				switch fop0 {
 				case "=":
@@ -2171,7 +2199,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
-				l.IntelUserCode.AndWhereEq(fval1.Interface())
+				switch fval1.Kind() {
+				case reflect.Struct:
+					if ftyp1.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval1.Interface())
+					}
+					if ftyp1.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval1.Interface())
+					}
+				default:
+					l.IntelUserCode.AndWhereEq(fval1.Interface())
+				}
 			} else {
 				switch fop1 {
 				case "=":
@@ -2215,7 +2257,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
-				l.UserCode.AndWhereEq(fval2.Interface())
+				switch fval2.Kind() {
+				case reflect.Struct:
+					if ftyp2.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval2.Interface())
+					}
+					if ftyp2.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval2.Interface())
+					}
+				default:
+					l.UserCode.AndWhereEq(fval2.Interface())
+				}
 			} else {
 				switch fop2 {
 				case "=":
@@ -2259,7 +2315,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
-				l.Name.AndWhereEq(fval3.Interface())
+				switch fval3.Kind() {
+				case reflect.Struct:
+					if ftyp3.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval3.Interface())
+					}
+					if ftyp3.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval3.Interface())
+					}
+				default:
+					l.Name.AndWhereEq(fval3.Interface())
+				}
 			} else {
 				switch fop3 {
 				case "=":
@@ -2303,7 +2373,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
-				l.Sex.AndWhereEq(fval4.Interface())
+				switch fval4.Kind() {
+				case reflect.Struct:
+					if ftyp4.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval4.Interface())
+					}
+					if ftyp4.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval4.Interface())
+					}
+				default:
+					l.Sex.AndWhereEq(fval4.Interface())
+				}
 			} else {
 				switch fop4 {
 				case "=":
@@ -2347,7 +2431,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
-				l.IdentityType.AndWhereEq(fval5.Interface())
+				switch fval5.Kind() {
+				case reflect.Struct:
+					if ftyp5.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval5.Interface())
+					}
+					if ftyp5.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval5.Interface())
+					}
+				default:
+					l.IdentityType.AndWhereEq(fval5.Interface())
+				}
 			} else {
 				switch fop5 {
 				case "=":
@@ -2391,7 +2489,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
-				l.IdentityNum.AndWhereEq(fval6.Interface())
+				switch fval6.Kind() {
+				case reflect.Struct:
+					if ftyp6.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval6.Interface())
+					}
+					if ftyp6.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval6.Interface())
+					}
+				default:
+					l.IdentityNum.AndWhereEq(fval6.Interface())
+				}
 			} else {
 				switch fop6 {
 				case "=":
@@ -2435,7 +2547,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
-				l.ExpirationDate.AndWhereEq(fval7.Interface())
+				switch fval7.Kind() {
+				case reflect.Struct:
+					if ftyp7.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval7.Interface())
+					}
+					if ftyp7.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval7.Interface())
+					}
+				default:
+					l.ExpirationDate.AndWhereEq(fval7.Interface())
+				}
 			} else {
 				switch fop7 {
 				case "=":
@@ -2479,7 +2605,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
-				l.UniversityCode.AndWhereEq(fval8.Interface())
+				switch fval8.Kind() {
+				case reflect.Struct:
+					if ftyp8.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval8.Interface())
+					}
+					if ftyp8.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval8.Interface())
+					}
+				default:
+					l.UniversityCode.AndWhereEq(fval8.Interface())
+				}
 			} else {
 				switch fop8 {
 				case "=":
@@ -2523,7 +2663,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
-				l.UserType.AndWhereEq(fval9.Interface())
+				switch fval9.Kind() {
+				case reflect.Struct:
+					if ftyp9.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval9.Interface())
+					}
+					if ftyp9.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval9.Interface())
+					}
+				default:
+					l.UserType.AndWhereEq(fval9.Interface())
+				}
 			} else {
 				switch fop9 {
 				case "=":
@@ -2567,7 +2721,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
-				l.EnrollmentStatus.AndWhereEq(fval10.Interface())
+				switch fval10.Kind() {
+				case reflect.Struct:
+					if ftyp10.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval10.Interface())
+					}
+					if ftyp10.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval10.Interface())
+					}
+				default:
+					l.EnrollmentStatus.AndWhereEq(fval10.Interface())
+				}
 			} else {
 				switch fop10 {
 				case "=":
@@ -2611,7 +2779,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
-				l.Type.AndWhereEq(fval11.Interface())
+				switch fval11.Kind() {
+				case reflect.Struct:
+					if ftyp11.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval11.Interface())
+					}
+					if ftyp11.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval11.Interface())
+					}
+				default:
+					l.Type.AndWhereEq(fval11.Interface())
+				}
 			} else {
 				switch fop11 {
 				case "=":
@@ -2655,7 +2837,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
-				l.Password.AndWhereEq(fval12.Interface())
+				switch fval12.Kind() {
+				case reflect.Struct:
+					if ftyp12.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval12.Interface())
+					}
+					if ftyp12.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval12.Interface())
+					}
+				default:
+					l.Password.AndWhereEq(fval12.Interface())
+				}
 			} else {
 				switch fop12 {
 				case "=":
@@ -2699,7 +2895,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
-				l.Phone.AndWhereEq(fval13.Interface())
+				switch fval13.Kind() {
+				case reflect.Struct:
+					if ftyp13.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval13.Interface())
+					}
+					if ftyp13.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval13.Interface())
+					}
+				default:
+					l.Phone.AndWhereEq(fval13.Interface())
+				}
 			} else {
 				switch fop13 {
 				case "=":
@@ -2743,7 +2953,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
-				l.Email.AndWhereEq(fval14.Interface())
+				switch fval14.Kind() {
+				case reflect.Struct:
+					if ftyp14.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval14.Interface())
+					}
+					if ftyp14.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval14.Interface())
+					}
+				default:
+					l.Email.AndWhereEq(fval14.Interface())
+				}
 			} else {
 				switch fop14 {
 				case "=":
@@ -2787,7 +3011,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
-				l.PictureURL.AndWhereEq(fval15.Interface())
+				switch fval15.Kind() {
+				case reflect.Struct:
+					if ftyp15.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval15.Interface())
+					}
+					if ftyp15.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval15.Interface())
+					}
+				default:
+					l.PictureURL.AndWhereEq(fval15.Interface())
+				}
 			} else {
 				switch fop15 {
 				case "=":
@@ -2831,7 +3069,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
-				l.Question.AndWhereEq(fval16.Interface())
+				switch fval16.Kind() {
+				case reflect.Struct:
+					if ftyp16.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval16.Interface())
+					}
+					if ftyp16.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval16.Interface())
+					}
+				default:
+					l.Question.AndWhereEq(fval16.Interface())
+				}
 			} else {
 				switch fop16 {
 				case "=":
@@ -2875,7 +3127,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
-				l.Answer.AndWhereEq(fval17.Interface())
+				switch fval17.Kind() {
+				case reflect.Struct:
+					if ftyp17.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval17.Interface())
+					}
+					if ftyp17.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval17.Interface())
+					}
+				default:
+					l.Answer.AndWhereEq(fval17.Interface())
+				}
 			} else {
 				switch fop17 {
 				case "=":
@@ -2919,7 +3185,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
-				l.AvailableLogin.AndWhereEq(fval18.Interface())
+				switch fval18.Kind() {
+				case reflect.Struct:
+					if ftyp18.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval18.Interface())
+					}
+					if ftyp18.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval18.Interface())
+					}
+				default:
+					l.AvailableLogin.AndWhereEq(fval18.Interface())
+				}
 			} else {
 				switch fop18 {
 				case "=":
@@ -2963,7 +3243,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
-				l.Operator.AndWhereEq(fval19.Interface())
+				switch fval19.Kind() {
+				case reflect.Struct:
+					if ftyp19.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval19.Interface())
+					}
+					if ftyp19.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval19.Interface())
+					}
+				default:
+					l.Operator.AndWhereEq(fval19.Interface())
+				}
 			} else {
 				switch fop19 {
 				case "=":
@@ -3007,7 +3301,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
-				l.InsertDatetime.AndWhereEq(fval20.Interface())
+				switch fval20.Kind() {
+				case reflect.Struct:
+					if ftyp20.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval20.Interface())
+					}
+					if ftyp20.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval20.Interface())
+					}
+				default:
+					l.InsertDatetime.AndWhereEq(fval20.Interface())
+				}
 			} else {
 				switch fop20 {
 				case "=":
@@ -3051,7 +3359,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
-				l.UpdateDatetime.AndWhereEq(fval21.Interface())
+				switch fval21.Kind() {
+				case reflect.Struct:
+					if ftyp21.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval21.Interface())
+					}
+					if ftyp21.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval21.Interface())
+					}
+				default:
+					l.UpdateDatetime.AndWhereEq(fval21.Interface())
+				}
 			} else {
 				switch fop21 {
 				case "=":
@@ -3095,7 +3417,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
-				l.Status.AndWhereEq(fval22.Interface())
+				switch fval22.Kind() {
+				case reflect.Struct:
+					if ftyp22.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval22.Interface())
+					}
+					if ftyp22.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval22.Interface())
+					}
+				default:
+					l.Status.AndWhereEq(fval22.Interface())
+				}
 			} else {
 				switch fop22 {
 				case "=":
@@ -3139,7 +3475,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark1.AndWhereEq(fval23.Interface())
+				switch fval23.Kind() {
+				case reflect.Struct:
+					if ftyp23.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval23.Interface())
+					}
+					if ftyp23.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval23.Interface())
+					}
+				default:
+					l.Remark1.AndWhereEq(fval23.Interface())
+				}
 			} else {
 				switch fop23 {
 				case "=":
@@ -3183,7 +3533,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark2.AndWhereEq(fval24.Interface())
+				switch fval24.Kind() {
+				case reflect.Struct:
+					if ftyp24.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval24.Interface())
+					}
+					if ftyp24.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval24.Interface())
+					}
+				default:
+					l.Remark2.AndWhereEq(fval24.Interface())
+				}
 			} else {
 				switch fop24 {
 				case "=":
@@ -3227,7 +3591,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark3.AndWhereEq(fval25.Interface())
+				switch fval25.Kind() {
+				case reflect.Struct:
+					if ftyp25.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval25.Interface())
+					}
+					if ftyp25.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval25.Interface())
+					}
+				default:
+					l.Remark3.AndWhereEq(fval25.Interface())
+				}
 			} else {
 				switch fop25 {
 				case "=":
@@ -3271,7 +3649,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark4.AndWhereEq(fval26.Interface())
+				switch fval26.Kind() {
+				case reflect.Struct:
+					if ftyp26.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval26.Interface())
+					}
+					if ftyp26.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval26.Interface())
+					}
+				default:
+					l.Remark4.AndWhereEq(fval26.Interface())
+				}
 			} else {
 				switch fop26 {
 				case "=":
@@ -3315,7 +3707,21 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 		}
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
-				l.Nonego.AndWhereEq(fval27.Interface())
+				switch fval27.Kind() {
+				case reflect.Struct:
+					if ftyp27.Name == "BasicInfo" {
+						l.BasicInfo.InitRel()
+						l.BasicInfo.SetForJoin()
+						l.BasicInfo.FromQuery(fval27.Interface())
+					}
+					if ftyp27.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval27.Interface())
+					}
+				default:
+					l.Nonego.AndWhereEq(fval27.Interface())
+				}
 			} else {
 				switch fop27 {
 				case "=":
@@ -3349,6 +3755,20 @@ func (l *UserList) FromQuery(query interface{}) (*UserList, error) {
 				}
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("BasicInfo")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("BasicInfo")
+		l.BasicInfo.InitRel()
+		l.BasicInfo.SetForJoin()
+		l.BasicInfo.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("StudentClass")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("StudentClass")
+		l.StudentClass.InitRel()
+		l.StudentClass.SetForJoin()
+		l.StudentClass.FromQuery(sval1.Interface())
 	}
 	return l, nil
 }
@@ -4769,6 +5189,7 @@ func (l *StudentbasicinfoList) checkDup() int {
 	if lastModel.OriginAreaName.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.OriginAreaName.AnyValue()))
 	}
+	builder.WriteString(lastModel.AggCheckDup())
 	if idx, ok := l.dupMap[builder.String()]; ok {
 		return idx
 	}
@@ -4922,37 +5343,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
 				m.Id.AndWhereEq(fval0.Interface())
-			} else {
-				switch fop0 {
-				case "=":
-					m.Id.AndWhereEq(fval0.Interface())
-				case "!=":
-					m.Id.AndWhereNeq(fval0.Interface())
-				case ">":
-					m.Id.AndWhereGt(fval0.Interface())
-				case ">=":
-					m.Id.AndWhereGte(fval0.Interface())
-				case "<":
-					m.Id.AndWhereLt(fval0.Interface())
-				case "<=":
-					m.Id.AndWhereLte(fval0.Interface())
-				case "llike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "rlike":
-					m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "alike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "nllike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "nrlike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "nalike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "in":
-					m.Id.AndWhereIn(fval0.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop0)
-				}
+			}
+		} else {
+			switch fop0 {
+			case "=":
+				m.Id.AndWhereEq(fval0.Interface())
+			case "!=":
+				m.Id.AndWhereNeq(fval0.Interface())
+			case ">":
+				m.Id.AndWhereGt(fval0.Interface())
+			case ">=":
+				m.Id.AndWhereGte(fval0.Interface())
+			case "<":
+				m.Id.AndWhereLt(fval0.Interface())
+			case "<=":
+				m.Id.AndWhereLte(fval0.Interface())
+			case "llike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "rlike":
+				m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "alike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "nllike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "nrlike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "nalike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "in":
+				m.Id.AndWhereIn(fval0.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop0)
 			}
 		}
 	}
@@ -4966,37 +5387,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
 				m.RecordId.AndWhereEq(fval1.Interface())
-			} else {
-				switch fop1 {
-				case "=":
-					m.RecordId.AndWhereEq(fval1.Interface())
-				case "!=":
-					m.RecordId.AndWhereNeq(fval1.Interface())
-				case ">":
-					m.RecordId.AndWhereGt(fval1.Interface())
-				case ">=":
-					m.RecordId.AndWhereGte(fval1.Interface())
-				case "<":
-					m.RecordId.AndWhereLt(fval1.Interface())
-				case "<=":
-					m.RecordId.AndWhereLte(fval1.Interface())
-				case "llike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "rlike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "alike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "nllike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "nrlike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "nalike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "in":
-					m.RecordId.AndWhereIn(fval1.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop1)
-				}
+			}
+		} else {
+			switch fop1 {
+			case "=":
+				m.RecordId.AndWhereEq(fval1.Interface())
+			case "!=":
+				m.RecordId.AndWhereNeq(fval1.Interface())
+			case ">":
+				m.RecordId.AndWhereGt(fval1.Interface())
+			case ">=":
+				m.RecordId.AndWhereGte(fval1.Interface())
+			case "<":
+				m.RecordId.AndWhereLt(fval1.Interface())
+			case "<=":
+				m.RecordId.AndWhereLte(fval1.Interface())
+			case "llike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "rlike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "alike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "nllike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "nrlike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "nalike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "in":
+				m.RecordId.AndWhereIn(fval1.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop1)
 			}
 		}
 	}
@@ -5010,37 +5431,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
 				m.IntelUserCode.AndWhereEq(fval2.Interface())
-			} else {
-				switch fop2 {
-				case "=":
-					m.IntelUserCode.AndWhereEq(fval2.Interface())
-				case "!=":
-					m.IntelUserCode.AndWhereNeq(fval2.Interface())
-				case ">":
-					m.IntelUserCode.AndWhereGt(fval2.Interface())
-				case ">=":
-					m.IntelUserCode.AndWhereGte(fval2.Interface())
-				case "<":
-					m.IntelUserCode.AndWhereLt(fval2.Interface())
-				case "<=":
-					m.IntelUserCode.AndWhereLte(fval2.Interface())
-				case "llike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "rlike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "alike":
-					m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "nllike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "nrlike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "nalike":
-					m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "in":
-					m.IntelUserCode.AndWhereIn(fval2.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop2)
-				}
+			}
+		} else {
+			switch fop2 {
+			case "=":
+				m.IntelUserCode.AndWhereEq(fval2.Interface())
+			case "!=":
+				m.IntelUserCode.AndWhereNeq(fval2.Interface())
+			case ">":
+				m.IntelUserCode.AndWhereGt(fval2.Interface())
+			case ">=":
+				m.IntelUserCode.AndWhereGte(fval2.Interface())
+			case "<":
+				m.IntelUserCode.AndWhereLt(fval2.Interface())
+			case "<=":
+				m.IntelUserCode.AndWhereLte(fval2.Interface())
+			case "llike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "rlike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "alike":
+				m.IntelUserCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "nllike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "nrlike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "nalike":
+				m.IntelUserCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "in":
+				m.IntelUserCode.AndWhereIn(fval2.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop2)
 			}
 		}
 	}
@@ -5054,37 +5475,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
 				m.Class.AndWhereEq(fval3.Interface())
-			} else {
-				switch fop3 {
-				case "=":
-					m.Class.AndWhereEq(fval3.Interface())
-				case "!=":
-					m.Class.AndWhereNeq(fval3.Interface())
-				case ">":
-					m.Class.AndWhereGt(fval3.Interface())
-				case ">=":
-					m.Class.AndWhereGte(fval3.Interface())
-				case "<":
-					m.Class.AndWhereLt(fval3.Interface())
-				case "<=":
-					m.Class.AndWhereLte(fval3.Interface())
-				case "llike":
-					m.Class.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "rlike":
-					m.Class.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "alike":
-					m.Class.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "nllike":
-					m.Class.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "nrlike":
-					m.Class.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "nalike":
-					m.Class.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "in":
-					m.Class.AndWhereIn(fval3.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop3)
-				}
+			}
+		} else {
+			switch fop3 {
+			case "=":
+				m.Class.AndWhereEq(fval3.Interface())
+			case "!=":
+				m.Class.AndWhereNeq(fval3.Interface())
+			case ">":
+				m.Class.AndWhereGt(fval3.Interface())
+			case ">=":
+				m.Class.AndWhereGte(fval3.Interface())
+			case "<":
+				m.Class.AndWhereLt(fval3.Interface())
+			case "<=":
+				m.Class.AndWhereLte(fval3.Interface())
+			case "llike":
+				m.Class.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "rlike":
+				m.Class.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "alike":
+				m.Class.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "nllike":
+				m.Class.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "nrlike":
+				m.Class.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "nalike":
+				m.Class.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "in":
+				m.Class.AndWhereIn(fval3.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop3)
 			}
 		}
 	}
@@ -5098,37 +5519,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
 				m.OtherName.AndWhereEq(fval4.Interface())
-			} else {
-				switch fop4 {
-				case "=":
-					m.OtherName.AndWhereEq(fval4.Interface())
-				case "!=":
-					m.OtherName.AndWhereNeq(fval4.Interface())
-				case ">":
-					m.OtherName.AndWhereGt(fval4.Interface())
-				case ">=":
-					m.OtherName.AndWhereGte(fval4.Interface())
-				case "<":
-					m.OtherName.AndWhereLt(fval4.Interface())
-				case "<=":
-					m.OtherName.AndWhereLte(fval4.Interface())
-				case "llike":
-					m.OtherName.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "rlike":
-					m.OtherName.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "alike":
-					m.OtherName.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "nllike":
-					m.OtherName.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "nrlike":
-					m.OtherName.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "nalike":
-					m.OtherName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "in":
-					m.OtherName.AndWhereIn(fval4.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop4)
-				}
+			}
+		} else {
+			switch fop4 {
+			case "=":
+				m.OtherName.AndWhereEq(fval4.Interface())
+			case "!=":
+				m.OtherName.AndWhereNeq(fval4.Interface())
+			case ">":
+				m.OtherName.AndWhereGt(fval4.Interface())
+			case ">=":
+				m.OtherName.AndWhereGte(fval4.Interface())
+			case "<":
+				m.OtherName.AndWhereLt(fval4.Interface())
+			case "<=":
+				m.OtherName.AndWhereLte(fval4.Interface())
+			case "llike":
+				m.OtherName.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "rlike":
+				m.OtherName.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "alike":
+				m.OtherName.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "nllike":
+				m.OtherName.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "nrlike":
+				m.OtherName.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "nalike":
+				m.OtherName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "in":
+				m.OtherName.AndWhereIn(fval4.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop4)
 			}
 		}
 	}
@@ -5142,37 +5563,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
 				m.NameInPinyin.AndWhereEq(fval5.Interface())
-			} else {
-				switch fop5 {
-				case "=":
-					m.NameInPinyin.AndWhereEq(fval5.Interface())
-				case "!=":
-					m.NameInPinyin.AndWhereNeq(fval5.Interface())
-				case ">":
-					m.NameInPinyin.AndWhereGt(fval5.Interface())
-				case ">=":
-					m.NameInPinyin.AndWhereGte(fval5.Interface())
-				case "<":
-					m.NameInPinyin.AndWhereLt(fval5.Interface())
-				case "<=":
-					m.NameInPinyin.AndWhereLte(fval5.Interface())
-				case "llike":
-					m.NameInPinyin.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "rlike":
-					m.NameInPinyin.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "alike":
-					m.NameInPinyin.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "nllike":
-					m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "nrlike":
-					m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "nalike":
-					m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "in":
-					m.NameInPinyin.AndWhereIn(fval5.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop5)
-				}
+			}
+		} else {
+			switch fop5 {
+			case "=":
+				m.NameInPinyin.AndWhereEq(fval5.Interface())
+			case "!=":
+				m.NameInPinyin.AndWhereNeq(fval5.Interface())
+			case ">":
+				m.NameInPinyin.AndWhereGt(fval5.Interface())
+			case ">=":
+				m.NameInPinyin.AndWhereGte(fval5.Interface())
+			case "<":
+				m.NameInPinyin.AndWhereLt(fval5.Interface())
+			case "<=":
+				m.NameInPinyin.AndWhereLte(fval5.Interface())
+			case "llike":
+				m.NameInPinyin.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "rlike":
+				m.NameInPinyin.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "alike":
+				m.NameInPinyin.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "nllike":
+				m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "nrlike":
+				m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "nalike":
+				m.NameInPinyin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "in":
+				m.NameInPinyin.AndWhereIn(fval5.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop5)
 			}
 		}
 	}
@@ -5186,37 +5607,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
 				m.EnglishName.AndWhereEq(fval6.Interface())
-			} else {
-				switch fop6 {
-				case "=":
-					m.EnglishName.AndWhereEq(fval6.Interface())
-				case "!=":
-					m.EnglishName.AndWhereNeq(fval6.Interface())
-				case ">":
-					m.EnglishName.AndWhereGt(fval6.Interface())
-				case ">=":
-					m.EnglishName.AndWhereGte(fval6.Interface())
-				case "<":
-					m.EnglishName.AndWhereLt(fval6.Interface())
-				case "<=":
-					m.EnglishName.AndWhereLte(fval6.Interface())
-				case "llike":
-					m.EnglishName.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "rlike":
-					m.EnglishName.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "alike":
-					m.EnglishName.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "nllike":
-					m.EnglishName.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "nrlike":
-					m.EnglishName.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "nalike":
-					m.EnglishName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "in":
-					m.EnglishName.AndWhereIn(fval6.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop6)
-				}
+			}
+		} else {
+			switch fop6 {
+			case "=":
+				m.EnglishName.AndWhereEq(fval6.Interface())
+			case "!=":
+				m.EnglishName.AndWhereNeq(fval6.Interface())
+			case ">":
+				m.EnglishName.AndWhereGt(fval6.Interface())
+			case ">=":
+				m.EnglishName.AndWhereGte(fval6.Interface())
+			case "<":
+				m.EnglishName.AndWhereLt(fval6.Interface())
+			case "<=":
+				m.EnglishName.AndWhereLte(fval6.Interface())
+			case "llike":
+				m.EnglishName.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "rlike":
+				m.EnglishName.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "alike":
+				m.EnglishName.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "nllike":
+				m.EnglishName.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "nrlike":
+				m.EnglishName.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "nalike":
+				m.EnglishName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "in":
+				m.EnglishName.AndWhereIn(fval6.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop6)
 			}
 		}
 	}
@@ -5230,37 +5651,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
 				m.CountryCode.AndWhereEq(fval7.Interface())
-			} else {
-				switch fop7 {
-				case "=":
-					m.CountryCode.AndWhereEq(fval7.Interface())
-				case "!=":
-					m.CountryCode.AndWhereNeq(fval7.Interface())
-				case ">":
-					m.CountryCode.AndWhereGt(fval7.Interface())
-				case ">=":
-					m.CountryCode.AndWhereGte(fval7.Interface())
-				case "<":
-					m.CountryCode.AndWhereLt(fval7.Interface())
-				case "<=":
-					m.CountryCode.AndWhereLte(fval7.Interface())
-				case "llike":
-					m.CountryCode.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "rlike":
-					m.CountryCode.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "alike":
-					m.CountryCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "nllike":
-					m.CountryCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "nrlike":
-					m.CountryCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "nalike":
-					m.CountryCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "in":
-					m.CountryCode.AndWhereIn(fval7.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop7)
-				}
+			}
+		} else {
+			switch fop7 {
+			case "=":
+				m.CountryCode.AndWhereEq(fval7.Interface())
+			case "!=":
+				m.CountryCode.AndWhereNeq(fval7.Interface())
+			case ">":
+				m.CountryCode.AndWhereGt(fval7.Interface())
+			case ">=":
+				m.CountryCode.AndWhereGte(fval7.Interface())
+			case "<":
+				m.CountryCode.AndWhereLt(fval7.Interface())
+			case "<=":
+				m.CountryCode.AndWhereLte(fval7.Interface())
+			case "llike":
+				m.CountryCode.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "rlike":
+				m.CountryCode.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "alike":
+				m.CountryCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "nllike":
+				m.CountryCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "nrlike":
+				m.CountryCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "nalike":
+				m.CountryCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "in":
+				m.CountryCode.AndWhereIn(fval7.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop7)
 			}
 		}
 	}
@@ -5274,37 +5695,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
 				m.NationalityCode.AndWhereEq(fval8.Interface())
-			} else {
-				switch fop8 {
-				case "=":
-					m.NationalityCode.AndWhereEq(fval8.Interface())
-				case "!=":
-					m.NationalityCode.AndWhereNeq(fval8.Interface())
-				case ">":
-					m.NationalityCode.AndWhereGt(fval8.Interface())
-				case ">=":
-					m.NationalityCode.AndWhereGte(fval8.Interface())
-				case "<":
-					m.NationalityCode.AndWhereLt(fval8.Interface())
-				case "<=":
-					m.NationalityCode.AndWhereLte(fval8.Interface())
-				case "llike":
-					m.NationalityCode.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "rlike":
-					m.NationalityCode.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "alike":
-					m.NationalityCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "nllike":
-					m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "nrlike":
-					m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "nalike":
-					m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "in":
-					m.NationalityCode.AndWhereIn(fval8.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop8)
-				}
+			}
+		} else {
+			switch fop8 {
+			case "=":
+				m.NationalityCode.AndWhereEq(fval8.Interface())
+			case "!=":
+				m.NationalityCode.AndWhereNeq(fval8.Interface())
+			case ">":
+				m.NationalityCode.AndWhereGt(fval8.Interface())
+			case ">=":
+				m.NationalityCode.AndWhereGte(fval8.Interface())
+			case "<":
+				m.NationalityCode.AndWhereLt(fval8.Interface())
+			case "<=":
+				m.NationalityCode.AndWhereLte(fval8.Interface())
+			case "llike":
+				m.NationalityCode.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "rlike":
+				m.NationalityCode.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "alike":
+				m.NationalityCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "nllike":
+				m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "nrlike":
+				m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "nalike":
+				m.NationalityCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "in":
+				m.NationalityCode.AndWhereIn(fval8.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop8)
 			}
 		}
 	}
@@ -5318,37 +5739,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
 				m.Birthday.AndWhereEq(fval9.Interface())
-			} else {
-				switch fop9 {
-				case "=":
-					m.Birthday.AndWhereEq(fval9.Interface())
-				case "!=":
-					m.Birthday.AndWhereNeq(fval9.Interface())
-				case ">":
-					m.Birthday.AndWhereGt(fval9.Interface())
-				case ">=":
-					m.Birthday.AndWhereGte(fval9.Interface())
-				case "<":
-					m.Birthday.AndWhereLt(fval9.Interface())
-				case "<=":
-					m.Birthday.AndWhereLte(fval9.Interface())
-				case "llike":
-					m.Birthday.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "rlike":
-					m.Birthday.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "alike":
-					m.Birthday.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "nllike":
-					m.Birthday.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "nrlike":
-					m.Birthday.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "nalike":
-					m.Birthday.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "in":
-					m.Birthday.AndWhereIn(fval9.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop9)
-				}
+			}
+		} else {
+			switch fop9 {
+			case "=":
+				m.Birthday.AndWhereEq(fval9.Interface())
+			case "!=":
+				m.Birthday.AndWhereNeq(fval9.Interface())
+			case ">":
+				m.Birthday.AndWhereGt(fval9.Interface())
+			case ">=":
+				m.Birthday.AndWhereGte(fval9.Interface())
+			case "<":
+				m.Birthday.AndWhereLt(fval9.Interface())
+			case "<=":
+				m.Birthday.AndWhereLte(fval9.Interface())
+			case "llike":
+				m.Birthday.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "rlike":
+				m.Birthday.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "alike":
+				m.Birthday.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "nllike":
+				m.Birthday.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "nrlike":
+				m.Birthday.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "nalike":
+				m.Birthday.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "in":
+				m.Birthday.AndWhereIn(fval9.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop9)
 			}
 		}
 	}
@@ -5362,37 +5783,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
 				m.PoliticalCode.AndWhereEq(fval10.Interface())
-			} else {
-				switch fop10 {
-				case "=":
-					m.PoliticalCode.AndWhereEq(fval10.Interface())
-				case "!=":
-					m.PoliticalCode.AndWhereNeq(fval10.Interface())
-				case ">":
-					m.PoliticalCode.AndWhereGt(fval10.Interface())
-				case ">=":
-					m.PoliticalCode.AndWhereGte(fval10.Interface())
-				case "<":
-					m.PoliticalCode.AndWhereLt(fval10.Interface())
-				case "<=":
-					m.PoliticalCode.AndWhereLte(fval10.Interface())
-				case "llike":
-					m.PoliticalCode.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "rlike":
-					m.PoliticalCode.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "alike":
-					m.PoliticalCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "nllike":
-					m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "nrlike":
-					m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "nalike":
-					m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "in":
-					m.PoliticalCode.AndWhereIn(fval10.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop10)
-				}
+			}
+		} else {
+			switch fop10 {
+			case "=":
+				m.PoliticalCode.AndWhereEq(fval10.Interface())
+			case "!=":
+				m.PoliticalCode.AndWhereNeq(fval10.Interface())
+			case ">":
+				m.PoliticalCode.AndWhereGt(fval10.Interface())
+			case ">=":
+				m.PoliticalCode.AndWhereGte(fval10.Interface())
+			case "<":
+				m.PoliticalCode.AndWhereLt(fval10.Interface())
+			case "<=":
+				m.PoliticalCode.AndWhereLte(fval10.Interface())
+			case "llike":
+				m.PoliticalCode.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "rlike":
+				m.PoliticalCode.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "alike":
+				m.PoliticalCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "nllike":
+				m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "nrlike":
+				m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "nalike":
+				m.PoliticalCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "in":
+				m.PoliticalCode.AndWhereIn(fval10.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop10)
 			}
 		}
 	}
@@ -5406,37 +5827,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
 				m.QQAcct.AndWhereEq(fval11.Interface())
-			} else {
-				switch fop11 {
-				case "=":
-					m.QQAcct.AndWhereEq(fval11.Interface())
-				case "!=":
-					m.QQAcct.AndWhereNeq(fval11.Interface())
-				case ">":
-					m.QQAcct.AndWhereGt(fval11.Interface())
-				case ">=":
-					m.QQAcct.AndWhereGte(fval11.Interface())
-				case "<":
-					m.QQAcct.AndWhereLt(fval11.Interface())
-				case "<=":
-					m.QQAcct.AndWhereLte(fval11.Interface())
-				case "llike":
-					m.QQAcct.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "rlike":
-					m.QQAcct.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "alike":
-					m.QQAcct.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "nllike":
-					m.QQAcct.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "nrlike":
-					m.QQAcct.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "nalike":
-					m.QQAcct.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "in":
-					m.QQAcct.AndWhereIn(fval11.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop11)
-				}
+			}
+		} else {
+			switch fop11 {
+			case "=":
+				m.QQAcct.AndWhereEq(fval11.Interface())
+			case "!=":
+				m.QQAcct.AndWhereNeq(fval11.Interface())
+			case ">":
+				m.QQAcct.AndWhereGt(fval11.Interface())
+			case ">=":
+				m.QQAcct.AndWhereGte(fval11.Interface())
+			case "<":
+				m.QQAcct.AndWhereLt(fval11.Interface())
+			case "<=":
+				m.QQAcct.AndWhereLte(fval11.Interface())
+			case "llike":
+				m.QQAcct.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "rlike":
+				m.QQAcct.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "alike":
+				m.QQAcct.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "nllike":
+				m.QQAcct.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "nrlike":
+				m.QQAcct.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "nalike":
+				m.QQAcct.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "in":
+				m.QQAcct.AndWhereIn(fval11.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop11)
 			}
 		}
 	}
@@ -5450,37 +5871,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
 				m.WeChatAcct.AndWhereEq(fval12.Interface())
-			} else {
-				switch fop12 {
-				case "=":
-					m.WeChatAcct.AndWhereEq(fval12.Interface())
-				case "!=":
-					m.WeChatAcct.AndWhereNeq(fval12.Interface())
-				case ">":
-					m.WeChatAcct.AndWhereGt(fval12.Interface())
-				case ">=":
-					m.WeChatAcct.AndWhereGte(fval12.Interface())
-				case "<":
-					m.WeChatAcct.AndWhereLt(fval12.Interface())
-				case "<=":
-					m.WeChatAcct.AndWhereLte(fval12.Interface())
-				case "llike":
-					m.WeChatAcct.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "rlike":
-					m.WeChatAcct.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "alike":
-					m.WeChatAcct.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "nllike":
-					m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "nrlike":
-					m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "nalike":
-					m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "in":
-					m.WeChatAcct.AndWhereIn(fval12.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop12)
-				}
+			}
+		} else {
+			switch fop12 {
+			case "=":
+				m.WeChatAcct.AndWhereEq(fval12.Interface())
+			case "!=":
+				m.WeChatAcct.AndWhereNeq(fval12.Interface())
+			case ">":
+				m.WeChatAcct.AndWhereGt(fval12.Interface())
+			case ">=":
+				m.WeChatAcct.AndWhereGte(fval12.Interface())
+			case "<":
+				m.WeChatAcct.AndWhereLt(fval12.Interface())
+			case "<=":
+				m.WeChatAcct.AndWhereLte(fval12.Interface())
+			case "llike":
+				m.WeChatAcct.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "rlike":
+				m.WeChatAcct.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "alike":
+				m.WeChatAcct.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "nllike":
+				m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "nrlike":
+				m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "nalike":
+				m.WeChatAcct.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "in":
+				m.WeChatAcct.AndWhereIn(fval12.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop12)
 			}
 		}
 	}
@@ -5494,37 +5915,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
 				m.BankCardNumber.AndWhereEq(fval13.Interface())
-			} else {
-				switch fop13 {
-				case "=":
-					m.BankCardNumber.AndWhereEq(fval13.Interface())
-				case "!=":
-					m.BankCardNumber.AndWhereNeq(fval13.Interface())
-				case ">":
-					m.BankCardNumber.AndWhereGt(fval13.Interface())
-				case ">=":
-					m.BankCardNumber.AndWhereGte(fval13.Interface())
-				case "<":
-					m.BankCardNumber.AndWhereLt(fval13.Interface())
-				case "<=":
-					m.BankCardNumber.AndWhereLte(fval13.Interface())
-				case "llike":
-					m.BankCardNumber.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "rlike":
-					m.BankCardNumber.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "alike":
-					m.BankCardNumber.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "nllike":
-					m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "nrlike":
-					m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "nalike":
-					m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "in":
-					m.BankCardNumber.AndWhereIn(fval13.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop13)
-				}
+			}
+		} else {
+			switch fop13 {
+			case "=":
+				m.BankCardNumber.AndWhereEq(fval13.Interface())
+			case "!=":
+				m.BankCardNumber.AndWhereNeq(fval13.Interface())
+			case ">":
+				m.BankCardNumber.AndWhereGt(fval13.Interface())
+			case ">=":
+				m.BankCardNumber.AndWhereGte(fval13.Interface())
+			case "<":
+				m.BankCardNumber.AndWhereLt(fval13.Interface())
+			case "<=":
+				m.BankCardNumber.AndWhereLte(fval13.Interface())
+			case "llike":
+				m.BankCardNumber.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "rlike":
+				m.BankCardNumber.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "alike":
+				m.BankCardNumber.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "nllike":
+				m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "nrlike":
+				m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "nalike":
+				m.BankCardNumber.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "in":
+				m.BankCardNumber.AndWhereIn(fval13.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop13)
 			}
 		}
 	}
@@ -5538,37 +5959,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
 				m.AccountBankCode.AndWhereEq(fval14.Interface())
-			} else {
-				switch fop14 {
-				case "=":
-					m.AccountBankCode.AndWhereEq(fval14.Interface())
-				case "!=":
-					m.AccountBankCode.AndWhereNeq(fval14.Interface())
-				case ">":
-					m.AccountBankCode.AndWhereGt(fval14.Interface())
-				case ">=":
-					m.AccountBankCode.AndWhereGte(fval14.Interface())
-				case "<":
-					m.AccountBankCode.AndWhereLt(fval14.Interface())
-				case "<=":
-					m.AccountBankCode.AndWhereLte(fval14.Interface())
-				case "llike":
-					m.AccountBankCode.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "rlike":
-					m.AccountBankCode.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "alike":
-					m.AccountBankCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "nllike":
-					m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "nrlike":
-					m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "nalike":
-					m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "in":
-					m.AccountBankCode.AndWhereIn(fval14.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop14)
-				}
+			}
+		} else {
+			switch fop14 {
+			case "=":
+				m.AccountBankCode.AndWhereEq(fval14.Interface())
+			case "!=":
+				m.AccountBankCode.AndWhereNeq(fval14.Interface())
+			case ">":
+				m.AccountBankCode.AndWhereGt(fval14.Interface())
+			case ">=":
+				m.AccountBankCode.AndWhereGte(fval14.Interface())
+			case "<":
+				m.AccountBankCode.AndWhereLt(fval14.Interface())
+			case "<=":
+				m.AccountBankCode.AndWhereLte(fval14.Interface())
+			case "llike":
+				m.AccountBankCode.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "rlike":
+				m.AccountBankCode.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "alike":
+				m.AccountBankCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "nllike":
+				m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "nrlike":
+				m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "nalike":
+				m.AccountBankCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "in":
+				m.AccountBankCode.AndWhereIn(fval14.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop14)
 			}
 		}
 	}
@@ -5582,37 +6003,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
 				m.AllPowerfulCardNum.AndWhereEq(fval15.Interface())
-			} else {
-				switch fop15 {
-				case "=":
-					m.AllPowerfulCardNum.AndWhereEq(fval15.Interface())
-				case "!=":
-					m.AllPowerfulCardNum.AndWhereNeq(fval15.Interface())
-				case ">":
-					m.AllPowerfulCardNum.AndWhereGt(fval15.Interface())
-				case ">=":
-					m.AllPowerfulCardNum.AndWhereGte(fval15.Interface())
-				case "<":
-					m.AllPowerfulCardNum.AndWhereLt(fval15.Interface())
-				case "<=":
-					m.AllPowerfulCardNum.AndWhereLte(fval15.Interface())
-				case "llike":
-					m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "rlike":
-					m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "alike":
-					m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "nllike":
-					m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "nrlike":
-					m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "nalike":
-					m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "in":
-					m.AllPowerfulCardNum.AndWhereIn(fval15.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop15)
-				}
+			}
+		} else {
+			switch fop15 {
+			case "=":
+				m.AllPowerfulCardNum.AndWhereEq(fval15.Interface())
+			case "!=":
+				m.AllPowerfulCardNum.AndWhereNeq(fval15.Interface())
+			case ">":
+				m.AllPowerfulCardNum.AndWhereGt(fval15.Interface())
+			case ">=":
+				m.AllPowerfulCardNum.AndWhereGte(fval15.Interface())
+			case "<":
+				m.AllPowerfulCardNum.AndWhereLt(fval15.Interface())
+			case "<=":
+				m.AllPowerfulCardNum.AndWhereLte(fval15.Interface())
+			case "llike":
+				m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "rlike":
+				m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "alike":
+				m.AllPowerfulCardNum.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "nllike":
+				m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "nrlike":
+				m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "nalike":
+				m.AllPowerfulCardNum.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "in":
+				m.AllPowerfulCardNum.AndWhereIn(fval15.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop15)
 			}
 		}
 	}
@@ -5626,37 +6047,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
 				m.MaritalCode.AndWhereEq(fval16.Interface())
-			} else {
-				switch fop16 {
-				case "=":
-					m.MaritalCode.AndWhereEq(fval16.Interface())
-				case "!=":
-					m.MaritalCode.AndWhereNeq(fval16.Interface())
-				case ">":
-					m.MaritalCode.AndWhereGt(fval16.Interface())
-				case ">=":
-					m.MaritalCode.AndWhereGte(fval16.Interface())
-				case "<":
-					m.MaritalCode.AndWhereLt(fval16.Interface())
-				case "<=":
-					m.MaritalCode.AndWhereLte(fval16.Interface())
-				case "llike":
-					m.MaritalCode.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "rlike":
-					m.MaritalCode.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "alike":
-					m.MaritalCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "nllike":
-					m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "nrlike":
-					m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "nalike":
-					m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "in":
-					m.MaritalCode.AndWhereIn(fval16.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop16)
-				}
+			}
+		} else {
+			switch fop16 {
+			case "=":
+				m.MaritalCode.AndWhereEq(fval16.Interface())
+			case "!=":
+				m.MaritalCode.AndWhereNeq(fval16.Interface())
+			case ">":
+				m.MaritalCode.AndWhereGt(fval16.Interface())
+			case ">=":
+				m.MaritalCode.AndWhereGte(fval16.Interface())
+			case "<":
+				m.MaritalCode.AndWhereLt(fval16.Interface())
+			case "<=":
+				m.MaritalCode.AndWhereLte(fval16.Interface())
+			case "llike":
+				m.MaritalCode.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "rlike":
+				m.MaritalCode.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "alike":
+				m.MaritalCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "nllike":
+				m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "nrlike":
+				m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "nalike":
+				m.MaritalCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "in":
+				m.MaritalCode.AndWhereIn(fval16.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop16)
 			}
 		}
 	}
@@ -5670,37 +6091,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
 				m.OriginAreaCode.AndWhereEq(fval17.Interface())
-			} else {
-				switch fop17 {
-				case "=":
-					m.OriginAreaCode.AndWhereEq(fval17.Interface())
-				case "!=":
-					m.OriginAreaCode.AndWhereNeq(fval17.Interface())
-				case ">":
-					m.OriginAreaCode.AndWhereGt(fval17.Interface())
-				case ">=":
-					m.OriginAreaCode.AndWhereGte(fval17.Interface())
-				case "<":
-					m.OriginAreaCode.AndWhereLt(fval17.Interface())
-				case "<=":
-					m.OriginAreaCode.AndWhereLte(fval17.Interface())
-				case "llike":
-					m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "rlike":
-					m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "alike":
-					m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "nllike":
-					m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "nrlike":
-					m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "nalike":
-					m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "in":
-					m.OriginAreaCode.AndWhereIn(fval17.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop17)
-				}
+			}
+		} else {
+			switch fop17 {
+			case "=":
+				m.OriginAreaCode.AndWhereEq(fval17.Interface())
+			case "!=":
+				m.OriginAreaCode.AndWhereNeq(fval17.Interface())
+			case ">":
+				m.OriginAreaCode.AndWhereGt(fval17.Interface())
+			case ">=":
+				m.OriginAreaCode.AndWhereGte(fval17.Interface())
+			case "<":
+				m.OriginAreaCode.AndWhereLt(fval17.Interface())
+			case "<=":
+				m.OriginAreaCode.AndWhereLte(fval17.Interface())
+			case "llike":
+				m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "rlike":
+				m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "alike":
+				m.OriginAreaCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "nllike":
+				m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "nrlike":
+				m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "nalike":
+				m.OriginAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "in":
+				m.OriginAreaCode.AndWhereIn(fval17.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop17)
 			}
 		}
 	}
@@ -5714,37 +6135,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
 				m.StudentAreaCode.AndWhereEq(fval18.Interface())
-			} else {
-				switch fop18 {
-				case "=":
-					m.StudentAreaCode.AndWhereEq(fval18.Interface())
-				case "!=":
-					m.StudentAreaCode.AndWhereNeq(fval18.Interface())
-				case ">":
-					m.StudentAreaCode.AndWhereGt(fval18.Interface())
-				case ">=":
-					m.StudentAreaCode.AndWhereGte(fval18.Interface())
-				case "<":
-					m.StudentAreaCode.AndWhereLt(fval18.Interface())
-				case "<=":
-					m.StudentAreaCode.AndWhereLte(fval18.Interface())
-				case "llike":
-					m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "rlike":
-					m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "alike":
-					m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "nllike":
-					m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "nrlike":
-					m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "nalike":
-					m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "in":
-					m.StudentAreaCode.AndWhereIn(fval18.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop18)
-				}
+			}
+		} else {
+			switch fop18 {
+			case "=":
+				m.StudentAreaCode.AndWhereEq(fval18.Interface())
+			case "!=":
+				m.StudentAreaCode.AndWhereNeq(fval18.Interface())
+			case ">":
+				m.StudentAreaCode.AndWhereGt(fval18.Interface())
+			case ">=":
+				m.StudentAreaCode.AndWhereGte(fval18.Interface())
+			case "<":
+				m.StudentAreaCode.AndWhereLt(fval18.Interface())
+			case "<=":
+				m.StudentAreaCode.AndWhereLte(fval18.Interface())
+			case "llike":
+				m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "rlike":
+				m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "alike":
+				m.StudentAreaCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "nllike":
+				m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "nrlike":
+				m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "nalike":
+				m.StudentAreaCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "in":
+				m.StudentAreaCode.AndWhereIn(fval18.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop18)
 			}
 		}
 	}
@@ -5758,37 +6179,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
 				m.Hobbies.AndWhereEq(fval19.Interface())
-			} else {
-				switch fop19 {
-				case "=":
-					m.Hobbies.AndWhereEq(fval19.Interface())
-				case "!=":
-					m.Hobbies.AndWhereNeq(fval19.Interface())
-				case ">":
-					m.Hobbies.AndWhereGt(fval19.Interface())
-				case ">=":
-					m.Hobbies.AndWhereGte(fval19.Interface())
-				case "<":
-					m.Hobbies.AndWhereLt(fval19.Interface())
-				case "<=":
-					m.Hobbies.AndWhereLte(fval19.Interface())
-				case "llike":
-					m.Hobbies.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "rlike":
-					m.Hobbies.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "alike":
-					m.Hobbies.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "nllike":
-					m.Hobbies.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "nrlike":
-					m.Hobbies.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "nalike":
-					m.Hobbies.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "in":
-					m.Hobbies.AndWhereIn(fval19.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop19)
-				}
+			}
+		} else {
+			switch fop19 {
+			case "=":
+				m.Hobbies.AndWhereEq(fval19.Interface())
+			case "!=":
+				m.Hobbies.AndWhereNeq(fval19.Interface())
+			case ">":
+				m.Hobbies.AndWhereGt(fval19.Interface())
+			case ">=":
+				m.Hobbies.AndWhereGte(fval19.Interface())
+			case "<":
+				m.Hobbies.AndWhereLt(fval19.Interface())
+			case "<=":
+				m.Hobbies.AndWhereLte(fval19.Interface())
+			case "llike":
+				m.Hobbies.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "rlike":
+				m.Hobbies.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "alike":
+				m.Hobbies.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "nllike":
+				m.Hobbies.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "nrlike":
+				m.Hobbies.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "nalike":
+				m.Hobbies.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "in":
+				m.Hobbies.AndWhereIn(fval19.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop19)
 			}
 		}
 	}
@@ -5802,37 +6223,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
 				m.Creed.AndWhereEq(fval20.Interface())
-			} else {
-				switch fop20 {
-				case "=":
-					m.Creed.AndWhereEq(fval20.Interface())
-				case "!=":
-					m.Creed.AndWhereNeq(fval20.Interface())
-				case ">":
-					m.Creed.AndWhereGt(fval20.Interface())
-				case ">=":
-					m.Creed.AndWhereGte(fval20.Interface())
-				case "<":
-					m.Creed.AndWhereLt(fval20.Interface())
-				case "<=":
-					m.Creed.AndWhereLte(fval20.Interface())
-				case "llike":
-					m.Creed.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "rlike":
-					m.Creed.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "alike":
-					m.Creed.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "nllike":
-					m.Creed.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "nrlike":
-					m.Creed.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "nalike":
-					m.Creed.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "in":
-					m.Creed.AndWhereIn(fval20.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop20)
-				}
+			}
+		} else {
+			switch fop20 {
+			case "=":
+				m.Creed.AndWhereEq(fval20.Interface())
+			case "!=":
+				m.Creed.AndWhereNeq(fval20.Interface())
+			case ">":
+				m.Creed.AndWhereGt(fval20.Interface())
+			case ">=":
+				m.Creed.AndWhereGte(fval20.Interface())
+			case "<":
+				m.Creed.AndWhereLt(fval20.Interface())
+			case "<=":
+				m.Creed.AndWhereLte(fval20.Interface())
+			case "llike":
+				m.Creed.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "rlike":
+				m.Creed.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "alike":
+				m.Creed.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "nllike":
+				m.Creed.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "nrlike":
+				m.Creed.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "nalike":
+				m.Creed.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "in":
+				m.Creed.AndWhereIn(fval20.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop20)
 			}
 		}
 	}
@@ -5846,37 +6267,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
 				m.TrainTicketinterval.AndWhereEq(fval21.Interface())
-			} else {
-				switch fop21 {
-				case "=":
-					m.TrainTicketinterval.AndWhereEq(fval21.Interface())
-				case "!=":
-					m.TrainTicketinterval.AndWhereNeq(fval21.Interface())
-				case ">":
-					m.TrainTicketinterval.AndWhereGt(fval21.Interface())
-				case ">=":
-					m.TrainTicketinterval.AndWhereGte(fval21.Interface())
-				case "<":
-					m.TrainTicketinterval.AndWhereLt(fval21.Interface())
-				case "<=":
-					m.TrainTicketinterval.AndWhereLte(fval21.Interface())
-				case "llike":
-					m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "rlike":
-					m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "alike":
-					m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "nllike":
-					m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "nrlike":
-					m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "nalike":
-					m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "in":
-					m.TrainTicketinterval.AndWhereIn(fval21.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop21)
-				}
+			}
+		} else {
+			switch fop21 {
+			case "=":
+				m.TrainTicketinterval.AndWhereEq(fval21.Interface())
+			case "!=":
+				m.TrainTicketinterval.AndWhereNeq(fval21.Interface())
+			case ">":
+				m.TrainTicketinterval.AndWhereGt(fval21.Interface())
+			case ">=":
+				m.TrainTicketinterval.AndWhereGte(fval21.Interface())
+			case "<":
+				m.TrainTicketinterval.AndWhereLt(fval21.Interface())
+			case "<=":
+				m.TrainTicketinterval.AndWhereLte(fval21.Interface())
+			case "llike":
+				m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "rlike":
+				m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "alike":
+				m.TrainTicketinterval.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "nllike":
+				m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "nrlike":
+				m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "nalike":
+				m.TrainTicketinterval.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "in":
+				m.TrainTicketinterval.AndWhereIn(fval21.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop21)
 			}
 		}
 	}
@@ -5890,37 +6311,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
 				m.FamilyAddress.AndWhereEq(fval22.Interface())
-			} else {
-				switch fop22 {
-				case "=":
-					m.FamilyAddress.AndWhereEq(fval22.Interface())
-				case "!=":
-					m.FamilyAddress.AndWhereNeq(fval22.Interface())
-				case ">":
-					m.FamilyAddress.AndWhereGt(fval22.Interface())
-				case ">=":
-					m.FamilyAddress.AndWhereGte(fval22.Interface())
-				case "<":
-					m.FamilyAddress.AndWhereLt(fval22.Interface())
-				case "<=":
-					m.FamilyAddress.AndWhereLte(fval22.Interface())
-				case "llike":
-					m.FamilyAddress.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "rlike":
-					m.FamilyAddress.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "alike":
-					m.FamilyAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "nllike":
-					m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "nrlike":
-					m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "nalike":
-					m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "in":
-					m.FamilyAddress.AndWhereIn(fval22.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop22)
-				}
+			}
+		} else {
+			switch fop22 {
+			case "=":
+				m.FamilyAddress.AndWhereEq(fval22.Interface())
+			case "!=":
+				m.FamilyAddress.AndWhereNeq(fval22.Interface())
+			case ">":
+				m.FamilyAddress.AndWhereGt(fval22.Interface())
+			case ">=":
+				m.FamilyAddress.AndWhereGte(fval22.Interface())
+			case "<":
+				m.FamilyAddress.AndWhereLt(fval22.Interface())
+			case "<=":
+				m.FamilyAddress.AndWhereLte(fval22.Interface())
+			case "llike":
+				m.FamilyAddress.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "rlike":
+				m.FamilyAddress.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "alike":
+				m.FamilyAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "nllike":
+				m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "nrlike":
+				m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "nalike":
+				m.FamilyAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "in":
+				m.FamilyAddress.AndWhereIn(fval22.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop22)
 			}
 		}
 	}
@@ -5934,37 +6355,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
 				m.DetailAddress.AndWhereEq(fval23.Interface())
-			} else {
-				switch fop23 {
-				case "=":
-					m.DetailAddress.AndWhereEq(fval23.Interface())
-				case "!=":
-					m.DetailAddress.AndWhereNeq(fval23.Interface())
-				case ">":
-					m.DetailAddress.AndWhereGt(fval23.Interface())
-				case ">=":
-					m.DetailAddress.AndWhereGte(fval23.Interface())
-				case "<":
-					m.DetailAddress.AndWhereLt(fval23.Interface())
-				case "<=":
-					m.DetailAddress.AndWhereLte(fval23.Interface())
-				case "llike":
-					m.DetailAddress.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "rlike":
-					m.DetailAddress.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "alike":
-					m.DetailAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "nllike":
-					m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "nrlike":
-					m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "nalike":
-					m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "in":
-					m.DetailAddress.AndWhereIn(fval23.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop23)
-				}
+			}
+		} else {
+			switch fop23 {
+			case "=":
+				m.DetailAddress.AndWhereEq(fval23.Interface())
+			case "!=":
+				m.DetailAddress.AndWhereNeq(fval23.Interface())
+			case ">":
+				m.DetailAddress.AndWhereGt(fval23.Interface())
+			case ">=":
+				m.DetailAddress.AndWhereGte(fval23.Interface())
+			case "<":
+				m.DetailAddress.AndWhereLt(fval23.Interface())
+			case "<=":
+				m.DetailAddress.AndWhereLte(fval23.Interface())
+			case "llike":
+				m.DetailAddress.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "rlike":
+				m.DetailAddress.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "alike":
+				m.DetailAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "nllike":
+				m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "nrlike":
+				m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "nalike":
+				m.DetailAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "in":
+				m.DetailAddress.AndWhereIn(fval23.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop23)
 			}
 		}
 	}
@@ -5978,37 +6399,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
 				m.PostCode.AndWhereEq(fval24.Interface())
-			} else {
-				switch fop24 {
-				case "=":
-					m.PostCode.AndWhereEq(fval24.Interface())
-				case "!=":
-					m.PostCode.AndWhereNeq(fval24.Interface())
-				case ">":
-					m.PostCode.AndWhereGt(fval24.Interface())
-				case ">=":
-					m.PostCode.AndWhereGte(fval24.Interface())
-				case "<":
-					m.PostCode.AndWhereLt(fval24.Interface())
-				case "<=":
-					m.PostCode.AndWhereLte(fval24.Interface())
-				case "llike":
-					m.PostCode.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "rlike":
-					m.PostCode.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "alike":
-					m.PostCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "nllike":
-					m.PostCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "nrlike":
-					m.PostCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "nalike":
-					m.PostCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "in":
-					m.PostCode.AndWhereIn(fval24.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop24)
-				}
+			}
+		} else {
+			switch fop24 {
+			case "=":
+				m.PostCode.AndWhereEq(fval24.Interface())
+			case "!=":
+				m.PostCode.AndWhereNeq(fval24.Interface())
+			case ">":
+				m.PostCode.AndWhereGt(fval24.Interface())
+			case ">=":
+				m.PostCode.AndWhereGte(fval24.Interface())
+			case "<":
+				m.PostCode.AndWhereLt(fval24.Interface())
+			case "<=":
+				m.PostCode.AndWhereLte(fval24.Interface())
+			case "llike":
+				m.PostCode.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "rlike":
+				m.PostCode.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "alike":
+				m.PostCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "nllike":
+				m.PostCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "nrlike":
+				m.PostCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "nalike":
+				m.PostCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "in":
+				m.PostCode.AndWhereIn(fval24.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop24)
 			}
 		}
 	}
@@ -6022,37 +6443,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
 				m.HomePhone.AndWhereEq(fval25.Interface())
-			} else {
-				switch fop25 {
-				case "=":
-					m.HomePhone.AndWhereEq(fval25.Interface())
-				case "!=":
-					m.HomePhone.AndWhereNeq(fval25.Interface())
-				case ">":
-					m.HomePhone.AndWhereGt(fval25.Interface())
-				case ">=":
-					m.HomePhone.AndWhereGte(fval25.Interface())
-				case "<":
-					m.HomePhone.AndWhereLt(fval25.Interface())
-				case "<=":
-					m.HomePhone.AndWhereLte(fval25.Interface())
-				case "llike":
-					m.HomePhone.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "rlike":
-					m.HomePhone.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "alike":
-					m.HomePhone.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "nllike":
-					m.HomePhone.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "nrlike":
-					m.HomePhone.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "nalike":
-					m.HomePhone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "in":
-					m.HomePhone.AndWhereIn(fval25.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop25)
-				}
+			}
+		} else {
+			switch fop25 {
+			case "=":
+				m.HomePhone.AndWhereEq(fval25.Interface())
+			case "!=":
+				m.HomePhone.AndWhereNeq(fval25.Interface())
+			case ">":
+				m.HomePhone.AndWhereGt(fval25.Interface())
+			case ">=":
+				m.HomePhone.AndWhereGte(fval25.Interface())
+			case "<":
+				m.HomePhone.AndWhereLt(fval25.Interface())
+			case "<=":
+				m.HomePhone.AndWhereLte(fval25.Interface())
+			case "llike":
+				m.HomePhone.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "rlike":
+				m.HomePhone.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "alike":
+				m.HomePhone.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "nllike":
+				m.HomePhone.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "nrlike":
+				m.HomePhone.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "nalike":
+				m.HomePhone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "in":
+				m.HomePhone.AndWhereIn(fval25.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop25)
 			}
 		}
 	}
@@ -6066,37 +6487,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
 				m.EnrollmentDate.AndWhereEq(fval26.Interface())
-			} else {
-				switch fop26 {
-				case "=":
-					m.EnrollmentDate.AndWhereEq(fval26.Interface())
-				case "!=":
-					m.EnrollmentDate.AndWhereNeq(fval26.Interface())
-				case ">":
-					m.EnrollmentDate.AndWhereGt(fval26.Interface())
-				case ">=":
-					m.EnrollmentDate.AndWhereGte(fval26.Interface())
-				case "<":
-					m.EnrollmentDate.AndWhereLt(fval26.Interface())
-				case "<=":
-					m.EnrollmentDate.AndWhereLte(fval26.Interface())
-				case "llike":
-					m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "rlike":
-					m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "alike":
-					m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "nllike":
-					m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "nrlike":
-					m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "nalike":
-					m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "in":
-					m.EnrollmentDate.AndWhereIn(fval26.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop26)
-				}
+			}
+		} else {
+			switch fop26 {
+			case "=":
+				m.EnrollmentDate.AndWhereEq(fval26.Interface())
+			case "!=":
+				m.EnrollmentDate.AndWhereNeq(fval26.Interface())
+			case ">":
+				m.EnrollmentDate.AndWhereGt(fval26.Interface())
+			case ">=":
+				m.EnrollmentDate.AndWhereGte(fval26.Interface())
+			case "<":
+				m.EnrollmentDate.AndWhereLt(fval26.Interface())
+			case "<=":
+				m.EnrollmentDate.AndWhereLte(fval26.Interface())
+			case "llike":
+				m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "rlike":
+				m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "alike":
+				m.EnrollmentDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "nllike":
+				m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "nrlike":
+				m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "nalike":
+				m.EnrollmentDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "in":
+				m.EnrollmentDate.AndWhereIn(fval26.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop26)
 			}
 		}
 	}
@@ -6110,37 +6531,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
 				m.GraduationDate.AndWhereEq(fval27.Interface())
-			} else {
-				switch fop27 {
-				case "=":
-					m.GraduationDate.AndWhereEq(fval27.Interface())
-				case "!=":
-					m.GraduationDate.AndWhereNeq(fval27.Interface())
-				case ">":
-					m.GraduationDate.AndWhereGt(fval27.Interface())
-				case ">=":
-					m.GraduationDate.AndWhereGte(fval27.Interface())
-				case "<":
-					m.GraduationDate.AndWhereLt(fval27.Interface())
-				case "<=":
-					m.GraduationDate.AndWhereLte(fval27.Interface())
-				case "llike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "rlike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "alike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "nllike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "nrlike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "nalike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "in":
-					m.GraduationDate.AndWhereIn(fval27.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop27)
-				}
+			}
+		} else {
+			switch fop27 {
+			case "=":
+				m.GraduationDate.AndWhereEq(fval27.Interface())
+			case "!=":
+				m.GraduationDate.AndWhereNeq(fval27.Interface())
+			case ">":
+				m.GraduationDate.AndWhereGt(fval27.Interface())
+			case ">=":
+				m.GraduationDate.AndWhereGte(fval27.Interface())
+			case "<":
+				m.GraduationDate.AndWhereLt(fval27.Interface())
+			case "<=":
+				m.GraduationDate.AndWhereLte(fval27.Interface())
+			case "llike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "rlike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "alike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "nllike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "nrlike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "nalike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "in":
+				m.GraduationDate.AndWhereIn(fval27.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop27)
 			}
 		}
 	}
@@ -6154,37 +6575,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval28.Kind() != reflect.Ptr {
 			if !ok {
 				m.MidSchoolAddress.AndWhereEq(fval28.Interface())
-			} else {
-				switch fop28 {
-				case "=":
-					m.MidSchoolAddress.AndWhereEq(fval28.Interface())
-				case "!=":
-					m.MidSchoolAddress.AndWhereNeq(fval28.Interface())
-				case ">":
-					m.MidSchoolAddress.AndWhereGt(fval28.Interface())
-				case ">=":
-					m.MidSchoolAddress.AndWhereGte(fval28.Interface())
-				case "<":
-					m.MidSchoolAddress.AndWhereLt(fval28.Interface())
-				case "<=":
-					m.MidSchoolAddress.AndWhereLte(fval28.Interface())
-				case "llike":
-					m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%%%s", fval28.String()))
-				case "rlike":
-					m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%s%%", fval28.String()))
-				case "alike":
-					m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval28.String()))
-				case "nllike":
-					m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval28.String()))
-				case "nrlike":
-					m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval28.String()))
-				case "nalike":
-					m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval28.String()))
-				case "in":
-					m.MidSchoolAddress.AndWhereIn(fval28.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop28)
-				}
+			}
+		} else {
+			switch fop28 {
+			case "=":
+				m.MidSchoolAddress.AndWhereEq(fval28.Interface())
+			case "!=":
+				m.MidSchoolAddress.AndWhereNeq(fval28.Interface())
+			case ">":
+				m.MidSchoolAddress.AndWhereGt(fval28.Interface())
+			case ">=":
+				m.MidSchoolAddress.AndWhereGte(fval28.Interface())
+			case "<":
+				m.MidSchoolAddress.AndWhereLt(fval28.Interface())
+			case "<=":
+				m.MidSchoolAddress.AndWhereLte(fval28.Interface())
+			case "llike":
+				m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%%%s", fval28.String()))
+			case "rlike":
+				m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%s%%", fval28.String()))
+			case "alike":
+				m.MidSchoolAddress.AndWhereLike(fmt.Sprintf("%%%s%%", fval28.String()))
+			case "nllike":
+				m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%%%s", fval28.String()))
+			case "nrlike":
+				m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%s%%", fval28.String()))
+			case "nalike":
+				m.MidSchoolAddress.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval28.String()))
+			case "in":
+				m.MidSchoolAddress.AndWhereIn(fval28.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop28)
 			}
 		}
 	}
@@ -6198,37 +6619,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval29.Kind() != reflect.Ptr {
 			if !ok {
 				m.MidSchoolName.AndWhereEq(fval29.Interface())
-			} else {
-				switch fop29 {
-				case "=":
-					m.MidSchoolName.AndWhereEq(fval29.Interface())
-				case "!=":
-					m.MidSchoolName.AndWhereNeq(fval29.Interface())
-				case ">":
-					m.MidSchoolName.AndWhereGt(fval29.Interface())
-				case ">=":
-					m.MidSchoolName.AndWhereGte(fval29.Interface())
-				case "<":
-					m.MidSchoolName.AndWhereLt(fval29.Interface())
-				case "<=":
-					m.MidSchoolName.AndWhereLte(fval29.Interface())
-				case "llike":
-					m.MidSchoolName.AndWhereLike(fmt.Sprintf("%%%s", fval29.String()))
-				case "rlike":
-					m.MidSchoolName.AndWhereLike(fmt.Sprintf("%s%%", fval29.String()))
-				case "alike":
-					m.MidSchoolName.AndWhereLike(fmt.Sprintf("%%%s%%", fval29.String()))
-				case "nllike":
-					m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%%%s", fval29.String()))
-				case "nrlike":
-					m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%s%%", fval29.String()))
-				case "nalike":
-					m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval29.String()))
-				case "in":
-					m.MidSchoolName.AndWhereIn(fval29.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop29)
-				}
+			}
+		} else {
+			switch fop29 {
+			case "=":
+				m.MidSchoolName.AndWhereEq(fval29.Interface())
+			case "!=":
+				m.MidSchoolName.AndWhereNeq(fval29.Interface())
+			case ">":
+				m.MidSchoolName.AndWhereGt(fval29.Interface())
+			case ">=":
+				m.MidSchoolName.AndWhereGte(fval29.Interface())
+			case "<":
+				m.MidSchoolName.AndWhereLt(fval29.Interface())
+			case "<=":
+				m.MidSchoolName.AndWhereLte(fval29.Interface())
+			case "llike":
+				m.MidSchoolName.AndWhereLike(fmt.Sprintf("%%%s", fval29.String()))
+			case "rlike":
+				m.MidSchoolName.AndWhereLike(fmt.Sprintf("%s%%", fval29.String()))
+			case "alike":
+				m.MidSchoolName.AndWhereLike(fmt.Sprintf("%%%s%%", fval29.String()))
+			case "nllike":
+				m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%%%s", fval29.String()))
+			case "nrlike":
+				m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%s%%", fval29.String()))
+			case "nalike":
+				m.MidSchoolName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval29.String()))
+			case "in":
+				m.MidSchoolName.AndWhereIn(fval29.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop29)
 			}
 		}
 	}
@@ -6242,37 +6663,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval30.Kind() != reflect.Ptr {
 			if !ok {
 				m.Referee.AndWhereEq(fval30.Interface())
-			} else {
-				switch fop30 {
-				case "=":
-					m.Referee.AndWhereEq(fval30.Interface())
-				case "!=":
-					m.Referee.AndWhereNeq(fval30.Interface())
-				case ">":
-					m.Referee.AndWhereGt(fval30.Interface())
-				case ">=":
-					m.Referee.AndWhereGte(fval30.Interface())
-				case "<":
-					m.Referee.AndWhereLt(fval30.Interface())
-				case "<=":
-					m.Referee.AndWhereLte(fval30.Interface())
-				case "llike":
-					m.Referee.AndWhereLike(fmt.Sprintf("%%%s", fval30.String()))
-				case "rlike":
-					m.Referee.AndWhereLike(fmt.Sprintf("%s%%", fval30.String()))
-				case "alike":
-					m.Referee.AndWhereLike(fmt.Sprintf("%%%s%%", fval30.String()))
-				case "nllike":
-					m.Referee.AndWhereNotLike(fmt.Sprintf("%%%s", fval30.String()))
-				case "nrlike":
-					m.Referee.AndWhereNotLike(fmt.Sprintf("%s%%", fval30.String()))
-				case "nalike":
-					m.Referee.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval30.String()))
-				case "in":
-					m.Referee.AndWhereIn(fval30.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop30)
-				}
+			}
+		} else {
+			switch fop30 {
+			case "=":
+				m.Referee.AndWhereEq(fval30.Interface())
+			case "!=":
+				m.Referee.AndWhereNeq(fval30.Interface())
+			case ">":
+				m.Referee.AndWhereGt(fval30.Interface())
+			case ">=":
+				m.Referee.AndWhereGte(fval30.Interface())
+			case "<":
+				m.Referee.AndWhereLt(fval30.Interface())
+			case "<=":
+				m.Referee.AndWhereLte(fval30.Interface())
+			case "llike":
+				m.Referee.AndWhereLike(fmt.Sprintf("%%%s", fval30.String()))
+			case "rlike":
+				m.Referee.AndWhereLike(fmt.Sprintf("%s%%", fval30.String()))
+			case "alike":
+				m.Referee.AndWhereLike(fmt.Sprintf("%%%s%%", fval30.String()))
+			case "nllike":
+				m.Referee.AndWhereNotLike(fmt.Sprintf("%%%s", fval30.String()))
+			case "nrlike":
+				m.Referee.AndWhereNotLike(fmt.Sprintf("%s%%", fval30.String()))
+			case "nalike":
+				m.Referee.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval30.String()))
+			case "in":
+				m.Referee.AndWhereIn(fval30.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop30)
 			}
 		}
 	}
@@ -6286,37 +6707,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval31.Kind() != reflect.Ptr {
 			if !ok {
 				m.RefereeDuty.AndWhereEq(fval31.Interface())
-			} else {
-				switch fop31 {
-				case "=":
-					m.RefereeDuty.AndWhereEq(fval31.Interface())
-				case "!=":
-					m.RefereeDuty.AndWhereNeq(fval31.Interface())
-				case ">":
-					m.RefereeDuty.AndWhereGt(fval31.Interface())
-				case ">=":
-					m.RefereeDuty.AndWhereGte(fval31.Interface())
-				case "<":
-					m.RefereeDuty.AndWhereLt(fval31.Interface())
-				case "<=":
-					m.RefereeDuty.AndWhereLte(fval31.Interface())
-				case "llike":
-					m.RefereeDuty.AndWhereLike(fmt.Sprintf("%%%s", fval31.String()))
-				case "rlike":
-					m.RefereeDuty.AndWhereLike(fmt.Sprintf("%s%%", fval31.String()))
-				case "alike":
-					m.RefereeDuty.AndWhereLike(fmt.Sprintf("%%%s%%", fval31.String()))
-				case "nllike":
-					m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%%%s", fval31.String()))
-				case "nrlike":
-					m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%s%%", fval31.String()))
-				case "nalike":
-					m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval31.String()))
-				case "in":
-					m.RefereeDuty.AndWhereIn(fval31.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop31)
-				}
+			}
+		} else {
+			switch fop31 {
+			case "=":
+				m.RefereeDuty.AndWhereEq(fval31.Interface())
+			case "!=":
+				m.RefereeDuty.AndWhereNeq(fval31.Interface())
+			case ">":
+				m.RefereeDuty.AndWhereGt(fval31.Interface())
+			case ">=":
+				m.RefereeDuty.AndWhereGte(fval31.Interface())
+			case "<":
+				m.RefereeDuty.AndWhereLt(fval31.Interface())
+			case "<=":
+				m.RefereeDuty.AndWhereLte(fval31.Interface())
+			case "llike":
+				m.RefereeDuty.AndWhereLike(fmt.Sprintf("%%%s", fval31.String()))
+			case "rlike":
+				m.RefereeDuty.AndWhereLike(fmt.Sprintf("%s%%", fval31.String()))
+			case "alike":
+				m.RefereeDuty.AndWhereLike(fmt.Sprintf("%%%s%%", fval31.String()))
+			case "nllike":
+				m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%%%s", fval31.String()))
+			case "nrlike":
+				m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%s%%", fval31.String()))
+			case "nalike":
+				m.RefereeDuty.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval31.String()))
+			case "in":
+				m.RefereeDuty.AndWhereIn(fval31.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop31)
 			}
 		}
 	}
@@ -6330,37 +6751,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval32.Kind() != reflect.Ptr {
 			if !ok {
 				m.RefereePhone.AndWhereEq(fval32.Interface())
-			} else {
-				switch fop32 {
-				case "=":
-					m.RefereePhone.AndWhereEq(fval32.Interface())
-				case "!=":
-					m.RefereePhone.AndWhereNeq(fval32.Interface())
-				case ">":
-					m.RefereePhone.AndWhereGt(fval32.Interface())
-				case ">=":
-					m.RefereePhone.AndWhereGte(fval32.Interface())
-				case "<":
-					m.RefereePhone.AndWhereLt(fval32.Interface())
-				case "<=":
-					m.RefereePhone.AndWhereLte(fval32.Interface())
-				case "llike":
-					m.RefereePhone.AndWhereLike(fmt.Sprintf("%%%s", fval32.String()))
-				case "rlike":
-					m.RefereePhone.AndWhereLike(fmt.Sprintf("%s%%", fval32.String()))
-				case "alike":
-					m.RefereePhone.AndWhereLike(fmt.Sprintf("%%%s%%", fval32.String()))
-				case "nllike":
-					m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%%%s", fval32.String()))
-				case "nrlike":
-					m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%s%%", fval32.String()))
-				case "nalike":
-					m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval32.String()))
-				case "in":
-					m.RefereePhone.AndWhereIn(fval32.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop32)
-				}
+			}
+		} else {
+			switch fop32 {
+			case "=":
+				m.RefereePhone.AndWhereEq(fval32.Interface())
+			case "!=":
+				m.RefereePhone.AndWhereNeq(fval32.Interface())
+			case ">":
+				m.RefereePhone.AndWhereGt(fval32.Interface())
+			case ">=":
+				m.RefereePhone.AndWhereGte(fval32.Interface())
+			case "<":
+				m.RefereePhone.AndWhereLt(fval32.Interface())
+			case "<=":
+				m.RefereePhone.AndWhereLte(fval32.Interface())
+			case "llike":
+				m.RefereePhone.AndWhereLike(fmt.Sprintf("%%%s", fval32.String()))
+			case "rlike":
+				m.RefereePhone.AndWhereLike(fmt.Sprintf("%s%%", fval32.String()))
+			case "alike":
+				m.RefereePhone.AndWhereLike(fmt.Sprintf("%%%s%%", fval32.String()))
+			case "nllike":
+				m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%%%s", fval32.String()))
+			case "nrlike":
+				m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%s%%", fval32.String()))
+			case "nalike":
+				m.RefereePhone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval32.String()))
+			case "in":
+				m.RefereePhone.AndWhereIn(fval32.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop32)
 			}
 		}
 	}
@@ -6374,37 +6795,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval33.Kind() != reflect.Ptr {
 			if !ok {
 				m.AdmissionTicketNo.AndWhereEq(fval33.Interface())
-			} else {
-				switch fop33 {
-				case "=":
-					m.AdmissionTicketNo.AndWhereEq(fval33.Interface())
-				case "!=":
-					m.AdmissionTicketNo.AndWhereNeq(fval33.Interface())
-				case ">":
-					m.AdmissionTicketNo.AndWhereGt(fval33.Interface())
-				case ">=":
-					m.AdmissionTicketNo.AndWhereGte(fval33.Interface())
-				case "<":
-					m.AdmissionTicketNo.AndWhereLt(fval33.Interface())
-				case "<=":
-					m.AdmissionTicketNo.AndWhereLte(fval33.Interface())
-				case "llike":
-					m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%%%s", fval33.String()))
-				case "rlike":
-					m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%s%%", fval33.String()))
-				case "alike":
-					m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%%%s%%", fval33.String()))
-				case "nllike":
-					m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%%%s", fval33.String()))
-				case "nrlike":
-					m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%s%%", fval33.String()))
-				case "nalike":
-					m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval33.String()))
-				case "in":
-					m.AdmissionTicketNo.AndWhereIn(fval33.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop33)
-				}
+			}
+		} else {
+			switch fop33 {
+			case "=":
+				m.AdmissionTicketNo.AndWhereEq(fval33.Interface())
+			case "!=":
+				m.AdmissionTicketNo.AndWhereNeq(fval33.Interface())
+			case ">":
+				m.AdmissionTicketNo.AndWhereGt(fval33.Interface())
+			case ">=":
+				m.AdmissionTicketNo.AndWhereGte(fval33.Interface())
+			case "<":
+				m.AdmissionTicketNo.AndWhereLt(fval33.Interface())
+			case "<=":
+				m.AdmissionTicketNo.AndWhereLte(fval33.Interface())
+			case "llike":
+				m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%%%s", fval33.String()))
+			case "rlike":
+				m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%s%%", fval33.String()))
+			case "alike":
+				m.AdmissionTicketNo.AndWhereLike(fmt.Sprintf("%%%s%%", fval33.String()))
+			case "nllike":
+				m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%%%s", fval33.String()))
+			case "nrlike":
+				m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%s%%", fval33.String()))
+			case "nalike":
+				m.AdmissionTicketNo.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval33.String()))
+			case "in":
+				m.AdmissionTicketNo.AndWhereIn(fval33.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop33)
 			}
 		}
 	}
@@ -6418,37 +6839,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval34.Kind() != reflect.Ptr {
 			if !ok {
 				m.CollegeEntranceExamScores.AndWhereEq(fval34.Interface())
-			} else {
-				switch fop34 {
-				case "=":
-					m.CollegeEntranceExamScores.AndWhereEq(fval34.Interface())
-				case "!=":
-					m.CollegeEntranceExamScores.AndWhereNeq(fval34.Interface())
-				case ">":
-					m.CollegeEntranceExamScores.AndWhereGt(fval34.Interface())
-				case ">=":
-					m.CollegeEntranceExamScores.AndWhereGte(fval34.Interface())
-				case "<":
-					m.CollegeEntranceExamScores.AndWhereLt(fval34.Interface())
-				case "<=":
-					m.CollegeEntranceExamScores.AndWhereLte(fval34.Interface())
-				case "llike":
-					m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%%%s", fval34.String()))
-				case "rlike":
-					m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%s%%", fval34.String()))
-				case "alike":
-					m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%%%s%%", fval34.String()))
-				case "nllike":
-					m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%%%s", fval34.String()))
-				case "nrlike":
-					m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%s%%", fval34.String()))
-				case "nalike":
-					m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval34.String()))
-				case "in":
-					m.CollegeEntranceExamScores.AndWhereIn(fval34.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop34)
-				}
+			}
+		} else {
+			switch fop34 {
+			case "=":
+				m.CollegeEntranceExamScores.AndWhereEq(fval34.Interface())
+			case "!=":
+				m.CollegeEntranceExamScores.AndWhereNeq(fval34.Interface())
+			case ">":
+				m.CollegeEntranceExamScores.AndWhereGt(fval34.Interface())
+			case ">=":
+				m.CollegeEntranceExamScores.AndWhereGte(fval34.Interface())
+			case "<":
+				m.CollegeEntranceExamScores.AndWhereLt(fval34.Interface())
+			case "<=":
+				m.CollegeEntranceExamScores.AndWhereLte(fval34.Interface())
+			case "llike":
+				m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%%%s", fval34.String()))
+			case "rlike":
+				m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%s%%", fval34.String()))
+			case "alike":
+				m.CollegeEntranceExamScores.AndWhereLike(fmt.Sprintf("%%%s%%", fval34.String()))
+			case "nllike":
+				m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%%%s", fval34.String()))
+			case "nrlike":
+				m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%s%%", fval34.String()))
+			case "nalike":
+				m.CollegeEntranceExamScores.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval34.String()))
+			case "in":
+				m.CollegeEntranceExamScores.AndWhereIn(fval34.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop34)
 			}
 		}
 	}
@@ -6462,37 +6883,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval35.Kind() != reflect.Ptr {
 			if !ok {
 				m.AdmissionYear.AndWhereEq(fval35.Interface())
-			} else {
-				switch fop35 {
-				case "=":
-					m.AdmissionYear.AndWhereEq(fval35.Interface())
-				case "!=":
-					m.AdmissionYear.AndWhereNeq(fval35.Interface())
-				case ">":
-					m.AdmissionYear.AndWhereGt(fval35.Interface())
-				case ">=":
-					m.AdmissionYear.AndWhereGte(fval35.Interface())
-				case "<":
-					m.AdmissionYear.AndWhereLt(fval35.Interface())
-				case "<=":
-					m.AdmissionYear.AndWhereLte(fval35.Interface())
-				case "llike":
-					m.AdmissionYear.AndWhereLike(fmt.Sprintf("%%%s", fval35.String()))
-				case "rlike":
-					m.AdmissionYear.AndWhereLike(fmt.Sprintf("%s%%", fval35.String()))
-				case "alike":
-					m.AdmissionYear.AndWhereLike(fmt.Sprintf("%%%s%%", fval35.String()))
-				case "nllike":
-					m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%%%s", fval35.String()))
-				case "nrlike":
-					m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%s%%", fval35.String()))
-				case "nalike":
-					m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval35.String()))
-				case "in":
-					m.AdmissionYear.AndWhereIn(fval35.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop35)
-				}
+			}
+		} else {
+			switch fop35 {
+			case "=":
+				m.AdmissionYear.AndWhereEq(fval35.Interface())
+			case "!=":
+				m.AdmissionYear.AndWhereNeq(fval35.Interface())
+			case ">":
+				m.AdmissionYear.AndWhereGt(fval35.Interface())
+			case ">=":
+				m.AdmissionYear.AndWhereGte(fval35.Interface())
+			case "<":
+				m.AdmissionYear.AndWhereLt(fval35.Interface())
+			case "<=":
+				m.AdmissionYear.AndWhereLte(fval35.Interface())
+			case "llike":
+				m.AdmissionYear.AndWhereLike(fmt.Sprintf("%%%s", fval35.String()))
+			case "rlike":
+				m.AdmissionYear.AndWhereLike(fmt.Sprintf("%s%%", fval35.String()))
+			case "alike":
+				m.AdmissionYear.AndWhereLike(fmt.Sprintf("%%%s%%", fval35.String()))
+			case "nllike":
+				m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%%%s", fval35.String()))
+			case "nrlike":
+				m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%s%%", fval35.String()))
+			case "nalike":
+				m.AdmissionYear.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval35.String()))
+			case "in":
+				m.AdmissionYear.AndWhereIn(fval35.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop35)
 			}
 		}
 	}
@@ -6506,37 +6927,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval36.Kind() != reflect.Ptr {
 			if !ok {
 				m.ForeignLanguageCode.AndWhereEq(fval36.Interface())
-			} else {
-				switch fop36 {
-				case "=":
-					m.ForeignLanguageCode.AndWhereEq(fval36.Interface())
-				case "!=":
-					m.ForeignLanguageCode.AndWhereNeq(fval36.Interface())
-				case ">":
-					m.ForeignLanguageCode.AndWhereGt(fval36.Interface())
-				case ">=":
-					m.ForeignLanguageCode.AndWhereGte(fval36.Interface())
-				case "<":
-					m.ForeignLanguageCode.AndWhereLt(fval36.Interface())
-				case "<=":
-					m.ForeignLanguageCode.AndWhereLte(fval36.Interface())
-				case "llike":
-					m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%%%s", fval36.String()))
-				case "rlike":
-					m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%s%%", fval36.String()))
-				case "alike":
-					m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval36.String()))
-				case "nllike":
-					m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval36.String()))
-				case "nrlike":
-					m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval36.String()))
-				case "nalike":
-					m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval36.String()))
-				case "in":
-					m.ForeignLanguageCode.AndWhereIn(fval36.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop36)
-				}
+			}
+		} else {
+			switch fop36 {
+			case "=":
+				m.ForeignLanguageCode.AndWhereEq(fval36.Interface())
+			case "!=":
+				m.ForeignLanguageCode.AndWhereNeq(fval36.Interface())
+			case ">":
+				m.ForeignLanguageCode.AndWhereGt(fval36.Interface())
+			case ">=":
+				m.ForeignLanguageCode.AndWhereGte(fval36.Interface())
+			case "<":
+				m.ForeignLanguageCode.AndWhereLt(fval36.Interface())
+			case "<=":
+				m.ForeignLanguageCode.AndWhereLte(fval36.Interface())
+			case "llike":
+				m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%%%s", fval36.String()))
+			case "rlike":
+				m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%s%%", fval36.String()))
+			case "alike":
+				m.ForeignLanguageCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval36.String()))
+			case "nllike":
+				m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval36.String()))
+			case "nrlike":
+				m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval36.String()))
+			case "nalike":
+				m.ForeignLanguageCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval36.String()))
+			case "in":
+				m.ForeignLanguageCode.AndWhereIn(fval36.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop36)
 			}
 		}
 	}
@@ -6550,37 +6971,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval37.Kind() != reflect.Ptr {
 			if !ok {
 				m.StudentOrigin.AndWhereEq(fval37.Interface())
-			} else {
-				switch fop37 {
-				case "=":
-					m.StudentOrigin.AndWhereEq(fval37.Interface())
-				case "!=":
-					m.StudentOrigin.AndWhereNeq(fval37.Interface())
-				case ">":
-					m.StudentOrigin.AndWhereGt(fval37.Interface())
-				case ">=":
-					m.StudentOrigin.AndWhereGte(fval37.Interface())
-				case "<":
-					m.StudentOrigin.AndWhereLt(fval37.Interface())
-				case "<=":
-					m.StudentOrigin.AndWhereLte(fval37.Interface())
-				case "llike":
-					m.StudentOrigin.AndWhereLike(fmt.Sprintf("%%%s", fval37.String()))
-				case "rlike":
-					m.StudentOrigin.AndWhereLike(fmt.Sprintf("%s%%", fval37.String()))
-				case "alike":
-					m.StudentOrigin.AndWhereLike(fmt.Sprintf("%%%s%%", fval37.String()))
-				case "nllike":
-					m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%%%s", fval37.String()))
-				case "nrlike":
-					m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%s%%", fval37.String()))
-				case "nalike":
-					m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval37.String()))
-				case "in":
-					m.StudentOrigin.AndWhereIn(fval37.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop37)
-				}
+			}
+		} else {
+			switch fop37 {
+			case "=":
+				m.StudentOrigin.AndWhereEq(fval37.Interface())
+			case "!=":
+				m.StudentOrigin.AndWhereNeq(fval37.Interface())
+			case ">":
+				m.StudentOrigin.AndWhereGt(fval37.Interface())
+			case ">=":
+				m.StudentOrigin.AndWhereGte(fval37.Interface())
+			case "<":
+				m.StudentOrigin.AndWhereLt(fval37.Interface())
+			case "<=":
+				m.StudentOrigin.AndWhereLte(fval37.Interface())
+			case "llike":
+				m.StudentOrigin.AndWhereLike(fmt.Sprintf("%%%s", fval37.String()))
+			case "rlike":
+				m.StudentOrigin.AndWhereLike(fmt.Sprintf("%s%%", fval37.String()))
+			case "alike":
+				m.StudentOrigin.AndWhereLike(fmt.Sprintf("%%%s%%", fval37.String()))
+			case "nllike":
+				m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%%%s", fval37.String()))
+			case "nrlike":
+				m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%s%%", fval37.String()))
+			case "nalike":
+				m.StudentOrigin.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval37.String()))
+			case "in":
+				m.StudentOrigin.AndWhereIn(fval37.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop37)
 			}
 		}
 	}
@@ -6594,37 +7015,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval38.Kind() != reflect.Ptr {
 			if !ok {
 				m.BizType.AndWhereEq(fval38.Interface())
-			} else {
-				switch fop38 {
-				case "=":
-					m.BizType.AndWhereEq(fval38.Interface())
-				case "!=":
-					m.BizType.AndWhereNeq(fval38.Interface())
-				case ">":
-					m.BizType.AndWhereGt(fval38.Interface())
-				case ">=":
-					m.BizType.AndWhereGte(fval38.Interface())
-				case "<":
-					m.BizType.AndWhereLt(fval38.Interface())
-				case "<=":
-					m.BizType.AndWhereLte(fval38.Interface())
-				case "llike":
-					m.BizType.AndWhereLike(fmt.Sprintf("%%%s", fval38.String()))
-				case "rlike":
-					m.BizType.AndWhereLike(fmt.Sprintf("%s%%", fval38.String()))
-				case "alike":
-					m.BizType.AndWhereLike(fmt.Sprintf("%%%s%%", fval38.String()))
-				case "nllike":
-					m.BizType.AndWhereNotLike(fmt.Sprintf("%%%s", fval38.String()))
-				case "nrlike":
-					m.BizType.AndWhereNotLike(fmt.Sprintf("%s%%", fval38.String()))
-				case "nalike":
-					m.BizType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval38.String()))
-				case "in":
-					m.BizType.AndWhereIn(fval38.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop38)
-				}
+			}
+		} else {
+			switch fop38 {
+			case "=":
+				m.BizType.AndWhereEq(fval38.Interface())
+			case "!=":
+				m.BizType.AndWhereNeq(fval38.Interface())
+			case ">":
+				m.BizType.AndWhereGt(fval38.Interface())
+			case ">=":
+				m.BizType.AndWhereGte(fval38.Interface())
+			case "<":
+				m.BizType.AndWhereLt(fval38.Interface())
+			case "<=":
+				m.BizType.AndWhereLte(fval38.Interface())
+			case "llike":
+				m.BizType.AndWhereLike(fmt.Sprintf("%%%s", fval38.String()))
+			case "rlike":
+				m.BizType.AndWhereLike(fmt.Sprintf("%s%%", fval38.String()))
+			case "alike":
+				m.BizType.AndWhereLike(fmt.Sprintf("%%%s%%", fval38.String()))
+			case "nllike":
+				m.BizType.AndWhereNotLike(fmt.Sprintf("%%%s", fval38.String()))
+			case "nrlike":
+				m.BizType.AndWhereNotLike(fmt.Sprintf("%s%%", fval38.String()))
+			case "nalike":
+				m.BizType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval38.String()))
+			case "in":
+				m.BizType.AndWhereIn(fval38.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop38)
 			}
 		}
 	}
@@ -6638,37 +7059,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval39.Kind() != reflect.Ptr {
 			if !ok {
 				m.TaskCode.AndWhereEq(fval39.Interface())
-			} else {
-				switch fop39 {
-				case "=":
-					m.TaskCode.AndWhereEq(fval39.Interface())
-				case "!=":
-					m.TaskCode.AndWhereNeq(fval39.Interface())
-				case ">":
-					m.TaskCode.AndWhereGt(fval39.Interface())
-				case ">=":
-					m.TaskCode.AndWhereGte(fval39.Interface())
-				case "<":
-					m.TaskCode.AndWhereLt(fval39.Interface())
-				case "<=":
-					m.TaskCode.AndWhereLte(fval39.Interface())
-				case "llike":
-					m.TaskCode.AndWhereLike(fmt.Sprintf("%%%s", fval39.String()))
-				case "rlike":
-					m.TaskCode.AndWhereLike(fmt.Sprintf("%s%%", fval39.String()))
-				case "alike":
-					m.TaskCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval39.String()))
-				case "nllike":
-					m.TaskCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval39.String()))
-				case "nrlike":
-					m.TaskCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval39.String()))
-				case "nalike":
-					m.TaskCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval39.String()))
-				case "in":
-					m.TaskCode.AndWhereIn(fval39.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop39)
-				}
+			}
+		} else {
+			switch fop39 {
+			case "=":
+				m.TaskCode.AndWhereEq(fval39.Interface())
+			case "!=":
+				m.TaskCode.AndWhereNeq(fval39.Interface())
+			case ">":
+				m.TaskCode.AndWhereGt(fval39.Interface())
+			case ">=":
+				m.TaskCode.AndWhereGte(fval39.Interface())
+			case "<":
+				m.TaskCode.AndWhereLt(fval39.Interface())
+			case "<=":
+				m.TaskCode.AndWhereLte(fval39.Interface())
+			case "llike":
+				m.TaskCode.AndWhereLike(fmt.Sprintf("%%%s", fval39.String()))
+			case "rlike":
+				m.TaskCode.AndWhereLike(fmt.Sprintf("%s%%", fval39.String()))
+			case "alike":
+				m.TaskCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval39.String()))
+			case "nllike":
+				m.TaskCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval39.String()))
+			case "nrlike":
+				m.TaskCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval39.String()))
+			case "nalike":
+				m.TaskCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval39.String()))
+			case "in":
+				m.TaskCode.AndWhereIn(fval39.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop39)
 			}
 		}
 	}
@@ -6682,37 +7103,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval40.Kind() != reflect.Ptr {
 			if !ok {
 				m.ApproveStatus.AndWhereEq(fval40.Interface())
-			} else {
-				switch fop40 {
-				case "=":
-					m.ApproveStatus.AndWhereEq(fval40.Interface())
-				case "!=":
-					m.ApproveStatus.AndWhereNeq(fval40.Interface())
-				case ">":
-					m.ApproveStatus.AndWhereGt(fval40.Interface())
-				case ">=":
-					m.ApproveStatus.AndWhereGte(fval40.Interface())
-				case "<":
-					m.ApproveStatus.AndWhereLt(fval40.Interface())
-				case "<=":
-					m.ApproveStatus.AndWhereLte(fval40.Interface())
-				case "llike":
-					m.ApproveStatus.AndWhereLike(fmt.Sprintf("%%%s", fval40.String()))
-				case "rlike":
-					m.ApproveStatus.AndWhereLike(fmt.Sprintf("%s%%", fval40.String()))
-				case "alike":
-					m.ApproveStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval40.String()))
-				case "nllike":
-					m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval40.String()))
-				case "nrlike":
-					m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval40.String()))
-				case "nalike":
-					m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval40.String()))
-				case "in":
-					m.ApproveStatus.AndWhereIn(fval40.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop40)
-				}
+			}
+		} else {
+			switch fop40 {
+			case "=":
+				m.ApproveStatus.AndWhereEq(fval40.Interface())
+			case "!=":
+				m.ApproveStatus.AndWhereNeq(fval40.Interface())
+			case ">":
+				m.ApproveStatus.AndWhereGt(fval40.Interface())
+			case ">=":
+				m.ApproveStatus.AndWhereGte(fval40.Interface())
+			case "<":
+				m.ApproveStatus.AndWhereLt(fval40.Interface())
+			case "<=":
+				m.ApproveStatus.AndWhereLte(fval40.Interface())
+			case "llike":
+				m.ApproveStatus.AndWhereLike(fmt.Sprintf("%%%s", fval40.String()))
+			case "rlike":
+				m.ApproveStatus.AndWhereLike(fmt.Sprintf("%s%%", fval40.String()))
+			case "alike":
+				m.ApproveStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval40.String()))
+			case "nllike":
+				m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval40.String()))
+			case "nrlike":
+				m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval40.String()))
+			case "nalike":
+				m.ApproveStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval40.String()))
+			case "in":
+				m.ApproveStatus.AndWhereIn(fval40.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop40)
 			}
 		}
 	}
@@ -6726,37 +7147,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval41.Kind() != reflect.Ptr {
 			if !ok {
 				m.Operator.AndWhereEq(fval41.Interface())
-			} else {
-				switch fop41 {
-				case "=":
-					m.Operator.AndWhereEq(fval41.Interface())
-				case "!=":
-					m.Operator.AndWhereNeq(fval41.Interface())
-				case ">":
-					m.Operator.AndWhereGt(fval41.Interface())
-				case ">=":
-					m.Operator.AndWhereGte(fval41.Interface())
-				case "<":
-					m.Operator.AndWhereLt(fval41.Interface())
-				case "<=":
-					m.Operator.AndWhereLte(fval41.Interface())
-				case "llike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval41.String()))
-				case "rlike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval41.String()))
-				case "alike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval41.String()))
-				case "nllike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval41.String()))
-				case "nrlike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval41.String()))
-				case "nalike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval41.String()))
-				case "in":
-					m.Operator.AndWhereIn(fval41.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop41)
-				}
+			}
+		} else {
+			switch fop41 {
+			case "=":
+				m.Operator.AndWhereEq(fval41.Interface())
+			case "!=":
+				m.Operator.AndWhereNeq(fval41.Interface())
+			case ">":
+				m.Operator.AndWhereGt(fval41.Interface())
+			case ">=":
+				m.Operator.AndWhereGte(fval41.Interface())
+			case "<":
+				m.Operator.AndWhereLt(fval41.Interface())
+			case "<=":
+				m.Operator.AndWhereLte(fval41.Interface())
+			case "llike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval41.String()))
+			case "rlike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval41.String()))
+			case "alike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval41.String()))
+			case "nllike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval41.String()))
+			case "nrlike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval41.String()))
+			case "nalike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval41.String()))
+			case "in":
+				m.Operator.AndWhereIn(fval41.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop41)
 			}
 		}
 	}
@@ -6770,37 +7191,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval42.Kind() != reflect.Ptr {
 			if !ok {
 				m.InsertDatetime.AndWhereEq(fval42.Interface())
-			} else {
-				switch fop42 {
-				case "=":
-					m.InsertDatetime.AndWhereEq(fval42.Interface())
-				case "!=":
-					m.InsertDatetime.AndWhereNeq(fval42.Interface())
-				case ">":
-					m.InsertDatetime.AndWhereGt(fval42.Interface())
-				case ">=":
-					m.InsertDatetime.AndWhereGte(fval42.Interface())
-				case "<":
-					m.InsertDatetime.AndWhereLt(fval42.Interface())
-				case "<=":
-					m.InsertDatetime.AndWhereLte(fval42.Interface())
-				case "llike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval42.String()))
-				case "rlike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval42.String()))
-				case "alike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval42.String()))
-				case "nllike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval42.String()))
-				case "nrlike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval42.String()))
-				case "nalike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval42.String()))
-				case "in":
-					m.InsertDatetime.AndWhereIn(fval42.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop42)
-				}
+			}
+		} else {
+			switch fop42 {
+			case "=":
+				m.InsertDatetime.AndWhereEq(fval42.Interface())
+			case "!=":
+				m.InsertDatetime.AndWhereNeq(fval42.Interface())
+			case ">":
+				m.InsertDatetime.AndWhereGt(fval42.Interface())
+			case ">=":
+				m.InsertDatetime.AndWhereGte(fval42.Interface())
+			case "<":
+				m.InsertDatetime.AndWhereLt(fval42.Interface())
+			case "<=":
+				m.InsertDatetime.AndWhereLte(fval42.Interface())
+			case "llike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval42.String()))
+			case "rlike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval42.String()))
+			case "alike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval42.String()))
+			case "nllike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval42.String()))
+			case "nrlike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval42.String()))
+			case "nalike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval42.String()))
+			case "in":
+				m.InsertDatetime.AndWhereIn(fval42.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop42)
 			}
 		}
 	}
@@ -6814,37 +7235,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval43.Kind() != reflect.Ptr {
 			if !ok {
 				m.UpdateDatetime.AndWhereEq(fval43.Interface())
-			} else {
-				switch fop43 {
-				case "=":
-					m.UpdateDatetime.AndWhereEq(fval43.Interface())
-				case "!=":
-					m.UpdateDatetime.AndWhereNeq(fval43.Interface())
-				case ">":
-					m.UpdateDatetime.AndWhereGt(fval43.Interface())
-				case ">=":
-					m.UpdateDatetime.AndWhereGte(fval43.Interface())
-				case "<":
-					m.UpdateDatetime.AndWhereLt(fval43.Interface())
-				case "<=":
-					m.UpdateDatetime.AndWhereLte(fval43.Interface())
-				case "llike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval43.String()))
-				case "rlike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval43.String()))
-				case "alike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval43.String()))
-				case "nllike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval43.String()))
-				case "nrlike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval43.String()))
-				case "nalike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval43.String()))
-				case "in":
-					m.UpdateDatetime.AndWhereIn(fval43.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop43)
-				}
+			}
+		} else {
+			switch fop43 {
+			case "=":
+				m.UpdateDatetime.AndWhereEq(fval43.Interface())
+			case "!=":
+				m.UpdateDatetime.AndWhereNeq(fval43.Interface())
+			case ">":
+				m.UpdateDatetime.AndWhereGt(fval43.Interface())
+			case ">=":
+				m.UpdateDatetime.AndWhereGte(fval43.Interface())
+			case "<":
+				m.UpdateDatetime.AndWhereLt(fval43.Interface())
+			case "<=":
+				m.UpdateDatetime.AndWhereLte(fval43.Interface())
+			case "llike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval43.String()))
+			case "rlike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval43.String()))
+			case "alike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval43.String()))
+			case "nllike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval43.String()))
+			case "nrlike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval43.String()))
+			case "nalike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval43.String()))
+			case "in":
+				m.UpdateDatetime.AndWhereIn(fval43.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop43)
 			}
 		}
 	}
@@ -6858,37 +7279,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval44.Kind() != reflect.Ptr {
 			if !ok {
 				m.Status.AndWhereEq(fval44.Interface())
-			} else {
-				switch fop44 {
-				case "=":
-					m.Status.AndWhereEq(fval44.Interface())
-				case "!=":
-					m.Status.AndWhereNeq(fval44.Interface())
-				case ">":
-					m.Status.AndWhereGt(fval44.Interface())
-				case ">=":
-					m.Status.AndWhereGte(fval44.Interface())
-				case "<":
-					m.Status.AndWhereLt(fval44.Interface())
-				case "<=":
-					m.Status.AndWhereLte(fval44.Interface())
-				case "llike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval44.String()))
-				case "rlike":
-					m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval44.String()))
-				case "alike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval44.String()))
-				case "nllike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval44.String()))
-				case "nrlike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval44.String()))
-				case "nalike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval44.String()))
-				case "in":
-					m.Status.AndWhereIn(fval44.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop44)
-				}
+			}
+		} else {
+			switch fop44 {
+			case "=":
+				m.Status.AndWhereEq(fval44.Interface())
+			case "!=":
+				m.Status.AndWhereNeq(fval44.Interface())
+			case ">":
+				m.Status.AndWhereGt(fval44.Interface())
+			case ">=":
+				m.Status.AndWhereGte(fval44.Interface())
+			case "<":
+				m.Status.AndWhereLt(fval44.Interface())
+			case "<=":
+				m.Status.AndWhereLte(fval44.Interface())
+			case "llike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval44.String()))
+			case "rlike":
+				m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval44.String()))
+			case "alike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval44.String()))
+			case "nllike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval44.String()))
+			case "nrlike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval44.String()))
+			case "nalike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval44.String()))
+			case "in":
+				m.Status.AndWhereIn(fval44.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop44)
 			}
 		}
 	}
@@ -6902,37 +7323,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval45.Kind() != reflect.Ptr {
 			if !ok {
 				m.StudentStatus.AndWhereEq(fval45.Interface())
-			} else {
-				switch fop45 {
-				case "=":
-					m.StudentStatus.AndWhereEq(fval45.Interface())
-				case "!=":
-					m.StudentStatus.AndWhereNeq(fval45.Interface())
-				case ">":
-					m.StudentStatus.AndWhereGt(fval45.Interface())
-				case ">=":
-					m.StudentStatus.AndWhereGte(fval45.Interface())
-				case "<":
-					m.StudentStatus.AndWhereLt(fval45.Interface())
-				case "<=":
-					m.StudentStatus.AndWhereLte(fval45.Interface())
-				case "llike":
-					m.StudentStatus.AndWhereLike(fmt.Sprintf("%%%s", fval45.String()))
-				case "rlike":
-					m.StudentStatus.AndWhereLike(fmt.Sprintf("%s%%", fval45.String()))
-				case "alike":
-					m.StudentStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval45.String()))
-				case "nllike":
-					m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval45.String()))
-				case "nrlike":
-					m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval45.String()))
-				case "nalike":
-					m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval45.String()))
-				case "in":
-					m.StudentStatus.AndWhereIn(fval45.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop45)
-				}
+			}
+		} else {
+			switch fop45 {
+			case "=":
+				m.StudentStatus.AndWhereEq(fval45.Interface())
+			case "!=":
+				m.StudentStatus.AndWhereNeq(fval45.Interface())
+			case ">":
+				m.StudentStatus.AndWhereGt(fval45.Interface())
+			case ">=":
+				m.StudentStatus.AndWhereGte(fval45.Interface())
+			case "<":
+				m.StudentStatus.AndWhereLt(fval45.Interface())
+			case "<=":
+				m.StudentStatus.AndWhereLte(fval45.Interface())
+			case "llike":
+				m.StudentStatus.AndWhereLike(fmt.Sprintf("%%%s", fval45.String()))
+			case "rlike":
+				m.StudentStatus.AndWhereLike(fmt.Sprintf("%s%%", fval45.String()))
+			case "alike":
+				m.StudentStatus.AndWhereLike(fmt.Sprintf("%%%s%%", fval45.String()))
+			case "nllike":
+				m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%%%s", fval45.String()))
+			case "nrlike":
+				m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%s%%", fval45.String()))
+			case "nalike":
+				m.StudentStatus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval45.String()))
+			case "in":
+				m.StudentStatus.AndWhereIn(fval45.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop45)
 			}
 		}
 	}
@@ -6946,37 +7367,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval46.Kind() != reflect.Ptr {
 			if !ok {
 				m.IsAuth.AndWhereEq(fval46.Interface())
-			} else {
-				switch fop46 {
-				case "=":
-					m.IsAuth.AndWhereEq(fval46.Interface())
-				case "!=":
-					m.IsAuth.AndWhereNeq(fval46.Interface())
-				case ">":
-					m.IsAuth.AndWhereGt(fval46.Interface())
-				case ">=":
-					m.IsAuth.AndWhereGte(fval46.Interface())
-				case "<":
-					m.IsAuth.AndWhereLt(fval46.Interface())
-				case "<=":
-					m.IsAuth.AndWhereLte(fval46.Interface())
-				case "llike":
-					m.IsAuth.AndWhereLike(fmt.Sprintf("%%%s", fval46.String()))
-				case "rlike":
-					m.IsAuth.AndWhereLike(fmt.Sprintf("%s%%", fval46.String()))
-				case "alike":
-					m.IsAuth.AndWhereLike(fmt.Sprintf("%%%s%%", fval46.String()))
-				case "nllike":
-					m.IsAuth.AndWhereNotLike(fmt.Sprintf("%%%s", fval46.String()))
-				case "nrlike":
-					m.IsAuth.AndWhereNotLike(fmt.Sprintf("%s%%", fval46.String()))
-				case "nalike":
-					m.IsAuth.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval46.String()))
-				case "in":
-					m.IsAuth.AndWhereIn(fval46.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop46)
-				}
+			}
+		} else {
+			switch fop46 {
+			case "=":
+				m.IsAuth.AndWhereEq(fval46.Interface())
+			case "!=":
+				m.IsAuth.AndWhereNeq(fval46.Interface())
+			case ">":
+				m.IsAuth.AndWhereGt(fval46.Interface())
+			case ">=":
+				m.IsAuth.AndWhereGte(fval46.Interface())
+			case "<":
+				m.IsAuth.AndWhereLt(fval46.Interface())
+			case "<=":
+				m.IsAuth.AndWhereLte(fval46.Interface())
+			case "llike":
+				m.IsAuth.AndWhereLike(fmt.Sprintf("%%%s", fval46.String()))
+			case "rlike":
+				m.IsAuth.AndWhereLike(fmt.Sprintf("%s%%", fval46.String()))
+			case "alike":
+				m.IsAuth.AndWhereLike(fmt.Sprintf("%%%s%%", fval46.String()))
+			case "nllike":
+				m.IsAuth.AndWhereNotLike(fmt.Sprintf("%%%s", fval46.String()))
+			case "nrlike":
+				m.IsAuth.AndWhereNotLike(fmt.Sprintf("%s%%", fval46.String()))
+			case "nalike":
+				m.IsAuth.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval46.String()))
+			case "in":
+				m.IsAuth.AndWhereIn(fval46.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop46)
 			}
 		}
 	}
@@ -6990,37 +7411,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval47.Kind() != reflect.Ptr {
 			if !ok {
 				m.Campus.AndWhereEq(fval47.Interface())
-			} else {
-				switch fop47 {
-				case "=":
-					m.Campus.AndWhereEq(fval47.Interface())
-				case "!=":
-					m.Campus.AndWhereNeq(fval47.Interface())
-				case ">":
-					m.Campus.AndWhereGt(fval47.Interface())
-				case ">=":
-					m.Campus.AndWhereGte(fval47.Interface())
-				case "<":
-					m.Campus.AndWhereLt(fval47.Interface())
-				case "<=":
-					m.Campus.AndWhereLte(fval47.Interface())
-				case "llike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%%%s", fval47.String()))
-				case "rlike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%s%%", fval47.String()))
-				case "alike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%%%s%%", fval47.String()))
-				case "nllike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s", fval47.String()))
-				case "nrlike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%s%%", fval47.String()))
-				case "nalike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval47.String()))
-				case "in":
-					m.Campus.AndWhereIn(fval47.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop47)
-				}
+			}
+		} else {
+			switch fop47 {
+			case "=":
+				m.Campus.AndWhereEq(fval47.Interface())
+			case "!=":
+				m.Campus.AndWhereNeq(fval47.Interface())
+			case ">":
+				m.Campus.AndWhereGt(fval47.Interface())
+			case ">=":
+				m.Campus.AndWhereGte(fval47.Interface())
+			case "<":
+				m.Campus.AndWhereLt(fval47.Interface())
+			case "<=":
+				m.Campus.AndWhereLte(fval47.Interface())
+			case "llike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%%%s", fval47.String()))
+			case "rlike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%s%%", fval47.String()))
+			case "alike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%%%s%%", fval47.String()))
+			case "nllike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s", fval47.String()))
+			case "nrlike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%s%%", fval47.String()))
+			case "nalike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval47.String()))
+			case "in":
+				m.Campus.AndWhereIn(fval47.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop47)
 			}
 		}
 	}
@@ -7034,37 +7455,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval48.Kind() != reflect.Ptr {
 			if !ok {
 				m.Zone.AndWhereEq(fval48.Interface())
-			} else {
-				switch fop48 {
-				case "=":
-					m.Zone.AndWhereEq(fval48.Interface())
-				case "!=":
-					m.Zone.AndWhereNeq(fval48.Interface())
-				case ">":
-					m.Zone.AndWhereGt(fval48.Interface())
-				case ">=":
-					m.Zone.AndWhereGte(fval48.Interface())
-				case "<":
-					m.Zone.AndWhereLt(fval48.Interface())
-				case "<=":
-					m.Zone.AndWhereLte(fval48.Interface())
-				case "llike":
-					m.Zone.AndWhereLike(fmt.Sprintf("%%%s", fval48.String()))
-				case "rlike":
-					m.Zone.AndWhereLike(fmt.Sprintf("%s%%", fval48.String()))
-				case "alike":
-					m.Zone.AndWhereLike(fmt.Sprintf("%%%s%%", fval48.String()))
-				case "nllike":
-					m.Zone.AndWhereNotLike(fmt.Sprintf("%%%s", fval48.String()))
-				case "nrlike":
-					m.Zone.AndWhereNotLike(fmt.Sprintf("%s%%", fval48.String()))
-				case "nalike":
-					m.Zone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval48.String()))
-				case "in":
-					m.Zone.AndWhereIn(fval48.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop48)
-				}
+			}
+		} else {
+			switch fop48 {
+			case "=":
+				m.Zone.AndWhereEq(fval48.Interface())
+			case "!=":
+				m.Zone.AndWhereNeq(fval48.Interface())
+			case ">":
+				m.Zone.AndWhereGt(fval48.Interface())
+			case ">=":
+				m.Zone.AndWhereGte(fval48.Interface())
+			case "<":
+				m.Zone.AndWhereLt(fval48.Interface())
+			case "<=":
+				m.Zone.AndWhereLte(fval48.Interface())
+			case "llike":
+				m.Zone.AndWhereLike(fmt.Sprintf("%%%s", fval48.String()))
+			case "rlike":
+				m.Zone.AndWhereLike(fmt.Sprintf("%s%%", fval48.String()))
+			case "alike":
+				m.Zone.AndWhereLike(fmt.Sprintf("%%%s%%", fval48.String()))
+			case "nllike":
+				m.Zone.AndWhereNotLike(fmt.Sprintf("%%%s", fval48.String()))
+			case "nrlike":
+				m.Zone.AndWhereNotLike(fmt.Sprintf("%s%%", fval48.String()))
+			case "nalike":
+				m.Zone.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval48.String()))
+			case "in":
+				m.Zone.AndWhereIn(fval48.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop48)
 			}
 		}
 	}
@@ -7078,37 +7499,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval49.Kind() != reflect.Ptr {
 			if !ok {
 				m.Building.AndWhereEq(fval49.Interface())
-			} else {
-				switch fop49 {
-				case "=":
-					m.Building.AndWhereEq(fval49.Interface())
-				case "!=":
-					m.Building.AndWhereNeq(fval49.Interface())
-				case ">":
-					m.Building.AndWhereGt(fval49.Interface())
-				case ">=":
-					m.Building.AndWhereGte(fval49.Interface())
-				case "<":
-					m.Building.AndWhereLt(fval49.Interface())
-				case "<=":
-					m.Building.AndWhereLte(fval49.Interface())
-				case "llike":
-					m.Building.AndWhereLike(fmt.Sprintf("%%%s", fval49.String()))
-				case "rlike":
-					m.Building.AndWhereLike(fmt.Sprintf("%s%%", fval49.String()))
-				case "alike":
-					m.Building.AndWhereLike(fmt.Sprintf("%%%s%%", fval49.String()))
-				case "nllike":
-					m.Building.AndWhereNotLike(fmt.Sprintf("%%%s", fval49.String()))
-				case "nrlike":
-					m.Building.AndWhereNotLike(fmt.Sprintf("%s%%", fval49.String()))
-				case "nalike":
-					m.Building.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval49.String()))
-				case "in":
-					m.Building.AndWhereIn(fval49.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop49)
-				}
+			}
+		} else {
+			switch fop49 {
+			case "=":
+				m.Building.AndWhereEq(fval49.Interface())
+			case "!=":
+				m.Building.AndWhereNeq(fval49.Interface())
+			case ">":
+				m.Building.AndWhereGt(fval49.Interface())
+			case ">=":
+				m.Building.AndWhereGte(fval49.Interface())
+			case "<":
+				m.Building.AndWhereLt(fval49.Interface())
+			case "<=":
+				m.Building.AndWhereLte(fval49.Interface())
+			case "llike":
+				m.Building.AndWhereLike(fmt.Sprintf("%%%s", fval49.String()))
+			case "rlike":
+				m.Building.AndWhereLike(fmt.Sprintf("%s%%", fval49.String()))
+			case "alike":
+				m.Building.AndWhereLike(fmt.Sprintf("%%%s%%", fval49.String()))
+			case "nllike":
+				m.Building.AndWhereNotLike(fmt.Sprintf("%%%s", fval49.String()))
+			case "nrlike":
+				m.Building.AndWhereNotLike(fmt.Sprintf("%s%%", fval49.String()))
+			case "nalike":
+				m.Building.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval49.String()))
+			case "in":
+				m.Building.AndWhereIn(fval49.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop49)
 			}
 		}
 	}
@@ -7122,37 +7543,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval50.Kind() != reflect.Ptr {
 			if !ok {
 				m.Unit.AndWhereEq(fval50.Interface())
-			} else {
-				switch fop50 {
-				case "=":
-					m.Unit.AndWhereEq(fval50.Interface())
-				case "!=":
-					m.Unit.AndWhereNeq(fval50.Interface())
-				case ">":
-					m.Unit.AndWhereGt(fval50.Interface())
-				case ">=":
-					m.Unit.AndWhereGte(fval50.Interface())
-				case "<":
-					m.Unit.AndWhereLt(fval50.Interface())
-				case "<=":
-					m.Unit.AndWhereLte(fval50.Interface())
-				case "llike":
-					m.Unit.AndWhereLike(fmt.Sprintf("%%%s", fval50.String()))
-				case "rlike":
-					m.Unit.AndWhereLike(fmt.Sprintf("%s%%", fval50.String()))
-				case "alike":
-					m.Unit.AndWhereLike(fmt.Sprintf("%%%s%%", fval50.String()))
-				case "nllike":
-					m.Unit.AndWhereNotLike(fmt.Sprintf("%%%s", fval50.String()))
-				case "nrlike":
-					m.Unit.AndWhereNotLike(fmt.Sprintf("%s%%", fval50.String()))
-				case "nalike":
-					m.Unit.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval50.String()))
-				case "in":
-					m.Unit.AndWhereIn(fval50.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop50)
-				}
+			}
+		} else {
+			switch fop50 {
+			case "=":
+				m.Unit.AndWhereEq(fval50.Interface())
+			case "!=":
+				m.Unit.AndWhereNeq(fval50.Interface())
+			case ">":
+				m.Unit.AndWhereGt(fval50.Interface())
+			case ">=":
+				m.Unit.AndWhereGte(fval50.Interface())
+			case "<":
+				m.Unit.AndWhereLt(fval50.Interface())
+			case "<=":
+				m.Unit.AndWhereLte(fval50.Interface())
+			case "llike":
+				m.Unit.AndWhereLike(fmt.Sprintf("%%%s", fval50.String()))
+			case "rlike":
+				m.Unit.AndWhereLike(fmt.Sprintf("%s%%", fval50.String()))
+			case "alike":
+				m.Unit.AndWhereLike(fmt.Sprintf("%%%s%%", fval50.String()))
+			case "nllike":
+				m.Unit.AndWhereNotLike(fmt.Sprintf("%%%s", fval50.String()))
+			case "nrlike":
+				m.Unit.AndWhereNotLike(fmt.Sprintf("%s%%", fval50.String()))
+			case "nalike":
+				m.Unit.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval50.String()))
+			case "in":
+				m.Unit.AndWhereIn(fval50.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop50)
 			}
 		}
 	}
@@ -7166,37 +7587,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval51.Kind() != reflect.Ptr {
 			if !ok {
 				m.Room.AndWhereEq(fval51.Interface())
-			} else {
-				switch fop51 {
-				case "=":
-					m.Room.AndWhereEq(fval51.Interface())
-				case "!=":
-					m.Room.AndWhereNeq(fval51.Interface())
-				case ">":
-					m.Room.AndWhereGt(fval51.Interface())
-				case ">=":
-					m.Room.AndWhereGte(fval51.Interface())
-				case "<":
-					m.Room.AndWhereLt(fval51.Interface())
-				case "<=":
-					m.Room.AndWhereLte(fval51.Interface())
-				case "llike":
-					m.Room.AndWhereLike(fmt.Sprintf("%%%s", fval51.String()))
-				case "rlike":
-					m.Room.AndWhereLike(fmt.Sprintf("%s%%", fval51.String()))
-				case "alike":
-					m.Room.AndWhereLike(fmt.Sprintf("%%%s%%", fval51.String()))
-				case "nllike":
-					m.Room.AndWhereNotLike(fmt.Sprintf("%%%s", fval51.String()))
-				case "nrlike":
-					m.Room.AndWhereNotLike(fmt.Sprintf("%s%%", fval51.String()))
-				case "nalike":
-					m.Room.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval51.String()))
-				case "in":
-					m.Room.AndWhereIn(fval51.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop51)
-				}
+			}
+		} else {
+			switch fop51 {
+			case "=":
+				m.Room.AndWhereEq(fval51.Interface())
+			case "!=":
+				m.Room.AndWhereNeq(fval51.Interface())
+			case ">":
+				m.Room.AndWhereGt(fval51.Interface())
+			case ">=":
+				m.Room.AndWhereGte(fval51.Interface())
+			case "<":
+				m.Room.AndWhereLt(fval51.Interface())
+			case "<=":
+				m.Room.AndWhereLte(fval51.Interface())
+			case "llike":
+				m.Room.AndWhereLike(fmt.Sprintf("%%%s", fval51.String()))
+			case "rlike":
+				m.Room.AndWhereLike(fmt.Sprintf("%s%%", fval51.String()))
+			case "alike":
+				m.Room.AndWhereLike(fmt.Sprintf("%%%s%%", fval51.String()))
+			case "nllike":
+				m.Room.AndWhereNotLike(fmt.Sprintf("%%%s", fval51.String()))
+			case "nrlike":
+				m.Room.AndWhereNotLike(fmt.Sprintf("%s%%", fval51.String()))
+			case "nalike":
+				m.Room.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval51.String()))
+			case "in":
+				m.Room.AndWhereIn(fval51.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop51)
 			}
 		}
 	}
@@ -7210,37 +7631,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval52.Kind() != reflect.Ptr {
 			if !ok {
 				m.Bed.AndWhereEq(fval52.Interface())
-			} else {
-				switch fop52 {
-				case "=":
-					m.Bed.AndWhereEq(fval52.Interface())
-				case "!=":
-					m.Bed.AndWhereNeq(fval52.Interface())
-				case ">":
-					m.Bed.AndWhereGt(fval52.Interface())
-				case ">=":
-					m.Bed.AndWhereGte(fval52.Interface())
-				case "<":
-					m.Bed.AndWhereLt(fval52.Interface())
-				case "<=":
-					m.Bed.AndWhereLte(fval52.Interface())
-				case "llike":
-					m.Bed.AndWhereLike(fmt.Sprintf("%%%s", fval52.String()))
-				case "rlike":
-					m.Bed.AndWhereLike(fmt.Sprintf("%s%%", fval52.String()))
-				case "alike":
-					m.Bed.AndWhereLike(fmt.Sprintf("%%%s%%", fval52.String()))
-				case "nllike":
-					m.Bed.AndWhereNotLike(fmt.Sprintf("%%%s", fval52.String()))
-				case "nrlike":
-					m.Bed.AndWhereNotLike(fmt.Sprintf("%s%%", fval52.String()))
-				case "nalike":
-					m.Bed.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval52.String()))
-				case "in":
-					m.Bed.AndWhereIn(fval52.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop52)
-				}
+			}
+		} else {
+			switch fop52 {
+			case "=":
+				m.Bed.AndWhereEq(fval52.Interface())
+			case "!=":
+				m.Bed.AndWhereNeq(fval52.Interface())
+			case ">":
+				m.Bed.AndWhereGt(fval52.Interface())
+			case ">=":
+				m.Bed.AndWhereGte(fval52.Interface())
+			case "<":
+				m.Bed.AndWhereLt(fval52.Interface())
+			case "<=":
+				m.Bed.AndWhereLte(fval52.Interface())
+			case "llike":
+				m.Bed.AndWhereLike(fmt.Sprintf("%%%s", fval52.String()))
+			case "rlike":
+				m.Bed.AndWhereLike(fmt.Sprintf("%s%%", fval52.String()))
+			case "alike":
+				m.Bed.AndWhereLike(fmt.Sprintf("%%%s%%", fval52.String()))
+			case "nllike":
+				m.Bed.AndWhereNotLike(fmt.Sprintf("%%%s", fval52.String()))
+			case "nrlike":
+				m.Bed.AndWhereNotLike(fmt.Sprintf("%s%%", fval52.String()))
+			case "nalike":
+				m.Bed.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval52.String()))
+			case "in":
+				m.Bed.AndWhereIn(fval52.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop52)
 			}
 		}
 	}
@@ -7254,37 +7675,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval53.Kind() != reflect.Ptr {
 			if !ok {
 				m.StatusSort.AndWhereEq(fval53.Interface())
-			} else {
-				switch fop53 {
-				case "=":
-					m.StatusSort.AndWhereEq(fval53.Interface())
-				case "!=":
-					m.StatusSort.AndWhereNeq(fval53.Interface())
-				case ">":
-					m.StatusSort.AndWhereGt(fval53.Interface())
-				case ">=":
-					m.StatusSort.AndWhereGte(fval53.Interface())
-				case "<":
-					m.StatusSort.AndWhereLt(fval53.Interface())
-				case "<=":
-					m.StatusSort.AndWhereLte(fval53.Interface())
-				case "llike":
-					m.StatusSort.AndWhereLike(fmt.Sprintf("%%%s", fval53.String()))
-				case "rlike":
-					m.StatusSort.AndWhereLike(fmt.Sprintf("%s%%", fval53.String()))
-				case "alike":
-					m.StatusSort.AndWhereLike(fmt.Sprintf("%%%s%%", fval53.String()))
-				case "nllike":
-					m.StatusSort.AndWhereNotLike(fmt.Sprintf("%%%s", fval53.String()))
-				case "nrlike":
-					m.StatusSort.AndWhereNotLike(fmt.Sprintf("%s%%", fval53.String()))
-				case "nalike":
-					m.StatusSort.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval53.String()))
-				case "in":
-					m.StatusSort.AndWhereIn(fval53.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop53)
-				}
+			}
+		} else {
+			switch fop53 {
+			case "=":
+				m.StatusSort.AndWhereEq(fval53.Interface())
+			case "!=":
+				m.StatusSort.AndWhereNeq(fval53.Interface())
+			case ">":
+				m.StatusSort.AndWhereGt(fval53.Interface())
+			case ">=":
+				m.StatusSort.AndWhereGte(fval53.Interface())
+			case "<":
+				m.StatusSort.AndWhereLt(fval53.Interface())
+			case "<=":
+				m.StatusSort.AndWhereLte(fval53.Interface())
+			case "llike":
+				m.StatusSort.AndWhereLike(fmt.Sprintf("%%%s", fval53.String()))
+			case "rlike":
+				m.StatusSort.AndWhereLike(fmt.Sprintf("%s%%", fval53.String()))
+			case "alike":
+				m.StatusSort.AndWhereLike(fmt.Sprintf("%%%s%%", fval53.String()))
+			case "nllike":
+				m.StatusSort.AndWhereNotLike(fmt.Sprintf("%%%s", fval53.String()))
+			case "nrlike":
+				m.StatusSort.AndWhereNotLike(fmt.Sprintf("%s%%", fval53.String()))
+			case "nalike":
+				m.StatusSort.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval53.String()))
+			case "in":
+				m.StatusSort.AndWhereIn(fval53.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop53)
 			}
 		}
 	}
@@ -7298,37 +7719,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval54.Kind() != reflect.Ptr {
 			if !ok {
 				m.Height.AndWhereEq(fval54.Interface())
-			} else {
-				switch fop54 {
-				case "=":
-					m.Height.AndWhereEq(fval54.Interface())
-				case "!=":
-					m.Height.AndWhereNeq(fval54.Interface())
-				case ">":
-					m.Height.AndWhereGt(fval54.Interface())
-				case ">=":
-					m.Height.AndWhereGte(fval54.Interface())
-				case "<":
-					m.Height.AndWhereLt(fval54.Interface())
-				case "<=":
-					m.Height.AndWhereLte(fval54.Interface())
-				case "llike":
-					m.Height.AndWhereLike(fmt.Sprintf("%%%s", fval54.String()))
-				case "rlike":
-					m.Height.AndWhereLike(fmt.Sprintf("%s%%", fval54.String()))
-				case "alike":
-					m.Height.AndWhereLike(fmt.Sprintf("%%%s%%", fval54.String()))
-				case "nllike":
-					m.Height.AndWhereNotLike(fmt.Sprintf("%%%s", fval54.String()))
-				case "nrlike":
-					m.Height.AndWhereNotLike(fmt.Sprintf("%s%%", fval54.String()))
-				case "nalike":
-					m.Height.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval54.String()))
-				case "in":
-					m.Height.AndWhereIn(fval54.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop54)
-				}
+			}
+		} else {
+			switch fop54 {
+			case "=":
+				m.Height.AndWhereEq(fval54.Interface())
+			case "!=":
+				m.Height.AndWhereNeq(fval54.Interface())
+			case ">":
+				m.Height.AndWhereGt(fval54.Interface())
+			case ">=":
+				m.Height.AndWhereGte(fval54.Interface())
+			case "<":
+				m.Height.AndWhereLt(fval54.Interface())
+			case "<=":
+				m.Height.AndWhereLte(fval54.Interface())
+			case "llike":
+				m.Height.AndWhereLike(fmt.Sprintf("%%%s", fval54.String()))
+			case "rlike":
+				m.Height.AndWhereLike(fmt.Sprintf("%s%%", fval54.String()))
+			case "alike":
+				m.Height.AndWhereLike(fmt.Sprintf("%%%s%%", fval54.String()))
+			case "nllike":
+				m.Height.AndWhereNotLike(fmt.Sprintf("%%%s", fval54.String()))
+			case "nrlike":
+				m.Height.AndWhereNotLike(fmt.Sprintf("%s%%", fval54.String()))
+			case "nalike":
+				m.Height.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval54.String()))
+			case "in":
+				m.Height.AndWhereIn(fval54.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop54)
 			}
 		}
 	}
@@ -7342,37 +7763,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval55.Kind() != reflect.Ptr {
 			if !ok {
 				m.Weight.AndWhereEq(fval55.Interface())
-			} else {
-				switch fop55 {
-				case "=":
-					m.Weight.AndWhereEq(fval55.Interface())
-				case "!=":
-					m.Weight.AndWhereNeq(fval55.Interface())
-				case ">":
-					m.Weight.AndWhereGt(fval55.Interface())
-				case ">=":
-					m.Weight.AndWhereGte(fval55.Interface())
-				case "<":
-					m.Weight.AndWhereLt(fval55.Interface())
-				case "<=":
-					m.Weight.AndWhereLte(fval55.Interface())
-				case "llike":
-					m.Weight.AndWhereLike(fmt.Sprintf("%%%s", fval55.String()))
-				case "rlike":
-					m.Weight.AndWhereLike(fmt.Sprintf("%s%%", fval55.String()))
-				case "alike":
-					m.Weight.AndWhereLike(fmt.Sprintf("%%%s%%", fval55.String()))
-				case "nllike":
-					m.Weight.AndWhereNotLike(fmt.Sprintf("%%%s", fval55.String()))
-				case "nrlike":
-					m.Weight.AndWhereNotLike(fmt.Sprintf("%s%%", fval55.String()))
-				case "nalike":
-					m.Weight.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval55.String()))
-				case "in":
-					m.Weight.AndWhereIn(fval55.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop55)
-				}
+			}
+		} else {
+			switch fop55 {
+			case "=":
+				m.Weight.AndWhereEq(fval55.Interface())
+			case "!=":
+				m.Weight.AndWhereNeq(fval55.Interface())
+			case ">":
+				m.Weight.AndWhereGt(fval55.Interface())
+			case ">=":
+				m.Weight.AndWhereGte(fval55.Interface())
+			case "<":
+				m.Weight.AndWhereLt(fval55.Interface())
+			case "<=":
+				m.Weight.AndWhereLte(fval55.Interface())
+			case "llike":
+				m.Weight.AndWhereLike(fmt.Sprintf("%%%s", fval55.String()))
+			case "rlike":
+				m.Weight.AndWhereLike(fmt.Sprintf("%s%%", fval55.String()))
+			case "alike":
+				m.Weight.AndWhereLike(fmt.Sprintf("%%%s%%", fval55.String()))
+			case "nllike":
+				m.Weight.AndWhereNotLike(fmt.Sprintf("%%%s", fval55.String()))
+			case "nrlike":
+				m.Weight.AndWhereNotLike(fmt.Sprintf("%s%%", fval55.String()))
+			case "nalike":
+				m.Weight.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval55.String()))
+			case "in":
+				m.Weight.AndWhereIn(fval55.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop55)
 			}
 		}
 	}
@@ -7386,37 +7807,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval56.Kind() != reflect.Ptr {
 			if !ok {
 				m.FootSize.AndWhereEq(fval56.Interface())
-			} else {
-				switch fop56 {
-				case "=":
-					m.FootSize.AndWhereEq(fval56.Interface())
-				case "!=":
-					m.FootSize.AndWhereNeq(fval56.Interface())
-				case ">":
-					m.FootSize.AndWhereGt(fval56.Interface())
-				case ">=":
-					m.FootSize.AndWhereGte(fval56.Interface())
-				case "<":
-					m.FootSize.AndWhereLt(fval56.Interface())
-				case "<=":
-					m.FootSize.AndWhereLte(fval56.Interface())
-				case "llike":
-					m.FootSize.AndWhereLike(fmt.Sprintf("%%%s", fval56.String()))
-				case "rlike":
-					m.FootSize.AndWhereLike(fmt.Sprintf("%s%%", fval56.String()))
-				case "alike":
-					m.FootSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval56.String()))
-				case "nllike":
-					m.FootSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval56.String()))
-				case "nrlike":
-					m.FootSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval56.String()))
-				case "nalike":
-					m.FootSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval56.String()))
-				case "in":
-					m.FootSize.AndWhereIn(fval56.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop56)
-				}
+			}
+		} else {
+			switch fop56 {
+			case "=":
+				m.FootSize.AndWhereEq(fval56.Interface())
+			case "!=":
+				m.FootSize.AndWhereNeq(fval56.Interface())
+			case ">":
+				m.FootSize.AndWhereGt(fval56.Interface())
+			case ">=":
+				m.FootSize.AndWhereGte(fval56.Interface())
+			case "<":
+				m.FootSize.AndWhereLt(fval56.Interface())
+			case "<=":
+				m.FootSize.AndWhereLte(fval56.Interface())
+			case "llike":
+				m.FootSize.AndWhereLike(fmt.Sprintf("%%%s", fval56.String()))
+			case "rlike":
+				m.FootSize.AndWhereLike(fmt.Sprintf("%s%%", fval56.String()))
+			case "alike":
+				m.FootSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval56.String()))
+			case "nllike":
+				m.FootSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval56.String()))
+			case "nrlike":
+				m.FootSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval56.String()))
+			case "nalike":
+				m.FootSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval56.String()))
+			case "in":
+				m.FootSize.AndWhereIn(fval56.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop56)
 			}
 		}
 	}
@@ -7430,37 +7851,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval57.Kind() != reflect.Ptr {
 			if !ok {
 				m.ClothSize.AndWhereEq(fval57.Interface())
-			} else {
-				switch fop57 {
-				case "=":
-					m.ClothSize.AndWhereEq(fval57.Interface())
-				case "!=":
-					m.ClothSize.AndWhereNeq(fval57.Interface())
-				case ">":
-					m.ClothSize.AndWhereGt(fval57.Interface())
-				case ">=":
-					m.ClothSize.AndWhereGte(fval57.Interface())
-				case "<":
-					m.ClothSize.AndWhereLt(fval57.Interface())
-				case "<=":
-					m.ClothSize.AndWhereLte(fval57.Interface())
-				case "llike":
-					m.ClothSize.AndWhereLike(fmt.Sprintf("%%%s", fval57.String()))
-				case "rlike":
-					m.ClothSize.AndWhereLike(fmt.Sprintf("%s%%", fval57.String()))
-				case "alike":
-					m.ClothSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval57.String()))
-				case "nllike":
-					m.ClothSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval57.String()))
-				case "nrlike":
-					m.ClothSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval57.String()))
-				case "nalike":
-					m.ClothSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval57.String()))
-				case "in":
-					m.ClothSize.AndWhereIn(fval57.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop57)
-				}
+			}
+		} else {
+			switch fop57 {
+			case "=":
+				m.ClothSize.AndWhereEq(fval57.Interface())
+			case "!=":
+				m.ClothSize.AndWhereNeq(fval57.Interface())
+			case ">":
+				m.ClothSize.AndWhereGt(fval57.Interface())
+			case ">=":
+				m.ClothSize.AndWhereGte(fval57.Interface())
+			case "<":
+				m.ClothSize.AndWhereLt(fval57.Interface())
+			case "<=":
+				m.ClothSize.AndWhereLte(fval57.Interface())
+			case "llike":
+				m.ClothSize.AndWhereLike(fmt.Sprintf("%%%s", fval57.String()))
+			case "rlike":
+				m.ClothSize.AndWhereLike(fmt.Sprintf("%s%%", fval57.String()))
+			case "alike":
+				m.ClothSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval57.String()))
+			case "nllike":
+				m.ClothSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval57.String()))
+			case "nrlike":
+				m.ClothSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval57.String()))
+			case "nalike":
+				m.ClothSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval57.String()))
+			case "in":
+				m.ClothSize.AndWhereIn(fval57.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop57)
 			}
 		}
 	}
@@ -7474,37 +7895,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval58.Kind() != reflect.Ptr {
 			if !ok {
 				m.HeadSize.AndWhereEq(fval58.Interface())
-			} else {
-				switch fop58 {
-				case "=":
-					m.HeadSize.AndWhereEq(fval58.Interface())
-				case "!=":
-					m.HeadSize.AndWhereNeq(fval58.Interface())
-				case ">":
-					m.HeadSize.AndWhereGt(fval58.Interface())
-				case ">=":
-					m.HeadSize.AndWhereGte(fval58.Interface())
-				case "<":
-					m.HeadSize.AndWhereLt(fval58.Interface())
-				case "<=":
-					m.HeadSize.AndWhereLte(fval58.Interface())
-				case "llike":
-					m.HeadSize.AndWhereLike(fmt.Sprintf("%%%s", fval58.String()))
-				case "rlike":
-					m.HeadSize.AndWhereLike(fmt.Sprintf("%s%%", fval58.String()))
-				case "alike":
-					m.HeadSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval58.String()))
-				case "nllike":
-					m.HeadSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval58.String()))
-				case "nrlike":
-					m.HeadSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval58.String()))
-				case "nalike":
-					m.HeadSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval58.String()))
-				case "in":
-					m.HeadSize.AndWhereIn(fval58.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop58)
-				}
+			}
+		} else {
+			switch fop58 {
+			case "=":
+				m.HeadSize.AndWhereEq(fval58.Interface())
+			case "!=":
+				m.HeadSize.AndWhereNeq(fval58.Interface())
+			case ">":
+				m.HeadSize.AndWhereGt(fval58.Interface())
+			case ">=":
+				m.HeadSize.AndWhereGte(fval58.Interface())
+			case "<":
+				m.HeadSize.AndWhereLt(fval58.Interface())
+			case "<=":
+				m.HeadSize.AndWhereLte(fval58.Interface())
+			case "llike":
+				m.HeadSize.AndWhereLike(fmt.Sprintf("%%%s", fval58.String()))
+			case "rlike":
+				m.HeadSize.AndWhereLike(fmt.Sprintf("%s%%", fval58.String()))
+			case "alike":
+				m.HeadSize.AndWhereLike(fmt.Sprintf("%%%s%%", fval58.String()))
+			case "nllike":
+				m.HeadSize.AndWhereNotLike(fmt.Sprintf("%%%s", fval58.String()))
+			case "nrlike":
+				m.HeadSize.AndWhereNotLike(fmt.Sprintf("%s%%", fval58.String()))
+			case "nalike":
+				m.HeadSize.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval58.String()))
+			case "in":
+				m.HeadSize.AndWhereIn(fval58.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop58)
 			}
 		}
 	}
@@ -7518,37 +7939,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval59.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark1.AndWhereEq(fval59.Interface())
-			} else {
-				switch fop59 {
-				case "=":
-					m.Remark1.AndWhereEq(fval59.Interface())
-				case "!=":
-					m.Remark1.AndWhereNeq(fval59.Interface())
-				case ">":
-					m.Remark1.AndWhereGt(fval59.Interface())
-				case ">=":
-					m.Remark1.AndWhereGte(fval59.Interface())
-				case "<":
-					m.Remark1.AndWhereLt(fval59.Interface())
-				case "<=":
-					m.Remark1.AndWhereLte(fval59.Interface())
-				case "llike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval59.String()))
-				case "rlike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval59.String()))
-				case "alike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval59.String()))
-				case "nllike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval59.String()))
-				case "nrlike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval59.String()))
-				case "nalike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval59.String()))
-				case "in":
-					m.Remark1.AndWhereIn(fval59.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop59)
-				}
+			}
+		} else {
+			switch fop59 {
+			case "=":
+				m.Remark1.AndWhereEq(fval59.Interface())
+			case "!=":
+				m.Remark1.AndWhereNeq(fval59.Interface())
+			case ">":
+				m.Remark1.AndWhereGt(fval59.Interface())
+			case ">=":
+				m.Remark1.AndWhereGte(fval59.Interface())
+			case "<":
+				m.Remark1.AndWhereLt(fval59.Interface())
+			case "<=":
+				m.Remark1.AndWhereLte(fval59.Interface())
+			case "llike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval59.String()))
+			case "rlike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval59.String()))
+			case "alike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval59.String()))
+			case "nllike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval59.String()))
+			case "nrlike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval59.String()))
+			case "nalike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval59.String()))
+			case "in":
+				m.Remark1.AndWhereIn(fval59.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop59)
 			}
 		}
 	}
@@ -7562,37 +7983,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval60.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark2.AndWhereEq(fval60.Interface())
-			} else {
-				switch fop60 {
-				case "=":
-					m.Remark2.AndWhereEq(fval60.Interface())
-				case "!=":
-					m.Remark2.AndWhereNeq(fval60.Interface())
-				case ">":
-					m.Remark2.AndWhereGt(fval60.Interface())
-				case ">=":
-					m.Remark2.AndWhereGte(fval60.Interface())
-				case "<":
-					m.Remark2.AndWhereLt(fval60.Interface())
-				case "<=":
-					m.Remark2.AndWhereLte(fval60.Interface())
-				case "llike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval60.String()))
-				case "rlike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval60.String()))
-				case "alike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval60.String()))
-				case "nllike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval60.String()))
-				case "nrlike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval60.String()))
-				case "nalike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval60.String()))
-				case "in":
-					m.Remark2.AndWhereIn(fval60.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop60)
-				}
+			}
+		} else {
+			switch fop60 {
+			case "=":
+				m.Remark2.AndWhereEq(fval60.Interface())
+			case "!=":
+				m.Remark2.AndWhereNeq(fval60.Interface())
+			case ">":
+				m.Remark2.AndWhereGt(fval60.Interface())
+			case ">=":
+				m.Remark2.AndWhereGte(fval60.Interface())
+			case "<":
+				m.Remark2.AndWhereLt(fval60.Interface())
+			case "<=":
+				m.Remark2.AndWhereLte(fval60.Interface())
+			case "llike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval60.String()))
+			case "rlike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval60.String()))
+			case "alike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval60.String()))
+			case "nllike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval60.String()))
+			case "nrlike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval60.String()))
+			case "nalike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval60.String()))
+			case "in":
+				m.Remark2.AndWhereIn(fval60.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop60)
 			}
 		}
 	}
@@ -7606,37 +8027,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval61.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark3.AndWhereEq(fval61.Interface())
-			} else {
-				switch fop61 {
-				case "=":
-					m.Remark3.AndWhereEq(fval61.Interface())
-				case "!=":
-					m.Remark3.AndWhereNeq(fval61.Interface())
-				case ">":
-					m.Remark3.AndWhereGt(fval61.Interface())
-				case ">=":
-					m.Remark3.AndWhereGte(fval61.Interface())
-				case "<":
-					m.Remark3.AndWhereLt(fval61.Interface())
-				case "<=":
-					m.Remark3.AndWhereLte(fval61.Interface())
-				case "llike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval61.String()))
-				case "rlike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval61.String()))
-				case "alike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval61.String()))
-				case "nllike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval61.String()))
-				case "nrlike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval61.String()))
-				case "nalike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval61.String()))
-				case "in":
-					m.Remark3.AndWhereIn(fval61.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop61)
-				}
+			}
+		} else {
+			switch fop61 {
+			case "=":
+				m.Remark3.AndWhereEq(fval61.Interface())
+			case "!=":
+				m.Remark3.AndWhereNeq(fval61.Interface())
+			case ">":
+				m.Remark3.AndWhereGt(fval61.Interface())
+			case ">=":
+				m.Remark3.AndWhereGte(fval61.Interface())
+			case "<":
+				m.Remark3.AndWhereLt(fval61.Interface())
+			case "<=":
+				m.Remark3.AndWhereLte(fval61.Interface())
+			case "llike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval61.String()))
+			case "rlike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval61.String()))
+			case "alike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval61.String()))
+			case "nllike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval61.String()))
+			case "nrlike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval61.String()))
+			case "nalike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval61.String()))
+			case "in":
+				m.Remark3.AndWhereIn(fval61.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop61)
 			}
 		}
 	}
@@ -7650,37 +8071,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval62.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark4.AndWhereEq(fval62.Interface())
-			} else {
-				switch fop62 {
-				case "=":
-					m.Remark4.AndWhereEq(fval62.Interface())
-				case "!=":
-					m.Remark4.AndWhereNeq(fval62.Interface())
-				case ">":
-					m.Remark4.AndWhereGt(fval62.Interface())
-				case ">=":
-					m.Remark4.AndWhereGte(fval62.Interface())
-				case "<":
-					m.Remark4.AndWhereLt(fval62.Interface())
-				case "<=":
-					m.Remark4.AndWhereLte(fval62.Interface())
-				case "llike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval62.String()))
-				case "rlike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval62.String()))
-				case "alike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval62.String()))
-				case "nllike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval62.String()))
-				case "nrlike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval62.String()))
-				case "nalike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval62.String()))
-				case "in":
-					m.Remark4.AndWhereIn(fval62.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop62)
-				}
+			}
+		} else {
+			switch fop62 {
+			case "=":
+				m.Remark4.AndWhereEq(fval62.Interface())
+			case "!=":
+				m.Remark4.AndWhereNeq(fval62.Interface())
+			case ">":
+				m.Remark4.AndWhereGt(fval62.Interface())
+			case ">=":
+				m.Remark4.AndWhereGte(fval62.Interface())
+			case "<":
+				m.Remark4.AndWhereLt(fval62.Interface())
+			case "<=":
+				m.Remark4.AndWhereLte(fval62.Interface())
+			case "llike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval62.String()))
+			case "rlike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval62.String()))
+			case "alike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval62.String()))
+			case "nllike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval62.String()))
+			case "nrlike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval62.String()))
+			case "nalike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval62.String()))
+			case "in":
+				m.Remark4.AndWhereIn(fval62.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop62)
 			}
 		}
 	}
@@ -7694,37 +8115,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval63.Kind() != reflect.Ptr {
 			if !ok {
 				m.IsPayment.AndWhereEq(fval63.Interface())
-			} else {
-				switch fop63 {
-				case "=":
-					m.IsPayment.AndWhereEq(fval63.Interface())
-				case "!=":
-					m.IsPayment.AndWhereNeq(fval63.Interface())
-				case ">":
-					m.IsPayment.AndWhereGt(fval63.Interface())
-				case ">=":
-					m.IsPayment.AndWhereGte(fval63.Interface())
-				case "<":
-					m.IsPayment.AndWhereLt(fval63.Interface())
-				case "<=":
-					m.IsPayment.AndWhereLte(fval63.Interface())
-				case "llike":
-					m.IsPayment.AndWhereLike(fmt.Sprintf("%%%s", fval63.String()))
-				case "rlike":
-					m.IsPayment.AndWhereLike(fmt.Sprintf("%s%%", fval63.String()))
-				case "alike":
-					m.IsPayment.AndWhereLike(fmt.Sprintf("%%%s%%", fval63.String()))
-				case "nllike":
-					m.IsPayment.AndWhereNotLike(fmt.Sprintf("%%%s", fval63.String()))
-				case "nrlike":
-					m.IsPayment.AndWhereNotLike(fmt.Sprintf("%s%%", fval63.String()))
-				case "nalike":
-					m.IsPayment.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval63.String()))
-				case "in":
-					m.IsPayment.AndWhereIn(fval63.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop63)
-				}
+			}
+		} else {
+			switch fop63 {
+			case "=":
+				m.IsPayment.AndWhereEq(fval63.Interface())
+			case "!=":
+				m.IsPayment.AndWhereNeq(fval63.Interface())
+			case ">":
+				m.IsPayment.AndWhereGt(fval63.Interface())
+			case ">=":
+				m.IsPayment.AndWhereGte(fval63.Interface())
+			case "<":
+				m.IsPayment.AndWhereLt(fval63.Interface())
+			case "<=":
+				m.IsPayment.AndWhereLte(fval63.Interface())
+			case "llike":
+				m.IsPayment.AndWhereLike(fmt.Sprintf("%%%s", fval63.String()))
+			case "rlike":
+				m.IsPayment.AndWhereLike(fmt.Sprintf("%s%%", fval63.String()))
+			case "alike":
+				m.IsPayment.AndWhereLike(fmt.Sprintf("%%%s%%", fval63.String()))
+			case "nllike":
+				m.IsPayment.AndWhereNotLike(fmt.Sprintf("%%%s", fval63.String()))
+			case "nrlike":
+				m.IsPayment.AndWhereNotLike(fmt.Sprintf("%s%%", fval63.String()))
+			case "nalike":
+				m.IsPayment.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval63.String()))
+			case "in":
+				m.IsPayment.AndWhereIn(fval63.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop63)
 			}
 		}
 	}
@@ -7738,37 +8159,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval64.Kind() != reflect.Ptr {
 			if !ok {
 				m.IsCheckIn.AndWhereEq(fval64.Interface())
-			} else {
-				switch fop64 {
-				case "=":
-					m.IsCheckIn.AndWhereEq(fval64.Interface())
-				case "!=":
-					m.IsCheckIn.AndWhereNeq(fval64.Interface())
-				case ">":
-					m.IsCheckIn.AndWhereGt(fval64.Interface())
-				case ">=":
-					m.IsCheckIn.AndWhereGte(fval64.Interface())
-				case "<":
-					m.IsCheckIn.AndWhereLt(fval64.Interface())
-				case "<=":
-					m.IsCheckIn.AndWhereLte(fval64.Interface())
-				case "llike":
-					m.IsCheckIn.AndWhereLike(fmt.Sprintf("%%%s", fval64.String()))
-				case "rlike":
-					m.IsCheckIn.AndWhereLike(fmt.Sprintf("%s%%", fval64.String()))
-				case "alike":
-					m.IsCheckIn.AndWhereLike(fmt.Sprintf("%%%s%%", fval64.String()))
-				case "nllike":
-					m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%%%s", fval64.String()))
-				case "nrlike":
-					m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%s%%", fval64.String()))
-				case "nalike":
-					m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval64.String()))
-				case "in":
-					m.IsCheckIn.AndWhereIn(fval64.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop64)
-				}
+			}
+		} else {
+			switch fop64 {
+			case "=":
+				m.IsCheckIn.AndWhereEq(fval64.Interface())
+			case "!=":
+				m.IsCheckIn.AndWhereNeq(fval64.Interface())
+			case ">":
+				m.IsCheckIn.AndWhereGt(fval64.Interface())
+			case ">=":
+				m.IsCheckIn.AndWhereGte(fval64.Interface())
+			case "<":
+				m.IsCheckIn.AndWhereLt(fval64.Interface())
+			case "<=":
+				m.IsCheckIn.AndWhereLte(fval64.Interface())
+			case "llike":
+				m.IsCheckIn.AndWhereLike(fmt.Sprintf("%%%s", fval64.String()))
+			case "rlike":
+				m.IsCheckIn.AndWhereLike(fmt.Sprintf("%s%%", fval64.String()))
+			case "alike":
+				m.IsCheckIn.AndWhereLike(fmt.Sprintf("%%%s%%", fval64.String()))
+			case "nllike":
+				m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%%%s", fval64.String()))
+			case "nrlike":
+				m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%s%%", fval64.String()))
+			case "nalike":
+				m.IsCheckIn.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval64.String()))
+			case "in":
+				m.IsCheckIn.AndWhereIn(fval64.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop64)
 			}
 		}
 	}
@@ -7782,37 +8203,37 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval65.Kind() != reflect.Ptr {
 			if !ok {
 				m.GetMilitaryTC.AndWhereEq(fval65.Interface())
-			} else {
-				switch fop65 {
-				case "=":
-					m.GetMilitaryTC.AndWhereEq(fval65.Interface())
-				case "!=":
-					m.GetMilitaryTC.AndWhereNeq(fval65.Interface())
-				case ">":
-					m.GetMilitaryTC.AndWhereGt(fval65.Interface())
-				case ">=":
-					m.GetMilitaryTC.AndWhereGte(fval65.Interface())
-				case "<":
-					m.GetMilitaryTC.AndWhereLt(fval65.Interface())
-				case "<=":
-					m.GetMilitaryTC.AndWhereLte(fval65.Interface())
-				case "llike":
-					m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%%%s", fval65.String()))
-				case "rlike":
-					m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%s%%", fval65.String()))
-				case "alike":
-					m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%%%s%%", fval65.String()))
-				case "nllike":
-					m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%%%s", fval65.String()))
-				case "nrlike":
-					m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%s%%", fval65.String()))
-				case "nalike":
-					m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval65.String()))
-				case "in":
-					m.GetMilitaryTC.AndWhereIn(fval65.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop65)
-				}
+			}
+		} else {
+			switch fop65 {
+			case "=":
+				m.GetMilitaryTC.AndWhereEq(fval65.Interface())
+			case "!=":
+				m.GetMilitaryTC.AndWhereNeq(fval65.Interface())
+			case ">":
+				m.GetMilitaryTC.AndWhereGt(fval65.Interface())
+			case ">=":
+				m.GetMilitaryTC.AndWhereGte(fval65.Interface())
+			case "<":
+				m.GetMilitaryTC.AndWhereLt(fval65.Interface())
+			case "<=":
+				m.GetMilitaryTC.AndWhereLte(fval65.Interface())
+			case "llike":
+				m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%%%s", fval65.String()))
+			case "rlike":
+				m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%s%%", fval65.String()))
+			case "alike":
+				m.GetMilitaryTC.AndWhereLike(fmt.Sprintf("%%%s%%", fval65.String()))
+			case "nllike":
+				m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%%%s", fval65.String()))
+			case "nrlike":
+				m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%s%%", fval65.String()))
+			case "nalike":
+				m.GetMilitaryTC.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval65.String()))
+			case "in":
+				m.GetMilitaryTC.AndWhereIn(fval65.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop65)
 			}
 		}
 	}
@@ -7826,39 +8247,53 @@ func (m *Studentbasicinfo) FromQuery(query interface{}) (*Studentbasicinfo, erro
 		if fval66.Kind() != reflect.Ptr {
 			if !ok {
 				m.OriginAreaName.AndWhereEq(fval66.Interface())
-			} else {
-				switch fop66 {
-				case "=":
-					m.OriginAreaName.AndWhereEq(fval66.Interface())
-				case "!=":
-					m.OriginAreaName.AndWhereNeq(fval66.Interface())
-				case ">":
-					m.OriginAreaName.AndWhereGt(fval66.Interface())
-				case ">=":
-					m.OriginAreaName.AndWhereGte(fval66.Interface())
-				case "<":
-					m.OriginAreaName.AndWhereLt(fval66.Interface())
-				case "<=":
-					m.OriginAreaName.AndWhereLte(fval66.Interface())
-				case "llike":
-					m.OriginAreaName.AndWhereLike(fmt.Sprintf("%%%s", fval66.String()))
-				case "rlike":
-					m.OriginAreaName.AndWhereLike(fmt.Sprintf("%s%%", fval66.String()))
-				case "alike":
-					m.OriginAreaName.AndWhereLike(fmt.Sprintf("%%%s%%", fval66.String()))
-				case "nllike":
-					m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%%%s", fval66.String()))
-				case "nrlike":
-					m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%s%%", fval66.String()))
-				case "nalike":
-					m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval66.String()))
-				case "in":
-					m.OriginAreaName.AndWhereIn(fval66.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop66)
-				}
+			}
+		} else {
+			switch fop66 {
+			case "=":
+				m.OriginAreaName.AndWhereEq(fval66.Interface())
+			case "!=":
+				m.OriginAreaName.AndWhereNeq(fval66.Interface())
+			case ">":
+				m.OriginAreaName.AndWhereGt(fval66.Interface())
+			case ">=":
+				m.OriginAreaName.AndWhereGte(fval66.Interface())
+			case "<":
+				m.OriginAreaName.AndWhereLt(fval66.Interface())
+			case "<=":
+				m.OriginAreaName.AndWhereLte(fval66.Interface())
+			case "llike":
+				m.OriginAreaName.AndWhereLike(fmt.Sprintf("%%%s", fval66.String()))
+			case "rlike":
+				m.OriginAreaName.AndWhereLike(fmt.Sprintf("%s%%", fval66.String()))
+			case "alike":
+				m.OriginAreaName.AndWhereLike(fmt.Sprintf("%%%s%%", fval66.String()))
+			case "nllike":
+				m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%%%s", fval66.String()))
+			case "nrlike":
+				m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%s%%", fval66.String()))
+			case "nalike":
+				m.OriginAreaName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval66.String()))
+			case "in":
+				m.OriginAreaName.AndWhereIn(fval66.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop66)
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("User")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("User")
+		m.User.InitRel()
+		m.User.SetForJoin()
+		m.User.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("StudentClass")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("StudentClass")
+		m.StudentClass.InitRel()
+		m.StudentClass.SetForJoin()
+		m.StudentClass.FromQuery(sval1.Interface())
 	}
 	return m, nil
 }
@@ -7880,7 +8315,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
-				l.Id.AndWhereEq(fval0.Interface())
+				switch fval0.Kind() {
+				case reflect.Struct:
+					if ftyp0.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval0.Interface())
+					}
+					if ftyp0.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval0.Interface())
+					}
+				default:
+					l.Id.AndWhereEq(fval0.Interface())
+				}
 			} else {
 				switch fop0 {
 				case "=":
@@ -7924,7 +8373,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
-				l.RecordId.AndWhereEq(fval1.Interface())
+				switch fval1.Kind() {
+				case reflect.Struct:
+					if ftyp1.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval1.Interface())
+					}
+					if ftyp1.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval1.Interface())
+					}
+				default:
+					l.RecordId.AndWhereEq(fval1.Interface())
+				}
 			} else {
 				switch fop1 {
 				case "=":
@@ -7968,7 +8431,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
-				l.IntelUserCode.AndWhereEq(fval2.Interface())
+				switch fval2.Kind() {
+				case reflect.Struct:
+					if ftyp2.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval2.Interface())
+					}
+					if ftyp2.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval2.Interface())
+					}
+				default:
+					l.IntelUserCode.AndWhereEq(fval2.Interface())
+				}
 			} else {
 				switch fop2 {
 				case "=":
@@ -8012,7 +8489,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
-				l.Class.AndWhereEq(fval3.Interface())
+				switch fval3.Kind() {
+				case reflect.Struct:
+					if ftyp3.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval3.Interface())
+					}
+					if ftyp3.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval3.Interface())
+					}
+				default:
+					l.Class.AndWhereEq(fval3.Interface())
+				}
 			} else {
 				switch fop3 {
 				case "=":
@@ -8056,7 +8547,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
-				l.OtherName.AndWhereEq(fval4.Interface())
+				switch fval4.Kind() {
+				case reflect.Struct:
+					if ftyp4.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval4.Interface())
+					}
+					if ftyp4.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval4.Interface())
+					}
+				default:
+					l.OtherName.AndWhereEq(fval4.Interface())
+				}
 			} else {
 				switch fop4 {
 				case "=":
@@ -8100,7 +8605,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
-				l.NameInPinyin.AndWhereEq(fval5.Interface())
+				switch fval5.Kind() {
+				case reflect.Struct:
+					if ftyp5.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval5.Interface())
+					}
+					if ftyp5.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval5.Interface())
+					}
+				default:
+					l.NameInPinyin.AndWhereEq(fval5.Interface())
+				}
 			} else {
 				switch fop5 {
 				case "=":
@@ -8144,7 +8663,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
-				l.EnglishName.AndWhereEq(fval6.Interface())
+				switch fval6.Kind() {
+				case reflect.Struct:
+					if ftyp6.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval6.Interface())
+					}
+					if ftyp6.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval6.Interface())
+					}
+				default:
+					l.EnglishName.AndWhereEq(fval6.Interface())
+				}
 			} else {
 				switch fop6 {
 				case "=":
@@ -8188,7 +8721,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
-				l.CountryCode.AndWhereEq(fval7.Interface())
+				switch fval7.Kind() {
+				case reflect.Struct:
+					if ftyp7.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval7.Interface())
+					}
+					if ftyp7.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval7.Interface())
+					}
+				default:
+					l.CountryCode.AndWhereEq(fval7.Interface())
+				}
 			} else {
 				switch fop7 {
 				case "=":
@@ -8232,7 +8779,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
-				l.NationalityCode.AndWhereEq(fval8.Interface())
+				switch fval8.Kind() {
+				case reflect.Struct:
+					if ftyp8.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval8.Interface())
+					}
+					if ftyp8.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval8.Interface())
+					}
+				default:
+					l.NationalityCode.AndWhereEq(fval8.Interface())
+				}
 			} else {
 				switch fop8 {
 				case "=":
@@ -8276,7 +8837,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
-				l.Birthday.AndWhereEq(fval9.Interface())
+				switch fval9.Kind() {
+				case reflect.Struct:
+					if ftyp9.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval9.Interface())
+					}
+					if ftyp9.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval9.Interface())
+					}
+				default:
+					l.Birthday.AndWhereEq(fval9.Interface())
+				}
 			} else {
 				switch fop9 {
 				case "=":
@@ -8320,7 +8895,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
-				l.PoliticalCode.AndWhereEq(fval10.Interface())
+				switch fval10.Kind() {
+				case reflect.Struct:
+					if ftyp10.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval10.Interface())
+					}
+					if ftyp10.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval10.Interface())
+					}
+				default:
+					l.PoliticalCode.AndWhereEq(fval10.Interface())
+				}
 			} else {
 				switch fop10 {
 				case "=":
@@ -8364,7 +8953,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
-				l.QQAcct.AndWhereEq(fval11.Interface())
+				switch fval11.Kind() {
+				case reflect.Struct:
+					if ftyp11.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval11.Interface())
+					}
+					if ftyp11.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval11.Interface())
+					}
+				default:
+					l.QQAcct.AndWhereEq(fval11.Interface())
+				}
 			} else {
 				switch fop11 {
 				case "=":
@@ -8408,7 +9011,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
-				l.WeChatAcct.AndWhereEq(fval12.Interface())
+				switch fval12.Kind() {
+				case reflect.Struct:
+					if ftyp12.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval12.Interface())
+					}
+					if ftyp12.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval12.Interface())
+					}
+				default:
+					l.WeChatAcct.AndWhereEq(fval12.Interface())
+				}
 			} else {
 				switch fop12 {
 				case "=":
@@ -8452,7 +9069,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
-				l.BankCardNumber.AndWhereEq(fval13.Interface())
+				switch fval13.Kind() {
+				case reflect.Struct:
+					if ftyp13.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval13.Interface())
+					}
+					if ftyp13.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval13.Interface())
+					}
+				default:
+					l.BankCardNumber.AndWhereEq(fval13.Interface())
+				}
 			} else {
 				switch fop13 {
 				case "=":
@@ -8496,7 +9127,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
-				l.AccountBankCode.AndWhereEq(fval14.Interface())
+				switch fval14.Kind() {
+				case reflect.Struct:
+					if ftyp14.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval14.Interface())
+					}
+					if ftyp14.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval14.Interface())
+					}
+				default:
+					l.AccountBankCode.AndWhereEq(fval14.Interface())
+				}
 			} else {
 				switch fop14 {
 				case "=":
@@ -8540,7 +9185,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
-				l.AllPowerfulCardNum.AndWhereEq(fval15.Interface())
+				switch fval15.Kind() {
+				case reflect.Struct:
+					if ftyp15.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval15.Interface())
+					}
+					if ftyp15.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval15.Interface())
+					}
+				default:
+					l.AllPowerfulCardNum.AndWhereEq(fval15.Interface())
+				}
 			} else {
 				switch fop15 {
 				case "=":
@@ -8584,7 +9243,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
-				l.MaritalCode.AndWhereEq(fval16.Interface())
+				switch fval16.Kind() {
+				case reflect.Struct:
+					if ftyp16.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval16.Interface())
+					}
+					if ftyp16.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval16.Interface())
+					}
+				default:
+					l.MaritalCode.AndWhereEq(fval16.Interface())
+				}
 			} else {
 				switch fop16 {
 				case "=":
@@ -8628,7 +9301,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
-				l.OriginAreaCode.AndWhereEq(fval17.Interface())
+				switch fval17.Kind() {
+				case reflect.Struct:
+					if ftyp17.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval17.Interface())
+					}
+					if ftyp17.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval17.Interface())
+					}
+				default:
+					l.OriginAreaCode.AndWhereEq(fval17.Interface())
+				}
 			} else {
 				switch fop17 {
 				case "=":
@@ -8672,7 +9359,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
-				l.StudentAreaCode.AndWhereEq(fval18.Interface())
+				switch fval18.Kind() {
+				case reflect.Struct:
+					if ftyp18.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval18.Interface())
+					}
+					if ftyp18.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval18.Interface())
+					}
+				default:
+					l.StudentAreaCode.AndWhereEq(fval18.Interface())
+				}
 			} else {
 				switch fop18 {
 				case "=":
@@ -8716,7 +9417,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
-				l.Hobbies.AndWhereEq(fval19.Interface())
+				switch fval19.Kind() {
+				case reflect.Struct:
+					if ftyp19.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval19.Interface())
+					}
+					if ftyp19.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval19.Interface())
+					}
+				default:
+					l.Hobbies.AndWhereEq(fval19.Interface())
+				}
 			} else {
 				switch fop19 {
 				case "=":
@@ -8760,7 +9475,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
-				l.Creed.AndWhereEq(fval20.Interface())
+				switch fval20.Kind() {
+				case reflect.Struct:
+					if ftyp20.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval20.Interface())
+					}
+					if ftyp20.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval20.Interface())
+					}
+				default:
+					l.Creed.AndWhereEq(fval20.Interface())
+				}
 			} else {
 				switch fop20 {
 				case "=":
@@ -8804,7 +9533,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
-				l.TrainTicketinterval.AndWhereEq(fval21.Interface())
+				switch fval21.Kind() {
+				case reflect.Struct:
+					if ftyp21.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval21.Interface())
+					}
+					if ftyp21.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval21.Interface())
+					}
+				default:
+					l.TrainTicketinterval.AndWhereEq(fval21.Interface())
+				}
 			} else {
 				switch fop21 {
 				case "=":
@@ -8848,7 +9591,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
-				l.FamilyAddress.AndWhereEq(fval22.Interface())
+				switch fval22.Kind() {
+				case reflect.Struct:
+					if ftyp22.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval22.Interface())
+					}
+					if ftyp22.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval22.Interface())
+					}
+				default:
+					l.FamilyAddress.AndWhereEq(fval22.Interface())
+				}
 			} else {
 				switch fop22 {
 				case "=":
@@ -8892,7 +9649,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
-				l.DetailAddress.AndWhereEq(fval23.Interface())
+				switch fval23.Kind() {
+				case reflect.Struct:
+					if ftyp23.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval23.Interface())
+					}
+					if ftyp23.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval23.Interface())
+					}
+				default:
+					l.DetailAddress.AndWhereEq(fval23.Interface())
+				}
 			} else {
 				switch fop23 {
 				case "=":
@@ -8936,7 +9707,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
-				l.PostCode.AndWhereEq(fval24.Interface())
+				switch fval24.Kind() {
+				case reflect.Struct:
+					if ftyp24.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval24.Interface())
+					}
+					if ftyp24.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval24.Interface())
+					}
+				default:
+					l.PostCode.AndWhereEq(fval24.Interface())
+				}
 			} else {
 				switch fop24 {
 				case "=":
@@ -8980,7 +9765,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
-				l.HomePhone.AndWhereEq(fval25.Interface())
+				switch fval25.Kind() {
+				case reflect.Struct:
+					if ftyp25.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval25.Interface())
+					}
+					if ftyp25.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval25.Interface())
+					}
+				default:
+					l.HomePhone.AndWhereEq(fval25.Interface())
+				}
 			} else {
 				switch fop25 {
 				case "=":
@@ -9024,7 +9823,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
-				l.EnrollmentDate.AndWhereEq(fval26.Interface())
+				switch fval26.Kind() {
+				case reflect.Struct:
+					if ftyp26.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval26.Interface())
+					}
+					if ftyp26.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval26.Interface())
+					}
+				default:
+					l.EnrollmentDate.AndWhereEq(fval26.Interface())
+				}
 			} else {
 				switch fop26 {
 				case "=":
@@ -9068,7 +9881,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
-				l.GraduationDate.AndWhereEq(fval27.Interface())
+				switch fval27.Kind() {
+				case reflect.Struct:
+					if ftyp27.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval27.Interface())
+					}
+					if ftyp27.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval27.Interface())
+					}
+				default:
+					l.GraduationDate.AndWhereEq(fval27.Interface())
+				}
 			} else {
 				switch fop27 {
 				case "=":
@@ -9112,7 +9939,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval28.Kind() != reflect.Ptr {
 			if !ok {
-				l.MidSchoolAddress.AndWhereEq(fval28.Interface())
+				switch fval28.Kind() {
+				case reflect.Struct:
+					if ftyp28.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval28.Interface())
+					}
+					if ftyp28.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval28.Interface())
+					}
+				default:
+					l.MidSchoolAddress.AndWhereEq(fval28.Interface())
+				}
 			} else {
 				switch fop28 {
 				case "=":
@@ -9156,7 +9997,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval29.Kind() != reflect.Ptr {
 			if !ok {
-				l.MidSchoolName.AndWhereEq(fval29.Interface())
+				switch fval29.Kind() {
+				case reflect.Struct:
+					if ftyp29.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval29.Interface())
+					}
+					if ftyp29.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval29.Interface())
+					}
+				default:
+					l.MidSchoolName.AndWhereEq(fval29.Interface())
+				}
 			} else {
 				switch fop29 {
 				case "=":
@@ -9200,7 +10055,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval30.Kind() != reflect.Ptr {
 			if !ok {
-				l.Referee.AndWhereEq(fval30.Interface())
+				switch fval30.Kind() {
+				case reflect.Struct:
+					if ftyp30.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval30.Interface())
+					}
+					if ftyp30.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval30.Interface())
+					}
+				default:
+					l.Referee.AndWhereEq(fval30.Interface())
+				}
 			} else {
 				switch fop30 {
 				case "=":
@@ -9244,7 +10113,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval31.Kind() != reflect.Ptr {
 			if !ok {
-				l.RefereeDuty.AndWhereEq(fval31.Interface())
+				switch fval31.Kind() {
+				case reflect.Struct:
+					if ftyp31.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval31.Interface())
+					}
+					if ftyp31.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval31.Interface())
+					}
+				default:
+					l.RefereeDuty.AndWhereEq(fval31.Interface())
+				}
 			} else {
 				switch fop31 {
 				case "=":
@@ -9288,7 +10171,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval32.Kind() != reflect.Ptr {
 			if !ok {
-				l.RefereePhone.AndWhereEq(fval32.Interface())
+				switch fval32.Kind() {
+				case reflect.Struct:
+					if ftyp32.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval32.Interface())
+					}
+					if ftyp32.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval32.Interface())
+					}
+				default:
+					l.RefereePhone.AndWhereEq(fval32.Interface())
+				}
 			} else {
 				switch fop32 {
 				case "=":
@@ -9332,7 +10229,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval33.Kind() != reflect.Ptr {
 			if !ok {
-				l.AdmissionTicketNo.AndWhereEq(fval33.Interface())
+				switch fval33.Kind() {
+				case reflect.Struct:
+					if ftyp33.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval33.Interface())
+					}
+					if ftyp33.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval33.Interface())
+					}
+				default:
+					l.AdmissionTicketNo.AndWhereEq(fval33.Interface())
+				}
 			} else {
 				switch fop33 {
 				case "=":
@@ -9376,7 +10287,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval34.Kind() != reflect.Ptr {
 			if !ok {
-				l.CollegeEntranceExamScores.AndWhereEq(fval34.Interface())
+				switch fval34.Kind() {
+				case reflect.Struct:
+					if ftyp34.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval34.Interface())
+					}
+					if ftyp34.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval34.Interface())
+					}
+				default:
+					l.CollegeEntranceExamScores.AndWhereEq(fval34.Interface())
+				}
 			} else {
 				switch fop34 {
 				case "=":
@@ -9420,7 +10345,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval35.Kind() != reflect.Ptr {
 			if !ok {
-				l.AdmissionYear.AndWhereEq(fval35.Interface())
+				switch fval35.Kind() {
+				case reflect.Struct:
+					if ftyp35.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval35.Interface())
+					}
+					if ftyp35.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval35.Interface())
+					}
+				default:
+					l.AdmissionYear.AndWhereEq(fval35.Interface())
+				}
 			} else {
 				switch fop35 {
 				case "=":
@@ -9464,7 +10403,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval36.Kind() != reflect.Ptr {
 			if !ok {
-				l.ForeignLanguageCode.AndWhereEq(fval36.Interface())
+				switch fval36.Kind() {
+				case reflect.Struct:
+					if ftyp36.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval36.Interface())
+					}
+					if ftyp36.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval36.Interface())
+					}
+				default:
+					l.ForeignLanguageCode.AndWhereEq(fval36.Interface())
+				}
 			} else {
 				switch fop36 {
 				case "=":
@@ -9508,7 +10461,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval37.Kind() != reflect.Ptr {
 			if !ok {
-				l.StudentOrigin.AndWhereEq(fval37.Interface())
+				switch fval37.Kind() {
+				case reflect.Struct:
+					if ftyp37.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval37.Interface())
+					}
+					if ftyp37.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval37.Interface())
+					}
+				default:
+					l.StudentOrigin.AndWhereEq(fval37.Interface())
+				}
 			} else {
 				switch fop37 {
 				case "=":
@@ -9552,7 +10519,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval38.Kind() != reflect.Ptr {
 			if !ok {
-				l.BizType.AndWhereEq(fval38.Interface())
+				switch fval38.Kind() {
+				case reflect.Struct:
+					if ftyp38.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval38.Interface())
+					}
+					if ftyp38.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval38.Interface())
+					}
+				default:
+					l.BizType.AndWhereEq(fval38.Interface())
+				}
 			} else {
 				switch fop38 {
 				case "=":
@@ -9596,7 +10577,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval39.Kind() != reflect.Ptr {
 			if !ok {
-				l.TaskCode.AndWhereEq(fval39.Interface())
+				switch fval39.Kind() {
+				case reflect.Struct:
+					if ftyp39.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval39.Interface())
+					}
+					if ftyp39.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval39.Interface())
+					}
+				default:
+					l.TaskCode.AndWhereEq(fval39.Interface())
+				}
 			} else {
 				switch fop39 {
 				case "=":
@@ -9640,7 +10635,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval40.Kind() != reflect.Ptr {
 			if !ok {
-				l.ApproveStatus.AndWhereEq(fval40.Interface())
+				switch fval40.Kind() {
+				case reflect.Struct:
+					if ftyp40.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval40.Interface())
+					}
+					if ftyp40.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval40.Interface())
+					}
+				default:
+					l.ApproveStatus.AndWhereEq(fval40.Interface())
+				}
 			} else {
 				switch fop40 {
 				case "=":
@@ -9684,7 +10693,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval41.Kind() != reflect.Ptr {
 			if !ok {
-				l.Operator.AndWhereEq(fval41.Interface())
+				switch fval41.Kind() {
+				case reflect.Struct:
+					if ftyp41.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval41.Interface())
+					}
+					if ftyp41.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval41.Interface())
+					}
+				default:
+					l.Operator.AndWhereEq(fval41.Interface())
+				}
 			} else {
 				switch fop41 {
 				case "=":
@@ -9728,7 +10751,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval42.Kind() != reflect.Ptr {
 			if !ok {
-				l.InsertDatetime.AndWhereEq(fval42.Interface())
+				switch fval42.Kind() {
+				case reflect.Struct:
+					if ftyp42.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval42.Interface())
+					}
+					if ftyp42.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval42.Interface())
+					}
+				default:
+					l.InsertDatetime.AndWhereEq(fval42.Interface())
+				}
 			} else {
 				switch fop42 {
 				case "=":
@@ -9772,7 +10809,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval43.Kind() != reflect.Ptr {
 			if !ok {
-				l.UpdateDatetime.AndWhereEq(fval43.Interface())
+				switch fval43.Kind() {
+				case reflect.Struct:
+					if ftyp43.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval43.Interface())
+					}
+					if ftyp43.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval43.Interface())
+					}
+				default:
+					l.UpdateDatetime.AndWhereEq(fval43.Interface())
+				}
 			} else {
 				switch fop43 {
 				case "=":
@@ -9816,7 +10867,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval44.Kind() != reflect.Ptr {
 			if !ok {
-				l.Status.AndWhereEq(fval44.Interface())
+				switch fval44.Kind() {
+				case reflect.Struct:
+					if ftyp44.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval44.Interface())
+					}
+					if ftyp44.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval44.Interface())
+					}
+				default:
+					l.Status.AndWhereEq(fval44.Interface())
+				}
 			} else {
 				switch fop44 {
 				case "=":
@@ -9860,7 +10925,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval45.Kind() != reflect.Ptr {
 			if !ok {
-				l.StudentStatus.AndWhereEq(fval45.Interface())
+				switch fval45.Kind() {
+				case reflect.Struct:
+					if ftyp45.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval45.Interface())
+					}
+					if ftyp45.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval45.Interface())
+					}
+				default:
+					l.StudentStatus.AndWhereEq(fval45.Interface())
+				}
 			} else {
 				switch fop45 {
 				case "=":
@@ -9904,7 +10983,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval46.Kind() != reflect.Ptr {
 			if !ok {
-				l.IsAuth.AndWhereEq(fval46.Interface())
+				switch fval46.Kind() {
+				case reflect.Struct:
+					if ftyp46.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval46.Interface())
+					}
+					if ftyp46.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval46.Interface())
+					}
+				default:
+					l.IsAuth.AndWhereEq(fval46.Interface())
+				}
 			} else {
 				switch fop46 {
 				case "=":
@@ -9948,7 +11041,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval47.Kind() != reflect.Ptr {
 			if !ok {
-				l.Campus.AndWhereEq(fval47.Interface())
+				switch fval47.Kind() {
+				case reflect.Struct:
+					if ftyp47.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval47.Interface())
+					}
+					if ftyp47.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval47.Interface())
+					}
+				default:
+					l.Campus.AndWhereEq(fval47.Interface())
+				}
 			} else {
 				switch fop47 {
 				case "=":
@@ -9992,7 +11099,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval48.Kind() != reflect.Ptr {
 			if !ok {
-				l.Zone.AndWhereEq(fval48.Interface())
+				switch fval48.Kind() {
+				case reflect.Struct:
+					if ftyp48.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval48.Interface())
+					}
+					if ftyp48.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval48.Interface())
+					}
+				default:
+					l.Zone.AndWhereEq(fval48.Interface())
+				}
 			} else {
 				switch fop48 {
 				case "=":
@@ -10036,7 +11157,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval49.Kind() != reflect.Ptr {
 			if !ok {
-				l.Building.AndWhereEq(fval49.Interface())
+				switch fval49.Kind() {
+				case reflect.Struct:
+					if ftyp49.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval49.Interface())
+					}
+					if ftyp49.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval49.Interface())
+					}
+				default:
+					l.Building.AndWhereEq(fval49.Interface())
+				}
 			} else {
 				switch fop49 {
 				case "=":
@@ -10080,7 +11215,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval50.Kind() != reflect.Ptr {
 			if !ok {
-				l.Unit.AndWhereEq(fval50.Interface())
+				switch fval50.Kind() {
+				case reflect.Struct:
+					if ftyp50.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval50.Interface())
+					}
+					if ftyp50.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval50.Interface())
+					}
+				default:
+					l.Unit.AndWhereEq(fval50.Interface())
+				}
 			} else {
 				switch fop50 {
 				case "=":
@@ -10124,7 +11273,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval51.Kind() != reflect.Ptr {
 			if !ok {
-				l.Room.AndWhereEq(fval51.Interface())
+				switch fval51.Kind() {
+				case reflect.Struct:
+					if ftyp51.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval51.Interface())
+					}
+					if ftyp51.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval51.Interface())
+					}
+				default:
+					l.Room.AndWhereEq(fval51.Interface())
+				}
 			} else {
 				switch fop51 {
 				case "=":
@@ -10168,7 +11331,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval52.Kind() != reflect.Ptr {
 			if !ok {
-				l.Bed.AndWhereEq(fval52.Interface())
+				switch fval52.Kind() {
+				case reflect.Struct:
+					if ftyp52.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval52.Interface())
+					}
+					if ftyp52.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval52.Interface())
+					}
+				default:
+					l.Bed.AndWhereEq(fval52.Interface())
+				}
 			} else {
 				switch fop52 {
 				case "=":
@@ -10212,7 +11389,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval53.Kind() != reflect.Ptr {
 			if !ok {
-				l.StatusSort.AndWhereEq(fval53.Interface())
+				switch fval53.Kind() {
+				case reflect.Struct:
+					if ftyp53.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval53.Interface())
+					}
+					if ftyp53.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval53.Interface())
+					}
+				default:
+					l.StatusSort.AndWhereEq(fval53.Interface())
+				}
 			} else {
 				switch fop53 {
 				case "=":
@@ -10256,7 +11447,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval54.Kind() != reflect.Ptr {
 			if !ok {
-				l.Height.AndWhereEq(fval54.Interface())
+				switch fval54.Kind() {
+				case reflect.Struct:
+					if ftyp54.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval54.Interface())
+					}
+					if ftyp54.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval54.Interface())
+					}
+				default:
+					l.Height.AndWhereEq(fval54.Interface())
+				}
 			} else {
 				switch fop54 {
 				case "=":
@@ -10300,7 +11505,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval55.Kind() != reflect.Ptr {
 			if !ok {
-				l.Weight.AndWhereEq(fval55.Interface())
+				switch fval55.Kind() {
+				case reflect.Struct:
+					if ftyp55.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval55.Interface())
+					}
+					if ftyp55.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval55.Interface())
+					}
+				default:
+					l.Weight.AndWhereEq(fval55.Interface())
+				}
 			} else {
 				switch fop55 {
 				case "=":
@@ -10344,7 +11563,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval56.Kind() != reflect.Ptr {
 			if !ok {
-				l.FootSize.AndWhereEq(fval56.Interface())
+				switch fval56.Kind() {
+				case reflect.Struct:
+					if ftyp56.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval56.Interface())
+					}
+					if ftyp56.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval56.Interface())
+					}
+				default:
+					l.FootSize.AndWhereEq(fval56.Interface())
+				}
 			} else {
 				switch fop56 {
 				case "=":
@@ -10388,7 +11621,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval57.Kind() != reflect.Ptr {
 			if !ok {
-				l.ClothSize.AndWhereEq(fval57.Interface())
+				switch fval57.Kind() {
+				case reflect.Struct:
+					if ftyp57.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval57.Interface())
+					}
+					if ftyp57.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval57.Interface())
+					}
+				default:
+					l.ClothSize.AndWhereEq(fval57.Interface())
+				}
 			} else {
 				switch fop57 {
 				case "=":
@@ -10432,7 +11679,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval58.Kind() != reflect.Ptr {
 			if !ok {
-				l.HeadSize.AndWhereEq(fval58.Interface())
+				switch fval58.Kind() {
+				case reflect.Struct:
+					if ftyp58.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval58.Interface())
+					}
+					if ftyp58.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval58.Interface())
+					}
+				default:
+					l.HeadSize.AndWhereEq(fval58.Interface())
+				}
 			} else {
 				switch fop58 {
 				case "=":
@@ -10476,7 +11737,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval59.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark1.AndWhereEq(fval59.Interface())
+				switch fval59.Kind() {
+				case reflect.Struct:
+					if ftyp59.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval59.Interface())
+					}
+					if ftyp59.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval59.Interface())
+					}
+				default:
+					l.Remark1.AndWhereEq(fval59.Interface())
+				}
 			} else {
 				switch fop59 {
 				case "=":
@@ -10520,7 +11795,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval60.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark2.AndWhereEq(fval60.Interface())
+				switch fval60.Kind() {
+				case reflect.Struct:
+					if ftyp60.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval60.Interface())
+					}
+					if ftyp60.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval60.Interface())
+					}
+				default:
+					l.Remark2.AndWhereEq(fval60.Interface())
+				}
 			} else {
 				switch fop60 {
 				case "=":
@@ -10564,7 +11853,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval61.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark3.AndWhereEq(fval61.Interface())
+				switch fval61.Kind() {
+				case reflect.Struct:
+					if ftyp61.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval61.Interface())
+					}
+					if ftyp61.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval61.Interface())
+					}
+				default:
+					l.Remark3.AndWhereEq(fval61.Interface())
+				}
 			} else {
 				switch fop61 {
 				case "=":
@@ -10608,7 +11911,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval62.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark4.AndWhereEq(fval62.Interface())
+				switch fval62.Kind() {
+				case reflect.Struct:
+					if ftyp62.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval62.Interface())
+					}
+					if ftyp62.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval62.Interface())
+					}
+				default:
+					l.Remark4.AndWhereEq(fval62.Interface())
+				}
 			} else {
 				switch fop62 {
 				case "=":
@@ -10652,7 +11969,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval63.Kind() != reflect.Ptr {
 			if !ok {
-				l.IsPayment.AndWhereEq(fval63.Interface())
+				switch fval63.Kind() {
+				case reflect.Struct:
+					if ftyp63.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval63.Interface())
+					}
+					if ftyp63.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval63.Interface())
+					}
+				default:
+					l.IsPayment.AndWhereEq(fval63.Interface())
+				}
 			} else {
 				switch fop63 {
 				case "=":
@@ -10696,7 +12027,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval64.Kind() != reflect.Ptr {
 			if !ok {
-				l.IsCheckIn.AndWhereEq(fval64.Interface())
+				switch fval64.Kind() {
+				case reflect.Struct:
+					if ftyp64.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval64.Interface())
+					}
+					if ftyp64.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval64.Interface())
+					}
+				default:
+					l.IsCheckIn.AndWhereEq(fval64.Interface())
+				}
 			} else {
 				switch fop64 {
 				case "=":
@@ -10740,7 +12085,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval65.Kind() != reflect.Ptr {
 			if !ok {
-				l.GetMilitaryTC.AndWhereEq(fval65.Interface())
+				switch fval65.Kind() {
+				case reflect.Struct:
+					if ftyp65.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval65.Interface())
+					}
+					if ftyp65.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval65.Interface())
+					}
+				default:
+					l.GetMilitaryTC.AndWhereEq(fval65.Interface())
+				}
 			} else {
 				switch fop65 {
 				case "=":
@@ -10784,7 +12143,21 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 		}
 		if fval66.Kind() != reflect.Ptr {
 			if !ok {
-				l.OriginAreaName.AndWhereEq(fval66.Interface())
+				switch fval66.Kind() {
+				case reflect.Struct:
+					if ftyp66.Name == "User" {
+						l.User.InitRel()
+						l.User.SetForJoin()
+						l.User.FromQuery(fval66.Interface())
+					}
+					if ftyp66.Name == "StudentClass" {
+						l.StudentClass.InitRel()
+						l.StudentClass.SetForJoin()
+						l.StudentClass.FromQuery(fval66.Interface())
+					}
+				default:
+					l.OriginAreaName.AndWhereEq(fval66.Interface())
+				}
 			} else {
 				switch fop66 {
 				case "=":
@@ -10818,6 +12191,20 @@ func (l *StudentbasicinfoList) FromQuery(query interface{}) (*StudentbasicinfoLi
 				}
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("User")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("User")
+		l.User.InitRel()
+		l.User.SetForJoin()
+		l.User.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("StudentClass")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("StudentClass")
+		l.StudentClass.InitRel()
+		l.StudentClass.SetForJoin()
+		l.StudentClass.FromQuery(sval1.Interface())
 	}
 	return l, nil
 }
@@ -11539,6 +12926,7 @@ func (l *ClassList) checkDup() int {
 	if lastModel.Remark4.IsValid() {
 		builder.WriteString(fmt.Sprintf("%v", lastModel.Remark4.AnyValue()))
 	}
+	builder.WriteString(lastModel.AggCheckDup())
 	if idx, ok := l.dupMap[builder.String()]; ok {
 		return idx
 	}
@@ -11692,37 +13080,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
 				m.Id.AndWhereEq(fval0.Interface())
-			} else {
-				switch fop0 {
-				case "=":
-					m.Id.AndWhereEq(fval0.Interface())
-				case "!=":
-					m.Id.AndWhereNeq(fval0.Interface())
-				case ">":
-					m.Id.AndWhereGt(fval0.Interface())
-				case ">=":
-					m.Id.AndWhereGte(fval0.Interface())
-				case "<":
-					m.Id.AndWhereLt(fval0.Interface())
-				case "<=":
-					m.Id.AndWhereLte(fval0.Interface())
-				case "llike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "rlike":
-					m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "alike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "nllike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "nrlike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "nalike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "in":
-					m.Id.AndWhereIn(fval0.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop0)
-				}
+			}
+		} else {
+			switch fop0 {
+			case "=":
+				m.Id.AndWhereEq(fval0.Interface())
+			case "!=":
+				m.Id.AndWhereNeq(fval0.Interface())
+			case ">":
+				m.Id.AndWhereGt(fval0.Interface())
+			case ">=":
+				m.Id.AndWhereGte(fval0.Interface())
+			case "<":
+				m.Id.AndWhereLt(fval0.Interface())
+			case "<=":
+				m.Id.AndWhereLte(fval0.Interface())
+			case "llike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "rlike":
+				m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "alike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "nllike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "nrlike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "nalike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "in":
+				m.Id.AndWhereIn(fval0.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop0)
 			}
 		}
 	}
@@ -11736,37 +13124,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
 				m.RecordId.AndWhereEq(fval1.Interface())
-			} else {
-				switch fop1 {
-				case "=":
-					m.RecordId.AndWhereEq(fval1.Interface())
-				case "!=":
-					m.RecordId.AndWhereNeq(fval1.Interface())
-				case ">":
-					m.RecordId.AndWhereGt(fval1.Interface())
-				case ">=":
-					m.RecordId.AndWhereGte(fval1.Interface())
-				case "<":
-					m.RecordId.AndWhereLt(fval1.Interface())
-				case "<=":
-					m.RecordId.AndWhereLte(fval1.Interface())
-				case "llike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "rlike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "alike":
-					m.RecordId.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "nllike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "nrlike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "nalike":
-					m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "in":
-					m.RecordId.AndWhereIn(fval1.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop1)
-				}
+			}
+		} else {
+			switch fop1 {
+			case "=":
+				m.RecordId.AndWhereEq(fval1.Interface())
+			case "!=":
+				m.RecordId.AndWhereNeq(fval1.Interface())
+			case ">":
+				m.RecordId.AndWhereGt(fval1.Interface())
+			case ">=":
+				m.RecordId.AndWhereGte(fval1.Interface())
+			case "<":
+				m.RecordId.AndWhereLt(fval1.Interface())
+			case "<=":
+				m.RecordId.AndWhereLte(fval1.Interface())
+			case "llike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "rlike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "alike":
+				m.RecordId.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "nllike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "nrlike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "nalike":
+				m.RecordId.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "in":
+				m.RecordId.AndWhereIn(fval1.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop1)
 			}
 		}
 	}
@@ -11780,37 +13168,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
 				m.ClassCode.AndWhereEq(fval2.Interface())
-			} else {
-				switch fop2 {
-				case "=":
-					m.ClassCode.AndWhereEq(fval2.Interface())
-				case "!=":
-					m.ClassCode.AndWhereNeq(fval2.Interface())
-				case ">":
-					m.ClassCode.AndWhereGt(fval2.Interface())
-				case ">=":
-					m.ClassCode.AndWhereGte(fval2.Interface())
-				case "<":
-					m.ClassCode.AndWhereLt(fval2.Interface())
-				case "<=":
-					m.ClassCode.AndWhereLte(fval2.Interface())
-				case "llike":
-					m.ClassCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "rlike":
-					m.ClassCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "alike":
-					m.ClassCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "nllike":
-					m.ClassCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "nrlike":
-					m.ClassCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "nalike":
-					m.ClassCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "in":
-					m.ClassCode.AndWhereIn(fval2.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop2)
-				}
+			}
+		} else {
+			switch fop2 {
+			case "=":
+				m.ClassCode.AndWhereEq(fval2.Interface())
+			case "!=":
+				m.ClassCode.AndWhereNeq(fval2.Interface())
+			case ">":
+				m.ClassCode.AndWhereGt(fval2.Interface())
+			case ">=":
+				m.ClassCode.AndWhereGte(fval2.Interface())
+			case "<":
+				m.ClassCode.AndWhereLt(fval2.Interface())
+			case "<=":
+				m.ClassCode.AndWhereLte(fval2.Interface())
+			case "llike":
+				m.ClassCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "rlike":
+				m.ClassCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "alike":
+				m.ClassCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "nllike":
+				m.ClassCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "nrlike":
+				m.ClassCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "nalike":
+				m.ClassCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "in":
+				m.ClassCode.AndWhereIn(fval2.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop2)
 			}
 		}
 	}
@@ -11824,37 +13212,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
 				m.ClassName.AndWhereEq(fval3.Interface())
-			} else {
-				switch fop3 {
-				case "=":
-					m.ClassName.AndWhereEq(fval3.Interface())
-				case "!=":
-					m.ClassName.AndWhereNeq(fval3.Interface())
-				case ">":
-					m.ClassName.AndWhereGt(fval3.Interface())
-				case ">=":
-					m.ClassName.AndWhereGte(fval3.Interface())
-				case "<":
-					m.ClassName.AndWhereLt(fval3.Interface())
-				case "<=":
-					m.ClassName.AndWhereLte(fval3.Interface())
-				case "llike":
-					m.ClassName.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "rlike":
-					m.ClassName.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "alike":
-					m.ClassName.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "nllike":
-					m.ClassName.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "nrlike":
-					m.ClassName.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "nalike":
-					m.ClassName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "in":
-					m.ClassName.AndWhereIn(fval3.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop3)
-				}
+			}
+		} else {
+			switch fop3 {
+			case "=":
+				m.ClassName.AndWhereEq(fval3.Interface())
+			case "!=":
+				m.ClassName.AndWhereNeq(fval3.Interface())
+			case ">":
+				m.ClassName.AndWhereGt(fval3.Interface())
+			case ">=":
+				m.ClassName.AndWhereGte(fval3.Interface())
+			case "<":
+				m.ClassName.AndWhereLt(fval3.Interface())
+			case "<=":
+				m.ClassName.AndWhereLte(fval3.Interface())
+			case "llike":
+				m.ClassName.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "rlike":
+				m.ClassName.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "alike":
+				m.ClassName.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "nllike":
+				m.ClassName.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "nrlike":
+				m.ClassName.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "nalike":
+				m.ClassName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "in":
+				m.ClassName.AndWhereIn(fval3.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop3)
 			}
 		}
 	}
@@ -11868,37 +13256,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
 				m.Campus.AndWhereEq(fval4.Interface())
-			} else {
-				switch fop4 {
-				case "=":
-					m.Campus.AndWhereEq(fval4.Interface())
-				case "!=":
-					m.Campus.AndWhereNeq(fval4.Interface())
-				case ">":
-					m.Campus.AndWhereGt(fval4.Interface())
-				case ">=":
-					m.Campus.AndWhereGte(fval4.Interface())
-				case "<":
-					m.Campus.AndWhereLt(fval4.Interface())
-				case "<=":
-					m.Campus.AndWhereLte(fval4.Interface())
-				case "llike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "rlike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "alike":
-					m.Campus.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "nllike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "nrlike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "nalike":
-					m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "in":
-					m.Campus.AndWhereIn(fval4.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop4)
-				}
+			}
+		} else {
+			switch fop4 {
+			case "=":
+				m.Campus.AndWhereEq(fval4.Interface())
+			case "!=":
+				m.Campus.AndWhereNeq(fval4.Interface())
+			case ">":
+				m.Campus.AndWhereGt(fval4.Interface())
+			case ">=":
+				m.Campus.AndWhereGte(fval4.Interface())
+			case "<":
+				m.Campus.AndWhereLt(fval4.Interface())
+			case "<=":
+				m.Campus.AndWhereLte(fval4.Interface())
+			case "llike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "rlike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "alike":
+				m.Campus.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "nllike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "nrlike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "nalike":
+				m.Campus.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "in":
+				m.Campus.AndWhereIn(fval4.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop4)
 			}
 		}
 	}
@@ -11912,37 +13300,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
 				m.ResearchArea.AndWhereEq(fval5.Interface())
-			} else {
-				switch fop5 {
-				case "=":
-					m.ResearchArea.AndWhereEq(fval5.Interface())
-				case "!=":
-					m.ResearchArea.AndWhereNeq(fval5.Interface())
-				case ">":
-					m.ResearchArea.AndWhereGt(fval5.Interface())
-				case ">=":
-					m.ResearchArea.AndWhereGte(fval5.Interface())
-				case "<":
-					m.ResearchArea.AndWhereLt(fval5.Interface())
-				case "<=":
-					m.ResearchArea.AndWhereLte(fval5.Interface())
-				case "llike":
-					m.ResearchArea.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "rlike":
-					m.ResearchArea.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "alike":
-					m.ResearchArea.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "nllike":
-					m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "nrlike":
-					m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "nalike":
-					m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "in":
-					m.ResearchArea.AndWhereIn(fval5.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop5)
-				}
+			}
+		} else {
+			switch fop5 {
+			case "=":
+				m.ResearchArea.AndWhereEq(fval5.Interface())
+			case "!=":
+				m.ResearchArea.AndWhereNeq(fval5.Interface())
+			case ">":
+				m.ResearchArea.AndWhereGt(fval5.Interface())
+			case ">=":
+				m.ResearchArea.AndWhereGte(fval5.Interface())
+			case "<":
+				m.ResearchArea.AndWhereLt(fval5.Interface())
+			case "<=":
+				m.ResearchArea.AndWhereLte(fval5.Interface())
+			case "llike":
+				m.ResearchArea.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "rlike":
+				m.ResearchArea.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "alike":
+				m.ResearchArea.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "nllike":
+				m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "nrlike":
+				m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "nalike":
+				m.ResearchArea.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "in":
+				m.ResearchArea.AndWhereIn(fval5.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop5)
 			}
 		}
 	}
@@ -11956,37 +13344,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
 				m.Grade.AndWhereEq(fval6.Interface())
-			} else {
-				switch fop6 {
-				case "=":
-					m.Grade.AndWhereEq(fval6.Interface())
-				case "!=":
-					m.Grade.AndWhereNeq(fval6.Interface())
-				case ">":
-					m.Grade.AndWhereGt(fval6.Interface())
-				case ">=":
-					m.Grade.AndWhereGte(fval6.Interface())
-				case "<":
-					m.Grade.AndWhereLt(fval6.Interface())
-				case "<=":
-					m.Grade.AndWhereLte(fval6.Interface())
-				case "llike":
-					m.Grade.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "rlike":
-					m.Grade.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "alike":
-					m.Grade.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "nllike":
-					m.Grade.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "nrlike":
-					m.Grade.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "nalike":
-					m.Grade.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "in":
-					m.Grade.AndWhereIn(fval6.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop6)
-				}
+			}
+		} else {
+			switch fop6 {
+			case "=":
+				m.Grade.AndWhereEq(fval6.Interface())
+			case "!=":
+				m.Grade.AndWhereNeq(fval6.Interface())
+			case ">":
+				m.Grade.AndWhereGt(fval6.Interface())
+			case ">=":
+				m.Grade.AndWhereGte(fval6.Interface())
+			case "<":
+				m.Grade.AndWhereLt(fval6.Interface())
+			case "<=":
+				m.Grade.AndWhereLte(fval6.Interface())
+			case "llike":
+				m.Grade.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "rlike":
+				m.Grade.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "alike":
+				m.Grade.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "nllike":
+				m.Grade.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "nrlike":
+				m.Grade.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "nalike":
+				m.Grade.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "in":
+				m.Grade.AndWhereIn(fval6.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop6)
 			}
 		}
 	}
@@ -12000,37 +13388,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
 				m.TrainingMode.AndWhereEq(fval7.Interface())
-			} else {
-				switch fop7 {
-				case "=":
-					m.TrainingMode.AndWhereEq(fval7.Interface())
-				case "!=":
-					m.TrainingMode.AndWhereNeq(fval7.Interface())
-				case ">":
-					m.TrainingMode.AndWhereGt(fval7.Interface())
-				case ">=":
-					m.TrainingMode.AndWhereGte(fval7.Interface())
-				case "<":
-					m.TrainingMode.AndWhereLt(fval7.Interface())
-				case "<=":
-					m.TrainingMode.AndWhereLte(fval7.Interface())
-				case "llike":
-					m.TrainingMode.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "rlike":
-					m.TrainingMode.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "alike":
-					m.TrainingMode.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "nllike":
-					m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "nrlike":
-					m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "nalike":
-					m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "in":
-					m.TrainingMode.AndWhereIn(fval7.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop7)
-				}
+			}
+		} else {
+			switch fop7 {
+			case "=":
+				m.TrainingMode.AndWhereEq(fval7.Interface())
+			case "!=":
+				m.TrainingMode.AndWhereNeq(fval7.Interface())
+			case ">":
+				m.TrainingMode.AndWhereGt(fval7.Interface())
+			case ">=":
+				m.TrainingMode.AndWhereGte(fval7.Interface())
+			case "<":
+				m.TrainingMode.AndWhereLt(fval7.Interface())
+			case "<=":
+				m.TrainingMode.AndWhereLte(fval7.Interface())
+			case "llike":
+				m.TrainingMode.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "rlike":
+				m.TrainingMode.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "alike":
+				m.TrainingMode.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "nllike":
+				m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "nrlike":
+				m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "nalike":
+				m.TrainingMode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "in":
+				m.TrainingMode.AndWhereIn(fval7.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop7)
 			}
 		}
 	}
@@ -12044,37 +13432,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
 				m.EntranceDate.AndWhereEq(fval8.Interface())
-			} else {
-				switch fop8 {
-				case "=":
-					m.EntranceDate.AndWhereEq(fval8.Interface())
-				case "!=":
-					m.EntranceDate.AndWhereNeq(fval8.Interface())
-				case ">":
-					m.EntranceDate.AndWhereGt(fval8.Interface())
-				case ">=":
-					m.EntranceDate.AndWhereGte(fval8.Interface())
-				case "<":
-					m.EntranceDate.AndWhereLt(fval8.Interface())
-				case "<=":
-					m.EntranceDate.AndWhereLte(fval8.Interface())
-				case "llike":
-					m.EntranceDate.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "rlike":
-					m.EntranceDate.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "alike":
-					m.EntranceDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "nllike":
-					m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "nrlike":
-					m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "nalike":
-					m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "in":
-					m.EntranceDate.AndWhereIn(fval8.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop8)
-				}
+			}
+		} else {
+			switch fop8 {
+			case "=":
+				m.EntranceDate.AndWhereEq(fval8.Interface())
+			case "!=":
+				m.EntranceDate.AndWhereNeq(fval8.Interface())
+			case ">":
+				m.EntranceDate.AndWhereGt(fval8.Interface())
+			case ">=":
+				m.EntranceDate.AndWhereGte(fval8.Interface())
+			case "<":
+				m.EntranceDate.AndWhereLt(fval8.Interface())
+			case "<=":
+				m.EntranceDate.AndWhereLte(fval8.Interface())
+			case "llike":
+				m.EntranceDate.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "rlike":
+				m.EntranceDate.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "alike":
+				m.EntranceDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "nllike":
+				m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "nrlike":
+				m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "nalike":
+				m.EntranceDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "in":
+				m.EntranceDate.AndWhereIn(fval8.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop8)
 			}
 		}
 	}
@@ -12088,37 +13476,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
 				m.GraduationDate.AndWhereEq(fval9.Interface())
-			} else {
-				switch fop9 {
-				case "=":
-					m.GraduationDate.AndWhereEq(fval9.Interface())
-				case "!=":
-					m.GraduationDate.AndWhereNeq(fval9.Interface())
-				case ">":
-					m.GraduationDate.AndWhereGt(fval9.Interface())
-				case ">=":
-					m.GraduationDate.AndWhereGte(fval9.Interface())
-				case "<":
-					m.GraduationDate.AndWhereLt(fval9.Interface())
-				case "<=":
-					m.GraduationDate.AndWhereLte(fval9.Interface())
-				case "llike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "rlike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "alike":
-					m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "nllike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "nrlike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "nalike":
-					m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "in":
-					m.GraduationDate.AndWhereIn(fval9.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop9)
-				}
+			}
+		} else {
+			switch fop9 {
+			case "=":
+				m.GraduationDate.AndWhereEq(fval9.Interface())
+			case "!=":
+				m.GraduationDate.AndWhereNeq(fval9.Interface())
+			case ">":
+				m.GraduationDate.AndWhereGt(fval9.Interface())
+			case ">=":
+				m.GraduationDate.AndWhereGte(fval9.Interface())
+			case "<":
+				m.GraduationDate.AndWhereLt(fval9.Interface())
+			case "<=":
+				m.GraduationDate.AndWhereLte(fval9.Interface())
+			case "llike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "rlike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "alike":
+				m.GraduationDate.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "nllike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "nrlike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "nalike":
+				m.GraduationDate.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "in":
+				m.GraduationDate.AndWhereIn(fval9.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop9)
 			}
 		}
 	}
@@ -12132,37 +13520,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
 				m.ProgramLength.AndWhereEq(fval10.Interface())
-			} else {
-				switch fop10 {
-				case "=":
-					m.ProgramLength.AndWhereEq(fval10.Interface())
-				case "!=":
-					m.ProgramLength.AndWhereNeq(fval10.Interface())
-				case ">":
-					m.ProgramLength.AndWhereGt(fval10.Interface())
-				case ">=":
-					m.ProgramLength.AndWhereGte(fval10.Interface())
-				case "<":
-					m.ProgramLength.AndWhereLt(fval10.Interface())
-				case "<=":
-					m.ProgramLength.AndWhereLte(fval10.Interface())
-				case "llike":
-					m.ProgramLength.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "rlike":
-					m.ProgramLength.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "alike":
-					m.ProgramLength.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "nllike":
-					m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
-				case "nrlike":
-					m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
-				case "nalike":
-					m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
-				case "in":
-					m.ProgramLength.AndWhereIn(fval10.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop10)
-				}
+			}
+		} else {
+			switch fop10 {
+			case "=":
+				m.ProgramLength.AndWhereEq(fval10.Interface())
+			case "!=":
+				m.ProgramLength.AndWhereNeq(fval10.Interface())
+			case ">":
+				m.ProgramLength.AndWhereGt(fval10.Interface())
+			case ">=":
+				m.ProgramLength.AndWhereGte(fval10.Interface())
+			case "<":
+				m.ProgramLength.AndWhereLt(fval10.Interface())
+			case "<=":
+				m.ProgramLength.AndWhereLte(fval10.Interface())
+			case "llike":
+				m.ProgramLength.AndWhereLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "rlike":
+				m.ProgramLength.AndWhereLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "alike":
+				m.ProgramLength.AndWhereLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "nllike":
+				m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%%%s", fval10.String()))
+			case "nrlike":
+				m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%s%%", fval10.String()))
+			case "nalike":
+				m.ProgramLength.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval10.String()))
+			case "in":
+				m.ProgramLength.AndWhereIn(fval10.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop10)
 			}
 		}
 	}
@@ -12176,37 +13564,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
 				m.StudentType.AndWhereEq(fval11.Interface())
-			} else {
-				switch fop11 {
-				case "=":
-					m.StudentType.AndWhereEq(fval11.Interface())
-				case "!=":
-					m.StudentType.AndWhereNeq(fval11.Interface())
-				case ">":
-					m.StudentType.AndWhereGt(fval11.Interface())
-				case ">=":
-					m.StudentType.AndWhereGte(fval11.Interface())
-				case "<":
-					m.StudentType.AndWhereLt(fval11.Interface())
-				case "<=":
-					m.StudentType.AndWhereLte(fval11.Interface())
-				case "llike":
-					m.StudentType.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "rlike":
-					m.StudentType.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "alike":
-					m.StudentType.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "nllike":
-					m.StudentType.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
-				case "nrlike":
-					m.StudentType.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
-				case "nalike":
-					m.StudentType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
-				case "in":
-					m.StudentType.AndWhereIn(fval11.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop11)
-				}
+			}
+		} else {
+			switch fop11 {
+			case "=":
+				m.StudentType.AndWhereEq(fval11.Interface())
+			case "!=":
+				m.StudentType.AndWhereNeq(fval11.Interface())
+			case ">":
+				m.StudentType.AndWhereGt(fval11.Interface())
+			case ">=":
+				m.StudentType.AndWhereGte(fval11.Interface())
+			case "<":
+				m.StudentType.AndWhereLt(fval11.Interface())
+			case "<=":
+				m.StudentType.AndWhereLte(fval11.Interface())
+			case "llike":
+				m.StudentType.AndWhereLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "rlike":
+				m.StudentType.AndWhereLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "alike":
+				m.StudentType.AndWhereLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "nllike":
+				m.StudentType.AndWhereNotLike(fmt.Sprintf("%%%s", fval11.String()))
+			case "nrlike":
+				m.StudentType.AndWhereNotLike(fmt.Sprintf("%s%%", fval11.String()))
+			case "nalike":
+				m.StudentType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval11.String()))
+			case "in":
+				m.StudentType.AndWhereIn(fval11.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop11)
 			}
 		}
 	}
@@ -12220,37 +13608,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
 				m.CredentialsType.AndWhereEq(fval12.Interface())
-			} else {
-				switch fop12 {
-				case "=":
-					m.CredentialsType.AndWhereEq(fval12.Interface())
-				case "!=":
-					m.CredentialsType.AndWhereNeq(fval12.Interface())
-				case ">":
-					m.CredentialsType.AndWhereGt(fval12.Interface())
-				case ">=":
-					m.CredentialsType.AndWhereGte(fval12.Interface())
-				case "<":
-					m.CredentialsType.AndWhereLt(fval12.Interface())
-				case "<=":
-					m.CredentialsType.AndWhereLte(fval12.Interface())
-				case "llike":
-					m.CredentialsType.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "rlike":
-					m.CredentialsType.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "alike":
-					m.CredentialsType.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "nllike":
-					m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
-				case "nrlike":
-					m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
-				case "nalike":
-					m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
-				case "in":
-					m.CredentialsType.AndWhereIn(fval12.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop12)
-				}
+			}
+		} else {
+			switch fop12 {
+			case "=":
+				m.CredentialsType.AndWhereEq(fval12.Interface())
+			case "!=":
+				m.CredentialsType.AndWhereNeq(fval12.Interface())
+			case ">":
+				m.CredentialsType.AndWhereGt(fval12.Interface())
+			case ">=":
+				m.CredentialsType.AndWhereGte(fval12.Interface())
+			case "<":
+				m.CredentialsType.AndWhereLt(fval12.Interface())
+			case "<=":
+				m.CredentialsType.AndWhereLte(fval12.Interface())
+			case "llike":
+				m.CredentialsType.AndWhereLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "rlike":
+				m.CredentialsType.AndWhereLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "alike":
+				m.CredentialsType.AndWhereLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "nllike":
+				m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%%%s", fval12.String()))
+			case "nrlike":
+				m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%s%%", fval12.String()))
+			case "nalike":
+				m.CredentialsType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval12.String()))
+			case "in":
+				m.CredentialsType.AndWhereIn(fval12.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop12)
 			}
 		}
 	}
@@ -12264,37 +13652,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
 				m.DegreeType.AndWhereEq(fval13.Interface())
-			} else {
-				switch fop13 {
-				case "=":
-					m.DegreeType.AndWhereEq(fval13.Interface())
-				case "!=":
-					m.DegreeType.AndWhereNeq(fval13.Interface())
-				case ">":
-					m.DegreeType.AndWhereGt(fval13.Interface())
-				case ">=":
-					m.DegreeType.AndWhereGte(fval13.Interface())
-				case "<":
-					m.DegreeType.AndWhereLt(fval13.Interface())
-				case "<=":
-					m.DegreeType.AndWhereLte(fval13.Interface())
-				case "llike":
-					m.DegreeType.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "rlike":
-					m.DegreeType.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "alike":
-					m.DegreeType.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "nllike":
-					m.DegreeType.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
-				case "nrlike":
-					m.DegreeType.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
-				case "nalike":
-					m.DegreeType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
-				case "in":
-					m.DegreeType.AndWhereIn(fval13.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop13)
-				}
+			}
+		} else {
+			switch fop13 {
+			case "=":
+				m.DegreeType.AndWhereEq(fval13.Interface())
+			case "!=":
+				m.DegreeType.AndWhereNeq(fval13.Interface())
+			case ">":
+				m.DegreeType.AndWhereGt(fval13.Interface())
+			case ">=":
+				m.DegreeType.AndWhereGte(fval13.Interface())
+			case "<":
+				m.DegreeType.AndWhereLt(fval13.Interface())
+			case "<=":
+				m.DegreeType.AndWhereLte(fval13.Interface())
+			case "llike":
+				m.DegreeType.AndWhereLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "rlike":
+				m.DegreeType.AndWhereLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "alike":
+				m.DegreeType.AndWhereLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "nllike":
+				m.DegreeType.AndWhereNotLike(fmt.Sprintf("%%%s", fval13.String()))
+			case "nrlike":
+				m.DegreeType.AndWhereNotLike(fmt.Sprintf("%s%%", fval13.String()))
+			case "nalike":
+				m.DegreeType.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval13.String()))
+			case "in":
+				m.DegreeType.AndWhereIn(fval13.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop13)
 			}
 		}
 	}
@@ -12308,37 +13696,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
 				m.Counselor.AndWhereEq(fval14.Interface())
-			} else {
-				switch fop14 {
-				case "=":
-					m.Counselor.AndWhereEq(fval14.Interface())
-				case "!=":
-					m.Counselor.AndWhereNeq(fval14.Interface())
-				case ">":
-					m.Counselor.AndWhereGt(fval14.Interface())
-				case ">=":
-					m.Counselor.AndWhereGte(fval14.Interface())
-				case "<":
-					m.Counselor.AndWhereLt(fval14.Interface())
-				case "<=":
-					m.Counselor.AndWhereLte(fval14.Interface())
-				case "llike":
-					m.Counselor.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "rlike":
-					m.Counselor.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "alike":
-					m.Counselor.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "nllike":
-					m.Counselor.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
-				case "nrlike":
-					m.Counselor.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
-				case "nalike":
-					m.Counselor.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
-				case "in":
-					m.Counselor.AndWhereIn(fval14.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop14)
-				}
+			}
+		} else {
+			switch fop14 {
+			case "=":
+				m.Counselor.AndWhereEq(fval14.Interface())
+			case "!=":
+				m.Counselor.AndWhereNeq(fval14.Interface())
+			case ">":
+				m.Counselor.AndWhereGt(fval14.Interface())
+			case ">=":
+				m.Counselor.AndWhereGte(fval14.Interface())
+			case "<":
+				m.Counselor.AndWhereLt(fval14.Interface())
+			case "<=":
+				m.Counselor.AndWhereLte(fval14.Interface())
+			case "llike":
+				m.Counselor.AndWhereLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "rlike":
+				m.Counselor.AndWhereLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "alike":
+				m.Counselor.AndWhereLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "nllike":
+				m.Counselor.AndWhereNotLike(fmt.Sprintf("%%%s", fval14.String()))
+			case "nrlike":
+				m.Counselor.AndWhereNotLike(fmt.Sprintf("%s%%", fval14.String()))
+			case "nalike":
+				m.Counselor.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval14.String()))
+			case "in":
+				m.Counselor.AndWhereIn(fval14.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop14)
 			}
 		}
 	}
@@ -12352,37 +13740,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
 				m.Adviser.AndWhereEq(fval15.Interface())
-			} else {
-				switch fop15 {
-				case "=":
-					m.Adviser.AndWhereEq(fval15.Interface())
-				case "!=":
-					m.Adviser.AndWhereNeq(fval15.Interface())
-				case ">":
-					m.Adviser.AndWhereGt(fval15.Interface())
-				case ">=":
-					m.Adviser.AndWhereGte(fval15.Interface())
-				case "<":
-					m.Adviser.AndWhereLt(fval15.Interface())
-				case "<=":
-					m.Adviser.AndWhereLte(fval15.Interface())
-				case "llike":
-					m.Adviser.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "rlike":
-					m.Adviser.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "alike":
-					m.Adviser.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "nllike":
-					m.Adviser.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
-				case "nrlike":
-					m.Adviser.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
-				case "nalike":
-					m.Adviser.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
-				case "in":
-					m.Adviser.AndWhereIn(fval15.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop15)
-				}
+			}
+		} else {
+			switch fop15 {
+			case "=":
+				m.Adviser.AndWhereEq(fval15.Interface())
+			case "!=":
+				m.Adviser.AndWhereNeq(fval15.Interface())
+			case ">":
+				m.Adviser.AndWhereGt(fval15.Interface())
+			case ">=":
+				m.Adviser.AndWhereGte(fval15.Interface())
+			case "<":
+				m.Adviser.AndWhereLt(fval15.Interface())
+			case "<=":
+				m.Adviser.AndWhereLte(fval15.Interface())
+			case "llike":
+				m.Adviser.AndWhereLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "rlike":
+				m.Adviser.AndWhereLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "alike":
+				m.Adviser.AndWhereLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "nllike":
+				m.Adviser.AndWhereNotLike(fmt.Sprintf("%%%s", fval15.String()))
+			case "nrlike":
+				m.Adviser.AndWhereNotLike(fmt.Sprintf("%s%%", fval15.String()))
+			case "nalike":
+				m.Adviser.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval15.String()))
+			case "in":
+				m.Adviser.AndWhereIn(fval15.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop15)
 			}
 		}
 	}
@@ -12396,37 +13784,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
 				m.Leadership.AndWhereEq(fval16.Interface())
-			} else {
-				switch fop16 {
-				case "=":
-					m.Leadership.AndWhereEq(fval16.Interface())
-				case "!=":
-					m.Leadership.AndWhereNeq(fval16.Interface())
-				case ">":
-					m.Leadership.AndWhereGt(fval16.Interface())
-				case ">=":
-					m.Leadership.AndWhereGte(fval16.Interface())
-				case "<":
-					m.Leadership.AndWhereLt(fval16.Interface())
-				case "<=":
-					m.Leadership.AndWhereLte(fval16.Interface())
-				case "llike":
-					m.Leadership.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "rlike":
-					m.Leadership.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "alike":
-					m.Leadership.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "nllike":
-					m.Leadership.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
-				case "nrlike":
-					m.Leadership.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
-				case "nalike":
-					m.Leadership.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
-				case "in":
-					m.Leadership.AndWhereIn(fval16.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop16)
-				}
+			}
+		} else {
+			switch fop16 {
+			case "=":
+				m.Leadership.AndWhereEq(fval16.Interface())
+			case "!=":
+				m.Leadership.AndWhereNeq(fval16.Interface())
+			case ">":
+				m.Leadership.AndWhereGt(fval16.Interface())
+			case ">=":
+				m.Leadership.AndWhereGte(fval16.Interface())
+			case "<":
+				m.Leadership.AndWhereLt(fval16.Interface())
+			case "<=":
+				m.Leadership.AndWhereLte(fval16.Interface())
+			case "llike":
+				m.Leadership.AndWhereLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "rlike":
+				m.Leadership.AndWhereLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "alike":
+				m.Leadership.AndWhereLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "nllike":
+				m.Leadership.AndWhereNotLike(fmt.Sprintf("%%%s", fval16.String()))
+			case "nrlike":
+				m.Leadership.AndWhereNotLike(fmt.Sprintf("%s%%", fval16.String()))
+			case "nalike":
+				m.Leadership.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval16.String()))
+			case "in":
+				m.Leadership.AndWhereIn(fval16.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop16)
 			}
 		}
 	}
@@ -12440,37 +13828,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
 				m.Supervisor.AndWhereEq(fval17.Interface())
-			} else {
-				switch fop17 {
-				case "=":
-					m.Supervisor.AndWhereEq(fval17.Interface())
-				case "!=":
-					m.Supervisor.AndWhereNeq(fval17.Interface())
-				case ">":
-					m.Supervisor.AndWhereGt(fval17.Interface())
-				case ">=":
-					m.Supervisor.AndWhereGte(fval17.Interface())
-				case "<":
-					m.Supervisor.AndWhereLt(fval17.Interface())
-				case "<=":
-					m.Supervisor.AndWhereLte(fval17.Interface())
-				case "llike":
-					m.Supervisor.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "rlike":
-					m.Supervisor.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "alike":
-					m.Supervisor.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "nllike":
-					m.Supervisor.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
-				case "nrlike":
-					m.Supervisor.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
-				case "nalike":
-					m.Supervisor.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
-				case "in":
-					m.Supervisor.AndWhereIn(fval17.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop17)
-				}
+			}
+		} else {
+			switch fop17 {
+			case "=":
+				m.Supervisor.AndWhereEq(fval17.Interface())
+			case "!=":
+				m.Supervisor.AndWhereNeq(fval17.Interface())
+			case ">":
+				m.Supervisor.AndWhereGt(fval17.Interface())
+			case ">=":
+				m.Supervisor.AndWhereGte(fval17.Interface())
+			case "<":
+				m.Supervisor.AndWhereLt(fval17.Interface())
+			case "<=":
+				m.Supervisor.AndWhereLte(fval17.Interface())
+			case "llike":
+				m.Supervisor.AndWhereLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "rlike":
+				m.Supervisor.AndWhereLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "alike":
+				m.Supervisor.AndWhereLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "nllike":
+				m.Supervisor.AndWhereNotLike(fmt.Sprintf("%%%s", fval17.String()))
+			case "nrlike":
+				m.Supervisor.AndWhereNotLike(fmt.Sprintf("%s%%", fval17.String()))
+			case "nalike":
+				m.Supervisor.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval17.String()))
+			case "in":
+				m.Supervisor.AndWhereIn(fval17.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop17)
 			}
 		}
 	}
@@ -12484,37 +13872,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
 				m.Assistant1.AndWhereEq(fval18.Interface())
-			} else {
-				switch fop18 {
-				case "=":
-					m.Assistant1.AndWhereEq(fval18.Interface())
-				case "!=":
-					m.Assistant1.AndWhereNeq(fval18.Interface())
-				case ">":
-					m.Assistant1.AndWhereGt(fval18.Interface())
-				case ">=":
-					m.Assistant1.AndWhereGte(fval18.Interface())
-				case "<":
-					m.Assistant1.AndWhereLt(fval18.Interface())
-				case "<=":
-					m.Assistant1.AndWhereLte(fval18.Interface())
-				case "llike":
-					m.Assistant1.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "rlike":
-					m.Assistant1.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "alike":
-					m.Assistant1.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "nllike":
-					m.Assistant1.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
-				case "nrlike":
-					m.Assistant1.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
-				case "nalike":
-					m.Assistant1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
-				case "in":
-					m.Assistant1.AndWhereIn(fval18.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop18)
-				}
+			}
+		} else {
+			switch fop18 {
+			case "=":
+				m.Assistant1.AndWhereEq(fval18.Interface())
+			case "!=":
+				m.Assistant1.AndWhereNeq(fval18.Interface())
+			case ">":
+				m.Assistant1.AndWhereGt(fval18.Interface())
+			case ">=":
+				m.Assistant1.AndWhereGte(fval18.Interface())
+			case "<":
+				m.Assistant1.AndWhereLt(fval18.Interface())
+			case "<=":
+				m.Assistant1.AndWhereLte(fval18.Interface())
+			case "llike":
+				m.Assistant1.AndWhereLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "rlike":
+				m.Assistant1.AndWhereLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "alike":
+				m.Assistant1.AndWhereLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "nllike":
+				m.Assistant1.AndWhereNotLike(fmt.Sprintf("%%%s", fval18.String()))
+			case "nrlike":
+				m.Assistant1.AndWhereNotLike(fmt.Sprintf("%s%%", fval18.String()))
+			case "nalike":
+				m.Assistant1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval18.String()))
+			case "in":
+				m.Assistant1.AndWhereIn(fval18.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop18)
 			}
 		}
 	}
@@ -12528,37 +13916,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
 				m.Assistant2.AndWhereEq(fval19.Interface())
-			} else {
-				switch fop19 {
-				case "=":
-					m.Assistant2.AndWhereEq(fval19.Interface())
-				case "!=":
-					m.Assistant2.AndWhereNeq(fval19.Interface())
-				case ">":
-					m.Assistant2.AndWhereGt(fval19.Interface())
-				case ">=":
-					m.Assistant2.AndWhereGte(fval19.Interface())
-				case "<":
-					m.Assistant2.AndWhereLt(fval19.Interface())
-				case "<=":
-					m.Assistant2.AndWhereLte(fval19.Interface())
-				case "llike":
-					m.Assistant2.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "rlike":
-					m.Assistant2.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "alike":
-					m.Assistant2.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "nllike":
-					m.Assistant2.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
-				case "nrlike":
-					m.Assistant2.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
-				case "nalike":
-					m.Assistant2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
-				case "in":
-					m.Assistant2.AndWhereIn(fval19.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop19)
-				}
+			}
+		} else {
+			switch fop19 {
+			case "=":
+				m.Assistant2.AndWhereEq(fval19.Interface())
+			case "!=":
+				m.Assistant2.AndWhereNeq(fval19.Interface())
+			case ">":
+				m.Assistant2.AndWhereGt(fval19.Interface())
+			case ">=":
+				m.Assistant2.AndWhereGte(fval19.Interface())
+			case "<":
+				m.Assistant2.AndWhereLt(fval19.Interface())
+			case "<=":
+				m.Assistant2.AndWhereLte(fval19.Interface())
+			case "llike":
+				m.Assistant2.AndWhereLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "rlike":
+				m.Assistant2.AndWhereLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "alike":
+				m.Assistant2.AndWhereLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "nllike":
+				m.Assistant2.AndWhereNotLike(fmt.Sprintf("%%%s", fval19.String()))
+			case "nrlike":
+				m.Assistant2.AndWhereNotLike(fmt.Sprintf("%s%%", fval19.String()))
+			case "nalike":
+				m.Assistant2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval19.String()))
+			case "in":
+				m.Assistant2.AndWhereIn(fval19.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop19)
 			}
 		}
 	}
@@ -12572,37 +13960,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
 				m.Operator.AndWhereEq(fval20.Interface())
-			} else {
-				switch fop20 {
-				case "=":
-					m.Operator.AndWhereEq(fval20.Interface())
-				case "!=":
-					m.Operator.AndWhereNeq(fval20.Interface())
-				case ">":
-					m.Operator.AndWhereGt(fval20.Interface())
-				case ">=":
-					m.Operator.AndWhereGte(fval20.Interface())
-				case "<":
-					m.Operator.AndWhereLt(fval20.Interface())
-				case "<=":
-					m.Operator.AndWhereLte(fval20.Interface())
-				case "llike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "rlike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "alike":
-					m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "nllike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
-				case "nrlike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
-				case "nalike":
-					m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
-				case "in":
-					m.Operator.AndWhereIn(fval20.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop20)
-				}
+			}
+		} else {
+			switch fop20 {
+			case "=":
+				m.Operator.AndWhereEq(fval20.Interface())
+			case "!=":
+				m.Operator.AndWhereNeq(fval20.Interface())
+			case ">":
+				m.Operator.AndWhereGt(fval20.Interface())
+			case ">=":
+				m.Operator.AndWhereGte(fval20.Interface())
+			case "<":
+				m.Operator.AndWhereLt(fval20.Interface())
+			case "<=":
+				m.Operator.AndWhereLte(fval20.Interface())
+			case "llike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "rlike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "alike":
+				m.Operator.AndWhereLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "nllike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s", fval20.String()))
+			case "nrlike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%s%%", fval20.String()))
+			case "nalike":
+				m.Operator.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval20.String()))
+			case "in":
+				m.Operator.AndWhereIn(fval20.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop20)
 			}
 		}
 	}
@@ -12616,37 +14004,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
 				m.InsertDatetime.AndWhereEq(fval21.Interface())
-			} else {
-				switch fop21 {
-				case "=":
-					m.InsertDatetime.AndWhereEq(fval21.Interface())
-				case "!=":
-					m.InsertDatetime.AndWhereNeq(fval21.Interface())
-				case ">":
-					m.InsertDatetime.AndWhereGt(fval21.Interface())
-				case ">=":
-					m.InsertDatetime.AndWhereGte(fval21.Interface())
-				case "<":
-					m.InsertDatetime.AndWhereLt(fval21.Interface())
-				case "<=":
-					m.InsertDatetime.AndWhereLte(fval21.Interface())
-				case "llike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "rlike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "alike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "nllike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
-				case "nrlike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
-				case "nalike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
-				case "in":
-					m.InsertDatetime.AndWhereIn(fval21.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop21)
-				}
+			}
+		} else {
+			switch fop21 {
+			case "=":
+				m.InsertDatetime.AndWhereEq(fval21.Interface())
+			case "!=":
+				m.InsertDatetime.AndWhereNeq(fval21.Interface())
+			case ">":
+				m.InsertDatetime.AndWhereGt(fval21.Interface())
+			case ">=":
+				m.InsertDatetime.AndWhereGte(fval21.Interface())
+			case "<":
+				m.InsertDatetime.AndWhereLt(fval21.Interface())
+			case "<=":
+				m.InsertDatetime.AndWhereLte(fval21.Interface())
+			case "llike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "rlike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "alike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "nllike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval21.String()))
+			case "nrlike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval21.String()))
+			case "nalike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval21.String()))
+			case "in":
+				m.InsertDatetime.AndWhereIn(fval21.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop21)
 			}
 		}
 	}
@@ -12660,37 +14048,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
 				m.UpdateDatetime.AndWhereEq(fval22.Interface())
-			} else {
-				switch fop22 {
-				case "=":
-					m.UpdateDatetime.AndWhereEq(fval22.Interface())
-				case "!=":
-					m.UpdateDatetime.AndWhereNeq(fval22.Interface())
-				case ">":
-					m.UpdateDatetime.AndWhereGt(fval22.Interface())
-				case ">=":
-					m.UpdateDatetime.AndWhereGte(fval22.Interface())
-				case "<":
-					m.UpdateDatetime.AndWhereLt(fval22.Interface())
-				case "<=":
-					m.UpdateDatetime.AndWhereLte(fval22.Interface())
-				case "llike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "rlike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "alike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "nllike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
-				case "nrlike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
-				case "nalike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
-				case "in":
-					m.UpdateDatetime.AndWhereIn(fval22.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop22)
-				}
+			}
+		} else {
+			switch fop22 {
+			case "=":
+				m.UpdateDatetime.AndWhereEq(fval22.Interface())
+			case "!=":
+				m.UpdateDatetime.AndWhereNeq(fval22.Interface())
+			case ">":
+				m.UpdateDatetime.AndWhereGt(fval22.Interface())
+			case ">=":
+				m.UpdateDatetime.AndWhereGte(fval22.Interface())
+			case "<":
+				m.UpdateDatetime.AndWhereLt(fval22.Interface())
+			case "<=":
+				m.UpdateDatetime.AndWhereLte(fval22.Interface())
+			case "llike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "rlike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "alike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "nllike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval22.String()))
+			case "nrlike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval22.String()))
+			case "nalike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval22.String()))
+			case "in":
+				m.UpdateDatetime.AndWhereIn(fval22.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop22)
 			}
 		}
 	}
@@ -12704,37 +14092,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
 				m.Status.AndWhereEq(fval23.Interface())
-			} else {
-				switch fop23 {
-				case "=":
-					m.Status.AndWhereEq(fval23.Interface())
-				case "!=":
-					m.Status.AndWhereNeq(fval23.Interface())
-				case ">":
-					m.Status.AndWhereGt(fval23.Interface())
-				case ">=":
-					m.Status.AndWhereGte(fval23.Interface())
-				case "<":
-					m.Status.AndWhereLt(fval23.Interface())
-				case "<=":
-					m.Status.AndWhereLte(fval23.Interface())
-				case "llike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "rlike":
-					m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "alike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "nllike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
-				case "nrlike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
-				case "nalike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
-				case "in":
-					m.Status.AndWhereIn(fval23.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop23)
-				}
+			}
+		} else {
+			switch fop23 {
+			case "=":
+				m.Status.AndWhereEq(fval23.Interface())
+			case "!=":
+				m.Status.AndWhereNeq(fval23.Interface())
+			case ">":
+				m.Status.AndWhereGt(fval23.Interface())
+			case ">=":
+				m.Status.AndWhereGte(fval23.Interface())
+			case "<":
+				m.Status.AndWhereLt(fval23.Interface())
+			case "<=":
+				m.Status.AndWhereLte(fval23.Interface())
+			case "llike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "rlike":
+				m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "alike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "nllike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval23.String()))
+			case "nrlike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval23.String()))
+			case "nalike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval23.String()))
+			case "in":
+				m.Status.AndWhereIn(fval23.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop23)
 			}
 		}
 	}
@@ -12748,37 +14136,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark1.AndWhereEq(fval24.Interface())
-			} else {
-				switch fop24 {
-				case "=":
-					m.Remark1.AndWhereEq(fval24.Interface())
-				case "!=":
-					m.Remark1.AndWhereNeq(fval24.Interface())
-				case ">":
-					m.Remark1.AndWhereGt(fval24.Interface())
-				case ">=":
-					m.Remark1.AndWhereGte(fval24.Interface())
-				case "<":
-					m.Remark1.AndWhereLt(fval24.Interface())
-				case "<=":
-					m.Remark1.AndWhereLte(fval24.Interface())
-				case "llike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "rlike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "alike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "nllike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
-				case "nrlike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
-				case "nalike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
-				case "in":
-					m.Remark1.AndWhereIn(fval24.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop24)
-				}
+			}
+		} else {
+			switch fop24 {
+			case "=":
+				m.Remark1.AndWhereEq(fval24.Interface())
+			case "!=":
+				m.Remark1.AndWhereNeq(fval24.Interface())
+			case ">":
+				m.Remark1.AndWhereGt(fval24.Interface())
+			case ">=":
+				m.Remark1.AndWhereGte(fval24.Interface())
+			case "<":
+				m.Remark1.AndWhereLt(fval24.Interface())
+			case "<=":
+				m.Remark1.AndWhereLte(fval24.Interface())
+			case "llike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "rlike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "alike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "nllike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval24.String()))
+			case "nrlike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval24.String()))
+			case "nalike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval24.String()))
+			case "in":
+				m.Remark1.AndWhereIn(fval24.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop24)
 			}
 		}
 	}
@@ -12792,37 +14180,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark2.AndWhereEq(fval25.Interface())
-			} else {
-				switch fop25 {
-				case "=":
-					m.Remark2.AndWhereEq(fval25.Interface())
-				case "!=":
-					m.Remark2.AndWhereNeq(fval25.Interface())
-				case ">":
-					m.Remark2.AndWhereGt(fval25.Interface())
-				case ">=":
-					m.Remark2.AndWhereGte(fval25.Interface())
-				case "<":
-					m.Remark2.AndWhereLt(fval25.Interface())
-				case "<=":
-					m.Remark2.AndWhereLte(fval25.Interface())
-				case "llike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "rlike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "alike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "nllike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
-				case "nrlike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
-				case "nalike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
-				case "in":
-					m.Remark2.AndWhereIn(fval25.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop25)
-				}
+			}
+		} else {
+			switch fop25 {
+			case "=":
+				m.Remark2.AndWhereEq(fval25.Interface())
+			case "!=":
+				m.Remark2.AndWhereNeq(fval25.Interface())
+			case ">":
+				m.Remark2.AndWhereGt(fval25.Interface())
+			case ">=":
+				m.Remark2.AndWhereGte(fval25.Interface())
+			case "<":
+				m.Remark2.AndWhereLt(fval25.Interface())
+			case "<=":
+				m.Remark2.AndWhereLte(fval25.Interface())
+			case "llike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "rlike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "alike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "nllike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval25.String()))
+			case "nrlike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval25.String()))
+			case "nalike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval25.String()))
+			case "in":
+				m.Remark2.AndWhereIn(fval25.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop25)
 			}
 		}
 	}
@@ -12836,37 +14224,37 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark3.AndWhereEq(fval26.Interface())
-			} else {
-				switch fop26 {
-				case "=":
-					m.Remark3.AndWhereEq(fval26.Interface())
-				case "!=":
-					m.Remark3.AndWhereNeq(fval26.Interface())
-				case ">":
-					m.Remark3.AndWhereGt(fval26.Interface())
-				case ">=":
-					m.Remark3.AndWhereGte(fval26.Interface())
-				case "<":
-					m.Remark3.AndWhereLt(fval26.Interface())
-				case "<=":
-					m.Remark3.AndWhereLte(fval26.Interface())
-				case "llike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "rlike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "alike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "nllike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
-				case "nrlike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
-				case "nalike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
-				case "in":
-					m.Remark3.AndWhereIn(fval26.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop26)
-				}
+			}
+		} else {
+			switch fop26 {
+			case "=":
+				m.Remark3.AndWhereEq(fval26.Interface())
+			case "!=":
+				m.Remark3.AndWhereNeq(fval26.Interface())
+			case ">":
+				m.Remark3.AndWhereGt(fval26.Interface())
+			case ">=":
+				m.Remark3.AndWhereGte(fval26.Interface())
+			case "<":
+				m.Remark3.AndWhereLt(fval26.Interface())
+			case "<=":
+				m.Remark3.AndWhereLte(fval26.Interface())
+			case "llike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "rlike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "alike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "nllike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval26.String()))
+			case "nrlike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval26.String()))
+			case "nalike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval26.String()))
+			case "in":
+				m.Remark3.AndWhereIn(fval26.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop26)
 			}
 		}
 	}
@@ -12880,39 +14268,53 @@ func (m *Class) FromQuery(query interface{}) (*Class, error) {
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark4.AndWhereEq(fval27.Interface())
-			} else {
-				switch fop27 {
-				case "=":
-					m.Remark4.AndWhereEq(fval27.Interface())
-				case "!=":
-					m.Remark4.AndWhereNeq(fval27.Interface())
-				case ">":
-					m.Remark4.AndWhereGt(fval27.Interface())
-				case ">=":
-					m.Remark4.AndWhereGte(fval27.Interface())
-				case "<":
-					m.Remark4.AndWhereLt(fval27.Interface())
-				case "<=":
-					m.Remark4.AndWhereLte(fval27.Interface())
-				case "llike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "rlike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "alike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "nllike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
-				case "nrlike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
-				case "nalike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
-				case "in":
-					m.Remark4.AndWhereIn(fval27.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop27)
-				}
+			}
+		} else {
+			switch fop27 {
+			case "=":
+				m.Remark4.AndWhereEq(fval27.Interface())
+			case "!=":
+				m.Remark4.AndWhereNeq(fval27.Interface())
+			case ">":
+				m.Remark4.AndWhereGt(fval27.Interface())
+			case ">=":
+				m.Remark4.AndWhereGte(fval27.Interface())
+			case "<":
+				m.Remark4.AndWhereLt(fval27.Interface())
+			case "<=":
+				m.Remark4.AndWhereLte(fval27.Interface())
+			case "llike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "rlike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "alike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "nllike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval27.String()))
+			case "nrlike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval27.String()))
+			case "nalike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval27.String()))
+			case "in":
+				m.Remark4.AndWhereIn(fval27.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop27)
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("ClassGrade")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("ClassGrade")
+		m.ClassGrade.InitRel()
+		m.ClassGrade.SetForJoin()
+		m.ClassGrade.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("Students")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("Students")
+		m.Students.InitRel()
+		m.Students.SetForJoin()
+		m.Students.FromQuery(sval1.Interface())
 	}
 	return m, nil
 }
@@ -12934,7 +14336,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
-				l.Id.AndWhereEq(fval0.Interface())
+				switch fval0.Kind() {
+				case reflect.Struct:
+					if ftyp0.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval0.Interface())
+					}
+					if ftyp0.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval0.Interface())
+					}
+				default:
+					l.Id.AndWhereEq(fval0.Interface())
+				}
 			} else {
 				switch fop0 {
 				case "=":
@@ -12978,7 +14394,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
-				l.RecordId.AndWhereEq(fval1.Interface())
+				switch fval1.Kind() {
+				case reflect.Struct:
+					if ftyp1.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval1.Interface())
+					}
+					if ftyp1.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval1.Interface())
+					}
+				default:
+					l.RecordId.AndWhereEq(fval1.Interface())
+				}
 			} else {
 				switch fop1 {
 				case "=":
@@ -13022,7 +14452,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
-				l.ClassCode.AndWhereEq(fval2.Interface())
+				switch fval2.Kind() {
+				case reflect.Struct:
+					if ftyp2.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval2.Interface())
+					}
+					if ftyp2.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval2.Interface())
+					}
+				default:
+					l.ClassCode.AndWhereEq(fval2.Interface())
+				}
 			} else {
 				switch fop2 {
 				case "=":
@@ -13066,7 +14510,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
-				l.ClassName.AndWhereEq(fval3.Interface())
+				switch fval3.Kind() {
+				case reflect.Struct:
+					if ftyp3.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval3.Interface())
+					}
+					if ftyp3.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval3.Interface())
+					}
+				default:
+					l.ClassName.AndWhereEq(fval3.Interface())
+				}
 			} else {
 				switch fop3 {
 				case "=":
@@ -13110,7 +14568,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
-				l.Campus.AndWhereEq(fval4.Interface())
+				switch fval4.Kind() {
+				case reflect.Struct:
+					if ftyp4.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval4.Interface())
+					}
+					if ftyp4.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval4.Interface())
+					}
+				default:
+					l.Campus.AndWhereEq(fval4.Interface())
+				}
 			} else {
 				switch fop4 {
 				case "=":
@@ -13154,7 +14626,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
-				l.ResearchArea.AndWhereEq(fval5.Interface())
+				switch fval5.Kind() {
+				case reflect.Struct:
+					if ftyp5.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval5.Interface())
+					}
+					if ftyp5.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval5.Interface())
+					}
+				default:
+					l.ResearchArea.AndWhereEq(fval5.Interface())
+				}
 			} else {
 				switch fop5 {
 				case "=":
@@ -13198,7 +14684,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
-				l.Grade.AndWhereEq(fval6.Interface())
+				switch fval6.Kind() {
+				case reflect.Struct:
+					if ftyp6.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval6.Interface())
+					}
+					if ftyp6.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval6.Interface())
+					}
+				default:
+					l.Grade.AndWhereEq(fval6.Interface())
+				}
 			} else {
 				switch fop6 {
 				case "=":
@@ -13242,7 +14742,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
-				l.TrainingMode.AndWhereEq(fval7.Interface())
+				switch fval7.Kind() {
+				case reflect.Struct:
+					if ftyp7.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval7.Interface())
+					}
+					if ftyp7.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval7.Interface())
+					}
+				default:
+					l.TrainingMode.AndWhereEq(fval7.Interface())
+				}
 			} else {
 				switch fop7 {
 				case "=":
@@ -13286,7 +14800,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
-				l.EntranceDate.AndWhereEq(fval8.Interface())
+				switch fval8.Kind() {
+				case reflect.Struct:
+					if ftyp8.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval8.Interface())
+					}
+					if ftyp8.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval8.Interface())
+					}
+				default:
+					l.EntranceDate.AndWhereEq(fval8.Interface())
+				}
 			} else {
 				switch fop8 {
 				case "=":
@@ -13330,7 +14858,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
-				l.GraduationDate.AndWhereEq(fval9.Interface())
+				switch fval9.Kind() {
+				case reflect.Struct:
+					if ftyp9.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval9.Interface())
+					}
+					if ftyp9.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval9.Interface())
+					}
+				default:
+					l.GraduationDate.AndWhereEq(fval9.Interface())
+				}
 			} else {
 				switch fop9 {
 				case "=":
@@ -13374,7 +14916,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval10.Kind() != reflect.Ptr {
 			if !ok {
-				l.ProgramLength.AndWhereEq(fval10.Interface())
+				switch fval10.Kind() {
+				case reflect.Struct:
+					if ftyp10.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval10.Interface())
+					}
+					if ftyp10.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval10.Interface())
+					}
+				default:
+					l.ProgramLength.AndWhereEq(fval10.Interface())
+				}
 			} else {
 				switch fop10 {
 				case "=":
@@ -13418,7 +14974,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval11.Kind() != reflect.Ptr {
 			if !ok {
-				l.StudentType.AndWhereEq(fval11.Interface())
+				switch fval11.Kind() {
+				case reflect.Struct:
+					if ftyp11.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval11.Interface())
+					}
+					if ftyp11.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval11.Interface())
+					}
+				default:
+					l.StudentType.AndWhereEq(fval11.Interface())
+				}
 			} else {
 				switch fop11 {
 				case "=":
@@ -13462,7 +15032,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval12.Kind() != reflect.Ptr {
 			if !ok {
-				l.CredentialsType.AndWhereEq(fval12.Interface())
+				switch fval12.Kind() {
+				case reflect.Struct:
+					if ftyp12.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval12.Interface())
+					}
+					if ftyp12.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval12.Interface())
+					}
+				default:
+					l.CredentialsType.AndWhereEq(fval12.Interface())
+				}
 			} else {
 				switch fop12 {
 				case "=":
@@ -13506,7 +15090,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval13.Kind() != reflect.Ptr {
 			if !ok {
-				l.DegreeType.AndWhereEq(fval13.Interface())
+				switch fval13.Kind() {
+				case reflect.Struct:
+					if ftyp13.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval13.Interface())
+					}
+					if ftyp13.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval13.Interface())
+					}
+				default:
+					l.DegreeType.AndWhereEq(fval13.Interface())
+				}
 			} else {
 				switch fop13 {
 				case "=":
@@ -13550,7 +15148,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval14.Kind() != reflect.Ptr {
 			if !ok {
-				l.Counselor.AndWhereEq(fval14.Interface())
+				switch fval14.Kind() {
+				case reflect.Struct:
+					if ftyp14.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval14.Interface())
+					}
+					if ftyp14.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval14.Interface())
+					}
+				default:
+					l.Counselor.AndWhereEq(fval14.Interface())
+				}
 			} else {
 				switch fop14 {
 				case "=":
@@ -13594,7 +15206,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval15.Kind() != reflect.Ptr {
 			if !ok {
-				l.Adviser.AndWhereEq(fval15.Interface())
+				switch fval15.Kind() {
+				case reflect.Struct:
+					if ftyp15.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval15.Interface())
+					}
+					if ftyp15.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval15.Interface())
+					}
+				default:
+					l.Adviser.AndWhereEq(fval15.Interface())
+				}
 			} else {
 				switch fop15 {
 				case "=":
@@ -13638,7 +15264,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval16.Kind() != reflect.Ptr {
 			if !ok {
-				l.Leadership.AndWhereEq(fval16.Interface())
+				switch fval16.Kind() {
+				case reflect.Struct:
+					if ftyp16.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval16.Interface())
+					}
+					if ftyp16.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval16.Interface())
+					}
+				default:
+					l.Leadership.AndWhereEq(fval16.Interface())
+				}
 			} else {
 				switch fop16 {
 				case "=":
@@ -13682,7 +15322,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval17.Kind() != reflect.Ptr {
 			if !ok {
-				l.Supervisor.AndWhereEq(fval17.Interface())
+				switch fval17.Kind() {
+				case reflect.Struct:
+					if ftyp17.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval17.Interface())
+					}
+					if ftyp17.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval17.Interface())
+					}
+				default:
+					l.Supervisor.AndWhereEq(fval17.Interface())
+				}
 			} else {
 				switch fop17 {
 				case "=":
@@ -13726,7 +15380,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval18.Kind() != reflect.Ptr {
 			if !ok {
-				l.Assistant1.AndWhereEq(fval18.Interface())
+				switch fval18.Kind() {
+				case reflect.Struct:
+					if ftyp18.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval18.Interface())
+					}
+					if ftyp18.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval18.Interface())
+					}
+				default:
+					l.Assistant1.AndWhereEq(fval18.Interface())
+				}
 			} else {
 				switch fop18 {
 				case "=":
@@ -13770,7 +15438,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval19.Kind() != reflect.Ptr {
 			if !ok {
-				l.Assistant2.AndWhereEq(fval19.Interface())
+				switch fval19.Kind() {
+				case reflect.Struct:
+					if ftyp19.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval19.Interface())
+					}
+					if ftyp19.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval19.Interface())
+					}
+				default:
+					l.Assistant2.AndWhereEq(fval19.Interface())
+				}
 			} else {
 				switch fop19 {
 				case "=":
@@ -13814,7 +15496,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval20.Kind() != reflect.Ptr {
 			if !ok {
-				l.Operator.AndWhereEq(fval20.Interface())
+				switch fval20.Kind() {
+				case reflect.Struct:
+					if ftyp20.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval20.Interface())
+					}
+					if ftyp20.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval20.Interface())
+					}
+				default:
+					l.Operator.AndWhereEq(fval20.Interface())
+				}
 			} else {
 				switch fop20 {
 				case "=":
@@ -13858,7 +15554,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval21.Kind() != reflect.Ptr {
 			if !ok {
-				l.InsertDatetime.AndWhereEq(fval21.Interface())
+				switch fval21.Kind() {
+				case reflect.Struct:
+					if ftyp21.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval21.Interface())
+					}
+					if ftyp21.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval21.Interface())
+					}
+				default:
+					l.InsertDatetime.AndWhereEq(fval21.Interface())
+				}
 			} else {
 				switch fop21 {
 				case "=":
@@ -13902,7 +15612,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval22.Kind() != reflect.Ptr {
 			if !ok {
-				l.UpdateDatetime.AndWhereEq(fval22.Interface())
+				switch fval22.Kind() {
+				case reflect.Struct:
+					if ftyp22.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval22.Interface())
+					}
+					if ftyp22.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval22.Interface())
+					}
+				default:
+					l.UpdateDatetime.AndWhereEq(fval22.Interface())
+				}
 			} else {
 				switch fop22 {
 				case "=":
@@ -13946,7 +15670,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval23.Kind() != reflect.Ptr {
 			if !ok {
-				l.Status.AndWhereEq(fval23.Interface())
+				switch fval23.Kind() {
+				case reflect.Struct:
+					if ftyp23.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval23.Interface())
+					}
+					if ftyp23.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval23.Interface())
+					}
+				default:
+					l.Status.AndWhereEq(fval23.Interface())
+				}
 			} else {
 				switch fop23 {
 				case "=":
@@ -13990,7 +15728,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval24.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark1.AndWhereEq(fval24.Interface())
+				switch fval24.Kind() {
+				case reflect.Struct:
+					if ftyp24.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval24.Interface())
+					}
+					if ftyp24.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval24.Interface())
+					}
+				default:
+					l.Remark1.AndWhereEq(fval24.Interface())
+				}
 			} else {
 				switch fop24 {
 				case "=":
@@ -14034,7 +15786,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval25.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark2.AndWhereEq(fval25.Interface())
+				switch fval25.Kind() {
+				case reflect.Struct:
+					if ftyp25.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval25.Interface())
+					}
+					if ftyp25.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval25.Interface())
+					}
+				default:
+					l.Remark2.AndWhereEq(fval25.Interface())
+				}
 			} else {
 				switch fop25 {
 				case "=":
@@ -14078,7 +15844,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval26.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark3.AndWhereEq(fval26.Interface())
+				switch fval26.Kind() {
+				case reflect.Struct:
+					if ftyp26.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval26.Interface())
+					}
+					if ftyp26.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval26.Interface())
+					}
+				default:
+					l.Remark3.AndWhereEq(fval26.Interface())
+				}
 			} else {
 				switch fop26 {
 				case "=":
@@ -14122,7 +15902,21 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 		}
 		if fval27.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark4.AndWhereEq(fval27.Interface())
+				switch fval27.Kind() {
+				case reflect.Struct:
+					if ftyp27.Name == "ClassGrade" {
+						l.ClassGrade.InitRel()
+						l.ClassGrade.SetForJoin()
+						l.ClassGrade.FromQuery(fval27.Interface())
+					}
+					if ftyp27.Name == "Students" {
+						l.Students.InitRel()
+						l.Students.SetForJoin()
+						l.Students.FromQuery(fval27.Interface())
+					}
+				default:
+					l.Remark4.AndWhereEq(fval27.Interface())
+				}
 			} else {
 				switch fop27 {
 				case "=":
@@ -14156,6 +15950,20 @@ func (l *ClassList) FromQuery(query interface{}) (*ClassList, error) {
 				}
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("ClassGrade")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("ClassGrade")
+		l.ClassGrade.InitRel()
+		l.ClassGrade.SetForJoin()
+		l.ClassGrade.FromQuery(sval0.Interface())
+	}
+	styp1, exists := typ.FieldByName("Students")
+	if exists && styp1.Type.Kind() == reflect.Struct {
+		sval1 := val.FieldByName("Students")
+		l.Students.InitRel()
+		l.Students.SetForJoin()
+		l.Students.FromQuery(sval1.Interface())
 	}
 	return l, nil
 }
@@ -14691,37 +16499,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
 				m.Id.AndWhereEq(fval0.Interface())
-			} else {
-				switch fop0 {
-				case "=":
-					m.Id.AndWhereEq(fval0.Interface())
-				case "!=":
-					m.Id.AndWhereNeq(fval0.Interface())
-				case ">":
-					m.Id.AndWhereGt(fval0.Interface())
-				case ">=":
-					m.Id.AndWhereGte(fval0.Interface())
-				case "<":
-					m.Id.AndWhereLt(fval0.Interface())
-				case "<=":
-					m.Id.AndWhereLte(fval0.Interface())
-				case "llike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "rlike":
-					m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "alike":
-					m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "nllike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
-				case "nrlike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
-				case "nalike":
-					m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
-				case "in":
-					m.Id.AndWhereIn(fval0.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop0)
-				}
+			}
+		} else {
+			switch fop0 {
+			case "=":
+				m.Id.AndWhereEq(fval0.Interface())
+			case "!=":
+				m.Id.AndWhereNeq(fval0.Interface())
+			case ">":
+				m.Id.AndWhereGt(fval0.Interface())
+			case ">=":
+				m.Id.AndWhereGte(fval0.Interface())
+			case "<":
+				m.Id.AndWhereLt(fval0.Interface())
+			case "<=":
+				m.Id.AndWhereLte(fval0.Interface())
+			case "llike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "rlike":
+				m.Id.AndWhereLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "alike":
+				m.Id.AndWhereLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "nllike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s", fval0.String()))
+			case "nrlike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%s%%", fval0.String()))
+			case "nalike":
+				m.Id.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval0.String()))
+			case "in":
+				m.Id.AndWhereIn(fval0.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop0)
 			}
 		}
 	}
@@ -14735,37 +16543,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
 				m.GradeName.AndWhereEq(fval1.Interface())
-			} else {
-				switch fop1 {
-				case "=":
-					m.GradeName.AndWhereEq(fval1.Interface())
-				case "!=":
-					m.GradeName.AndWhereNeq(fval1.Interface())
-				case ">":
-					m.GradeName.AndWhereGt(fval1.Interface())
-				case ">=":
-					m.GradeName.AndWhereGte(fval1.Interface())
-				case "<":
-					m.GradeName.AndWhereLt(fval1.Interface())
-				case "<=":
-					m.GradeName.AndWhereLte(fval1.Interface())
-				case "llike":
-					m.GradeName.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "rlike":
-					m.GradeName.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "alike":
-					m.GradeName.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "nllike":
-					m.GradeName.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
-				case "nrlike":
-					m.GradeName.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
-				case "nalike":
-					m.GradeName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
-				case "in":
-					m.GradeName.AndWhereIn(fval1.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop1)
-				}
+			}
+		} else {
+			switch fop1 {
+			case "=":
+				m.GradeName.AndWhereEq(fval1.Interface())
+			case "!=":
+				m.GradeName.AndWhereNeq(fval1.Interface())
+			case ">":
+				m.GradeName.AndWhereGt(fval1.Interface())
+			case ">=":
+				m.GradeName.AndWhereGte(fval1.Interface())
+			case "<":
+				m.GradeName.AndWhereLt(fval1.Interface())
+			case "<=":
+				m.GradeName.AndWhereLte(fval1.Interface())
+			case "llike":
+				m.GradeName.AndWhereLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "rlike":
+				m.GradeName.AndWhereLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "alike":
+				m.GradeName.AndWhereLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "nllike":
+				m.GradeName.AndWhereNotLike(fmt.Sprintf("%%%s", fval1.String()))
+			case "nrlike":
+				m.GradeName.AndWhereNotLike(fmt.Sprintf("%s%%", fval1.String()))
+			case "nalike":
+				m.GradeName.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval1.String()))
+			case "in":
+				m.GradeName.AndWhereIn(fval1.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop1)
 			}
 		}
 	}
@@ -14779,37 +16587,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
 				m.GradeCode.AndWhereEq(fval2.Interface())
-			} else {
-				switch fop2 {
-				case "=":
-					m.GradeCode.AndWhereEq(fval2.Interface())
-				case "!=":
-					m.GradeCode.AndWhereNeq(fval2.Interface())
-				case ">":
-					m.GradeCode.AndWhereGt(fval2.Interface())
-				case ">=":
-					m.GradeCode.AndWhereGte(fval2.Interface())
-				case "<":
-					m.GradeCode.AndWhereLt(fval2.Interface())
-				case "<=":
-					m.GradeCode.AndWhereLte(fval2.Interface())
-				case "llike":
-					m.GradeCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "rlike":
-					m.GradeCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "alike":
-					m.GradeCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "nllike":
-					m.GradeCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
-				case "nrlike":
-					m.GradeCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
-				case "nalike":
-					m.GradeCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
-				case "in":
-					m.GradeCode.AndWhereIn(fval2.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop2)
-				}
+			}
+		} else {
+			switch fop2 {
+			case "=":
+				m.GradeCode.AndWhereEq(fval2.Interface())
+			case "!=":
+				m.GradeCode.AndWhereNeq(fval2.Interface())
+			case ">":
+				m.GradeCode.AndWhereGt(fval2.Interface())
+			case ">=":
+				m.GradeCode.AndWhereGte(fval2.Interface())
+			case "<":
+				m.GradeCode.AndWhereLt(fval2.Interface())
+			case "<=":
+				m.GradeCode.AndWhereLte(fval2.Interface())
+			case "llike":
+				m.GradeCode.AndWhereLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "rlike":
+				m.GradeCode.AndWhereLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "alike":
+				m.GradeCode.AndWhereLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "nllike":
+				m.GradeCode.AndWhereNotLike(fmt.Sprintf("%%%s", fval2.String()))
+			case "nrlike":
+				m.GradeCode.AndWhereNotLike(fmt.Sprintf("%s%%", fval2.String()))
+			case "nalike":
+				m.GradeCode.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval2.String()))
+			case "in":
+				m.GradeCode.AndWhereIn(fval2.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop2)
 			}
 		}
 	}
@@ -14823,37 +16631,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
 				m.InsertDatetime.AndWhereEq(fval3.Interface())
-			} else {
-				switch fop3 {
-				case "=":
-					m.InsertDatetime.AndWhereEq(fval3.Interface())
-				case "!=":
-					m.InsertDatetime.AndWhereNeq(fval3.Interface())
-				case ">":
-					m.InsertDatetime.AndWhereGt(fval3.Interface())
-				case ">=":
-					m.InsertDatetime.AndWhereGte(fval3.Interface())
-				case "<":
-					m.InsertDatetime.AndWhereLt(fval3.Interface())
-				case "<=":
-					m.InsertDatetime.AndWhereLte(fval3.Interface())
-				case "llike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "rlike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "alike":
-					m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "nllike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
-				case "nrlike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
-				case "nalike":
-					m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
-				case "in":
-					m.InsertDatetime.AndWhereIn(fval3.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop3)
-				}
+			}
+		} else {
+			switch fop3 {
+			case "=":
+				m.InsertDatetime.AndWhereEq(fval3.Interface())
+			case "!=":
+				m.InsertDatetime.AndWhereNeq(fval3.Interface())
+			case ">":
+				m.InsertDatetime.AndWhereGt(fval3.Interface())
+			case ">=":
+				m.InsertDatetime.AndWhereGte(fval3.Interface())
+			case "<":
+				m.InsertDatetime.AndWhereLt(fval3.Interface())
+			case "<=":
+				m.InsertDatetime.AndWhereLte(fval3.Interface())
+			case "llike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "rlike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "alike":
+				m.InsertDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "nllike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval3.String()))
+			case "nrlike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval3.String()))
+			case "nalike":
+				m.InsertDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval3.String()))
+			case "in":
+				m.InsertDatetime.AndWhereIn(fval3.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop3)
 			}
 		}
 	}
@@ -14867,37 +16675,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
 				m.UpdateDatetime.AndWhereEq(fval4.Interface())
-			} else {
-				switch fop4 {
-				case "=":
-					m.UpdateDatetime.AndWhereEq(fval4.Interface())
-				case "!=":
-					m.UpdateDatetime.AndWhereNeq(fval4.Interface())
-				case ">":
-					m.UpdateDatetime.AndWhereGt(fval4.Interface())
-				case ">=":
-					m.UpdateDatetime.AndWhereGte(fval4.Interface())
-				case "<":
-					m.UpdateDatetime.AndWhereLt(fval4.Interface())
-				case "<=":
-					m.UpdateDatetime.AndWhereLte(fval4.Interface())
-				case "llike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "rlike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "alike":
-					m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "nllike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
-				case "nrlike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
-				case "nalike":
-					m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
-				case "in":
-					m.UpdateDatetime.AndWhereIn(fval4.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop4)
-				}
+			}
+		} else {
+			switch fop4 {
+			case "=":
+				m.UpdateDatetime.AndWhereEq(fval4.Interface())
+			case "!=":
+				m.UpdateDatetime.AndWhereNeq(fval4.Interface())
+			case ">":
+				m.UpdateDatetime.AndWhereGt(fval4.Interface())
+			case ">=":
+				m.UpdateDatetime.AndWhereGte(fval4.Interface())
+			case "<":
+				m.UpdateDatetime.AndWhereLt(fval4.Interface())
+			case "<=":
+				m.UpdateDatetime.AndWhereLte(fval4.Interface())
+			case "llike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "rlike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "alike":
+				m.UpdateDatetime.AndWhereLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "nllike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s", fval4.String()))
+			case "nrlike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%s%%", fval4.String()))
+			case "nalike":
+				m.UpdateDatetime.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval4.String()))
+			case "in":
+				m.UpdateDatetime.AndWhereIn(fval4.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop4)
 			}
 		}
 	}
@@ -14911,37 +16719,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
 				m.Status.AndWhereEq(fval5.Interface())
-			} else {
-				switch fop5 {
-				case "=":
-					m.Status.AndWhereEq(fval5.Interface())
-				case "!=":
-					m.Status.AndWhereNeq(fval5.Interface())
-				case ">":
-					m.Status.AndWhereGt(fval5.Interface())
-				case ">=":
-					m.Status.AndWhereGte(fval5.Interface())
-				case "<":
-					m.Status.AndWhereLt(fval5.Interface())
-				case "<=":
-					m.Status.AndWhereLte(fval5.Interface())
-				case "llike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "rlike":
-					m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "alike":
-					m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "nllike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
-				case "nrlike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
-				case "nalike":
-					m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
-				case "in":
-					m.Status.AndWhereIn(fval5.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop5)
-				}
+			}
+		} else {
+			switch fop5 {
+			case "=":
+				m.Status.AndWhereEq(fval5.Interface())
+			case "!=":
+				m.Status.AndWhereNeq(fval5.Interface())
+			case ">":
+				m.Status.AndWhereGt(fval5.Interface())
+			case ">=":
+				m.Status.AndWhereGte(fval5.Interface())
+			case "<":
+				m.Status.AndWhereLt(fval5.Interface())
+			case "<=":
+				m.Status.AndWhereLte(fval5.Interface())
+			case "llike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "rlike":
+				m.Status.AndWhereLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "alike":
+				m.Status.AndWhereLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "nllike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s", fval5.String()))
+			case "nrlike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%s%%", fval5.String()))
+			case "nalike":
+				m.Status.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval5.String()))
+			case "in":
+				m.Status.AndWhereIn(fval5.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop5)
 			}
 		}
 	}
@@ -14955,37 +16763,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark1.AndWhereEq(fval6.Interface())
-			} else {
-				switch fop6 {
-				case "=":
-					m.Remark1.AndWhereEq(fval6.Interface())
-				case "!=":
-					m.Remark1.AndWhereNeq(fval6.Interface())
-				case ">":
-					m.Remark1.AndWhereGt(fval6.Interface())
-				case ">=":
-					m.Remark1.AndWhereGte(fval6.Interface())
-				case "<":
-					m.Remark1.AndWhereLt(fval6.Interface())
-				case "<=":
-					m.Remark1.AndWhereLte(fval6.Interface())
-				case "llike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "rlike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "alike":
-					m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "nllike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
-				case "nrlike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
-				case "nalike":
-					m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
-				case "in":
-					m.Remark1.AndWhereIn(fval6.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop6)
-				}
+			}
+		} else {
+			switch fop6 {
+			case "=":
+				m.Remark1.AndWhereEq(fval6.Interface())
+			case "!=":
+				m.Remark1.AndWhereNeq(fval6.Interface())
+			case ">":
+				m.Remark1.AndWhereGt(fval6.Interface())
+			case ">=":
+				m.Remark1.AndWhereGte(fval6.Interface())
+			case "<":
+				m.Remark1.AndWhereLt(fval6.Interface())
+			case "<=":
+				m.Remark1.AndWhereLte(fval6.Interface())
+			case "llike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "rlike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "alike":
+				m.Remark1.AndWhereLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "nllike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s", fval6.String()))
+			case "nrlike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%s%%", fval6.String()))
+			case "nalike":
+				m.Remark1.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval6.String()))
+			case "in":
+				m.Remark1.AndWhereIn(fval6.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop6)
 			}
 		}
 	}
@@ -14999,37 +16807,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark2.AndWhereEq(fval7.Interface())
-			} else {
-				switch fop7 {
-				case "=":
-					m.Remark2.AndWhereEq(fval7.Interface())
-				case "!=":
-					m.Remark2.AndWhereNeq(fval7.Interface())
-				case ">":
-					m.Remark2.AndWhereGt(fval7.Interface())
-				case ">=":
-					m.Remark2.AndWhereGte(fval7.Interface())
-				case "<":
-					m.Remark2.AndWhereLt(fval7.Interface())
-				case "<=":
-					m.Remark2.AndWhereLte(fval7.Interface())
-				case "llike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "rlike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "alike":
-					m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "nllike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
-				case "nrlike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
-				case "nalike":
-					m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
-				case "in":
-					m.Remark2.AndWhereIn(fval7.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop7)
-				}
+			}
+		} else {
+			switch fop7 {
+			case "=":
+				m.Remark2.AndWhereEq(fval7.Interface())
+			case "!=":
+				m.Remark2.AndWhereNeq(fval7.Interface())
+			case ">":
+				m.Remark2.AndWhereGt(fval7.Interface())
+			case ">=":
+				m.Remark2.AndWhereGte(fval7.Interface())
+			case "<":
+				m.Remark2.AndWhereLt(fval7.Interface())
+			case "<=":
+				m.Remark2.AndWhereLte(fval7.Interface())
+			case "llike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "rlike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "alike":
+				m.Remark2.AndWhereLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "nllike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s", fval7.String()))
+			case "nrlike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%s%%", fval7.String()))
+			case "nalike":
+				m.Remark2.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval7.String()))
+			case "in":
+				m.Remark2.AndWhereIn(fval7.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop7)
 			}
 		}
 	}
@@ -15043,37 +16851,37 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark3.AndWhereEq(fval8.Interface())
-			} else {
-				switch fop8 {
-				case "=":
-					m.Remark3.AndWhereEq(fval8.Interface())
-				case "!=":
-					m.Remark3.AndWhereNeq(fval8.Interface())
-				case ">":
-					m.Remark3.AndWhereGt(fval8.Interface())
-				case ">=":
-					m.Remark3.AndWhereGte(fval8.Interface())
-				case "<":
-					m.Remark3.AndWhereLt(fval8.Interface())
-				case "<=":
-					m.Remark3.AndWhereLte(fval8.Interface())
-				case "llike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "rlike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "alike":
-					m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "nllike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
-				case "nrlike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
-				case "nalike":
-					m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
-				case "in":
-					m.Remark3.AndWhereIn(fval8.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop8)
-				}
+			}
+		} else {
+			switch fop8 {
+			case "=":
+				m.Remark3.AndWhereEq(fval8.Interface())
+			case "!=":
+				m.Remark3.AndWhereNeq(fval8.Interface())
+			case ">":
+				m.Remark3.AndWhereGt(fval8.Interface())
+			case ">=":
+				m.Remark3.AndWhereGte(fval8.Interface())
+			case "<":
+				m.Remark3.AndWhereLt(fval8.Interface())
+			case "<=":
+				m.Remark3.AndWhereLte(fval8.Interface())
+			case "llike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "rlike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "alike":
+				m.Remark3.AndWhereLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "nllike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s", fval8.String()))
+			case "nrlike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%s%%", fval8.String()))
+			case "nalike":
+				m.Remark3.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval8.String()))
+			case "in":
+				m.Remark3.AndWhereIn(fval8.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop8)
 			}
 		}
 	}
@@ -15087,39 +16895,46 @@ func (m *Grade) FromQuery(query interface{}) (*Grade, error) {
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
 				m.Remark4.AndWhereEq(fval9.Interface())
-			} else {
-				switch fop9 {
-				case "=":
-					m.Remark4.AndWhereEq(fval9.Interface())
-				case "!=":
-					m.Remark4.AndWhereNeq(fval9.Interface())
-				case ">":
-					m.Remark4.AndWhereGt(fval9.Interface())
-				case ">=":
-					m.Remark4.AndWhereGte(fval9.Interface())
-				case "<":
-					m.Remark4.AndWhereLt(fval9.Interface())
-				case "<=":
-					m.Remark4.AndWhereLte(fval9.Interface())
-				case "llike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "rlike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "alike":
-					m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "nllike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
-				case "nrlike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
-				case "nalike":
-					m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
-				case "in":
-					m.Remark4.AndWhereIn(fval9.Interface())
-				default:
-					return nil, fmt.Errorf("unknown op tag: %s", fop9)
-				}
+			}
+		} else {
+			switch fop9 {
+			case "=":
+				m.Remark4.AndWhereEq(fval9.Interface())
+			case "!=":
+				m.Remark4.AndWhereNeq(fval9.Interface())
+			case ">":
+				m.Remark4.AndWhereGt(fval9.Interface())
+			case ">=":
+				m.Remark4.AndWhereGte(fval9.Interface())
+			case "<":
+				m.Remark4.AndWhereLt(fval9.Interface())
+			case "<=":
+				m.Remark4.AndWhereLte(fval9.Interface())
+			case "llike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "rlike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "alike":
+				m.Remark4.AndWhereLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "nllike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s", fval9.String()))
+			case "nrlike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%s%%", fval9.String()))
+			case "nalike":
+				m.Remark4.AndWhereNotLike(fmt.Sprintf("%%%s%%", fval9.String()))
+			case "in":
+				m.Remark4.AndWhereIn(fval9.Interface())
+			default:
+				return nil, fmt.Errorf("unknown op tag: %s", fop9)
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("Classes")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("Classes")
+		m.Classes.InitRel()
+		m.Classes.SetForJoin()
+		m.Classes.FromQuery(sval0.Interface())
 	}
 	return m, nil
 }
@@ -15141,7 +16956,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval0.Kind() != reflect.Ptr {
 			if !ok {
-				l.Id.AndWhereEq(fval0.Interface())
+				switch fval0.Kind() {
+				case reflect.Struct:
+					if ftyp0.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval0.Interface())
+					}
+				default:
+					l.Id.AndWhereEq(fval0.Interface())
+				}
 			} else {
 				switch fop0 {
 				case "=":
@@ -15185,7 +17009,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval1.Kind() != reflect.Ptr {
 			if !ok {
-				l.GradeName.AndWhereEq(fval1.Interface())
+				switch fval1.Kind() {
+				case reflect.Struct:
+					if ftyp1.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval1.Interface())
+					}
+				default:
+					l.GradeName.AndWhereEq(fval1.Interface())
+				}
 			} else {
 				switch fop1 {
 				case "=":
@@ -15229,7 +17062,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval2.Kind() != reflect.Ptr {
 			if !ok {
-				l.GradeCode.AndWhereEq(fval2.Interface())
+				switch fval2.Kind() {
+				case reflect.Struct:
+					if ftyp2.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval2.Interface())
+					}
+				default:
+					l.GradeCode.AndWhereEq(fval2.Interface())
+				}
 			} else {
 				switch fop2 {
 				case "=":
@@ -15273,7 +17115,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval3.Kind() != reflect.Ptr {
 			if !ok {
-				l.InsertDatetime.AndWhereEq(fval3.Interface())
+				switch fval3.Kind() {
+				case reflect.Struct:
+					if ftyp3.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval3.Interface())
+					}
+				default:
+					l.InsertDatetime.AndWhereEq(fval3.Interface())
+				}
 			} else {
 				switch fop3 {
 				case "=":
@@ -15317,7 +17168,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval4.Kind() != reflect.Ptr {
 			if !ok {
-				l.UpdateDatetime.AndWhereEq(fval4.Interface())
+				switch fval4.Kind() {
+				case reflect.Struct:
+					if ftyp4.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval4.Interface())
+					}
+				default:
+					l.UpdateDatetime.AndWhereEq(fval4.Interface())
+				}
 			} else {
 				switch fop4 {
 				case "=":
@@ -15361,7 +17221,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval5.Kind() != reflect.Ptr {
 			if !ok {
-				l.Status.AndWhereEq(fval5.Interface())
+				switch fval5.Kind() {
+				case reflect.Struct:
+					if ftyp5.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval5.Interface())
+					}
+				default:
+					l.Status.AndWhereEq(fval5.Interface())
+				}
 			} else {
 				switch fop5 {
 				case "=":
@@ -15405,7 +17274,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval6.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark1.AndWhereEq(fval6.Interface())
+				switch fval6.Kind() {
+				case reflect.Struct:
+					if ftyp6.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval6.Interface())
+					}
+				default:
+					l.Remark1.AndWhereEq(fval6.Interface())
+				}
 			} else {
 				switch fop6 {
 				case "=":
@@ -15449,7 +17327,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval7.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark2.AndWhereEq(fval7.Interface())
+				switch fval7.Kind() {
+				case reflect.Struct:
+					if ftyp7.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval7.Interface())
+					}
+				default:
+					l.Remark2.AndWhereEq(fval7.Interface())
+				}
 			} else {
 				switch fop7 {
 				case "=":
@@ -15493,7 +17380,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval8.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark3.AndWhereEq(fval8.Interface())
+				switch fval8.Kind() {
+				case reflect.Struct:
+					if ftyp8.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval8.Interface())
+					}
+				default:
+					l.Remark3.AndWhereEq(fval8.Interface())
+				}
 			} else {
 				switch fop8 {
 				case "=":
@@ -15537,7 +17433,16 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 		}
 		if fval9.Kind() != reflect.Ptr {
 			if !ok {
-				l.Remark4.AndWhereEq(fval9.Interface())
+				switch fval9.Kind() {
+				case reflect.Struct:
+					if ftyp9.Name == "Classes" {
+						l.Classes.InitRel()
+						l.Classes.SetForJoin()
+						l.Classes.FromQuery(fval9.Interface())
+					}
+				default:
+					l.Remark4.AndWhereEq(fval9.Interface())
+				}
 			} else {
 				switch fop9 {
 				case "=":
@@ -15571,6 +17476,13 @@ func (l *GradeList) FromQuery(query interface{}) (*GradeList, error) {
 				}
 			}
 		}
+	}
+	styp0, exists := typ.FieldByName("Classes")
+	if exists && styp0.Type.Kind() == reflect.Struct {
+		sval0 := val.FieldByName("Classes")
+		l.Classes.InitRel()
+		l.Classes.SetForJoin()
+		l.Classes.FromQuery(sval0.Interface())
 	}
 	return l, nil
 }

@@ -706,20 +706,20 @@ var tests = []test{
 		"list from query",
 		func(t *testing.T) {
 			type query struct {
-				IntelUserCode *string `op:"="`
-				Class         *string `op:"="`
+				Name      string `op:"="`
+				BasicInfo struct {
+					IntelUserCode string
+				}
 			}
 			var q query
-			qf1 := "hello"
-			qf2 := "world"
-			q.IntelUserCode = &qf1
-			q.Class = &qf2
-			stuinfos, err := model.NewStudentbasicinfoList().FromQuery(q)
+			q.Name = "name"
+			q.BasicInfo.IntelUserCode = "intelusercode"
+			stuinfos, err := model.NewUserList().FromQuery(q)
 			if err != nil {
 				t.Fatal(err)
 			}
 			stuinfos.IntelUserCode.ForSelect()
-			stuinfos.Class.ForSelect()
+			stuinfos.Phone.ForSelect()
 			if err := nborm.Query(db, stuinfos); err != nil {
 				t.Fatal(err)
 			}
